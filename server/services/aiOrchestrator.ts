@@ -241,26 +241,30 @@ export class AIOrchestrator {
       anthropic: false,
       overall: false
     };
-    
+
+    // Test OpenAI with minimal API call
     try {
-      // Test OpenAI
-      await generateWithOpenAI(
-        { title: "Test", description: "Test", category: "Test", priority: 1 },
-        { companyName: "Test" } as CompanyProfile,
-        "Test"
-      );
+      const openai = await import('openai');
+      const client = new openai.default({ apiKey: process.env.OPENAI_API_KEY });
+      await client.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: "Test" }],
+        max_tokens: 5
+      });
       results.openai = true;
     } catch (error) {
       console.error('OpenAI health check failed:', error);
     }
     
+    // Test Anthropic with minimal API call
     try {
-      // Test Anthropic
-      await generateDocumentWithClaude(
-        { title: "Test", description: "Test", category: "Test", priority: 1 },
-        { companyName: "Test" } as CompanyProfile,
-        "Test"
-      );
+      const Anthropic = await import('@anthropic-ai/sdk');
+      const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
+      await client.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 5,
+        messages: [{ role: "user", content: "Test" }]
+      });
       results.anthropic = true;
     } catch (error) {
       console.error('Anthropic health check failed:', error);

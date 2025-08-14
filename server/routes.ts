@@ -13,6 +13,17 @@ import { generationLimiter } from "./middleware/security";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Public health check endpoint - must be before auth setup
+  app.get("/api/ai/health", async (req: any, res) => {
+    try {
+      const health = await aiOrchestrator.healthCheck();
+      res.json(health);
+    } catch (error) {
+      console.error("AI Health check failed:", error);
+      res.status(500).json({ message: "Health check failed", error: error.message });
+    }
+  });
+
   // Auth middleware
   await setupAuth(app);
 
@@ -686,7 +697,7 @@ Category: ${category}`;
     }
   });
 
-  // AI service endpoints
+  // AI service endpoints - health check available without auth for monitoring
   app.get("/api/ai/models", isAuthenticated, async (req: any, res) => {
     try {
       const models = aiOrchestrator.getAvailableModels();
@@ -696,14 +707,7 @@ Category: ${category}`;
     }
   });
 
-  app.get("/api/ai/health", isAuthenticated, async (req: any, res) => {
-    try {
-      const health = await aiOrchestrator.healthCheck();
-      res.json(health);
-    } catch (error) {
-      res.status(500).json({ message: "Health check failed", details: error });
-    }
-  });
+  // This health check is now registered above before auth middleware
 
   app.post("/api/ai/analyze-quality", isAuthenticated, async (req: any, res) => {
     try {
