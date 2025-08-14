@@ -8,6 +8,7 @@ import { logger } from "./utils/logger";
 import { validateSchema, paginationSchema, idParamSchema } from "./utils/validation";
 import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema } from "@shared/schema";
 import { generateComplianceDocuments, frameworkTemplates } from "./services/openai";
+import { aiOrchestrator, type AIModel, type GenerationOptions } from "./services/aiOrchestrator";
 import { generationLimiter } from "./middleware/security";
 import { z } from "zod";
 
@@ -566,7 +567,7 @@ Category: ${category}`;
   // Document generation endpoint with special rate limiting
   app.post("/api/generate-documents", generationLimiter, isAuthenticated, async (req: any, res) => {
     try {
-      const { companyProfileId, framework } = req.body;
+      const { companyProfileId, framework, model = 'auto', includeQualityAnalysis = false, enableCrossValidation = false } = req.body;
       const userId = req.user.claims.sub;
       
       if (!companyProfileId || !framework) {
@@ -594,23 +595,32 @@ Category: ${category}`;
         totalDocuments: templates.length,
       });
 
-      // Start generation process asynchronously
+      // Start enhanced generation process asynchronously
       (async () => {
         try {
-          const documents = await generateComplianceDocuments(
+          const options: GenerationOptions = {
+            model: model as AIModel,
+            includeQualityAnalysis,
+            enableCrossValidation
+          };
+
+          const documents = await aiOrchestrator.generateComplianceDocuments(
             companyProfile,
             framework,
-            async (progress, currentDocument) => {
+            options,
+            async (progress) => {
               await storage.updateGenerationJob(job.id, {
-                progress,
-                documentsGenerated: Math.floor((progress / 100) * templates.length),
+                progress: progress.progress,
+                documentsGenerated: progress.completed,
               });
             }
           );
 
-          // Save generated documents
+          // Save generated documents with AI metadata
           for (let i = 0; i < documents.length; i++) {
             const template = templates[i];
+            const result = documents[i];
+            
             await storage.createDocument({
               companyProfileId,
               createdBy: userId,
@@ -618,8 +628,11 @@ Category: ${category}`;
               description: template.description,
               framework,
               category: template.category,
-              content: documents[i],
+              content: result.content,
               status: "complete",
+              aiGenerated: true,
+              aiModel: result.model,
+              generationPrompt: `Generated using ${result.model} with ${framework} framework`,
             });
           }
 
@@ -637,7 +650,7 @@ Category: ${category}`;
         }
       })();
 
-      res.status(202).json({ jobId: job.id, message: "Document generation started" });
+      res.status(202).json({ jobId: job.id, message: "Enhanced document generation started" });
     } catch (error) {
       res.status(500).json({ message: "Failed to start document generation" });
     }
@@ -670,6 +683,125 @@ Category: ${category}`;
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch framework statistics" });
+    }
+  });
+
+  // AI service endpoints
+  app.get("/api/ai/models", isAuthenticated, async (req: any, res) => {
+    try {
+      const models = aiOrchestrator.getAvailableModels();
+      res.json({ models });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch available models" });
+    }
+  });
+
+  app.get("/api/ai/health", isAuthenticated, async (req: any, res) => {
+    try {
+      const health = await aiOrchestrator.healthCheck();
+      res.json(health);
+    } catch (error) {
+      res.status(500).json({ message: "Health check failed", details: error });
+    }
+  });
+
+  app.post("/api/ai/analyze-quality", isAuthenticated, async (req: any, res) => {
+    try {
+      const { content, framework } = req.body;
+      
+      if (!content || !framework) {
+        return res.status(400).json({ message: "Content and framework are required" });
+      }
+
+      const analysis = await aiOrchestrator.analyzeQuality(content, framework);
+      res.json(analysis);
+    } catch (error) {
+      console.error("Quality analysis failed:", error);
+      res.status(500).json({ message: "Failed to analyze document quality" });
+    }
+  });
+
+  app.post("/api/ai/generate-insights", isAuthenticated, async (req: any, res) => {
+    try {
+      const { companyProfileId, framework } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!companyProfileId || !framework) {
+        return res.status(400).json({ message: "Company profile ID and framework are required" });
+      }
+
+      const companyProfile = await storage.getCompanyProfile(companyProfileId);
+      if (!companyProfile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+
+      const insights = await aiOrchestrator.generateInsights(companyProfile, framework);
+      
+      // Log insight generation for audit trail
+      await auditService.logAction({
+        action: "generate_insights",
+        entityType: "company_profile",
+        entityId: companyProfileId,
+        userId: userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        details: { framework, riskScore: insights.riskScore }
+      });
+
+      res.json(insights);
+    } catch (error) {
+      console.error("Insight generation failed:", error);
+      res.status(500).json({ message: "Failed to generate compliance insights" });
+    }
+  });
+
+  app.post("/api/documents/generate-single", isAuthenticated, async (req: any, res) => {
+    try {
+      const { companyProfileId, framework, template, model = 'auto', includeQualityAnalysis = false } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!companyProfileId || !framework || !template) {
+        return res.status(400).json({ message: "Company profile ID, framework, and template are required" });
+      }
+
+      const companyProfile = await storage.getCompanyProfile(companyProfileId);
+      if (!companyProfile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+
+      const result = await aiOrchestrator.generateDocument(
+        template,
+        companyProfile,
+        framework,
+        { model: model as AIModel, includeQualityAnalysis }
+      );
+
+      // Save generated document
+      const document = await storage.createDocument({
+        companyProfileId,
+        createdBy: userId,
+        title: template.title,
+        description: template.description,
+        framework,
+        category: template.category,
+        content: result.content,
+        status: "draft",
+        aiGenerated: true,
+        aiModel: result.model,
+        generationPrompt: `Single document generation using ${result.model}`,
+      });
+
+      res.json({ 
+        document, 
+        quality: result.qualityScore ? {
+          score: result.qualityScore,
+          feedback: result.feedback,
+          suggestions: result.suggestions
+        } : null
+      });
+    } catch (error) {
+      console.error("Single document generation failed:", error);
+      res.status(500).json({ message: "Failed to generate document" });
     }
   });
 
