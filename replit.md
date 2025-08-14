@@ -6,6 +6,15 @@ ComplianceAI is a web application that helps organizations generate compliance d
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes (August 2025)
+
+## Major Enhancements Completed
+- **Security & Middleware**: Implemented comprehensive security middleware with rate limiting, input sanitization, CSRF protection, and enhanced error handling
+- **User Experience Improvements**: Added welcome wizard onboarding flow, loading skeleton components, error boundaries, and persistent storage hooks
+- **Enhanced Dashboard**: Integrated document template previews, improved generation progress tracking, and comprehensive statistics display
+- **Component Architecture**: Refactored layout system with better error handling and state management
+- **Performance Optimizations**: Added parallel component loading, improved caching strategies, and better form validation
+
 # System Architecture
 
 ## Frontend Architecture
@@ -36,8 +45,16 @@ The application uses a flexible storage architecture:
 - **Current Implementation**: In-memory storage for development with interface ready for PostgreSQL integration
 - **Data Relationships**: Foreign key relationships between profiles and documents/jobs
 
-## Authentication and Authorization
-Currently no authentication system is implemented - the application assumes single-tenant usage. The architecture is prepared for future auth integration through middleware patterns.
+## Security and Middleware
+Comprehensive security implementation including:
+- **Rate Limiting**: Multiple tiers for general requests, authentication, and document generation
+- **Input Sanitization**: Prevents XSS and injection attacks through request sanitization
+- **Security Headers**: Implements CORS, XSS protection, content type validation, and frame options
+- **Error Handling**: Enhanced error boundaries with logging and user-friendly error states
+- **Request Validation**: Validates content types, request sizes, and data integrity
+
+## Authentication and Authorization  
+Currently no authentication system is implemented - the application assumes single-tenant usage. The security architecture is prepared for future auth integration through middleware patterns and includes comprehensive request validation and rate limiting.
 
 ## AI Document Generation
 The core feature uses OpenAI's API to generate compliance documents:

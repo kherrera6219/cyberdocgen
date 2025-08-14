@@ -3,9 +3,12 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ProgressModal } from "@/components/ui/progress-modal";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { DashboardSkeleton } from "@/components/loading/loading-skeleton";
+import { DocumentPreview } from "@/components/templates/document-preview";
 import { 
   TrendingUp, 
   FileText, 
@@ -17,7 +20,9 @@ import {
   Lock,
   Wand2,
   Edit,
-  CheckCircle
+  CheckCircle,
+  Eye,
+  Zap
 } from "lucide-react";
 import type { CompanyProfile, Document, GenerationJob } from "@shared/schema";
 
@@ -26,16 +31,23 @@ export default function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [currentFramework, setCurrentFramework] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewFramework, setPreviewFramework] = useState("");
 
   // Get company profiles
-  const { data: profiles = [] } = useQuery<CompanyProfile[]>({
+  const { data: profiles = [], isLoading: profilesLoading } = useQuery<CompanyProfile[]>({
     queryKey: ["/api/company-profiles"],
   });
 
   // Get documents
-  const { data: documents = [] } = useQuery<Document[]>({
+  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
+
+  // Show loading skeleton if data is loading
+  if (profilesLoading || documentsLoading) {
+    return <DashboardSkeleton />;
+  }
 
   // Get the first profile (for demo purposes)
   const profile = profiles[0];
@@ -266,14 +278,27 @@ export default function Dashboard() {
                   </span>
                 </div>
                 
-                <Button 
-                  className="w-full bg-accent hover:bg-accent/90"
-                  onClick={() => handleGenerateDocuments("ISO27001")}
-                  disabled={!profile || isGenerating}
-                >
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generate Documents
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    className="w-full bg-accent hover:bg-accent/90"
+                    onClick={() => handleGenerateDocuments("ISO27001")}
+                    disabled={!profile || isGenerating}
+                  >
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Generate Documents
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      setPreviewFramework("ISO27001");
+                      setShowPreview(true);
+                    }}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview Templates
+                  </Button>
+                </div>
               </CardContent>
             </Card>
             
@@ -295,14 +320,27 @@ export default function Dashboard() {
                   </span>
                 </div>
                 
-                <Button 
-                  className="w-full"
-                  onClick={() => handleGenerateDocuments("SOC2")}
-                  disabled={!profile || isGenerating}
-                >
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generate Documents
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    className="w-full"
+                    onClick={() => handleGenerateDocuments("SOC2")}
+                    disabled={!profile || isGenerating}
+                  >
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Generate Documents
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      setPreviewFramework("SOC2");
+                      setShowPreview(true);
+                    }}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview Templates
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -395,13 +433,53 @@ export default function Dashboard() {
         </Card>
       )}
 
-      <ProgressModal
-        isOpen={isGenerating}
-        onOpenChange={setIsGenerating}
-        progress={generationProgress}
-        currentStep={`Generating ${currentFramework} documents...`}
-        framework={currentFramework}
-      />
+      {/* Generation Progress Dialog */}
+      <Dialog open={isGenerating} onOpenChange={setIsGenerating}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Zap className="w-5 h-5 text-primary" />
+              <span>Generating {currentFramework} Documents</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span>Progress</span>
+                <span>{generationProgress}%</span>
+              </div>
+              <Progress value={generationProgress} className="w-full" />
+            </div>
+            
+            <p className="text-sm text-gray-600">
+              AI is generating customized compliance documents based on your company profile. 
+              This process typically takes 10-15 minutes.
+            </p>
+            
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <p className="text-xs text-blue-700">
+                Tip: You can continue using other features while generation is in progress.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Document Templates Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-6xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Document Templates - {previewFramework}</DialogTitle>
+          </DialogHeader>
+          {showPreview && (
+            <DocumentPreview 
+              templates={[]}
+              framework={previewFramework} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

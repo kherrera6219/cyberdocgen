@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema } from "@shared/schema";
 import { generateComplianceDocuments, frameworkTemplates } from "./services/openai";
+import { generationLimiter } from "./middleware/security";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -160,8 +161,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Document generation endpoint
-  app.post("/api/generate-documents", async (req, res) => {
+  // Document generation endpoint with special rate limiting
+  app.post("/api/generate-documents", generationLimiter, async (req, res) => {
     try {
       const { companyProfileId, framework } = req.body;
       
