@@ -27,10 +27,10 @@ export function useLocalStorage<T>(key: string, defaultValue: T): StorageState<T
     }
   }, [key]);
 
-  const setValue = (value: T | ((prev: T) => T)) => {
+  const setValue = (newValue: T | ((prev: T) => T)) => {
     try {
       setError(null);
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      const valueToStore = newValue instanceof Function ? newValue(value) : newValue;
       setStoredValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (err) {
@@ -62,10 +62,10 @@ export function useSessionStorage<T>(key: string, defaultValue: T): StorageState
     }
   }, [key]);
 
-  const setValue = (value: T | ((prev: T) => T)) => {
+  const setValue = (newValue: T | ((prev: T) => T)) => {
     try {
       setError(null);
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      const valueToStore = newValue instanceof Function ? newValue(value) : newValue;
       setStoredValue(valueToStore);
       window.sessionStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (err) {

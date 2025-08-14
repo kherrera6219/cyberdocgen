@@ -32,7 +32,7 @@ function Router() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/profile" component={CompanyProfile} />
           <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
-          <Route path="/workspace" component={DocumentWorkspace} />
+          <Route path="/workspace" component={() => <DocumentWorkspace organizationId="default" />} />
           <Route path="/documents" component={Documents} />
           <Route path="/audit-trail" component={AuditTrail} />
           <Route path="/document-versions/:id" component={(props: any) => <DocumentVersions documentId={props.params.id} documentTitle="Document" />} />
