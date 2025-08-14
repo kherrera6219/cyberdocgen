@@ -862,8 +862,9 @@ Category: ${category}`;
       });
 
       res.json(extractedProfile);
-    } catch (error: any) {
-      logger.error("Profile extraction failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Profile extraction failed", { error: errorMessage, userId: req.user?.claims?.sub }, req);
       res.status(500).json({ message: "Failed to extract profile" });
     }
   });
@@ -895,8 +896,9 @@ Category: ${category}`;
       });
 
       res.json(response);
-    } catch (error: any) {
-      logger.error("Chat processing failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Chat processing failed", { error: errorMessage, userId: req.user?.claims?.sub }, req);
       res.status(500).json({ message: "Failed to process chat message" });
     }
   });
@@ -906,8 +908,9 @@ Category: ${category}`;
       const framework = req.query.framework as string;
       const suggestions = complianceChatbot.getSuggestedQuestions(framework);
       res.json(suggestions);
-    } catch (error: any) {
-      logger.error("Chat suggestions failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Chat suggestions failed", { error: errorMessage, userId: req.user?.claims?.sub }, req);
       res.status(500).json({ message: "Failed to get chat suggestions" });
     }
   });
@@ -1017,8 +1020,9 @@ Category: ${category}`;
       });
 
       res.json(qualityScore);
-    } catch (error: any) {
-      logger.error("Quality scoring failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Quality scoring failed", { error: errorMessage, userId: req.user?.claims?.sub }, req);
       res.status(500).json({ message: "Failed to analyze document quality" });
     }
   });
@@ -1038,8 +1042,9 @@ Category: ${category}`;
       );
       
       res.json(alignment);
-    } catch (error: any) {
-      logger.error("Framework alignment check failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Framework alignment check failed", { error: errorMessage, userId: req.user?.claims?.sub }, req);
       res.status(500).json({ message: "Failed to check framework alignment" });
     }
   });
