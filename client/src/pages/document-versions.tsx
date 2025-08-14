@@ -14,7 +14,7 @@ import {
   History, 
   Eye, 
   Download, 
-  Compare, 
+  GitCompare, 
   RotateCcw, 
   GitBranch,
   Clock,
@@ -164,7 +164,8 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
     },
   });
 
-  const getChangeTypeColor = (changeType: string) => {
+  const getChangeTypeColor = (changeType: string | null) => {
+    if (!changeType) return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
     switch (changeType) {
       case "major":
         return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
@@ -177,7 +178,8 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
+    if (!status) return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
     switch (status) {
       case "published":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
@@ -197,7 +199,8 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | null) => {
+    if (!date) return 'Unknown date';
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
@@ -249,7 +252,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
               setSelectedVersions([]);
             }}
           >
-            <Compare className="h-4 w-4 mr-2" />
+            <GitCompare className="h-4 w-4 mr-2" />
             {compareMode ? "Exit Compare" : "Compare Versions"}
           </Button>
           
@@ -267,7 +270,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
         <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
-              <Compare className="h-5 w-5 text-blue-600" />
+              <GitCompare className="h-5 w-5 text-blue-600" />
               <span className="text-blue-800 dark:text-blue-200">
                 Compare Mode Active - Select up to 2 versions to compare ({selectedVersions.length}/2 selected)
               </span>
