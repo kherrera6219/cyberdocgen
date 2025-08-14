@@ -9,6 +9,10 @@ import { validateSchema, paginationSchema, idParamSchema } from "./utils/validat
 import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema } from "@shared/schema";
 import { generateComplianceDocuments, frameworkTemplates } from "./services/openai";
 import { aiOrchestrator, type AIModel, type GenerationOptions } from "./services/aiOrchestrator";
+import { documentAnalysisService } from "./services/documentAnalysis";
+import { complianceChatbot } from "./services/chatbot";
+import { riskAssessmentService } from "./services/riskAssessment";
+import { qualityScoringService } from "./services/qualityScoring";
 import { generationLimiter } from "./middleware/security";
 import { z } from "zod";
 
@@ -806,6 +810,237 @@ Category: ${category}`;
     } catch (error) {
       console.error("Single document generation failed:", error);
       res.status(500).json({ message: "Failed to generate document" });
+    }
+  });
+
+  // Phase 2: Document Analysis & RAG endpoints
+  app.post("/api/ai/analyze-document", isAuthenticated, async (req: any, res) => {
+    try {
+      const { content, filename, framework } = req.body;
+      
+      if (!content || !filename) {
+        return res.status(400).json({ message: "Content and filename are required" });
+      }
+
+      const analysis = await documentAnalysisService.analyzeDocument(content, filename, framework);
+      
+      await auditService.logAction({
+        action: "analyze",
+        entityType: "document",
+        entityId: filename,
+        userId: req.user.claims.sub,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { framework, analysisType: "document" }
+      });
+
+      res.json(analysis);
+    } catch (error: any) {
+      logger.error("Document analysis failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: "Failed to analyze document" });
+    }
+  });
+
+  app.post("/api/ai/extract-profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const { content } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      const extractedProfile = await documentAnalysisService.extractCompanyProfile(content);
+      
+      await auditService.logAction({
+        action: "extract",
+        entityType: "company_profile",
+        entityId: `profile_${Date.now()}`,
+        userId: req.user.claims.sub,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { extractionType: "profile" }
+      });
+
+      res.json(extractedProfile);
+    } catch (error: any) {
+      logger.error("Profile extraction failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: "Failed to extract profile" });
+    }
+  });
+
+  // Compliance Chatbot endpoints
+  app.post("/api/ai/chat", isAuthenticated, async (req: any, res) => {
+    try {
+      const { message, framework, sessionId } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      const response = await complianceChatbot.processMessage(
+        message,
+        req.user.claims.sub,
+        sessionId,
+        framework
+      );
+      
+      await auditService.logAction({
+        action: "chat",
+        entityType: "ai_conversation",
+        entityId: sessionId || `chat_${Date.now()}`,
+        userId: req.user.claims.sub,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { framework, messageLength: message.length }
+      });
+
+      res.json(response);
+    } catch (error: any) {
+      logger.error("Chat processing failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: "Failed to process chat message" });
+    }
+  });
+
+  app.get("/api/ai/chat/suggestions", isAuthenticated, async (req: any, res) => {
+    try {
+      const framework = req.query.framework as string;
+      const suggestions = complianceChatbot.getSuggestedQuestions(framework);
+      res.json(suggestions);
+    } catch (error: any) {
+      logger.error("Chat suggestions failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: "Failed to get chat suggestions" });
+    }
+  });
+
+  // Risk Assessment endpoints
+  app.post("/api/ai/risk-assessment", isAuthenticated, async (req: any, res) => {
+    try {
+      const { frameworks, includeDocuments } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!frameworks || !Array.isArray(frameworks) || frameworks.length === 0) {
+        return res.status(400).json({ message: "At least one framework is required" });
+      }
+
+      // Get user's company profile
+      const companyProfile = await storage.getCompanyProfile(userId);
+      if (!companyProfile) {
+        return res.status(400).json({ message: "Company profile is required for risk assessment" });
+      }
+
+      // Get existing documents if requested
+      let existingDocuments: string[] = [];
+      if (includeDocuments) {
+        const documents = await storage.getDocuments();
+        const userDocs = documents.filter((doc: any) => doc.userId === userId);
+        existingDocuments = userDocs.map((doc: any) => doc.title);
+      }
+
+      const assessment = await riskAssessmentService.assessOrganizationalRisk(
+        companyProfile,
+        frameworks,
+        existingDocuments
+      );
+      
+      await auditService.logAction({
+        action: "assess",
+        entityType: "risk_assessment",
+        entityId: `risk_${Date.now()}`,
+        userId: req.user.claims.sub,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { frameworks, includeDocuments }
+      });
+
+      res.json(assessment);
+    } catch (error: any) {
+      logger.error("Risk assessment failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: "Failed to conduct risk assessment" });
+    }
+  });
+
+  app.post("/api/ai/threat-analysis", isAuthenticated, async (req: any, res) => {
+    try {
+      const { industry, companySize, frameworks } = req.body;
+      
+      if (!industry || !companySize || !frameworks) {
+        return res.status(400).json({ message: "Industry, company size, and frameworks are required" });
+      }
+
+      const threatAnalysis = await riskAssessmentService.analyzeThreatLandscape(
+        industry,
+        companySize,
+        frameworks
+      );
+      
+      await auditService.logAction({
+        action: "analyze",
+        entityType: "threat_landscape",
+        entityId: `threat_${Date.now()}`,
+        userId: req.user.claims.sub,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { industry, companySize, frameworks }
+      });
+
+      res.json(threatAnalysis);
+    } catch (error: any) {
+      logger.error("Threat analysis failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: "Failed to analyze threat landscape" });
+    }
+  });
+
+  // Quality Scoring endpoints
+  app.post("/api/ai/quality-score", isAuthenticated, async (req: any, res) => {
+    try {
+      const { content, title, framework, documentType } = req.body;
+      
+      if (!content || !title || !framework || !documentType) {
+        return res.status(400).json({ message: "Content, title, framework, and document type are required" });
+      }
+
+      const qualityScore = await qualityScoringService.analyzeDocumentQuality(
+        content,
+        title,
+        framework,
+        documentType
+      );
+      
+      await auditService.logAction({
+        action: "score",
+        entityType: "document_quality",
+        entityId: `quality_${Date.now()}`,
+        userId: req.user.claims.sub,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { title, framework, documentType, score: qualityScore.overallScore }
+      });
+
+      res.json(qualityScore);
+    } catch (error: any) {
+      logger.error("Quality scoring failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: "Failed to analyze document quality" });
+    }
+  });
+
+  app.post("/api/ai/framework-alignment", isAuthenticated, async (req: any, res) => {
+    try {
+      const { content, framework, documentType } = req.body;
+      
+      if (!content || !framework || !documentType) {
+        return res.status(400).json({ message: "Content, framework, and document type are required" });
+      }
+
+      const alignment = await qualityScoringService.checkFrameworkAlignment(
+        content,
+        framework,
+        documentType
+      );
+      
+      res.json(alignment);
+    } catch (error: any) {
+      logger.error("Framework alignment check failed", { error: error.message, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: "Failed to check framework alignment" });
     }
   });
 
