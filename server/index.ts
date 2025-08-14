@@ -11,6 +11,9 @@ import {
 
 const app = express();
 
+// Trust proxy for rate limiting in Replit environment
+app.set('trust proxy', true);
+
 // Security middleware - only apply to API routes
 app.use(securityHeaders);
 app.use('/api', generalLimiter);

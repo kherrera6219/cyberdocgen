@@ -148,36 +148,43 @@ export default function Dashboard() {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Compliance Dashboard</h1>
-        <p className="text-gray-600">Automate your compliance documentation with AI-powered generation</p>
+        <div className="flex items-center space-x-4 mb-4">
+          <div className="w-12 h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
+            <Layers className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Compliance Dashboard</h1>
+            <p className="text-gray-600 dark:text-gray-300">Automate your compliance documentation with AI-powered generation</p>
+          </div>
+        </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Enhanced Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-accent dark:bg-gray-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completion Rate</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completion Rate</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {documents.length > 0 ? Math.round((completedDocs / documents.length) * 100) : 0}%
                 </p>
               </div>
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-accent/10 to-accent/20 rounded-lg flex items-center justify-center shadow-sm">
                 <TrendingUp className="w-6 h-6 text-accent" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary dark:bg-gray-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Documents Generated</p>
-                <p className="text-2xl font-bold text-gray-900">{completedDocs}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Documents Generated</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedDocs}</p>
               </div>
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg flex items-center justify-center shadow-sm">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
             </div>
@@ -261,19 +268,19 @@ export default function Dashboard() {
         <CardContent className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* ISO 27001 Card */}
-            <Card className="border border-gray-200">
+            <Card className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                      <Tag className="w-5 h-5 text-accent" />
+                    <div className="w-12 h-12 bg-gradient-to-r from-accent/10 to-accent/20 rounded-xl flex items-center justify-center shadow-sm">
+                      <Tag className="w-6 h-6 text-accent" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">ISO 27001</h3>
-                      <p className="text-sm text-gray-600">Information Security Management</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">ISO 27001</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Information Security Management</p>
                     </div>
                   </div>
-                  <span className="text-xs bg-accent text-white px-2 py-1 rounded-full">
+                  <span className="text-xs bg-gradient-to-r from-accent to-accent/80 text-white px-3 py-1.5 rounded-full shadow-sm">
                     {iso27001Progress}% Complete
                   </span>
                 </div>
@@ -303,19 +310,19 @@ export default function Dashboard() {
             </Card>
             
             {/* SOC 2 Type 2 Card */}
-            <Card className="border border-gray-200">
+            <Card className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-primary" />
+                    <div className="w-12 h-12 bg-gradient-to-r from-primary/10 to-primary/20 rounded-xl flex items-center justify-center shadow-sm">
+                      <Shield className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">SOC 2 Type 2</h3>
-                      <p className="text-sm text-gray-600">System & Organization Controls</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">SOC 2 Type 2</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">System & Organization Controls</p>
                     </div>
                   </div>
-                  <span className="text-xs bg-warning text-white px-2 py-1 rounded-full">
+                  <span className="text-xs bg-gradient-to-r from-warning to-warning/80 text-white px-3 py-1.5 rounded-full shadow-sm">
                     {soc2Progress}% Complete
                   </span>
                 </div>

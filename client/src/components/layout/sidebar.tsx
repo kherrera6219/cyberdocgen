@@ -45,17 +45,17 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
+    <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-colors">
       <nav className="p-4 space-y-2">
         <div className="mb-6">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Main</h2>
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Main</h2>
           {mainNavItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <div className={cn(
-                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
+                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
                 isActive(item.href)
-                  ? "text-primary bg-blue-50"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
               )}>
                 <item.icon className="w-5 h-5 mr-3" />
                 {item.label}
@@ -65,20 +65,20 @@ export default function Sidebar() {
         </div>
         
         <div className="mb-6">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Compliance Frameworks</h2>
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Compliance Frameworks</h2>
           {frameworkNavItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <div className={cn(
-                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
+                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
                 isActive(item.href)
-                  ? "text-primary bg-blue-50"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
               )}>
                 <item.icon className="w-5 h-5 mr-3" />
                 {item.label}
                 {item.badge && (
                   <span className={cn(
-                    "ml-auto text-xs text-white px-2 py-1 rounded-full",
+                    "ml-auto text-xs text-white px-2 py-1 rounded-full shadow-sm",
                     item.badgeColor
                   )}>
                     {item.badge}
@@ -90,14 +90,14 @@ export default function Sidebar() {
         </div>
         
         <div>
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Documents</h2>
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Documents</h2>
           {documentNavItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <div className={cn(
-                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
+                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
                 isActive(item.href)
-                  ? "text-primary bg-blue-50"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
               )}>
                 <item.icon className="w-5 h-5 mr-3" />
                 {item.label}
