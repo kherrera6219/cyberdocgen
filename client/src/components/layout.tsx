@@ -38,12 +38,17 @@ export default function Layout({ children }: LayoutProps) {
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header />
-        <div className="flex h-screen pt-16">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto">
+        <div className="flex h-screen pt-14 sm:pt-16">
+          {/* Desktop Sidebar - Hidden on mobile */}
+          <div className="hidden lg:flex">
+            <Sidebar />
+          </div>
+          
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto w-full lg:w-auto">
             <ErrorBoundary
               fallback={
-                <div className="flex items-center justify-center h-full">
+                <div className="flex items-center justify-center h-full px-4">
                   <div className="text-center">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       Something went wrong
@@ -55,7 +60,9 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               }
             >
-              {children}
+              <div className="p-4 sm:p-6 lg:p-8">
+                {children}
+              </div>
             </ErrorBoundary>
           </main>
         </div>

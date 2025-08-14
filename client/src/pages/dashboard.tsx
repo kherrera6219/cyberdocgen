@@ -146,46 +146,47 @@ export default function Dashboard() {
     .slice(0, 3);
 
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
-            <Layers className="w-6 h-6 text-white" />
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
+            <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Compliance Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-300">Automate your compliance documentation with AI-powered generation</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Compliance Dashboard</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Automate your compliance documentation with AI-powered generation</p>
           </div>
         </div>
       </div>
 
       {/* Enhanced Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-accent dark:bg-gray-800">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completion Rate</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Completion Rate</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {documents.length > 0 ? Math.round((completedDocs / documents.length) * 100) : 0}%
                 </p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-r from-accent/10 to-accent/20 rounded-lg flex items-center justify-center shadow-sm">
-                <TrendingUp className="w-6 h-6 text-accent" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-accent/10 to-accent/20 rounded-lg flex items-center justify-center shadow-sm">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
               </div>
             </div>
           </CardContent>
         </Card>
         
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary dark:bg-gray-800">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Documents Generated</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedDocs}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Documents Generated</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{completedDocs}</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg flex items-center justify-center shadow-sm">
-                <FileText className="w-6 h-6 text-primary" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg flex items-center justify-center shadow-sm">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
             </div>
           </CardContent>
@@ -222,19 +223,19 @@ export default function Dashboard() {
 
       {/* Company Profile Section */}
       {profile && (
-        <Card className="mb-8">
-          <CardHeader className="border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <CardTitle>Company Profile</CardTitle>
-              <Button size="sm">
+        <Card className="mb-6 sm:mb-8">
+          <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+              <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">Company Profile</CardTitle>
+              <Button size="sm" className="self-start sm:self-auto">
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
               </Button>
             </div>
           </CardHeader>
           
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
               <div>
                 <h3 className="text-md font-semibold text-gray-900 mb-4">Basic Information</h3>
                 <div className="space-y-2">
@@ -259,14 +260,14 @@ export default function Dashboard() {
       )}
 
       {/* Document Generation Section */}
-      <Card className="mb-8">
-        <CardHeader className="border-b border-gray-200">
-          <CardTitle>AI Document Generation</CardTitle>
-          <p className="text-sm text-gray-600 mt-1">Generate compliance documentation based on your company profile</p>
+      <Card className="mb-6 sm:mb-8">
+        <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+          <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">AI Document Generation</CardTitle>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Generate compliance documentation based on your company profile</p>
         </CardHeader>
         
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* ISO 27001 Card */}
             <Card className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
               <CardContent className="p-6">

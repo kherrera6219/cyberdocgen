@@ -96,18 +96,19 @@ export default function Documents() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {frameworkFilter ? `${frameworkFilter} Documents` : 'All Documents'}
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+          {frameworkFilter ? `${frameworkFilter} Documents` : 'Document Library'}
         </h1>
-        <p className="text-gray-600">Manage your compliance documentation and exports</p>
+        <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">Manage your compliance documentation and exports</p>
       </div>
 
       {/* Filters and Search */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
+      <Card>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -120,9 +121,9 @@ export default function Documents() {
               </div>
             </div>
             
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -133,9 +134,10 @@ export default function Documents() {
                 </SelectContent>
               </Select>
 
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
-                New Document
+                <span className="hidden sm:inline">New Document</span>
+                <span className="sm:hidden">New</span>
               </Button>
             </div>
           </div>

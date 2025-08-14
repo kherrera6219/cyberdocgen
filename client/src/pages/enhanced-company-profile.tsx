@@ -171,41 +171,48 @@ export default function EnhancedCompanyProfile() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <Building2 className="h-8 w-8" />
-            Enhanced Company Profile
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Create a comprehensive company profile with key personnel and compliance framework configurations
-          </p>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
+            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Enhanced Company Profile</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Create a comprehensive company profile with key personnel and compliance framework configurations</p>
+          </div>
         </div>
+      </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="basic" className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Basic Info
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
+                <TabsTrigger value="basic" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Basic Info</span>
+                  <span className="sm:hidden">Basic</span>
                 </TabsTrigger>
-                <TabsTrigger value="personnel" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Key Personnel
+                <TabsTrigger value="personnel" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Key Personnel</span>
+                  <span className="sm:hidden">Personnel</span>
                 </TabsTrigger>
-                <TabsTrigger value="frameworks" className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Frameworks
+                <TabsTrigger value="frameworks" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden lg:inline">Frameworks</span>
+                  <span className="lg:hidden">Frameworks</span>
                 </TabsTrigger>
-                <TabsTrigger value="fedramp" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  FedRAMP
+                <TabsTrigger value="fedramp" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden lg:inline">FedRAMP</span>
+                  <span className="lg:hidden">FedRAMP</span>
                 </TabsTrigger>
-                <TabsTrigger value="controls" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Controls
+                <TabsTrigger value="controls" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden lg:inline">Controls</span>
+                  <span className="lg:hidden">Controls</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -849,7 +856,6 @@ export default function EnhancedCompanyProfile() {
             </div>
           </form>
         </Form>
-      </div>
     </div>
   );
 }
