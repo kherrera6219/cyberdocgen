@@ -241,6 +241,230 @@ Category: ${category}`;
     }
   });
 
+  // Document versions endpoints
+  app.get('/api/documents/:id/versions', isAuthenticated, async (req: any, res) => {
+    try {
+      // Mock versions data - replace with actual storage call
+      const mockVersions = [
+        {
+          id: "ver-3",
+          documentId: req.params.id,
+          versionNumber: 3,
+          title: "Information Security Policy v3.0",
+          content: "# Information Security Policy v3.0\n\n## Overview...",
+          changes: "Major update: Added cloud security controls, enhanced incident response",
+          changeType: "major",
+          createdBy: req.user?.claims?.sub || "user-1",
+          createdAt: new Date("2024-08-14T16:00:00Z"),
+          status: "published",
+          fileSize: 45000,
+          checksum: "a1b2c3d4e5f6..."
+        },
+        {
+          id: "ver-2",
+          documentId: req.params.id,
+          versionNumber: 2,
+          title: "Information Security Policy v2.1",
+          content: "# Information Security Policy v2.1\n\n## Overview...",
+          changes: "Minor update: Fixed typos, updated compliance references",
+          changeType: "minor",
+          createdBy: req.user?.claims?.sub || "user-1",
+          createdAt: new Date("2024-08-10T14:30:00Z"),
+          status: "archived",
+          fileSize: 42000,
+          checksum: "b2c3d4e5f6g7..."
+        }
+      ];
+      
+      res.json(mockVersions);
+    } catch (error) {
+      console.error('Error fetching document versions:', error);
+      res.status(500).json({ message: 'Failed to fetch document versions' });
+    }
+  });
+
+  // Create new document version
+  app.post('/api/documents/:id/versions', isAuthenticated, async (req: any, res) => {
+    try {
+      const { changes, changeType } = req.body;
+      
+      // Create audit trail entry
+      const auditEntry = {
+        entityType: "document",
+        entityId: req.params.id,
+        action: "update",
+        userId: req.user?.claims?.sub || "temp-user-id",
+        userEmail: req.user?.claims?.email,
+        userName: req.user?.claims?.first_name + " " + req.user?.claims?.last_name,
+        organizationId: "temp-org-id", // TODO: Get from context
+        oldValues: { version: "previous" },
+        newValues: { version: "new", changes, changeType },
+        metadata: { changeType, automated: false },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        sessionId: req.sessionID
+      };
+
+      // In real implementation, create version and audit entry
+      res.json({ 
+        success: true, 
+        message: "Version created successfully",
+        versionId: "new-version-id"
+      });
+    } catch (error) {
+      console.error('Error creating document version:', error);
+      res.status(500).json({ message: 'Failed to create document version' });
+    }
+  });
+
+  // Restore document version
+  app.post('/api/documents/:id/versions/:versionId/restore', isAuthenticated, async (req: any, res) => {
+    try {
+      // Create audit trail entry
+      const auditEntry = {
+        entityType: "document",
+        entityId: req.params.id,
+        action: "update",
+        userId: req.user?.claims?.sub || "temp-user-id",
+        userEmail: req.user?.claims?.email,
+        userName: req.user?.claims?.first_name + " " + req.user?.claims?.last_name,
+        organizationId: "temp-org-id",
+        oldValues: { currentVersion: "current" },
+        newValues: { restoredFromVersion: req.params.versionId },
+        metadata: { action: "version_restore", versionId: req.params.versionId },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        sessionId: req.sessionID
+      };
+
+      res.json({ 
+        success: true, 
+        message: "Document restored to selected version"
+      });
+    } catch (error) {
+      console.error('Error restoring document version:', error);
+      res.status(500).json({ message: 'Failed to restore document version' });
+    }
+  });
+
+  // Audit trail endpoints
+  app.get('/api/audit-trail', isAuthenticated, async (req: any, res) => {
+    try {
+      // Mock audit trail data
+      const mockAuditTrail = [
+        {
+          id: "audit-1",
+          entityType: "document",
+          entityId: "doc-1",
+          action: "create",
+          userId: req.user?.claims?.sub || "user-1",
+          userEmail: req.user?.claims?.email || "user@company.com",
+          userName: (req.user?.claims?.first_name || "User") + " " + (req.user?.claims?.last_name || "Name"),
+          organizationId: "org-1",
+          oldValues: null,
+          newValues: {
+            title: "Information Security Policy",
+            framework: "ISO27001",
+            status: "draft"
+          },
+          metadata: {
+            documentType: "policy",
+            framework: "ISO27001"
+          },
+          timestamp: new Date("2024-08-14T10:30:00Z"),
+          ipAddress: "192.168.1.100",
+          userAgent: req.get('User-Agent'),
+          sessionId: req.sessionID
+        },
+        {
+          id: "audit-2",
+          entityType: "document",
+          entityId: "doc-1",
+          action: "approve",
+          userId: req.user?.claims?.sub || "user-2",
+          userEmail: req.user?.claims?.email || "ciso@company.com",
+          userName: "Chief Information Security Officer",
+          organizationId: "org-1",
+          oldValues: { status: "in_progress" },
+          newValues: { status: "approved" },
+          metadata: { approverRole: "ciso" },
+          timestamp: new Date("2024-08-14T16:45:00Z"),
+          ipAddress: "192.168.1.102",
+          userAgent: req.get('User-Agent'),
+          sessionId: req.sessionID
+        }
+      ];
+
+      res.json(mockAuditTrail);
+    } catch (error) {
+      console.error('Error fetching audit trail:', error);
+      res.status(500).json({ message: 'Failed to fetch audit trail' });
+    }
+  });
+
+  // Document approvals endpoints
+  app.get('/api/documents/:id/approvals', isAuthenticated, async (req: any, res) => {
+    try {
+      // Mock approvals data
+      const mockApprovals = [
+        {
+          id: "approval-1",
+          documentId: req.params.id,
+          versionId: "ver-3",
+          requestedBy: req.user?.claims?.sub || "user-1",
+          approverRole: "ciso",
+          assignedTo: "user-ciso",
+          status: "approved",
+          comments: "Approved after thorough review. All compliance requirements met.",
+          priority: "high",
+          dueDate: new Date("2024-08-20T17:00:00Z"),
+          approvedAt: new Date("2024-08-14T16:45:00Z"),
+          rejectedAt: null,
+          createdAt: new Date("2024-08-14T10:00:00Z"),
+          updatedAt: new Date("2024-08-14T16:45:00Z")
+        }
+      ];
+
+      res.json(mockApprovals);
+    } catch (error) {
+      console.error('Error fetching document approvals:', error);
+      res.status(500).json({ message: 'Failed to fetch document approvals' });
+    }
+  });
+
+  // Request document approval
+  app.post('/api/documents/:id/approvals', isAuthenticated, async (req: any, res) => {
+    try {
+      const { approverRole, assignedTo, comments, priority, dueDate } = req.body;
+      
+      // Create audit trail entry for approval request
+      const auditEntry = {
+        entityType: "document",
+        entityId: req.params.id,
+        action: "approve",
+        userId: req.user?.claims?.sub || "temp-user-id",
+        userEmail: req.user?.claims?.email,
+        userName: req.user?.claims?.first_name + " " + req.user?.claims?.last_name,
+        organizationId: "temp-org-id",
+        oldValues: null,
+        newValues: { approvalRequested: true, approverRole, priority },
+        metadata: { action: "approval_request", approverRole, priority },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        sessionId: req.sessionID
+      };
+
+      res.json({ 
+        success: true, 
+        message: "Approval request submitted successfully",
+        approvalId: "new-approval-id"
+      });
+    } catch (error) {
+      console.error('Error requesting approval:', error);
+      res.status(500).json({ message: 'Failed to request approval' });
+    }
+  });
+
   app.get("/api/documents/:id", async (req, res) => {
     try {
       const document = await storage.getDocument(req.params.id);

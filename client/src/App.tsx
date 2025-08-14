@@ -14,6 +14,8 @@ import { UserProfile } from "./pages/user-profile";
 import { OrganizationSetup } from "./pages/organization-setup";
 import EnhancedCompanyProfile from "./pages/enhanced-company-profile";
 import DocumentWorkspace from "./pages/document-workspace";
+import AuditTrail from "./pages/audit-trail";
+import DocumentVersions from "./pages/document-versions";
 import Layout from "./components/layout";
 
 function Router() {
@@ -31,6 +33,8 @@ function Router() {
           <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
           <Route path="/workspace" component={DocumentWorkspace} />
           <Route path="/documents" component={Documents} />
+          <Route path="/audit-trail" component={AuditTrail} />
+          <Route path="/document-versions/:id" component={(props: any) => <DocumentVersions documentId={props.params.id} documentTitle="Document" />} />
           <Route path="/user-profile" component={UserProfile} />
           <Route path="/organizations" component={OrganizationSetup} />
         </>

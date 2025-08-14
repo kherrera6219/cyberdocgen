@@ -382,17 +382,80 @@ export type InsertDocumentWorkspace = z.infer<typeof insertDocumentWorkspaceSche
 export type GenerationJob = typeof generationJobs.$inferSelect;
 export type InsertGenerationJob = z.infer<typeof insertGenerationJobSchema>;
 
-export type Organization = typeof organizations.$inferSelect;
-export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+// Document Versions table for version control
+export const documentVersions = pgTable("document_versions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  documentId: varchar("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+  versionNumber: integer("version_number").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  changes: text("changes"), // Description of what changed
+  changeType: varchar("change_type", { enum: ["major", "minor", "patch"] }).default("minor"),
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  status: varchar("status", { enum: ["draft", "published", "archived"] }).default("draft"),
+  fileSize: integer("file_size"),
+  checksum: varchar("checksum", { length: 64 }), // For integrity verification
+});
 
-export type UserOrganization = typeof userOrganizations.$inferSelect;
-export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
+export const insertDocumentVersionSchema = createInsertSchema(documentVersions).omit({
+  id: true,
+  createdAt: true,
+});
 
-export type CompanyProfile = typeof companyProfiles.$inferSelect;
-export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
+export type InsertDocumentVersion = z.infer<typeof insertDocumentVersionSchema>;
+export type DocumentVersion = typeof documentVersions.$inferSelect;
 
-export type Document = typeof documents.$inferSelect;
-export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+// Audit Trail table for comprehensive logging
+export const auditTrail = pgTable("audit_trail", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  entityType: varchar("entity_type", { enum: ["document", "company_profile", "user", "organization", "template"] }).notNull(),
+  entityId: varchar("entity_id").notNull(),
+  action: varchar("action", { enum: ["create", "update", "delete", "view", "download", "approve", "reject", "publish", "archive"] }).notNull(),
+  userId: varchar("user_id").notNull(),
+  userEmail: varchar("user_email"),
+  userName: varchar("user_name"),
+  organizationId: varchar("organization_id"),
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  metadata: jsonb("metadata"), // Additional context like IP, user agent, etc.
+  timestamp: timestamp("timestamp").defaultNow(),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  sessionId: varchar("session_id"),
+});
 
-export type GenerationJob = typeof generationJobs.$inferSelect;
-export type InsertGenerationJob = z.infer<typeof insertGenerationJobSchema>;
+export const insertAuditTrailSchema = createInsertSchema(auditTrail).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertAuditTrail = z.infer<typeof insertAuditTrailSchema>;
+export type AuditTrail = typeof auditTrail.$inferSelect;
+
+// Document Approvals table for approval workflow
+export const documentApprovals = pgTable("document_approvals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  documentId: varchar("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+  versionId: varchar("version_id").references(() => documentVersions.id),
+  requestedBy: varchar("requested_by").notNull(),
+  approverRole: varchar("approver_role", { enum: ["ciso", "compliance_officer", "legal_counsel", "ceo", "manager"] }).notNull(),
+  assignedTo: varchar("assigned_to"),
+  status: varchar("status", { enum: ["pending", "approved", "rejected", "withdrawn"] }).default("pending"),
+  comments: text("comments"),
+  priority: varchar("priority", { enum: ["low", "medium", "high", "urgent"] }).default("medium"),
+  dueDate: timestamp("due_date"),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertDocumentApprovalSchema = createInsertSchema(documentApprovals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDocumentApproval = z.infer<typeof insertDocumentApprovalSchema>;
+export type DocumentApproval = typeof documentApprovals.$inferSelect;
