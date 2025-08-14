@@ -12,6 +12,8 @@ import { Landing } from "./pages/landing";
 import { Home } from "./pages/home";
 import { UserProfile } from "./pages/user-profile";
 import { OrganizationSetup } from "./pages/organization-setup";
+import EnhancedCompanyProfile from "./pages/enhanced-company-profile";
+import DocumentWorkspace from "./pages/document-workspace";
 import Layout from "./components/layout";
 
 function Router() {
@@ -26,6 +28,8 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/profile" component={CompanyProfile} />
+          <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
+          <Route path="/workspace" component={DocumentWorkspace} />
           <Route path="/documents" component={Documents} />
           <Route path="/user-profile" component={UserProfile} />
           <Route path="/organizations" component={OrganizationSetup} />

@@ -72,6 +72,51 @@ export const companyProfiles = pgTable("company_profiles", {
     phone?: string;
     address?: string;
   }>(),
+  
+  // Key Personnel for Compliance Documentation
+  keyPersonnel: jsonb("key_personnel").$type<{
+    ceo?: { name: string; email?: string; };
+    ciso?: { name: string; email?: string; };
+    securityOfficer?: { name: string; email?: string; };
+    complianceOfficer?: { name: string; email?: string; };
+    itManager?: { name: string; email?: string; };
+    legalCounsel?: { name: string; email?: string; };
+    boardMembers?: { name: string; role: string; email?: string; }[];
+    keyStakeholders?: { name: string; role: string; department: string; email?: string; }[];
+  }>(),
+  
+  // Framework-Specific Configurations
+  frameworkConfigs: jsonb("framework_configs").$type<{
+    fedramp?: {
+      level: 'low' | 'moderate' | 'high';
+      impactLevel: {
+        confidentiality: 'low' | 'moderate' | 'high';
+        integrity: 'low' | 'moderate' | 'high';
+        availability: 'low' | 'moderate' | 'high';
+      };
+      selectedControls: string[];
+    };
+    nist80053?: {
+      version: 'revision-5';
+      selectedControlFamilies: string[]; // AC, AT, AU, CA, CM, CP, IA, IR, MA, MP, PE, PL, PM, PS, PT, RA, SA, SC, SI, SR
+    };
+    iso27001?: {
+      version: '2022';
+      scope: string;
+      selectedControls: string[];
+    };
+    soc2?: {
+      trustServices: ('security' | 'availability' | 'processing' | 'confidentiality' | 'privacy')[];
+      reportType: 'type1' | 'type2';
+    };
+  }>(),
+  
+  // Document Upload References for RAG Processing
+  uploadedDocs: jsonb("uploaded_docs").$type<{
+    incorporationDocs?: { filename: string; url: string; extractedData?: any; }[];
+    registrationDocs?: { filename: string; url: string; extractedData?: any; }[];
+    profileDocs?: { filename: string; url: string; extractedData?: any; }[];
+  }>(),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -83,15 +128,73 @@ export const documents = pgTable("documents", {
   createdBy: varchar("created_by").references(() => users.id).notNull(),
   title: text("title").notNull(),
   description: text("description"),
-  framework: text("framework").notNull(), // ISO27001, SOC2, FedRAMP, NIST
-  category: text("category").notNull(), // policy, procedure, assessment, etc.
+  framework: text("framework").notNull(), // ISO27001, SOC2, FedRAMP-Low, FedRAMP-Moderate, FedRAMP-High, NIST-800-53
+  subFramework: text("sub_framework"), // For FedRAMP levels and NIST control families
+  category: text("category").notNull(), // policy, procedure, assessment, template, etc.
+  documentType: text("document_type").notNull().default("text"), // text, excel, pdf, word
   content: text("content").notNull(),
-  status: text("status").notNull().default("draft"), // draft, complete, in_progress
+  templateData: jsonb("template_data"), // Structured data for templates
+  status: text("status").notNull().default("draft"), // draft, in_progress, complete, approved, published
   version: integer("version").notNull().default(1),
+  tags: jsonb("tags").$type<string[]>().default([]),
+  
+  // File Storage Information
+  fileName: text("file_name"),
+  fileType: text("file_type"), // .docx, .xlsx, .pdf
+  fileSize: integer("file_size"),
+  downloadUrl: text("download_url"), // Cloud storage URL
+  
+  // Approval Workflow
   reviewedBy: varchar("reviewed_by").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),
   approvedBy: varchar("approved_by").references(() => users.id),
   approvedAt: timestamp("approved_at"),
+  
+  // AI Processing
+  aiGenerated: boolean("ai_generated").notNull().default(false),
+  aiModel: text("ai_model"), // gpt-4, claude-3, etc.
+  generationPrompt: text("generation_prompt"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Document Templates table for reusable templates
+export const documentTemplates = pgTable("document_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  framework: text("framework").notNull(),
+  category: text("category").notNull(),
+  documentType: text("document_type").notNull(), // excel, pdf, word
+  templateContent: text("template_content").notNull(),
+  templateVariables: jsonb("template_variables").$type<{
+    [key: string]: {
+      type: 'text' | 'number' | 'date' | 'select';
+      label: string;
+      required: boolean;
+      options?: string[];
+    };
+  }>(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Document Workspace for AI editing and collaboration
+export const documentWorkspace = pgTable("document_workspace", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  documentId: varchar("document_id").references(() => documents.id).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
+  workspaceData: jsonb("workspace_data").$type<{
+    editorState?: any;
+    comments?: { id: string; userId: string; content: string; timestamp: string; resolved: boolean; }[];
+    suggestions?: { id: string; type: string; content: string; status: 'pending' | 'accepted' | 'rejected'; }[];
+    aiAssistance?: { enabled: boolean; model: string; lastUsed: string; }[];
+  }>(),
+  lastEditedBy: varchar("last_edited_by").references(() => users.id),
+  lastEditedAt: timestamp("last_edited_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -146,6 +249,28 @@ export const companyProfilesRelations = relations(companyProfiles, ({ one, many 
   }),
   documents: many(documents),
   generationJobs: many(generationJobs),
+}));
+
+export const documentTemplatesRelations = relations(documentTemplates, ({ one }) => ({
+  createdByUser: one(users, {
+    fields: [documentTemplates.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const documentWorkspaceRelations = relations(documentWorkspace, ({ one }) => ({
+  document: one(documents, {
+    fields: [documentWorkspace.documentId],
+    references: [documents.id],
+  }),
+  organization: one(organizations, {
+    fields: [documentWorkspace.organizationId],
+    references: [organizations.id],
+  }),
+  lastEditedByUser: one(users, {
+    fields: [documentWorkspace.lastEditedBy],
+    references: [users.id],
+  }),
 }));
 
 export const documentsRelations = relations(documents, ({ one }) => ({
@@ -219,10 +344,43 @@ export const insertGenerationJobSchema = createInsertSchema(generationJobs).omit
   updatedAt: true,
 });
 
+export const insertDocumentTemplateSchema = createInsertSchema(documentTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDocumentWorkspaceSchema = createInsertSchema(documentWorkspace).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
+
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+
+export type UserOrganization = typeof userOrganizations.$inferSelect;
+export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
+
+export type CompanyProfile = typeof companyProfiles.$inferSelect;
+export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
+
+export type Document = typeof documents.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
+export type DocumentTemplate = typeof documentTemplates.$inferSelect;
+export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;
+
+export type DocumentWorkspace = typeof documentWorkspace.$inferSelect;
+export type InsertDocumentWorkspace = z.infer<typeof insertDocumentWorkspaceSchema>;
+
+export type GenerationJob = typeof generationJobs.$inferSelect;
+export type InsertGenerationJob = z.infer<typeof insertGenerationJobSchema>;
 
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;

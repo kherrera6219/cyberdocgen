@@ -137,6 +137,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Document upload and RAG processing endpoint
+  app.post('/api/documents/upload-and-extract', isAuthenticated, async (req: any, res) => {
+    try {
+      // Simulate document upload and AI extraction
+      // In real implementation, this would:
+      // 1. Process uploaded files (PDF, DOC, etc.)
+      // 2. Use RAG/AI to extract company information
+      // 3. Return structured data for auto-populating forms
+      
+      const extractedData = [
+        {
+          filename: "incorporation_docs.pdf",
+          companyName: "TechCorp Solutions Inc.",
+          incorporationDate: "2020-03-15",
+          businessType: "Corporation",
+          jurisdiction: "Delaware, USA",
+          registrationNumber: "2020-001234",
+          principals: [
+            { name: "John Smith", role: "CEO" },
+            { name: "Jane Doe", role: "CTO" }
+          ],
+          address: "123 Innovation Drive, San Francisco, CA 94105",
+          contactInfo: {
+            email: "info@techcorp.com",
+            phone: "+1-555-0123"
+          }
+        }
+      ];
+
+      res.json({ 
+        success: true, 
+        extractedData,
+        message: "Documents processed successfully" 
+      });
+    } catch (error) {
+      console.error('Error processing documents:', error);
+      res.status(500).json({ message: 'Failed to process documents' });
+    }
+  });
+
+  // AI document generation endpoint
+  app.post('/api/documents/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { framework, category, title, description } = req.body;
+      
+      if (!framework || !category || !title) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+
+      // Simulate AI document generation
+      const generatedContent = `# ${title}
+
+## Overview
+This ${category} document has been generated for ${framework} compliance requirements.
+
+${description ? `## Purpose\n${description}\n` : ''}
+
+## 1. Introduction
+This document establishes the ${title.toLowerCase()} for our organization in accordance with ${framework} requirements.
+
+## 2. Scope
+This policy applies to all employees, contractors, and third-party users who have access to organizational information systems.
+
+## 3. Policy Statement
+[Generated policy content based on ${framework} framework requirements...]
+
+## 4. Roles and Responsibilities
+- **Information Security Officer**: Overall responsibility for policy implementation
+- **Management**: Ensuring adequate resources and support
+- **Employees**: Compliance with all policy requirements
+
+## 5. Implementation
+[Implementation details specific to ${framework}...]
+
+## 6. Compliance and Monitoring
+Regular audits will be conducted to ensure compliance with this policy.
+
+---
+Document generated using AI on ${new Date().toISOString()}
+Framework: ${framework}
+Category: ${category}`;
+
+      const document = await storage.createDocument({
+        companyProfileId: req.body.companyProfileId || "temp-profile-id",
+        createdBy: req.user?.claims?.sub || "temp-user-id",
+        title,
+        description,
+        framework,
+        category,
+        content: generatedContent,
+        documentType: "text",
+        status: "draft",
+        aiGenerated: true,
+        aiModel: "gpt-4",
+        generationPrompt: `Generate a ${category} document for ${framework} compliance`
+      });
+
+      res.json({ success: true, document });
+    } catch (error) {
+      console.error('Error generating document:', error);
+      res.status(500).json({ message: 'Failed to generate document' });
+    }
+  });
+
   app.get("/api/documents/:id", async (req, res) => {
     try {
       const document = await storage.getDocument(req.params.id);
