@@ -157,7 +157,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
     { month: "Oct", score: 61 },
   ];
 
-  const frameworkData = Object.entries(analyticsData.frameworkProgress || {}).map(
+  const frameworkData = Object.entries((analyticsData as any)?.frameworkProgress || {}).map(
     ([name, value]) => ({
       name,
       value,
@@ -245,17 +245,19 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Documents</p>
-                <p className="text-2xl font-bold">{analyticsData.totalDocuments || 0}</p>
+                <p className="text-2xl font-bold">{(analyticsData as any)?.totalDocuments || 0}</p>
                 <p className="text-xs text-gray-500">
-                  {analyticsData.completedDocuments || 0} completed
+                  {(analyticsData as any)?.completedDocuments || 0} completed
                 </p>
               </div>
               <FileText className="h-8 w-8 text-blue-500" />
             </div>
             <Progress
               value={
-                analyticsData.totalDocuments
-                  ? ((analyticsData.completedDocuments || 0) / analyticsData.totalDocuments) * 100
+                (analyticsData as any)?.totalDocuments
+                  ? (((analyticsData as any)?.completedDocuments || 0) /
+                      (analyticsData as any)?.totalDocuments) *
+                    100
                   : 0
               }
               className="mt-2 h-2"
@@ -268,7 +270,9 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg Quality Score</p>
-                <p className="text-2xl font-bold">{analyticsData.averageQualityScore || 0}%</p>
+                <p className="text-2xl font-bold">
+                  {(analyticsData as any)?.averageQualityScore || 0}%
+                </p>
                 <div className="flex items-center text-xs">
                   <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
                   <span className="text-green-500">+5% from last month</span>
@@ -284,7 +288,9 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Risk Score</p>
-                <p className="text-2xl font-bold">{analyticsData.totalRiskScore || 0}/100</p>
+                <p className="text-2xl font-bold">
+                  {(analyticsData as any)?.totalRiskScore || 0}/100
+                </p>
                 <div className="flex items-center text-xs">
                   <TrendingDown className="h-3 w-3 text-green-500 mr-1" />
                   <span className="text-green-500">-7 from last assessment</span>
