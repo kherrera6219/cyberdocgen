@@ -1,12 +1,28 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema } from "@shared/schema";
 import { generateComplianceDocuments, frameworkTemplates } from "./services/openai";
 import { generationLimiter } from "./middleware/security";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   // Company Profile routes
   app.get("/api/company-profiles", async (req, res) => {
     try {
@@ -162,9 +178,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document generation endpoint with special rate limiting
-  app.post("/api/generate-documents", generationLimiter, async (req, res) => {
+  app.post("/api/generate-documents", generationLimiter, isAuthenticated, async (req: any, res) => {
     try {
       const { companyProfileId, framework } = req.body;
+      const userId = req.user.claims.sub;
       
       if (!companyProfileId || !framework) {
         return res.status(400).json({ message: "Company profile ID and framework are required" });
@@ -183,6 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create generation job
       const job = await storage.createGenerationJob({
         companyProfileId,
+        createdBy: userId,
         framework,
         status: "running",
         progress: 0,
@@ -209,6 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const template = templates[i];
             await storage.createDocument({
               companyProfileId,
+              createdBy: userId,
               title: template.title,
               description: template.description,
               framework,
