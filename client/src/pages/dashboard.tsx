@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { DashboardSkeleton } from "@/components/loading/loading-skeleton";
 import { DocumentPreview } from "@/components/templates/document-preview";
+import { GenerationCustomizer } from "@/components/generation/GenerationCustomizer";
+import { HelpTooltip } from "@/components/help/ContextualHelp";
 import { 
   TrendingUp, 
   FileText, 
@@ -33,6 +35,8 @@ export default function Dashboard() {
   const [currentFramework, setCurrentFramework] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [previewFramework, setPreviewFramework] = useState("");
+  const [showCustomizer, setShowCustomizer] = useState(false);
+  const [selectedFramework, setSelectedFramework] = useState("");
 
   // Get company profiles
   const { data: profiles = [], isLoading: profilesLoading } = useQuery<CompanyProfile[]>({
@@ -488,6 +492,14 @@ export default function Dashboard() {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Generation Customizer Dialog */}
+      <GenerationCustomizer
+        isOpen={showCustomizer}
+        onClose={() => setShowCustomizer(false)}
+        framework={selectedFramework}
+        onGenerate={handleCustomGenerate}
+      />
     </div>
   );
 }

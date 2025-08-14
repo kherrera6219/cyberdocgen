@@ -4,6 +4,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { GlobalSearch } from "@/components/navigation/GlobalSearch";
 import MobileSidebar from "./mobile-sidebar";
 
 export default function Header() {
@@ -70,6 +71,11 @@ export default function Header() {
             </div>
             <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">ComplianceAI</h1>
           </div>
+        </div>
+        
+        {/* Search Bar - Hidden on small screens */}
+        <div className="hidden sm:flex flex-1 max-w-md mx-4">
+          <GlobalSearch />
         </div>
         
         {/* Right Side Actions */}

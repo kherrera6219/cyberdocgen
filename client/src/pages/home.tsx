@@ -1,11 +1,28 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { WelcomeTutorial } from "@/components/onboarding/WelcomeTutorial";
+import { QuickStartChecklist } from "@/components/onboarding/QuickStartChecklist";
 import { User, LogOut, Settings, Building, FileText, BarChart3 } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
 
 export function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Check if user is new (show tutorial on first visit)
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+  }, []);
+
+  const handleTutorialComplete = () => {
+    localStorage.setItem('hasSeenTutorial', 'true');
+    setShowTutorial(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -97,6 +114,9 @@ export function Home() {
           </Card>
         </div>
 
+        {/* Quick Start Checklist */}
+        <QuickStartChecklist className="mb-8" />
+
         {/* User Profile Card */}
         {user && (
           <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
@@ -141,6 +161,13 @@ export function Home() {
             </CardContent>
           </Card>
         )}
+
+        {/* Welcome Tutorial */}
+        <WelcomeTutorial 
+          isOpen={showTutorial}
+          onClose={() => setShowTutorial(false)}
+          onComplete={handleTutorialComplete}
+        />
       </div>
     </div>
   );

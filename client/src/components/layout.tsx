@@ -3,6 +3,7 @@ import Header from "./layout/header";
 import Sidebar from "./layout/sidebar";
 import { WelcomeWizard } from "./onboarding/welcome-wizard";
 import { ErrorBoundary } from "./error-boundary";
+import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { useUserPreferences } from "@/hooks/use-storage";
 
 interface LayoutProps {
@@ -61,6 +62,10 @@ export default function Layout({ children }: LayoutProps) {
               }
             >
               <div className="p-4 sm:p-6 lg:p-8">
+                {/* Breadcrumb Navigation */}
+                <div className="mb-6">
+                  <Breadcrumbs />
+                </div>
                 {children}
               </div>
             </ErrorBoundary>

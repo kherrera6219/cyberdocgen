@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { HelpTooltip } from "@/components/help/ContextualHelp";
 import { insertCompanyProfileSchema } from "@shared/schema";
 import type { CompanyProfile, InsertCompanyProfile } from "@shared/schema";
 import { Building, Save } from "lucide-react";
@@ -202,7 +203,10 @@ export default function CompanyProfile() {
                       name="cloudInfrastructure"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Cloud Infrastructure</FormLabel>
+                          <FormLabel className="flex items-center space-x-2">
+                            <span>Cloud Infrastructure</span>
+                            <HelpTooltip topic="cloudInfrastructure" />
+                          </FormLabel>
                           <div className="space-y-2">
                             {cloudOptions.map((option) => (
                               <div key={option.id} className="flex items-center space-x-2">
@@ -234,7 +238,10 @@ export default function CompanyProfile() {
                       name="dataClassification"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Data Classification Level</FormLabel>
+                          <FormLabel className="flex items-center space-x-2">
+                            <span>Data Classification Level</span>
+                            <HelpTooltip topic="dataClassification" />
+                          </FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -258,7 +265,10 @@ export default function CompanyProfile() {
                       name="businessApplications"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Primary Business Applications</FormLabel>
+                          <FormLabel className="flex items-center space-x-2">
+                            <span>Primary Business Applications</span>
+                            <HelpTooltip topic="businessApplications" />
+                          </FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder="Describe your main business applications and systems..."
