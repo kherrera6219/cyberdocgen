@@ -4,20 +4,27 @@ import { logger } from "../utils/logger";
 import { eq, desc, and, gte, lte, ilike, count } from "drizzle-orm";
 
 export interface AuditLogEntry {
-  action: string;
-  entityType: string;
+  action: "create" | "update" | "delete" | "view" | "download" | "approve" | "reject" | "publish" | "archive";
+  entityType: "document" | "company_profile" | "user" | "organization" | "template";
   entityId: string;
   userId: string;
+  userEmail?: string;
+  userName?: string;
+  organizationId?: string;
+  oldValues?: Record<string, any>;
+  newValues?: Record<string, any>;
+  metadata?: Record<string, any>;
   details?: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;
+  sessionId?: string;
 }
 
 export interface AuditQuery {
   userId?: string;
-  entityType?: string;
+  entityType?: "document" | "company_profile" | "user" | "organization" | "template";
   entityId?: string;
-  action?: string;
+  action?: "create" | "update" | "delete" | "view" | "download" | "approve" | "reject" | "publish" | "archive";
   dateFrom?: Date;
   dateTo?: Date;
   page?: number;
@@ -43,10 +50,15 @@ class AuditService {
         entityType: entry.entityType,
         entityId: entry.entityId,
         userId: entry.userId,
-        details: entry.details || {},
+        userEmail: entry.userEmail,
+        userName: entry.userName,
+        organizationId: entry.organizationId,
+        oldValues: entry.oldValues || {},
+        newValues: entry.newValues || {},
+        metadata: entry.metadata || entry.details || {},
         ipAddress: entry.ipAddress,
         userAgent: entry.userAgent,
-        timestamp: new Date(),
+        sessionId: entry.sessionId,
       };
 
       await db.insert(auditTrail).values(auditEntry);
@@ -57,9 +69,10 @@ class AuditService {
         entry.userId,
         entry.details
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to log audit action", {
-        error: error.message,
+        error: errorMessage,
         entry,
       });
       throw error;
@@ -84,7 +97,7 @@ class AuditService {
       }
       
       if (filters.entityType) {
-        conditions.push(eq(auditTrail.entityType, filters.entityType));
+        conditions.push(eq(auditTrail.entityType, filters.entityType as any));
       }
       
       if (filters.entityId) {
@@ -92,7 +105,7 @@ class AuditService {
       }
       
       if (filters.action) {
-        conditions.push(eq(auditTrail.action, filters.action));
+        conditions.push(eq(auditTrail.action, filters.action as any));
       }
       
       if (dateFrom) {
@@ -130,9 +143,10 @@ class AuditService {
         page,
         limit,
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to retrieve audit logs", {
-        error: error.message,
+        error: errorMessage,
         query,
       });
       throw error;
@@ -195,9 +209,10 @@ class AuditService {
         activeUsers,
         recentActivity,
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to retrieve audit statistics", {
-        error: error.message,
+        error: errorMessage,
       });
       throw error;
     }
@@ -214,9 +229,10 @@ class AuditService {
       });
 
       return result.rowCount || 0;
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to delete old audit logs", {
-        error: error.message,
+        error: errorMessage,
         olderThan: olderThan.toISOString(),
       });
       throw error;

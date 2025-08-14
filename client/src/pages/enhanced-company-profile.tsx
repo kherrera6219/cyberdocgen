@@ -112,7 +112,7 @@ export default function EnhancedCompanyProfile() {
     mutationFn: async (data: FormData) => {
       // Transform form data to match schema
       const profileData: InsertCompanyProfile = {
-        organizationId: "temp-org-id", // TODO: Get from organization context
+        organizationId: (user as any)?.organizationId || "default-org",
         createdBy: "temp-user-id", // TODO: Get from authenticated user context
         companyName: data.companyName,
         industry: data.industry,

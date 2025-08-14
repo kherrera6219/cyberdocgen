@@ -327,7 +327,7 @@ Category: ${category}`;
         userId: req.user?.claims?.sub || "temp-user-id",
         userEmail: req.user?.claims?.email,
         userName: req.user?.claims?.first_name + " " + req.user?.claims?.last_name,
-        organizationId: "temp-org-id", // TODO: Get from context
+        organizationId: req.user?.organizationId || "default-org",
         oldValues: { version: "previous" },
         newValues: { version: "new", changes, changeType },
         metadata: { changeType, automated: false },

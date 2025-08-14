@@ -69,14 +69,165 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private users: Map<string, User>;
+  private organizations: Map<string, Organization>;
+  private userOrganizations: Map<string, UserOrganization>;
   private companyProfiles: Map<string, CompanyProfile>;
   private documents: Map<string, Document>;
   private generationJobs: Map<string, GenerationJob>;
 
   constructor() {
+    this.users = new Map();
+    this.organizations = new Map();
+    this.userOrganizations = new Map();
     this.companyProfiles = new Map();
     this.documents = new Map();
     this.generationJobs = new Map();
+  }
+
+  // User operations
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.email === email);
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const now = new Date();
+    const newUser: User = {
+      ...user,
+      id,
+      firstName: user.firstName || null,
+      lastName: user.lastName || null,
+      profileImageUrl: user.profileImageUrl || null,
+      role: user.role || "user",
+      isActive: user.isActive ?? true,
+      lastLoginAt: user.lastLoginAt || null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.users.set(id, newUser);
+    return newUser;
+  }
+
+  async updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined> {
+    const existing = this.users.get(id);
+    if (!existing) return undefined;
+
+    const updated: User = {
+      ...existing,
+      ...user,
+      updatedAt: new Date(),
+    };
+    this.users.set(id, updated);
+    return updated;
+  }
+
+  async upsertUser(user: UpsertUser): Promise<User> {
+    const existing = this.users.get(user.id);
+    if (existing) {
+      const { id, ...updateData } = user;
+      const updated = await this.updateUser(id, updateData);
+      return updated!;
+    } else {
+      const { id, ...insertUser } = user;
+      const newUser = await this.createUser(insertUser);
+      this.users.set(id, { ...newUser, id });
+      return { ...newUser, id };
+    }
+  }
+
+  // Organization operations
+  async getOrganizations(): Promise<Organization[]> {
+    return Array.from(this.organizations.values());
+  }
+
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    return this.organizations.get(id);
+  }
+
+  async getOrganizationBySlug(slug: string): Promise<Organization | undefined> {
+    return Array.from(this.organizations.values()).find(org => org.slug === slug);
+  }
+
+  async createOrganization(org: InsertOrganization): Promise<Organization> {
+    const id = randomUUID();
+    const now = new Date();
+    const newOrg: Organization = {
+      ...org,
+      id,
+      isActive: org.isActive ?? true,
+      description: org.description || null,
+      logo: org.logo || null,
+      website: org.website || null,
+      contactEmail: org.contactEmail || null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.organizations.set(id, newOrg);
+    return newOrg;
+  }
+
+  async updateOrganization(id: string, org: Partial<InsertOrganization>): Promise<Organization | undefined> {
+    const existing = this.organizations.get(id);
+    if (!existing) return undefined;
+
+    const updated: Organization = {
+      ...existing,
+      ...org,
+      updatedAt: new Date(),
+    };
+    this.organizations.set(id, updated);
+    return updated;
+  }
+
+  // User-Organization operations
+  async getUserOrganizations(userId: string): Promise<UserOrganization[]> {
+    return Array.from(this.userOrganizations.values()).filter(uo => uo.userId === userId);
+  }
+
+  async getOrganizationUsers(organizationId: string): Promise<UserOrganization[]> {
+    return Array.from(this.userOrganizations.values()).filter(uo => uo.organizationId === organizationId);
+  }
+
+  async addUserToOrganization(membership: InsertUserOrganization): Promise<UserOrganization> {
+    const id = randomUUID();
+    const now = new Date();
+    const newMembership: UserOrganization = {
+      ...membership,
+      id,
+      role: membership.role || "member",
+      joinedAt: now,
+    };
+    this.userOrganizations.set(id, newMembership);
+    return newMembership;
+  }
+
+  async updateUserOrganizationRole(userId: string, organizationId: string, role: string): Promise<UserOrganization | undefined> {
+    const membership = Array.from(this.userOrganizations.values())
+      .find(uo => uo.userId === userId && uo.organizationId === organizationId);
+    
+    if (!membership) return undefined;
+
+    const updated: UserOrganization = {
+      ...membership,
+      role,
+    };
+    this.userOrganizations.set(membership.id, updated);
+    return updated;
+  }
+
+  async removeUserFromOrganization(userId: string, organizationId: string): Promise<boolean> {
+    const membership = Array.from(this.userOrganizations.entries())
+      .find(([, uo]) => uo.userId === userId && uo.organizationId === organizationId);
+    
+    if (!membership) return false;
+
+    this.userOrganizations.delete(membership[0]);
+    return true;
   }
 
   // Company Profile methods
@@ -93,8 +244,14 @@ export class MemStorage implements IStorage {
     const now = new Date();
     const profile: CompanyProfile = {
       ...insertProfile,
-      cloudInfrastructure: insertProfile.cloudInfrastructure || [],
       id,
+      cloudInfrastructure: Array.isArray(insertProfile.cloudInfrastructure) ? insertProfile.cloudInfrastructure : [],
+      isActive: insertProfile.isActive ?? true,
+      complianceRequirements: insertProfile.complianceRequirements || null,
+      organizationalStructure: insertProfile.organizationalStructure || null,
+      keyPersonnel: insertProfile.keyPersonnel || null,
+      frameworkConfigs: insertProfile.frameworkConfigs || null,
+      uploadedDocs: insertProfile.uploadedDocs || null,
       createdAt: now,
       updatedAt: now,
     };
@@ -109,7 +266,7 @@ export class MemStorage implements IStorage {
     const updated: CompanyProfile = {
       ...existing,
       ...updateData,
-      cloudInfrastructure: updateData.cloudInfrastructure || existing.cloudInfrastructure,
+      cloudInfrastructure: Array.isArray(updateData.cloudInfrastructure) ? updateData.cloudInfrastructure : existing.cloudInfrastructure,
       updatedAt: new Date(),
     };
     this.companyProfiles.set(id, updated);
@@ -144,10 +301,29 @@ export class MemStorage implements IStorage {
     const now = new Date();
     const document: Document = {
       ...insertDocument,
-      description: insertDocument.description || null,
       id,
       createdAt: now,
       updatedAt: now,
+      description: insertDocument.description || null,
+      status: insertDocument.status || "draft",
+      version: insertDocument.version || 1,
+      subFramework: insertDocument.subFramework || null,
+      documentType: insertDocument.documentType || "text",
+      templateData: insertDocument.templateData || null,
+      tags: Array.isArray(insertDocument.tags) ? insertDocument.tags : null,
+      fileName: insertDocument.fileName || null,
+      fileType: insertDocument.fileType || null,
+      fileSize: insertDocument.fileSize || null,
+      downloadUrl: insertDocument.downloadUrl || null,
+      reviewedBy: insertDocument.reviewedBy || null,
+      reviewedAt: insertDocument.reviewedAt || null,
+      approvedBy: insertDocument.approvedBy || null,
+      approvedAt: insertDocument.approvedAt || null,
+      publishedAt: insertDocument.publishedAt || null,
+      approvalRequired: insertDocument.approvalRequired || false,
+      aiGenerated: insertDocument.aiGenerated || false,
+      aiModel: insertDocument.aiModel || null,
+      generationPrompt: insertDocument.generationPrompt || null,
     };
     this.documents.set(id, document);
     return document;
@@ -160,7 +336,7 @@ export class MemStorage implements IStorage {
     const updated: Document = {
       ...existing,
       ...updateData,
-      description: updateData.description !== undefined ? updateData.description : existing.description,
+      tags: Array.isArray(updateData.tags) ? updateData.tags : existing.tags,
       updatedAt: new Date(),
     };
     this.documents.set(id, updated);
@@ -190,11 +366,13 @@ export class MemStorage implements IStorage {
     const now = new Date();
     const job: GenerationJob = {
       ...insertJob,
+      id,
       status: insertJob.status || "pending",
       progress: insertJob.progress || 0,
       documentsGenerated: insertJob.documentsGenerated || 0,
       totalDocuments: insertJob.totalDocuments || 0,
-      id,
+      errorMessage: insertJob.errorMessage || null,
+      completedAt: insertJob.completedAt || null,
       createdAt: now,
       updatedAt: now,
     };
