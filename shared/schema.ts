@@ -459,3 +459,29 @@ export const insertDocumentApprovalSchema = createInsertSchema(documentApprovals
 
 export type InsertDocumentApproval = z.infer<typeof insertDocumentApprovalSchema>;
 export type DocumentApproval = typeof documentApprovals.$inferSelect;
+
+// Add relations for audit trail and document versions
+export const documentVersionsRelations = relations(documentVersions, ({ one }) => ({
+  document: one(documents, {
+    fields: [documentVersions.documentId],
+    references: [documents.id],
+  }),
+}));
+
+export const auditTrailRelations = relations(auditTrail, ({ one }) => ({
+  user: one(users, {
+    fields: [auditTrail.userId],
+    references: [users.id],
+  }),
+}));
+
+export const documentApprovalsRelations = relations(documentApprovals, ({ one }) => ({
+  document: one(documents, {
+    fields: [documentApprovals.documentId],
+    references: [documents.id],
+  }),
+  version: one(documentVersions, {
+    fields: [documentApprovals.versionId],
+    references: [documentVersions.id],
+  }),
+}));

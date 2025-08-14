@@ -1,325 +1,305 @@
-import type { InsertDocumentVersion, DocumentVersion } from "@shared/schema";
-import { AuditService } from "./auditService";
+import { db } from "../db";
+import { documents, documentVersions, type InsertDocumentVersion, type Document } from "@shared/schema";
+import { logger } from "../utils/logger";
+import { eq, desc, and } from "drizzle-orm";
+import * as crypto from "crypto";
 
-/**
- * Version Service for managing document versions
- * Handles version creation, comparison, and restoration
- */
-export class VersionService {
-  
-  /**
-   * Create a new document version
-   */
-  static async createVersion(data: {
-    documentId: string;
-    title: string;
-    content: string;
-    changes: string;
-    changeType: "major" | "minor" | "patch";
-    createdBy: string;
-    status?: "draft" | "published" | "archived";
-  }): Promise<DocumentVersion> {
-    // Get current highest version number
-    const currentVersions = await this.getVersions(data.documentId);
-    const nextVersionNumber = currentVersions.length > 0 
-      ? Math.max(...currentVersions.map(v => v.versionNumber)) + 1 
-      : 1;
+export interface CreateVersionData {
+  documentId: string;
+  title: string;
+  content: string;
+  changes?: string;
+  changeType?: "major" | "minor" | "patch";
+  createdBy: string;
+}
 
-    // Calculate file size and checksum
-    const fileSize = Buffer.byteLength(data.content, 'utf8');
-    const checksum = await this.generateChecksum(data.content);
+export interface VersionComparison {
+  version1: any;
+  version2: any;
+  diff: {
+    added: string[];
+    removed: string[];
+    modified: string[];
+  };
+}
 
-    const versionData: InsertDocumentVersion = {
-      documentId: data.documentId,
-      versionNumber: nextVersionNumber,
-      title: data.title,
-      content: data.content,
-      changes: data.changes,
-      changeType: data.changeType,
-      createdBy: data.createdBy,
-      status: data.status || "draft",
-      fileSize,
-      checksum,
-    };
+class VersionService {
+  private calculateChecksum(content: string): string {
+    return crypto.createHash("sha256").update(content, "utf8").digest("hex");
+  }
 
-    // In real implementation, save to database
-    const newVersion: DocumentVersion = {
-      ...versionData,
-      id: `version-${Date.now()}`,
-      createdAt: new Date(),
-    };
+  private calculateFileSize(content: string): number {
+    return Buffer.byteLength(content, "utf8");
+  }
 
-    // Log audit trail
-    await AuditService.logDocumentActivity({
-      action: "update",
-      documentId: data.documentId,
-      userId: data.createdBy,
-      newValues: {
-        versionCreated: nextVersionNumber,
-        changeType: data.changeType,
-        changes: data.changes
-      },
-      metadata: {
+  async createVersion(data: CreateVersionData): Promise<any> {
+    try {
+      // Get current document to determine next version number
+      const document = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.id, data.documentId))
+        .limit(1);
+
+      if (!document.length) {
+        throw new Error("Document not found");
+      }
+
+      // Get latest version number
+      const latestVersions = await db
+        .select()
+        .from(documentVersions)
+        .where(eq(documentVersions.documentId, data.documentId))
+        .orderBy(desc(documentVersions.versionNumber))
+        .limit(1);
+
+      const nextVersionNumber = latestVersions.length > 0 
+        ? latestVersions[0].versionNumber + 1 
+        : 1;
+
+      const versionData: InsertDocumentVersion = {
+        documentId: data.documentId,
         versionNumber: nextVersionNumber,
-        changeType: data.changeType,
-        fileSize
-      }
-    });
+        title: data.title,
+        content: data.content,
+        changes: data.changes,
+        changeType: data.changeType || "minor",
+        createdBy: data.createdBy,
+        fileSize: this.calculateFileSize(data.content),
+        checksum: this.calculateChecksum(data.content),
+        status: "draft",
+      };
 
-    return newVersion;
+      const [version] = await db
+        .insert(documentVersions)
+        .values(versionData)
+        .returning();
+
+      // Update document's current version
+      await db
+        .update(documents)
+        .set({ 
+          version: nextVersionNumber,
+          content: data.content,
+          title: data.title,
+          updatedAt: new Date(),
+        })
+        .where(eq(documents.id, data.documentId));
+
+      logger.info("Document version created", {
+        documentId: data.documentId,
+        versionNumber: nextVersionNumber,
+        createdBy: data.createdBy,
+      });
+
+      return version;
+    } catch (error: any) {
+      logger.error("Failed to create document version", {
+        error: error.message,
+        documentId: data.documentId,
+      });
+      throw error;
+    }
   }
 
-  /**
-   * Get all versions for a document
-   */
-  static async getVersions(documentId: string): Promise<DocumentVersion[]> {
-    // In real implementation, query database
-    // Return mock data for now
-    const mockVersions: DocumentVersion[] = [
-      {
-        id: "ver-3",
+  async getVersionHistory(documentId: string): Promise<any[]> {
+    try {
+      const versions = await db
+        .select()
+        .from(documentVersions)
+        .where(eq(documentVersions.documentId, documentId))
+        .orderBy(desc(documentVersions.versionNumber));
+
+      return versions;
+    } catch (error: any) {
+      logger.error("Failed to retrieve version history", {
+        error: error.message,
         documentId,
-        versionNumber: 3,
-        title: "Information Security Policy v3.0",
-        content: "# Information Security Policy v3.0\n\n## Overview...",
-        changes: "Major update: Added cloud security controls, enhanced incident response",
+      });
+      throw error;
+    }
+  }
+
+  async getVersion(documentId: string, versionNumber: number): Promise<any | null> {
+    try {
+      const [version] = await db
+        .select()
+        .from(documentVersions)
+        .where(
+          and(
+            eq(documentVersions.documentId, documentId),
+            eq(documentVersions.versionNumber, versionNumber)
+          )
+        )
+        .limit(1);
+
+      return version || null;
+    } catch (error: any) {
+      logger.error("Failed to retrieve document version", {
+        error: error.message,
+        documentId,
+        versionNumber,
+      });
+      throw error;
+    }
+  }
+
+  async restoreVersion(documentId: string, versionNumber: number, userId: string): Promise<void> {
+    try {
+      // Get the version to restore
+      const versionToRestore = await this.getVersion(documentId, versionNumber);
+      if (!versionToRestore) {
+        throw new Error("Version not found");
+      }
+
+      // Create a new version from the restored content
+      await this.createVersion({
+        documentId,
+        title: versionToRestore.title,
+        content: versionToRestore.content,
+        changes: `Restored from version ${versionNumber}`,
         changeType: "major",
-        createdBy: "user-1",
-        createdAt: new Date("2024-08-14T16:00:00Z"),
-        status: "published",
-        fileSize: 45000,
-        checksum: "a1b2c3d4e5f6..."
-      },
-      {
-        id: "ver-2",
+        createdBy: userId,
+      });
+
+      logger.info("Document version restored", {
         documentId,
-        versionNumber: 2,
-        title: "Information Security Policy v2.1",
-        content: "# Information Security Policy v2.1\n\n## Overview...",
-        changes: "Minor update: Fixed typos, updated compliance references",
-        changeType: "minor",
-        createdBy: "user-1",
-        createdAt: new Date("2024-08-10T14:30:00Z"),
-        status: "archived",
-        fileSize: 42000,
-        checksum: "b2c3d4e5f6g7..."
-      }
-    ];
-
-    return mockVersions.filter(v => v.documentId === documentId);
-  }
-
-  /**
-   * Get a specific version
-   */
-  static async getVersion(versionId: string): Promise<DocumentVersion | null> {
-    const allVersions = await this.getAllVersions();
-    return allVersions.find(v => v.id === versionId) || null;
-  }
-
-  /**
-   * Restore document to a specific version
-   */
-  static async restoreVersion(data: {
-    documentId: string;
-    versionId: string;
-    restoredBy: string;
-  }): Promise<DocumentVersion> {
-    const version = await this.getVersion(data.versionId);
-    if (!version) {
-      throw new Error("Version not found");
+        restoredFromVersion: versionNumber,
+        restoredBy: userId,
+      });
+    } catch (error: any) {
+      logger.error("Failed to restore document version", {
+        error: error.message,
+        documentId,
+        versionNumber,
+      });
+      throw error;
     }
-
-    // Create new version based on the restored version
-    const restoredVersion = await this.createVersion({
-      documentId: data.documentId,
-      title: version.title + " (Restored)",
-      content: version.content,
-      changes: `Restored from version ${version.versionNumber}`,
-      changeType: "minor",
-      createdBy: data.restoredBy,
-      status: "draft"
-    });
-
-    // Log audit trail
-    await AuditService.logDocumentActivity({
-      action: "update",
-      documentId: data.documentId,
-      userId: data.restoredBy,
-      oldValues: { currentVersion: "previous" },
-      newValues: { restoredFromVersion: version.versionNumber },
-      metadata: {
-        action: "version_restore",
-        sourceVersionId: data.versionId,
-        sourceVersionNumber: version.versionNumber
-      }
-    });
-
-    return restoredVersion;
   }
 
-  /**
-   * Compare two versions
-   */
-  static async compareVersions(version1Id: string, version2Id: string): Promise<{
-    version1: DocumentVersion;
-    version2: DocumentVersion;
-    differences: Array<{
-      type: "addition" | "deletion" | "modification";
-      line: number;
-      content: string;
-    }>;
-  }> {
-    const [version1, version2] = await Promise.all([
-      this.getVersion(version1Id),
-      this.getVersion(version2Id)
-    ]);
+  async compareVersions(
+    documentId: string, 
+    version1: number, 
+    version2: number
+  ): Promise<VersionComparison> {
+    try {
+      const [v1, v2] = await Promise.all([
+        this.getVersion(documentId, version1),
+        this.getVersion(documentId, version2),
+      ]);
 
-    if (!version1 || !version2) {
-      throw new Error("One or both versions not found");
+      if (!v1 || !v2) {
+        throw new Error("One or both versions not found");
+      }
+
+      // Simple diff implementation - in production, use a proper diff library
+      const diff = this.calculateDiff(v1.content, v2.content);
+
+      return {
+        version1: v1,
+        version2: v2,
+        diff,
+      };
+    } catch (error: any) {
+      logger.error("Failed to compare document versions", {
+        error: error.message,
+        documentId,
+        version1,
+        version2,
+      });
+      throw error;
     }
+  }
 
-    // Simple diff implementation (in real app, use a proper diff library)
-    const lines1 = version1.content.split('\n');
-    const lines2 = version2.content.split('\n');
-    const differences = [];
+  private calculateDiff(content1: string, content2: string): {
+    added: string[];
+    removed: string[];
+    modified: string[];
+  } {
+    // Simple line-by-line diff
+    const lines1 = content1.split('\n');
+    const lines2 = content2.split('\n');
 
-    const maxLines = Math.max(lines1.length, lines2.length);
-    for (let i = 0; i < maxLines; i++) {
+    const added: string[] = [];
+    const removed: string[] = [];
+    const modified: string[] = [];
+
+    // Basic diff algorithm - in production, use a proper diff library
+    const maxLength = Math.max(lines1.length, lines2.length);
+    
+    for (let i = 0; i < maxLength; i++) {
       const line1 = lines1[i];
       const line2 = lines2[i];
 
-      if (line1 !== line2) {
-        if (!line1) {
-          differences.push({
-            type: "addition" as const,
-            line: i + 1,
-            content: line2
-          });
-        } else if (!line2) {
-          differences.push({
-            type: "deletion" as const,
-            line: i + 1,
-            content: line1
-          });
-        } else {
-          differences.push({
-            type: "modification" as const,
-            line: i + 1,
-            content: `"${line1}" → "${line2}"`
-          });
-        }
+      if (line1 === undefined && line2 !== undefined) {
+        added.push(line2);
+      } else if (line1 !== undefined && line2 === undefined) {
+        removed.push(line1);
+      } else if (line1 !== line2) {
+        modified.push(`- ${line1}\n+ ${line2}`);
       }
     }
 
-    return {
-      version1,
-      version2,
-      differences
-    };
+    return { added, removed, modified };
   }
 
-  /**
-   * Archive old versions
-   */
-  static async archiveOldVersions(documentId: string, keepLatest: number = 5): Promise<number> {
-    const versions = await this.getVersions(documentId);
-    const sortedVersions = versions.sort((a, b) => b.versionNumber - a.versionNumber);
-    
-    if (sortedVersions.length <= keepLatest) {
-      return 0;
-    }
-
-    const versionsToArchive = sortedVersions.slice(keepLatest);
-    let archivedCount = 0;
-
-    for (const version of versionsToArchive) {
-      if (version.status !== "archived") {
-        // In real implementation, update database
-        version.status = "archived";
-        archivedCount++;
+  async verifyIntegrity(documentId: string, versionNumber: number): Promise<boolean> {
+    try {
+      const version = await this.getVersion(documentId, versionNumber);
+      if (!version) {
+        return false;
       }
-    }
 
-    return archivedCount;
+      const calculatedChecksum = this.calculateChecksum(version.content);
+      const calculatedFileSize = this.calculateFileSize(version.content);
+
+      return version.checksum === calculatedChecksum && 
+             version.fileSize === calculatedFileSize;
+    } catch (error: any) {
+      logger.error("Failed to verify version integrity", {
+        error: error.message,
+        documentId,
+        versionNumber,
+      });
+      return false;
+    }
   }
 
-  /**
-   * Get version statistics
-   */
-  static async getVersionStatistics(documentId: string): Promise<{
-    totalVersions: number;
-    publishedVersions: number;
-    draftVersions: number;
-    archivedVersions: number;
-    averageTimeBetweenVersions: number; // in hours
-    changeTypeDistribution: Record<string, number>;
-  }> {
-    const versions = await this.getVersions(documentId);
-    
-    const stats = {
-      totalVersions: versions.length,
-      publishedVersions: versions.filter(v => v.status === "published").length,
-      draftVersions: versions.filter(v => v.status === "draft").length,
-      archivedVersions: versions.filter(v => v.status === "archived").length,
-      averageTimeBetweenVersions: 0,
-      changeTypeDistribution: {
-        major: versions.filter(v => v.changeType === "major").length,
-        minor: versions.filter(v => v.changeType === "minor").length,
-        patch: versions.filter(v => v.changeType === "patch").length,
-      }
-    };
+  async deleteVersion(documentId: string, versionNumber: number): Promise<void> {
+    try {
+      // Don't allow deleting the current version
+      const document = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.id, documentId))
+        .limit(1);
 
-    // Calculate average time between versions
-    if (versions.length > 1) {
-      const sortedVersions = versions.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-      let totalHours = 0;
-      
-      for (let i = 1; i < sortedVersions.length; i++) {
-        const timeDiff = sortedVersions[i].createdAt.getTime() - sortedVersions[i-1].createdAt.getTime();
-        totalHours += timeDiff / (1000 * 60 * 60); // Convert to hours
+      if (document.length > 0 && document[0].version === versionNumber) {
+        throw new Error("Cannot delete current version");
       }
-      
-      stats.averageTimeBetweenVersions = totalHours / (versions.length - 1);
+
+      await db
+        .delete(documentVersions)
+        .where(
+          and(
+            eq(documentVersions.documentId, documentId),
+            eq(documentVersions.versionNumber, versionNumber)
+          )
+        );
+
+      logger.info("Document version deleted", {
+        documentId,
+        versionNumber,
+      });
+    } catch (error: any) {
+      logger.error("Failed to delete document version", {
+        error: error.message,
+        documentId,
+        versionNumber,
+      });
+      throw error;
     }
-
-    return stats;
-  }
-
-  /**
-   * Generate checksum for content integrity
-   */
-  private static async generateChecksum(content: string): Promise<string> {
-    // Simple hash implementation (in real app, use crypto)
-    let hash = 0;
-    for (let i = 0; i < content.length; i++) {
-      const char = content.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(16);
-  }
-
-  /**
-   * Helper method to get all versions (for demo purposes)
-   */
-  private static async getAllVersions(): Promise<DocumentVersion[]> {
-    // Mock data for all versions across all documents
-    return [
-      {
-        id: "ver-3",
-        documentId: "doc-1",
-        versionNumber: 3,
-        title: "Information Security Policy v3.0",
-        content: "# Information Security Policy v3.0\n\n## Overview...",
-        changes: "Major update: Added cloud security controls, enhanced incident response",
-        changeType: "major",
-        createdBy: "user-1",
-        createdAt: new Date("2024-08-14T16:00:00Z"),
-        status: "published",
-        fileSize: 45000,
-        checksum: "a1b2c3d4e5f6..."
-      }
-    ];
   }
 }
+
+export const versionService = new VersionService();

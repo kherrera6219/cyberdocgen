@@ -2,6 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { auditService } from "./services/auditService";
+import { versionService } from "./services/versionService";
+import { logger } from "./utils/logger";
+import { validateSchema, paginationSchema, idParamSchema } from "./utils/validation";
 import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema } from "@shared/schema";
 import { generateComplianceDocuments, frameworkTemplates } from "./services/openai";
 import { generationLimiter } from "./middleware/security";
@@ -16,9 +20,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
+      
+      // Log user access for audit trail
+      await auditService.logAction({
+        action: "view",
+        entityType: "user",
+        entityId: userId,
+        userId: userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+      
       res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
+    } catch (error: any) {
+      logger.error("Error fetching user", { error: error.message, userId: req.user?.claims?.sub }, req);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });

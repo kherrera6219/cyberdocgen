@@ -8,11 +8,22 @@ import {
   securityHeaders, 
   errorHandler 
 } from "./middleware/security";
+import { validateEnvironment } from "./utils/validation";
+import { logger } from "./utils/logger";
+import { healthCheckHandler, readinessCheckHandler, livenessCheckHandler } from "./utils/health";
+
+// Validate environment variables before starting
+validateEnvironment();
 
 const app = express();
 
 // Trust proxy for rate limiting in Replit environment
 app.set('trust proxy', true);
+
+// Health check endpoints (no auth required)
+app.get('/health', healthCheckHandler);
+app.get('/ready', readinessCheckHandler);
+app.get('/live', livenessCheckHandler);
 
 // Security middleware - only apply to API routes
 app.use(securityHeaders);
