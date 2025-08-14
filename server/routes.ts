@@ -23,6 +23,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Organization routes
+  app.get("/api/organizations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userOrganizations = await storage.getUserOrganizations(userId);
+      const organizations = [];
+      
+      for (const userOrg of userOrganizations) {
+        const org = await storage.getOrganization(userOrg.organizationId);
+        if (org) {
+          organizations.push({ ...org, role: userOrg.role });
+        }
+      }
+      
+      res.json(organizations);
+    } catch (error) {
+      console.error("Error fetching organizations:", error);
+      res.status(500).json({ message: "Failed to fetch organizations" });
+    }
+  });
+
+  app.post("/api/organizations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const organizationData = req.body;
+      
+      // Create organization
+      const organization = await storage.createOrganization(organizationData);
+      
+      // Add user as owner
+      await storage.addUserToOrganization({
+        userId,
+        organizationId: organization.id,
+        role: "owner",
+      });
+      
+      res.status(201).json(organization);
+    } catch (error) {
+      console.error("Error creating organization:", error);
+      res.status(500).json({ message: "Failed to create organization" });
+    }
+  });
+
   // Company Profile routes
   app.get("/api/company-profiles", async (req, res) => {
     try {

@@ -53,15 +53,15 @@ export function Home() {
 
           <Card 
             className="hover:shadow-lg transition-all duration-300 cursor-pointer group border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105"
-            onClick={() => window.location.href = '/profile'}
+            onClick={() => window.location.href = '/organizations'}
           >
             <CardHeader className="flex flex-row items-center space-y-0 pb-2">
               <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg group-hover:bg-purple-200 dark:group-hover:bg-purple-800/50 transition-colors">
                 <Building className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-4">
-                <CardTitle className="text-lg">Company Profile</CardTitle>
-                <CardDescription>Manage your organization details</CardDescription>
+                <CardTitle className="text-lg">Organizations</CardTitle>
+                <CardDescription>Manage your organizations</CardDescription>
               </div>
             </CardHeader>
           </Card>
@@ -77,6 +77,21 @@ export function Home() {
               <div className="ml-4">
                 <CardTitle className="text-lg">Documents</CardTitle>
                 <CardDescription>Access your compliance documents</CardDescription>
+              </div>
+            </CardHeader>
+          </Card>
+          
+          <Card 
+            className="hover:shadow-lg transition-all duration-300 cursor-pointer group border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105"
+            onClick={() => window.location.href = '/user-profile'}
+          >
+            <CardHeader className="flex flex-row items-center space-y-0 pb-2">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-colors">
+                <User className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="ml-4">
+                <CardTitle className="text-lg">User Profile</CardTitle>
+                <CardDescription>Manage your account settings</CardDescription>
               </div>
             </CardHeader>
           </Card>

@@ -10,6 +10,8 @@ import CompanyProfile from "./pages/company-profile";
 import Documents from "./pages/documents";
 import { Landing } from "./pages/landing";
 import { Home } from "./pages/home";
+import { UserProfile } from "./pages/user-profile";
+import { OrganizationSetup } from "./pages/organization-setup";
 import Layout from "./components/layout";
 
 function Router() {
@@ -25,6 +27,8 @@ function Router() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/profile" component={CompanyProfile} />
           <Route path="/documents" component={Documents} />
+          <Route path="/user-profile" component={UserProfile} />
+          <Route path="/organizations" component={OrganizationSetup} />
         </>
       )}
       <Route component={NotFound} />
