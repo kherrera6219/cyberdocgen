@@ -1,34 +1,37 @@
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  FileText, 
-  Brain, 
-  AlertTriangle, 
-  CheckCircle, 
-  TrendingUp, 
-  Users, 
-  Shield,
-  Upload,
-  Search,
-  Download
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  Brain,
+  CheckCircle,
+  FileText,
+  Search,
+  TrendingUp,
+  Upload,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
 
 interface DocumentAnalysisResult {
   summary: string;
   keyFindings: string[];
   complianceGaps: string[];
   recommendations: string[];
-  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  riskLevel: "low" | "medium" | "high" | "critical";
   extractedData: {
     companyInfo?: any;
     policies?: string[];
@@ -43,17 +46,21 @@ interface AnalyzerProps {
 
 export function DocumentAnalyzer({ className }: AnalyzerProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [framework, setFramework] = useState<string>('');
-  const [textInput, setTextInput] = useState<string>('');
-  const [analysisMode, setAnalysisMode] = useState<'file' | 'text'>('file');
+  const [framework, setFramework] = useState<string>("");
+  const [textInput, setTextInput] = useState<string>("");
+  const [analysisMode, setAnalysisMode] = useState<"file" | "text">("file");
   const { toast } = useToast();
 
   // Analysis mutation
   const analysisMutation = useMutation({
-    mutationFn: async (data: { content: string; filename: string; framework?: string }) => {
+    mutationFn: async (data: {
+      content: string;
+      filename: string;
+      framework?: string;
+    }): Promise<DocumentAnalysisResult> => {
       return apiRequest(`/api/ai/analyze-document`, {
-        method: 'POST',
-        body: data
+        method: "POST",
+        body: data,
       });
     },
     onSuccess: () => {
@@ -73,10 +80,10 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
 
   // Company profile extraction mutation
   const extractProfileMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async (content: string): Promise<any> => {
       return apiRequest(`/api/ai/extract-profile`, {
-        method: 'POST',
-        body: { content }
+        method: "POST",
+        body: { content },
       });
     },
     onSuccess: (data) => {
@@ -92,7 +99,7 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
     if (file) {
       setSelectedFile(file);
       // Read file content for text files
-      if (file.type.startsWith('text/') || file.type === 'application/json') {
+      if (file.type.startsWith("text/") || file.type === "application/json") {
         const reader = new FileReader();
         reader.onload = (e) => {
           const content = e.target?.result as string;
@@ -104,11 +111,11 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
   };
 
   const handleAnalyze = async () => {
-    let content = '';
-    let filename = '';
+    let content = "";
+    let filename = "";
 
-    if (analysisMode === 'file' && selectedFile) {
-      if (selectedFile.type.startsWith('text/') || selectedFile.type === 'application/json') {
+    if (analysisMode === "file" && selectedFile) {
+      if (selectedFile.type.startsWith("text/") || selectedFile.type === "application/json") {
         content = textInput;
         filename = selectedFile.name;
       } else {
@@ -119,9 +126,9 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
         });
         return;
       }
-    } else if (analysisMode === 'text') {
+    } else if (analysisMode === "text") {
       content = textInput;
-      filename = 'Text Input';
+      filename = "Text Input";
     } else {
       toast({
         title: "No Content",
@@ -161,11 +168,16 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'critical': return 'text-red-600 bg-red-50';
-      case 'high': return 'text-orange-600 bg-orange-50';
-      case 'medium': return 'text-yellow-600 bg-yellow-50';
-      case 'low': return 'text-green-600 bg-green-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case "critical":
+        return "text-red-600 bg-red-50";
+      case "high":
+        return "text-orange-600 bg-orange-50";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50";
+      case "low":
+        return "text-green-600 bg-green-50";
+      default:
+        return "text-gray-600 bg-gray-50";
     }
   };
 
@@ -182,7 +194,10 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={analysisMode} onValueChange={(value) => setAnalysisMode(value as 'file' | 'text')}>
+          <Tabs
+            value={analysisMode}
+            onValueChange={(value) => setAnalysisMode(value as "file" | "text")}
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="file" className="flex items-center gap-2">
                 <Upload className="h-4 w-4" />
@@ -193,12 +208,10 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
                 Text Input
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="file" className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Upload Document
-                </label>
+                <label className="block text-sm font-medium mb-2">Upload Document</label>
                 <input
                   type="file"
                   accept=".txt,.json,.md,.csv"
@@ -212,12 +225,10 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
                 )}
               </div>
             </TabsContent>
-            
+
             <TabsContent value="text" className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Document Content
-                </label>
+                <label className="block text-sm font-medium mb-2">Document Content</label>
                 <Textarea
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
@@ -249,23 +260,23 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
           </div>
 
           <div className="flex gap-3 mt-6">
-            <Button 
+            <Button
               onClick={handleAnalyze}
               disabled={analysisMutation.isPending}
               className="flex items-center gap-2"
             >
               <Search className="h-4 w-4" />
-              {analysisMutation.isPending ? 'Analyzing...' : 'Analyze Document'}
+              {analysisMutation.isPending ? "Analyzing..." : "Analyze Document"}
             </Button>
-            
-            <Button 
+
+            <Button
               variant="outline"
               onClick={handleExtractProfile}
               disabled={extractProfileMutation.isPending}
               className="flex items-center gap-2"
             >
               <Users className="h-4 w-4" />
-              {extractProfileMutation.isPending ? 'Extracting...' : 'Extract Profile'}
+              {extractProfileMutation.isPending ? "Extracting..." : "Extract Profile"}
             </Button>
           </div>
         </CardContent>
@@ -291,15 +302,13 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
                 <TabsTrigger value="gaps">Compliance Gaps</TabsTrigger>
                 <TabsTrigger value="data">Extracted Data</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="summary" className="space-y-4">
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    {analysisResult.summary}
-                  </AlertDescription>
+                  <AlertDescription>{analysisResult.summary}</AlertDescription>
                 </Alert>
-                
+
                 <div>
                   <h4 className="font-medium mb-2 flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
@@ -315,7 +324,7 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
                   </ul>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="findings" className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-3">Key Findings</h4>
@@ -328,7 +337,7 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="gaps" className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-3 flex items-center gap-2">
@@ -344,38 +353,44 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="data" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {analysisResult.extractedData.policies && analysisResult.extractedData.policies.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm">Policies Found</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-1">
-                          {analysisResult.extractedData.policies.map((policy, index) => (
-                            <li key={index} className="text-sm">{policy}</li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  {analysisResult.extractedData.controls && analysisResult.extractedData.controls.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm">Controls Found</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-1">
-                          {analysisResult.extractedData.controls.map((control, index) => (
-                            <li key={index} className="text-sm">{control}</li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  )}
+                  {analysisResult.extractedData.policies &&
+                    analysisResult.extractedData.policies.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Policies Found</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-1">
+                            {analysisResult.extractedData.policies.map((policy, index) => (
+                              <li key={index} className="text-sm">
+                                {policy}
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                  {analysisResult.extractedData.controls &&
+                    analysisResult.extractedData.controls.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-sm">Controls Found</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-1">
+                            {analysisResult.extractedData.controls.map((control, index) => (
+                              <li key={index} className="text-sm">
+                                {control}
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
                 </div>
               </TabsContent>
             </Tabs>
@@ -396,9 +411,9 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(extractedProfile).map(([key, value]) => (
                 <div key={key} className="p-3 bg-gray-50 rounded-lg">
-                  <p className="font-medium text-sm capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
+                  <p className="font-medium text-sm capitalize">{key.replace(/([A-Z])/g, " $1")}</p>
                   <p className="text-sm text-gray-600">
-                    {Array.isArray(value) ? value.join(', ') : String(value)}
+                    {Array.isArray(value) ? value.join(", ") : String(value)}
                   </p>
                 </div>
               ))}

@@ -1,9 +1,14 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Brain, Zap, CheckCircle, AlertCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, Brain, CheckCircle, Zap } from "lucide-react";
 
 interface ModelSelectorProps {
   value: string;
@@ -18,7 +23,12 @@ interface AIHealth {
   overall: boolean;
 }
 
-export function ModelSelector({ value, onValueChange, className, showHealth = true }: ModelSelectorProps) {
+export function ModelSelector({
+  value,
+  onValueChange,
+  className,
+  showHealth = true,
+}: ModelSelectorProps) {
   const { data: models } = useQuery({
     queryKey: ["/api/ai/models"],
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -37,25 +47,25 @@ export function ModelSelector({ value, onValueChange, className, showHealth = tr
       label: "Auto-Select",
       description: "Automatically choose the best model for each document type",
       icon: <Zap className="h-4 w-4" />,
-      available: true
+      available: true,
     },
     {
       value: "gpt-4o",
       label: "GPT-4o",
       description: "OpenAI's latest model - excellent for procedures and technical documentation",
       icon: <Brain className="h-4 w-4" />,
-      available: health?.openai ?? true
+      available: health?.openai ?? true,
     },
     {
       value: "claude-sonnet-4",
       label: "Claude 4.0 Sonnet",
       description: "Anthropic's advanced model - superior for analysis and detailed policies",
       icon: <Brain className="h-4 w-4" />,
-      available: health?.anthropic ?? true
-    }
+      available: health?.anthropic ?? true,
+    },
   ];
 
-  const selectedModel = modelOptions.find(m => m.value === value);
+  const selectedModel = modelOptions.find((m) => m.value === value);
 
   return (
     <TooltipProvider>
@@ -66,10 +76,7 @@ export function ModelSelector({ value, onValueChange, className, showHealth = tr
               {selectedModel?.icon}
               <SelectValue placeholder="Select AI Model" />
               {showHealth && health && (
-                <Badge 
-                  variant={health.overall ? "default" : "destructive"}
-                  className="ml-auto h-5"
-                >
+                <Badge variant={health.overall ? "default" : "destructive"} className="ml-auto h-5">
                   {health.overall ? (
                     <CheckCircle className="h-3 w-3" />
                   ) : (
@@ -83,7 +90,7 @@ export function ModelSelector({ value, onValueChange, className, showHealth = tr
             {modelOptions.map((model) => (
               <Tooltip key={model.value}>
                 <TooltipTrigger asChild>
-                  <SelectItem 
+                  <SelectItem
                     value={model.value}
                     disabled={!model.available}
                     className="flex flex-col items-start p-3"
@@ -92,7 +99,7 @@ export function ModelSelector({ value, onValueChange, className, showHealth = tr
                       {model.icon}
                       <span className="font-medium">{model.label}</span>
                       {showHealth && (
-                        <Badge 
+                        <Badge
                           variant={model.available ? "default" : "destructive"}
                           className="ml-auto h-4 text-xs"
                         >
@@ -109,7 +116,7 @@ export function ModelSelector({ value, onValueChange, className, showHealth = tr
             ))}
           </SelectContent>
         </Select>
-        
+
         {showHealth && health && !health.overall && (
           <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-md">
             <div className="flex items-center gap-2 text-sm text-red-700 dark:text-red-300">

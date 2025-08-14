@@ -8,19 +8,28 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
+  urlOrOptions: string | { method: string; body?: unknown },
+  options?: { method: string; body?: unknown },
+): Promise<any> {
+  let url: string;
+  let requestOptions: { method: string; body?: unknown };
+
+  if (typeof urlOrOptions === 'string') {
+    url = urlOrOptions;
+    requestOptions = options || { method: 'GET' };
+  } else {
+    throw new Error('Invalid apiRequest usage');
+  }
+
   const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    method: requestOptions.method,
+    headers: requestOptions.body ? { "Content-Type": "application/json" } : {},
+    body: requestOptions.body ? JSON.stringify(requestOptions.body) : undefined,
     credentials: "include",
   });
 
   await throwIfResNotOk(res);
-  return res;
+  return res.json();
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -29,7 +38,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const res = await fetch(queryKey.join("/"), {
       credentials: "include",
     });
 

@@ -1,21 +1,21 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Shield, 
-  AlertTriangle, 
-  TrendingUp, 
-  CheckCircle2, 
-  Loader2,
-  Target,
-  Lightbulb
-} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Lightbulb,
+  Loader2,
+  Shield,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { useState } from "react";
 
 interface ComplianceInsightsProps {
   companyProfileId: string;
@@ -30,13 +30,20 @@ interface ComplianceInsights {
   priorityActions: string[];
 }
 
-export function ComplianceInsights({ companyProfileId, framework, className }: ComplianceInsightsProps) {
+export function ComplianceInsights({
+  companyProfileId,
+  framework,
+  className,
+}: ComplianceInsightsProps) {
   const [insights, setInsights] = useState<ComplianceInsights | null>(null);
 
   const generateInsights = useMutation({
     mutationFn: async (): Promise<ComplianceInsights> => {
-      const response = await apiRequest("POST", "/api/ai/generate-insights", { companyProfileId, framework });
-      return await response.json();
+      const response = await apiRequest("/api/ai/generate-insights", {
+        method: "POST", 
+        body: { companyProfileId, framework }
+      });
+      return response;
     },
     onSuccess: (data: ComplianceInsights) => {
       setInsights(data);
@@ -112,9 +119,7 @@ export function ComplianceInsights({ companyProfileId, framework, className }: C
                     {insights.keyRisks.map((risk, index) => (
                       <Alert key={index} className="p-3">
                         <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription className="text-sm">
-                          {risk}
-                        </AlertDescription>
+                        <AlertDescription className="text-sm">{risk}</AlertDescription>
                       </Alert>
                     ))}
                   </div>
@@ -133,7 +138,10 @@ export function ComplianceInsights({ companyProfileId, framework, className }: C
                   </h4>
                   <div className="space-y-2">
                     {insights.priorityActions.map((action, index) => (
-                      <div key={index} className="flex items-start gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-md">
+                      <div
+                        key={index}
+                        className="flex items-start gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-md"
+                      >
                         <CheckCircle2 className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-red-700 dark:text-red-300">{action}</span>
                       </div>
@@ -154,9 +162,14 @@ export function ComplianceInsights({ companyProfileId, framework, className }: C
                   </h4>
                   <div className="space-y-2">
                     {insights.recommendations.map((recommendation, index) => (
-                      <div key={index} className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                      <div
+                        key={index}
+                        className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md"
+                      >
                         <Lightbulb className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-blue-700 dark:text-blue-300">{recommendation}</span>
+                        <span className="text-sm text-blue-700 dark:text-blue-300">
+                          {recommendation}
+                        </span>
                       </div>
                     ))}
                   </div>

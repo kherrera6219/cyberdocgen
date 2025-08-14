@@ -309,7 +309,7 @@ Provide a helpful, actionable response.`;
     };
 
     return framework && framework in frameworkQuestions 
-      ? frameworkQuestions[framework as keyof typeof frameworkQuestions]
+      ? frameworkQuestions[framework]
       : baseQuestions;
   }
 }

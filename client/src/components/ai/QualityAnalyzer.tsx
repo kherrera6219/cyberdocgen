@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, AlertTriangle, Lightbulb, Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
+import { AlertTriangle, CheckCircle, Lightbulb, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 interface QualityAnalyzerProps {
   content: string;
@@ -106,9 +106,7 @@ export function QualityAnalyzer({ content, framework, onAnalysisComplete }: Qual
                 <AlertTriangle className="h-4 w-4" />
                 Analysis Feedback
               </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {analysis.feedback}
-              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{analysis.feedback}</p>
             </div>
 
             {/* Improvement Suggestions */}
@@ -122,7 +120,10 @@ export function QualityAnalyzer({ content, framework, onAnalysisComplete }: Qual
                   </h4>
                   <ul className="space-y-1">
                     {analysis.suggestions.map((suggestion, index) => (
-                      <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
+                      <li
+                        key={index}
+                        className="text-sm text-muted-foreground flex items-start gap-2"
+                      >
                         <span className="text-blue-500 mt-1">•</span>
                         <span>{suggestion}</span>
                       </li>

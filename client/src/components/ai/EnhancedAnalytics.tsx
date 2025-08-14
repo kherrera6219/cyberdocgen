@@ -1,45 +1,47 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  BarChart3, 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  Shield, 
-  FileText, 
-  Clock, 
-  AlertTriangle,
-  CheckCircle2,
-  Target,
-  Brain,
-  Zap,
-  Calendar,
-  Download,
-  Filter
-} from "lucide-react";
 import {
-  LineChart,
-  Line,
-  AreaChart,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  BarChart3,
+  Brain,
+  CheckCircle2,
+  Clock,
+  Download,
+  FileText,
+  Shield,
+  Target,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
+import { useState } from "react";
+import {
   Area,
-  BarChart,
+  AreaChart,
   Bar,
-  PieChart,
-  Pie,
+  BarChart,
+  CartesianGrid,
   Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
+} from "recharts";
 
 interface AnalyticsProps {
   className?: string;
@@ -72,30 +74,30 @@ interface AnalyticsSummary {
 }
 
 export function EnhancedAnalytics({ className }: AnalyticsProps) {
-  const [timeRange, setTimeRange] = useState('30d');
-  const [selectedFramework, setSelectedFramework] = useState('all');
+  const [timeRange, setTimeRange] = useState("30d");
+  const [selectedFramework, setSelectedFramework] = useState("all");
 
   // Analytics data query
   const { data: analytics, isLoading } = useQuery({
-    queryKey: ['/api/analytics/summary', timeRange, selectedFramework],
+    queryKey: ["/api/analytics/summary", timeRange, selectedFramework],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Quality trends query
   const { data: qualityTrends } = useQuery({
-    queryKey: ['/api/analytics/quality-trends', timeRange],
+    queryKey: ["/api/analytics/quality-trends", timeRange],
     staleTime: 5 * 60 * 1000,
   });
 
   // Risk assessment history
   const { data: riskHistory } = useQuery({
-    queryKey: ['/api/analytics/risk-history', timeRange],
+    queryKey: ["/api/analytics/risk-history", timeRange],
     staleTime: 5 * 60 * 1000,
   });
 
   // AI usage analytics
   const { data: aiUsage } = useQuery({
-    queryKey: ['/api/analytics/ai-usage', timeRange],
+    queryKey: ["/api/analytics/ai-usage", timeRange],
     staleTime: 5 * 60 * 1000,
   });
 
@@ -123,60 +125,67 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
     averageQualityScore: 78,
     totalRiskScore: 65,
     frameworkProgress: {
-      'ISO 27001': 85,
-      'SOC 2': 72,
-      'FedRAMP': 45,
-      'NIST 800-53': 61
+      "ISO 27001": 85,
+      "SOC 2": 72,
+      FedRAMP: 45,
+      "NIST 800-53": 61,
     },
     recentActivity: [
-      { date: '2024-08-14', action: 'Generated', entity: 'Security Policy', user: 'You' },
-      { date: '2024-08-14', action: 'Analyzed', entity: 'Risk Assessment', user: 'You' },
-      { date: '2024-08-13', action: 'Updated', entity: 'Company Profile', user: 'You' }
+      { date: "2024-08-14", action: "Generated", entity: "Security Policy", user: "You" },
+      { date: "2024-08-14", action: "Analyzed", entity: "Risk Assessment", user: "You" },
+      { date: "2024-08-13", action: "Updated", entity: "Company Profile", user: "You" },
     ],
     qualityTrends: [
-      { date: '2024-08-01', score: 65, framework: 'ISO 27001' },
-      { date: '2024-08-05', score: 71, framework: 'ISO 27001' },
-      { date: '2024-08-10', score: 78, framework: 'ISO 27001' },
-      { date: '2024-08-14', score: 82, framework: 'ISO 27001' }
+      { date: "2024-08-01", score: 65, framework: "ISO 27001" },
+      { date: "2024-08-05", score: 71, framework: "ISO 27001" },
+      { date: "2024-08-10", score: 78, framework: "ISO 27001" },
+      { date: "2024-08-14", score: 82, framework: "ISO 27001" },
     ],
     complianceGaps: [
-      { framework: 'ISO 27001', criticalGaps: 3, totalGaps: 12 },
-      { framework: 'SOC 2', criticalGaps: 5, totalGaps: 18 },
-      { framework: 'FedRAMP', criticalGaps: 8, totalGaps: 25 }
-    ]
+      { framework: "ISO 27001", criticalGaps: 3, totalGaps: 12 },
+      { framework: "SOC 2", criticalGaps: 5, totalGaps: 18 },
+      { framework: "FedRAMP", criticalGaps: 8, totalGaps: 25 },
+    ],
   };
 
   const analyticsData = analytics || mockAnalytics;
 
   const riskTrendData = [
-    { month: 'Jul', score: 72 },
-    { month: 'Aug', score: 65 },
-    { month: 'Sep', score: 58 },
-    { month: 'Oct', score: 61 },
+    { month: "Jul", score: 72 },
+    { month: "Aug", score: 65 },
+    { month: "Sep", score: 58 },
+    { month: "Oct", score: 61 },
   ];
 
-  const frameworkData = Object.entries(analyticsData.frameworkProgress).map(([name, value]) => ({
-    name,
-    value,
-    fill: name === 'ISO 27001' ? '#10b981' : 
-          name === 'SOC 2' ? '#3b82f6' :
-          name === 'FedRAMP' ? '#f59e0b' : '#8b5cf6'
-  }));
+  const frameworkData = Object.entries(analyticsData.frameworkProgress || {}).map(
+    ([name, value]) => ({
+      name,
+      value,
+      fill:
+        name === "ISO 27001"
+          ? "#10b981"
+          : name === "SOC 2"
+            ? "#3b82f6"
+            : name === "FedRAMP"
+              ? "#f59e0b"
+              : "#8b5cf6",
+    })
+  );
 
   const qualityDistribution = [
-    { range: '90-100', count: 8, fill: '#10b981' },
-    { range: '80-89', count: 15, fill: '#3b82f6' },
-    { range: '70-79', count: 12, fill: '#f59e0b' },
-    { range: '60-69', count: 5, fill: '#ef4444' },
-    { range: '<60', count: 2, fill: '#6b7280' }
+    { range: "90-100", count: 8, fill: "#10b981" },
+    { range: "80-89", count: 15, fill: "#3b82f6" },
+    { range: "70-79", count: 12, fill: "#f59e0b" },
+    { range: "60-69", count: 5, fill: "#ef4444" },
+    { range: "<60", count: 2, fill: "#6b7280" },
   ];
 
   const aiUsageData = [
-    { feature: 'Document Generation', usage: 45 },
-    { feature: 'Quality Analysis', usage: 32 },
-    { feature: 'Risk Assessment', usage: 28 },
-    { feature: 'Chatbot', usage: 19 },
-    { feature: 'Document Analysis', usage: 15 }
+    { feature: "Document Generation", usage: 45 },
+    { feature: "Quality Analysis", usage: 32 },
+    { feature: "Risk Assessment", usage: 28 },
+    { feature: "Chatbot", usage: 19 },
+    { feature: "Document Analysis", usage: 15 },
   ];
 
   return (
@@ -206,7 +215,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                   <SelectItem value="1y">Last year</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={selectedFramework} onValueChange={setSelectedFramework}>
                 <SelectTrigger className="w-40">
                   <SelectValue />
@@ -236,16 +245,20 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Documents</p>
-                <p className="text-2xl font-bold">{analyticsData.totalDocuments}</p>
+                <p className="text-2xl font-bold">{analyticsData.totalDocuments || 0}</p>
                 <p className="text-xs text-gray-500">
-                  {analyticsData.completedDocuments} completed
+                  {analyticsData.completedDocuments || 0} completed
                 </p>
               </div>
               <FileText className="h-8 w-8 text-blue-500" />
             </div>
-            <Progress 
-              value={(analyticsData.completedDocuments / analyticsData.totalDocuments) * 100} 
-              className="mt-2 h-2" 
+            <Progress
+              value={
+                analyticsData.totalDocuments
+                  ? ((analyticsData.completedDocuments || 0) / analyticsData.totalDocuments) * 100
+                  : 0
+              }
+              className="mt-2 h-2"
             />
           </CardContent>
         </Card>
@@ -255,7 +268,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg Quality Score</p>
-                <p className="text-2xl font-bold">{analyticsData.averageQualityScore}%</p>
+                <p className="text-2xl font-bold">{analyticsData.averageQualityScore || 0}%</p>
                 <div className="flex items-center text-xs">
                   <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
                   <span className="text-green-500">+5% from last month</span>
@@ -271,7 +284,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Risk Score</p>
-                <p className="text-2xl font-bold">{analyticsData.totalRiskScore}/100</p>
+                <p className="text-2xl font-bold">{analyticsData.totalRiskScore || 0}/100</p>
                 <div className="flex items-center text-xs">
                   <TrendingDown className="h-3 w-3 text-green-500 mr-1" />
                   <span className="text-green-500">-7 from last assessment</span>
@@ -305,7 +318,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
           <TabsTrigger value="frameworks">Frameworks</TabsTrigger>
           <TabsTrigger value="ai-usage">AI Usage</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Framework Progress */}
@@ -376,16 +389,24 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                   <div key={index} className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium">{gap.framework}</h4>
-                      <Badge variant={gap.criticalGaps > 5 ? "destructive" : gap.criticalGaps > 2 ? "secondary" : "default"}>
+                      <Badge
+                        variant={
+                          gap.criticalGaps > 5
+                            ? "destructive"
+                            : gap.criticalGaps > 2
+                              ? "secondary"
+                              : "default"
+                        }
+                      >
                         {gap.criticalGaps} critical
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 mb-2">
                       {gap.totalGaps} total gaps identified
                     </p>
-                    <Progress 
-                      value={((gap.totalGaps - gap.criticalGaps) / gap.totalGaps) * 100} 
-                      className="h-2" 
+                    <Progress
+                      value={((gap.totalGaps - gap.criticalGaps) / gap.totalGaps) * 100}
+                      className="h-2"
                     />
                   </div>
                 ))}
@@ -393,7 +414,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="quality" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Quality Trends Chart */}
@@ -409,10 +430,10 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="score" 
-                      stroke="#3b82f6" 
+                    <Line
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#3b82f6"
                       strokeWidth={2}
                       name="Quality Score"
                     />
@@ -440,7 +461,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             </Card>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="risk" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Risk Trends */}
@@ -455,10 +476,10 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                     <XAxis dataKey="month" />
                     <YAxis domain={[0, 100]} />
                     <Tooltip />
-                    <Area 
-                      type="monotone" 
-                      dataKey="score" 
-                      stroke="#f59e0b" 
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#f59e0b"
                       fill="#fef3c7"
                       name="Risk Score"
                     />
@@ -475,21 +496,28 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { category: 'Technical Risks', score: 72, trend: 'down' },
-                    { category: 'Operational Risks', score: 65, trend: 'up' },
-                    { category: 'Compliance Risks', score: 58, trend: 'down' },
-                    { category: 'Strategic Risks', score: 61, trend: 'stable' }
+                    { category: "Technical Risks", score: 72, trend: "down" },
+                    { category: "Operational Risks", score: 65, trend: "up" },
+                    { category: "Compliance Risks", score: 58, trend: "down" },
+                    { category: "Strategic Risks", score: 61, trend: "stable" },
                   ].map((risk, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div className="flex items-center gap-3">
                         <Shield className="h-5 w-5 text-gray-400" />
                         <span className="font-medium">{risk.category}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono">{risk.score}/100</span>
-                        {risk.trend === 'up' && <TrendingUp className="h-4 w-4 text-red-500" />}
-                        {risk.trend === 'down' && <TrendingDown className="h-4 w-4 text-green-500" />}
-                        {risk.trend === 'stable' && <span className="w-4 h-4 text-gray-400">→</span>}
+                        {risk.trend === "up" && <TrendingUp className="h-4 w-4 text-red-500" />}
+                        {risk.trend === "down" && (
+                          <TrendingDown className="h-4 w-4 text-green-500" />
+                        )}
+                        {risk.trend === "stable" && (
+                          <span className="w-4 h-4 text-gray-400">→</span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -498,7 +526,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             </Card>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="frameworks" className="space-y-6">
           <div className="grid gap-6">
             {Object.entries(analyticsData.frameworkProgress).map(([framework, progress]) => (
@@ -506,7 +534,11 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{framework}</CardTitle>
-                    <Badge variant={progress > 80 ? "default" : progress > 60 ? "secondary" : "destructive"}>
+                    <Badge
+                      variant={
+                        progress > 80 ? "default" : progress > 60 ? "secondary" : "destructive"
+                      }
+                    >
                       {progress}% Complete
                     </Badge>
                   </div>
@@ -534,7 +566,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="ai-usage" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* AI Feature Usage */}
@@ -566,16 +598,19 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { metric: 'Average Generation Time', value: '2.3s', status: 'good' },
-                    { metric: 'Quality Score Accuracy', value: '94%', status: 'excellent' },
-                    { metric: 'Chat Response Relevance', value: '88%', status: 'good' },
-                    { metric: 'Risk Assessment Accuracy', value: '91%', status: 'excellent' }
+                    { metric: "Average Generation Time", value: "2.3s", status: "good" },
+                    { metric: "Quality Score Accuracy", value: "94%", status: "excellent" },
+                    { metric: "Chat Response Relevance", value: "88%", status: "good" },
+                    { metric: "Risk Assessment Accuracy", value: "91%", status: "excellent" },
                   ].map((metric, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <span className="font-medium">{metric.metric}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono">{metric.value}</span>
-                        <Badge variant={metric.status === 'excellent' ? 'default' : 'secondary'}>
+                        <Badge variant={metric.status === "excellent" ? "default" : "secondary"}>
                           {metric.status}
                         </Badge>
                       </div>

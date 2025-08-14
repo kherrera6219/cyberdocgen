@@ -1,32 +1,36 @@
-import { useState, useRef, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  MessageSquare, 
-  Send, 
-  Bot, 
-  User, 
-  Brain, 
-  FileText, 
-  Lightbulb,
-  Clock,
-  Sparkles,
-  HelpCircle
-} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  Bot,
+  Clock,
+  FileText,
+  HelpCircle,
+  Lightbulb,
+  MessageSquare,
+  Send,
+  Sparkles,
+  User,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
   metadata?: {
@@ -51,8 +55,8 @@ interface ChatbotProps {
 
 export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [selectedFramework, setSelectedFramework] = useState(defaultFramework || '');
+  const [inputMessage, setInputMessage] = useState("");
+  const [selectedFramework, setSelectedFramework] = useState(defaultFramework || "");
   const [sessionId, setSessionId] = useState<string>();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -60,42 +64,43 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
 
   // Suggested questions query
   const { data: suggestedQuestions } = useQuery({
-    queryKey: ['/api/ai/chat/suggestions', selectedFramework],
+    queryKey: ["/api/ai/chat/suggestions", selectedFramework],
     enabled: messages.length === 0,
   });
 
   // Chat mutation
   const chatMutation = useMutation({
-    mutationFn: async (data: { 
-      message: string; 
-      framework?: string; 
+    mutationFn: async (data: {
+      message: string;
+      framework?: string;
       sessionId?: string;
-    }) => {
+    }): Promise<ChatResponse> => {
       return apiRequest(`/api/ai/chat`, {
-        method: 'POST',
-        body: data
+        method: "POST",
+        body: data,
       });
     },
     onSuccess: (response: ChatResponse, variables) => {
       const assistantMessage: ChatMessage = {
-        id: Date.now().toString() + '-assistant',
-        role: 'assistant',
+        id: Date.now().toString() + "-assistant",
+        role: "assistant",
         content: response.content,
         timestamp: new Date(),
         metadata: {
           framework: variables.framework,
           confidence: response.confidence,
-          sources: response.sources
-        }
+          sources: response.sources,
+        },
       };
-      
-      setMessages(prev => [...prev, assistantMessage]);
-      
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
       // Show confidence level if low
       if (response.confidence < 70) {
         toast({
           title: "Lower Confidence Response",
-          description: "This response may need verification. Consider consulting additional sources.",
+          description:
+            "This response may need verification. Consider consulting additional sources.",
           variant: "destructive",
         });
       }
@@ -122,21 +127,21 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
 
     // Add user message
     const userMessage: ChatMessage = {
-      id: Date.now().toString() + '-user',
-      role: 'user',
+      id: Date.now().toString() + "-user",
+      role: "user",
       content: inputMessage,
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     const currentMessage = inputMessage;
-    setInputMessage('');
+    setInputMessage("");
 
     // Send to AI
     chatMutation.mutate({
       message: currentMessage,
       framework: selectedFramework,
-      sessionId
+      sessionId,
     });
   };
 
@@ -145,7 +150,7 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -157,9 +162,9 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
   };
 
   const formatTimestamp = (timestamp: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(timestamp);
   };
 
@@ -172,15 +177,14 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
             Compliance AI Assistant
           </CardTitle>
           <CardDescription>
-            Ask questions about compliance frameworks, get personalized guidance, and receive actionable recommendations
+            Ask questions about compliance frameworks, get personalized guidance, and receive
+            actionable recommendations
           </CardDescription>
         </CardHeader>
         <CardContent>
           {/* Framework Selection */}
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
-              Focus Framework (Optional)
-            </label>
+            <label className="block text-sm font-medium mb-2">Focus Framework (Optional)</label>
             <div className="flex gap-2">
               <Select value={selectedFramework} onValueChange={setSelectedFramework}>
                 <SelectTrigger className="flex-1">
@@ -210,32 +214,39 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                   <div className="text-center text-gray-500 py-8">
                     <Bot className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <p className="text-lg font-medium">Welcome to your AI Compliance Assistant!</p>
-                    <p className="text-sm">Ask me anything about cybersecurity compliance, frameworks, or implementation guidance.</p>
+                    <p className="text-sm">
+                      Ask me anything about cybersecurity compliance, frameworks, or implementation
+                      guidance.
+                    </p>
                   </div>
-                  
+
                   {/* Suggested Questions */}
-                  {suggestedQuestions && suggestedQuestions.length > 0 && (
-                    <div>
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
-                        <Lightbulb className="h-4 w-4" />
-                        Suggested Questions
-                      </h4>
-                      <div className="grid gap-2">
-                        {suggestedQuestions.slice(0, 4).map((question: string, index: number) => (
-                          <Button
-                            key={index}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSuggestedQuestion(question)}
-                            className="text-left justify-start h-auto p-3 whitespace-normal"
-                          >
-                            <HelpCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                            {question}
-                          </Button>
-                        ))}
+                  {Array.isArray(suggestedQuestions) && suggestedQuestions.length > 0 && (
+                      <div>
+                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                          <Lightbulb className="h-4 w-4" />
+                          Suggested Questions
+                        </h4>
+                        <div className="grid gap-2">
+                          {Array.isArray(suggestedQuestions)
+                            ? suggestedQuestions
+                                .slice(0, 4)
+                                .map((question: string, index: number) => (
+                                  <Button
+                                    key={index}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleSuggestedQuestion(question)}
+                                    className="text-left justify-start h-auto p-3 whitespace-normal"
+                                  >
+                                    <HelpCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                                    {question}
+                                  </Button>
+                                ))
+                            : []}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -243,42 +254,49 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                     <div
                       key={message.id}
                       className={`flex gap-3 ${
-                        message.role === 'user' ? 'justify-end' : 'justify-start'
+                        message.role === "user" ? "justify-end" : "justify-start"
                       }`}
                     >
-                      {message.role === 'assistant' && (
+                      {message.role === "assistant" && (
                         <div className="flex-shrink-0">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                             <Bot className="h-4 w-4 text-blue-600" />
                           </div>
                         </div>
                       )}
-                      
-                      <div className={`flex flex-col max-w-[80%] ${
-                        message.role === 'user' ? 'items-end' : 'items-start'
-                      }`}>
-                        <div className={`rounded-lg p-3 ${
-                          message.role === 'user'
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}>
+
+                      <div
+                        className={`flex flex-col max-w-[80%] ${
+                          message.role === "user" ? "items-end" : "items-start"
+                        }`}
+                      >
+                        <div
+                          className={`rounded-lg p-3 ${
+                            message.role === "user"
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 text-gray-900"
+                          }`}
+                        >
                           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                         </div>
-                        
+
                         {/* Message metadata */}
                         <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
                           <Clock className="h-3 w-3" />
                           {formatTimestamp(message.timestamp)}
-                          
+
                           {message.metadata?.confidence && (
                             <>
                               <Separator orientation="vertical" className="h-3" />
-                              <Badge variant={message.metadata.confidence > 80 ? "default" : "secondary"} className="text-xs">
+                              <Badge
+                                variant={message.metadata.confidence > 80 ? "default" : "secondary"}
+                                className="text-xs"
+                              >
                                 {message.metadata.confidence}% confidence
                               </Badge>
                             </>
                           )}
-                          
+
                           {message.metadata?.framework && (
                             <>
                               <Separator orientation="vertical" className="h-3" />
@@ -288,7 +306,7 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                             </>
                           )}
                         </div>
-                        
+
                         {/* Sources */}
                         {message.metadata?.sources && message.metadata.sources.length > 0 && (
                           <div className="mt-2 text-xs">
@@ -304,8 +322,8 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                           </div>
                         )}
                       </div>
-                      
-                      {message.role === 'user' && (
+
+                      {message.role === "user" && (
                         <div className="flex-shrink-0">
                           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                             <User className="h-4 w-4 text-white" />
@@ -314,7 +332,7 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                       )}
                     </div>
                   ))}
-                  
+
                   {/* Loading indicator */}
                   {chatMutation.isPending && (
                     <div className="flex gap-3 justify-start">
@@ -327,8 +345,14 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                         <div className="flex items-center gap-2">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            <div
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              style={{ animationDelay: "0.1s" }}
+                            ></div>
+                            <div
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              style={{ animationDelay: "0.2s" }}
+                            ></div>
                           </div>
                           <span className="text-sm text-gray-500">AI is thinking...</span>
                         </div>
@@ -339,7 +363,7 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
               )}
               <div ref={messagesEndRef} />
             </ScrollArea>
-            
+
             {/* Input Area */}
             <div className="border-t p-4">
               <div className="flex gap-2">
@@ -351,7 +375,7 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                   className="flex-1"
                   disabled={chatMutation.isPending}
                 />
-                <Button 
+                <Button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || chatMutation.isPending}
                   size="sm"
