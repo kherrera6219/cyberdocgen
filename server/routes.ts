@@ -1,0 +1,272 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema } from "@shared/schema";
+import { generateComplianceDocuments, frameworkTemplates } from "./services/openai";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Company Profile routes
+  app.get("/api/company-profiles", async (req, res) => {
+    try {
+      const profiles = await storage.getCompanyProfiles();
+      res.json(profiles);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch company profiles" });
+    }
+  });
+
+  app.get("/api/company-profiles/:id", async (req, res) => {
+    try {
+      const profile = await storage.getCompanyProfile(req.params.id);
+      if (!profile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch company profile" });
+    }
+  });
+
+  app.post("/api/company-profiles", async (req, res) => {
+    try {
+      const validatedData = insertCompanyProfileSchema.parse(req.body);
+      const profile = await storage.createCompanyProfile(validatedData);
+      res.status(201).json(profile);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create company profile" });
+    }
+  });
+
+  app.put("/api/company-profiles/:id", async (req, res) => {
+    try {
+      const validatedData = insertCompanyProfileSchema.partial().parse(req.body);
+      const profile = await storage.updateCompanyProfile(req.params.id, validatedData);
+      if (!profile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update company profile" });
+    }
+  });
+
+  // Document routes
+  app.get("/api/documents", async (req, res) => {
+    try {
+      const { companyProfileId, framework } = req.query;
+      
+      let documents;
+      if (companyProfileId) {
+        documents = await storage.getDocumentsByCompanyProfile(companyProfileId as string);
+      } else if (framework) {
+        documents = await storage.getDocumentsByFramework(framework as string);
+      } else {
+        documents = await storage.getDocuments();
+      }
+      
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.get("/api/documents/:id", async (req, res) => {
+    try {
+      const document = await storage.getDocument(req.params.id);
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      res.json(document);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch document" });
+    }
+  });
+
+  app.post("/api/documents", async (req, res) => {
+    try {
+      const validatedData = insertDocumentSchema.parse(req.body);
+      const document = await storage.createDocument(validatedData);
+      res.status(201).json(document);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create document" });
+    }
+  });
+
+  app.put("/api/documents/:id", async (req, res) => {
+    try {
+      const validatedData = insertDocumentSchema.partial().parse(req.body);
+      const document = await storage.updateDocument(req.params.id, validatedData);
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      res.json(document);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update document" });
+    }
+  });
+
+  app.delete("/api/documents/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteDocument(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete document" });
+    }
+  });
+
+  // Generation Job routes
+  app.get("/api/generation-jobs", async (req, res) => {
+    try {
+      const { companyProfileId } = req.query;
+      
+      let jobs;
+      if (companyProfileId) {
+        jobs = await storage.getGenerationJobsByCompanyProfile(companyProfileId as string);
+      } else {
+        jobs = await storage.getGenerationJobs();
+      }
+      
+      res.json(jobs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch generation jobs" });
+    }
+  });
+
+  app.get("/api/generation-jobs/:id", async (req, res) => {
+    try {
+      const job = await storage.getGenerationJob(req.params.id);
+      if (!job) {
+        return res.status(404).json({ message: "Generation job not found" });
+      }
+      res.json(job);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch generation job" });
+    }
+  });
+
+  // Document generation endpoint
+  app.post("/api/generate-documents", async (req, res) => {
+    try {
+      const { companyProfileId, framework } = req.body;
+      
+      if (!companyProfileId || !framework) {
+        return res.status(400).json({ message: "Company profile ID and framework are required" });
+      }
+
+      const companyProfile = await storage.getCompanyProfile(companyProfileId);
+      if (!companyProfile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+
+      const templates = frameworkTemplates[framework];
+      if (!templates) {
+        return res.status(400).json({ message: `Invalid framework: ${framework}` });
+      }
+
+      // Create generation job
+      const job = await storage.createGenerationJob({
+        companyProfileId,
+        framework,
+        status: "running",
+        progress: 0,
+        documentsGenerated: 0,
+        totalDocuments: templates.length,
+      });
+
+      // Start generation process asynchronously
+      (async () => {
+        try {
+          const documents = await generateComplianceDocuments(
+            companyProfile,
+            framework,
+            async (progress, currentDocument) => {
+              await storage.updateGenerationJob(job.id, {
+                progress,
+                documentsGenerated: Math.floor((progress / 100) * templates.length),
+              });
+            }
+          );
+
+          // Save generated documents
+          for (let i = 0; i < documents.length; i++) {
+            const template = templates[i];
+            await storage.createDocument({
+              companyProfileId,
+              title: template.title,
+              description: template.description,
+              framework,
+              category: template.category,
+              content: documents[i],
+              status: "complete",
+            });
+          }
+
+          // Mark job as completed
+          await storage.updateGenerationJob(job.id, {
+            status: "completed",
+            progress: 100,
+            documentsGenerated: templates.length,
+          });
+        } catch (error) {
+          console.error("Document generation failed:", error);
+          await storage.updateGenerationJob(job.id, {
+            status: "failed",
+          });
+        }
+      })();
+
+      res.status(202).json({ jobId: job.id, message: "Document generation started" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to start document generation" });
+    }
+  });
+
+  // Framework statistics endpoint
+  app.get("/api/frameworks/:framework/stats", async (req, res) => {
+    try {
+      const { framework } = req.params;
+      const { companyProfileId } = req.query;
+
+      if (!companyProfileId) {
+        return res.status(400).json({ message: "Company profile ID is required" });
+      }
+
+      const documents = await storage.getDocumentsByCompanyProfile(companyProfileId as string);
+      const frameworkDocs = documents.filter(doc => doc.framework === framework);
+      const templates = frameworkTemplates[framework] || [];
+      
+      const completedDocs = frameworkDocs.filter(doc => doc.status === 'complete').length;
+      const totalDocs = templates.length;
+      const progress = totalDocs > 0 ? Math.round((completedDocs / totalDocs) * 100) : 0;
+
+      res.json({
+        framework,
+        completed: completedDocs,
+        total: totalDocs,
+        progress,
+        documents: frameworkDocs,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch framework statistics" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
