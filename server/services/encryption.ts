@@ -43,7 +43,7 @@ export class EncryptionService {
 
       let encrypted = cipher.update(data, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       const authTag = crypto.createHash('sha256').update(encrypted + classification).digest();
 
       const encryptedData: EncryptedData = {
@@ -106,7 +106,7 @@ export class EncryptionService {
     const encryptedDate = new Date(encryptedData.encryptedAt);
     const rotationPeriod = 90 * 24 * 60 * 60 * 1000; // 90 days
     const now = new Date();
-    
+
     return (now.getTime() - encryptedDate.getTime()) > rotationPeriod;
   }
 
@@ -125,3 +125,134 @@ export class EncryptionService {
 }
 
 export const encryptionService = new EncryptionService();
+
+// Helper functions for data at rest encryption
+async function encrypt(data: string): Promise<EncryptedData> {
+  const service = new EncryptionService();
+  return service.encryptSensitiveField(data, DataClassification.RESTRICTED);
+}
+
+async function decrypt(encryptedData: string | EncryptedData): Promise<string> {
+  const service = new EncryptionService();
+  if (typeof encryptedData === 'string') {
+    // Assume it's the encrypted value and IV is not provided separately,
+    // which might happen if encryption was not done using EncryptedData interface
+    try {
+      const parsedData = JSON.parse(encryptedData);
+      if (parsedData.encryptedValue && parsedData.iv) {
+        return service.decryptSensitiveField(parsedData, DataClassification.RESTRICTED);
+      }
+    } catch (e) {
+      // If parsing fails, it might be a simple string or an old format
+    }
+    // Fallback for cases where only the encrypted string is present
+    // This requires a default IV or a different decryption mechanism if the format is unknown
+    // For simplicity, we'll assume the EncryptedData interface is used or the format is consistent.
+    // If a simple string is passed, and it's not parsable into EncryptedData, decryption will fail here.
+  } else {
+    return service.decryptSensitiveField(encryptedData, DataClassification.RESTRICTED);
+  }
+  throw new Error('Invalid encrypted data format for decryption');
+}
+
+
+/**
+ * Encrypt sensitive company profile data
+ */
+export async function encryptCompanyProfile(profile: any): Promise<any> {
+  const sensitiveFields = [
+    'taxId', 'ssn', 'bankAccount', 'routingNumber',
+    'apiKeys', 'credentials', 'financialData'
+  ];
+
+  const encrypted = { ...profile };
+
+  for (const field of sensitiveFields) {
+    if (encrypted[field]) {
+      encrypted[field] = await encrypt(encrypted[field]);
+    }
+  }
+
+  return encrypted;
+}
+
+/**
+ * Encrypt all data at rest
+ */
+export async function encryptDataAtRest(data: any, dataType: string): Promise<any> {
+  if (!data) return data;
+
+  const encryptionMetadata = {
+    encrypted: true,
+    encryptedAt: new Date().toISOString(),
+    dataType,
+    algorithm: 'AES-256-GCM',
+    keyVersion: process.env.ENCRYPTION_KEY_VERSION || '1'
+  };
+
+  // For objects, encrypt sensitive string fields
+  if (typeof data === 'object' && !Array.isArray(data)) {
+    const encrypted = { ...data };
+
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string' && shouldEncryptField(key, dataType)) {
+        encrypted[key] = await encrypt(value);
+      }
+    }
+
+    return { ...encrypted, _encryption: encryptionMetadata };
+  }
+
+  // For primitive sensitive data
+  if (typeof data === 'string') {
+    return {
+      encryptedValue: await encrypt(data),
+      _encryption: encryptionMetadata
+    };
+  }
+
+  return data;
+}
+
+/**
+ * Decrypt data at rest
+ */
+export async function decryptDataAtRest(data: any): Promise<any> {
+  if (!data || !data._encryption) return data;
+
+  const decrypted = { ...data };
+  delete decrypted._encryption;
+
+  // Handle encrypted value wrapper
+  if (data.encryptedValue) {
+    return await decrypt(data.encryptedValue);
+  }
+
+  // Handle object with encrypted fields
+  for (const [key, value] of Object.entries(decrypted)) {
+    if (typeof value === 'string' && key !== '_encryption') {
+      try {
+        decrypted[key] = await decrypt(value);
+      } catch {
+        // If decryption fails, assume it's not encrypted
+        decrypted[key] = value;
+      }
+    }
+  }
+
+  return decrypted;
+}
+
+/**
+ * Determine if field should be encrypted based on data type and field name
+ */
+function shouldEncryptField(fieldName: string, dataType: string): boolean {
+  const sensitiveFields = [
+    'password', 'secret', 'key', 'token', 'credential',
+    'ssn', 'taxId', 'bankAccount', 'routingNumber',
+    'apiKey', 'privateKey', 'confidential'
+  ];
+
+  const fieldLower = fieldName.toLowerCase();
+  return sensitiveFields.some(sensitive => fieldLower.includes(sensitive));
+}

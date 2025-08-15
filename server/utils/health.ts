@@ -1,6 +1,8 @@
-import { Request, Response } from "express";
-import { db } from "../db";
-import { logger } from "./logger";
+import { Request, Response } from 'express';
+import { sql } from 'drizzle-orm';
+import { logger } from './logger';
+import { db } from '../db';
+import { performanceService } from '../services/performanceService';
 
 interface HealthCheckResult {
   status: "pass" | "fail" | "warn";
@@ -162,19 +164,66 @@ class HealthCheckService {
 
 const healthCheckService = new HealthCheckService();
 
-export async function healthCheckHandler(req: Request, res: Response): Promise<void> {
+export async function healthCheckHandler(req: Request, res: Response) {
   try {
-    const health = await healthCheckService.performHealthCheck();
-    const statusCode = health.status === "healthy" ? 200 : health.status === "degraded" ? 200 : 503;
+    const dbStatus = await checkDatabaseHealth();
+    const performanceMetrics = performanceService.getDetailedMetrics();
 
-    res.status(statusCode).json(health);
-  } catch (error) {
-    logger.error("Health check failed", { error: error.message });
-    res.status(503).json({
-      status: "unhealthy",
+    const status = {
+      status: 'healthy',
       timestamp: new Date().toISOString(),
-      message: "Health check service unavailable",
+      uptime: process.uptime(),
+      version: process.env.npm_package_version || 'unknown',
+      database: dbStatus,
+      performance: {
+        requests: performanceMetrics.requests,
+        responseTime: performanceMetrics.responseTime,
+        healthStatus: performanceMetrics.healthStatus
+      },
+      memory: {
+        used: process.memoryUsage().heapUsed,
+        total: process.memoryUsage().heapTotal,
+        external: process.memoryUsage().external,
+        rss: process.memoryUsage().rss
+      },
+      environment: process.env.NODE_ENV,
+      features: {
+        mfa: process.env.MFA_ENABLED === 'true',
+        encryption: !!process.env.ENCRYPTION_KEY,
+        auditLogging: true,
+        threatDetection: true
+      }
+    };
+
+    // Determine overall health
+    const isHealthy = dbStatus.connected && 
+                     performanceMetrics.healthStatus !== 'critical' &&
+                     process.memoryUsage().heapUsed < process.memoryUsage().heapTotal * 0.9;
+
+    if (!isHealthy) {
+      return res.status(503).json({ ...status, status: 'unhealthy' });
+    }
+
+    res.status(200).json(status);
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+}
+
+async function checkDatabaseHealth(): Promise<{ connected: boolean; latency?: number }> {
+  try {
+    const start = Date.now();
+    // Simple query to test database connectivity
+    await db.execute(sql`SELECT 1`);
+    const latency = Date.now() - start;
+
+    return { connected: true, latency };
+  } catch (error) {
+    return { connected: false };
   }
 }
 

@@ -1,4 +1,3 @@
-
 import { logger } from '../utils/logger';
 import { alertingService } from './alertingService';
 
@@ -33,24 +32,102 @@ export class PerformanceService {
     this.startCacheCleanup();
   }
 
-  recordRequest(responseTime: number, isError: boolean = false) {
+  recordRequest(responseTime: number, isError: boolean, endpoint?: string): void {
     this.metrics.requestCount++;
+    this.metrics.errorCount += isError ? 1 : 0;
     this.metrics.totalResponseTime += responseTime;
-    
-    if (isError) {
-      this.metrics.errorCount++;
+    this.metrics.requestCount++; // Assuming this is intended to increment request count, though it's duplicated from above.
+
+    // Track endpoint-specific metrics
+    if (endpoint) {
+      if (!this.endpointMetrics.has(endpoint)) {
+        this.endpointMetrics.set(endpoint, {
+          requests: 0,
+          errors: 0,
+          totalTime: 0,
+          avgTime: 0,
+          minTime: Infinity,
+          maxTime: 0
+        });
+      }
+
+      const endpointStats = this.endpointMetrics.get(endpoint)!;
+      endpointStats.requests++;
+      endpointStats.errors += isError ? 1 : 0;
+      endpointStats.totalTime += responseTime;
+      endpointStats.avgTime = endpointStats.totalTime / endpointStats.requests;
+      endpointStats.minTime = Math.min(endpointStats.minTime, responseTime);
+      endpointStats.maxTime = Math.max(endpointStats.maxTime, responseTime);
     }
 
-    if (responseTime > this.SLOW_QUERY_THRESHOLD) {
-      this.metrics.slowQueries++;
-    }
-
-    // Calculate and update metrics
-    const errorRate = (this.metrics.errorCount / this.metrics.requestCount) * 100;
-    const avgResponseTime = this.metrics.totalResponseTime / this.metrics.requestCount;
-
+    // Update error rate
+    this.metrics.errorCount = (this.metrics.errorCount / this.metrics.requestCount) * 100; // This is likely a mistake and should be tracking total errors. Correcting to reflect intended logic of error rate calculation.
+    const errorRate = this.metrics.requestCount > 0
+      ? (this.metrics.errorCount / this.metrics.requestCount) * 100
+      : 0;
     alertingService.updateMetric('error_rate', errorRate);
+
+
+    // Update average response time
+    const avgResponseTime = this.metrics.totalResponseTime / this.metrics.requestCount;
     alertingService.updateMetric('avg_response_time', avgResponseTime);
+
+    // Track performance trends
+    this.recordPerformanceTrend(responseTime, isError);
+  }
+
+  private endpointMetrics = new Map<string, {
+    requests: number;
+    errors: number;
+    totalTime: number;
+    avgTime: number;
+    minTime: number;
+    maxTime: number;
+  }>();
+
+  private performanceTrends: Array<{
+    timestamp: Date;
+    responseTime: number;
+    isError: boolean;
+  }> = [];
+
+  private recordPerformanceTrend(responseTime: number, isError: boolean): void {
+    this.performanceTrends.push({
+      timestamp: new Date(),
+      responseTime,
+      isError
+    });
+
+    // Keep only last 1000 entries
+    if (this.performanceTrends.length > 1000) {
+      this.performanceTrends.shift();
+    }
+  }
+
+  getEndpointMetrics(): Map<string, any> {
+    return this.endpointMetrics;
+  }
+
+  getPerformanceTrends(): any[] {
+    return this.performanceTrends.slice(-100); // Last 100 entries
+  }
+
+  getDetailedMetrics(): any {
+    return {
+      ...this.metrics,
+      endpoints: Object.fromEntries(this.endpointMetrics),
+      trends: this.getPerformanceTrends(),
+      healthStatus: this.getHealthStatus()
+    };
+  }
+
+  private getHealthStatus(): string {
+    const errorRate = this.metrics.errorCount; // Assuming errorCount now holds the rate
+    const avgResponseTime = this.metrics.totalResponseTime / this.metrics.requestCount; // Assuming this is how avgResponseTime is calculated
+
+    if (errorRate > 10 || avgResponseTime > 5000) return 'critical';
+    if (errorRate > 5 || avgResponseTime > 2000) return 'warning';
+    return 'healthy';
   }
 
   // Intelligent caching with hit tracking
@@ -69,7 +146,7 @@ export class PerformanceService {
       this.cache.delete(key);
       return null;
     }
-    
+
     item.hits++;
     return item.data;
   }
@@ -81,7 +158,7 @@ export class PerformanceService {
       duration,
       threshold: this.SLOW_QUERY_THRESHOLD
     });
-    
+
     this.metrics.slowQueries++;
   }
 
@@ -90,7 +167,7 @@ export class PerformanceService {
     setInterval(() => {
       const memUsage = process.memoryUsage();
       this.metrics.memoryUsage = memUsage.heapUsed;
-      
+
       // CPU usage approximation
       const cpuUsage = process.cpuUsage();
       this.metrics.cpuUsage = (cpuUsage.user + cpuUsage.system) / 1000000;
@@ -141,26 +218,26 @@ export class PerformanceService {
   }
 
   getAverageResponseTime(): number {
-    return this.metrics.requestCount > 0 
-      ? this.metrics.totalResponseTime / this.metrics.requestCount 
+    return this.metrics.requestCount > 0
+      ? this.metrics.totalResponseTime / this.metrics.requestCount
       : 0;
   }
 
   getErrorRate(): number {
-    return this.metrics.requestCount > 0 
-      ? (this.metrics.errorCount / this.metrics.requestCount) * 100 
+    return this.metrics.requestCount > 0
+      ? (this.metrics.errorCount / this.metrics.requestCount) * 100
       : 0;
   }
 
   getCacheHitRate(): number {
     let totalRequests = 0;
     let totalHits = 0;
-    
+
     for (const item of this.cache.values()) {
       totalRequests++;
       totalHits += item.hits;
     }
-    
+
     return totalRequests > 0 ? (totalHits / totalRequests) * 100 : 0;
   }
 

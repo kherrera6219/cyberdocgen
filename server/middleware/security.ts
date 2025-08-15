@@ -201,3 +201,49 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
 
   next();
 }
+
+// MFA enforcement middleware
+export function requireMFA(req: Request, res: Response, next: NextFunction) {
+  const user = (req as any).user;
+
+  if (!user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  // Check if MFA is required for this user/organization
+  const mfaRequired = user.organization?.requireMFA || 
+    ['admin', 'compliance_officer'].includes(user.role);
+
+  if (mfaRequired && !user.mfaVerified) {
+    return res.status(403).json({ 
+      message: 'MFA verification required',
+      code: 'MFA_REQUIRED',
+      mfaChallenge: true
+    });
+  }
+
+  next();
+}
+
+// High-risk operation middleware
+export function requireMFAForHighRisk(req: Request, res: Response, next: NextFunction) {
+  const user = (req as any).user;
+  const highRiskOperations = [
+    '/api/documents/generate',
+    '/api/company-profile',
+    '/api/organizations',
+    '/api/admin'
+  ];
+
+  const isHighRisk = highRiskOperations.some(path => req.path.startsWith(path));
+
+  if (isHighRisk && (!user?.mfaVerified || 
+      (Date.now() - user.mfaVerifiedAt) > 30 * 60 * 1000)) { // 30 minutes
+    return res.status(403).json({
+      message: 'Recent MFA verification required for this operation',
+      code: 'MFA_VERIFICATION_EXPIRED'
+    });
+  }
+
+  next();
+}
