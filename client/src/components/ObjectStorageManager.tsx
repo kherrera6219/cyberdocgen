@@ -374,85 +374,109 @@ export function ObjectStorageManager() {
             {/* File Upload */}
             <Card>
               <CardHeader>
-                <CardTitle>File Upload</CardTitle>
-                <CardDescription>
-                  Upload files (images, PDFs, documents) to object storage
-                </CardDescription>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full h-24">
+                      <Upload className="h-8 w-8" />
+                      <span className="ml-2 text-lg">Upload File</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Upload File</DialogTitle>
+                    </DialogHeader>
+                    <CardDescription>
+                      Upload files (images, PDFs, documents) to object storage
+                    </CardDescription>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="folder-select">Upload Folder</Label>
+                        <select
+                          id="folder-select"
+                          value={uploadFolder}
+                          onChange={(e) => setUploadFolder(e.target.value)}
+                          className="w-full mt-1 px-3 py-2 border rounded-md"
+                        >
+                          <option value="files">Files</option>
+                          <option value="documents">Documents</option>
+                          <option value="profiles">Profiles</option>
+                          <option value="backups">Backups</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="file-input">Select File</Label>
+                        <Input
+                          id="file-input"
+                          type="file"
+                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <Button
+                        onClick={handleFileUpload}
+                        disabled={!selectedFile || uploadFileMutation.isPending}
+                        className="w-full"
+                      >
+                        {uploadFileMutation.isPending ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-2" />
+                        )}
+                        Upload File
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="folder-select">Upload Folder</Label>
-                  <select
-                    id="folder-select"
-                    value={uploadFolder}
-                    onChange={(e) => setUploadFolder(e.target.value)}
-                    className="w-full mt-1 px-3 py-2 border rounded-md"
-                  >
-                    <option value="files">Files</option>
-                    <option value="documents">Documents</option>
-                    <option value="profiles">Profiles</option>
-                    <option value="backups">Backups</option>
-                  </select>
-                </div>
-
-                <div>
-                  <Label htmlFor="file-input">Select File</Label>
-                  <Input
-                    id="file-input"
-                    type="file"
-                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                    className="mt-1"
-                  />
-                </div>
-
-                <Button
-                  onClick={handleFileUpload}
-                  disabled={!selectedFile || uploadFileMutation.isPending}
-                  className="w-full"
-                >
-                  {uploadFileMutation.isPending ? (
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4 mr-2" />
-                  )}
-                  Upload File
-                </Button>
-              </CardContent>
             </Card>
 
             {/* Text Upload */}
             <Card>
               <CardHeader>
-                <CardTitle>Text Data Upload</CardTitle>
-                <CardDescription>
-                  Upload text content directly to object storage
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="text-data">Text Content</Label>
-                  <Textarea
-                    id="text-data"
-                    placeholder="Enter text content to upload..."
-                    value={uploadData}
-                    onChange={(e) => setUploadData(e.target.value)}
-                    className="mt-1 min-h-[100px]"
-                  />
-                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full h-24">
+                      <File className="h-8 w-8" />
+                      <span className="ml-2 text-lg">Upload Text</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Upload Text Content</DialogTitle>
+                    </DialogHeader>
+                    <CardDescription>
+                      Upload text content directly to object storage
+                    </CardDescription>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="text-data">Text Content</Label>
+                        <Textarea
+                          id="text-data"
+                          placeholder="Enter text content to upload..."
+                          value={uploadData}
+                          onChange={(e) => setUploadData(e.target.value)}
+                          className="mt-1 min-h-[100px]"
+                        />
+                      </div>
 
-                <Button
-                  onClick={handleTextUpload}
-                  disabled={!uploadData.trim() || uploadTextMutation.isPending}
-                  className="w-full"
-                >
-                  {uploadTextMutation.isPending ? (
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4 mr-2" />
-                  )}
-                  Upload Text
-                </Button>
-              </CardContent>
+                      <Button
+                        onClick={handleTextUpload}
+                        disabled={!uploadData.trim() || uploadTextMutation.isPending}
+                        className="w-full"
+                      >
+                        {uploadTextMutation.isPending ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-2" />
+                        )}
+                        Upload Text
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
             </Card>
           </div>
         </TabsContent>
