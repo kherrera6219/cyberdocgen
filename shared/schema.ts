@@ -180,6 +180,12 @@ export const documentTemplates = pgTable("document_templates", {
   createdBy: varchar("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  // Encryption fields for SOC 2 compliance
+  companyNameEncrypted: text("company_name_encrypted"),
+  industryEncrypted: text("industry_encrypted"), 
+  headquartersEncrypted: text("headquarters_encrypted"),
+  encryptionVersion: integer("encryption_version"),
+  encryptedAt: timestamp("encrypted_at"),
 });
 
 // Document Workspace for AI editing and collaboration
