@@ -78,14 +78,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages: [{ role: "user", content: "Say 'OpenAI API test successful'" }],
+        messages: [{ role: "user", content: "Say 'OpenAI GPT-4o (latest) API test successful'" }],
         max_tokens: 50,
       });
 
       res.json({
         status: "success",
         service: "OpenAI",
-        model: "gpt-4o",
+        model: "gpt-4o (latest)",
         response: response.choices[0]?.message?.content,
         usage: response.usage,
       });
@@ -110,13 +110,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await anthropic.messages.create({
         model: "claude-3-5-sonnet-20241022",
         max_tokens: 50,
-        messages: [{ role: "user", content: "Say 'Claude API test successful'" }],
+        messages: [{ role: "user", content: "Say 'Claude 3.5 Sonnet (latest) API test successful'" }],
       });
 
       res.json({
         status: "success",
         service: "Anthropic Claude",
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-3-5-sonnet-20241022 (latest)",
         response: response.content[0]?.text,
         usage: response.usage,
       });
@@ -142,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: 'Say "Gemini API test successful"'
+              text: 'Say "Gemini 2.0 Flash (latest) API test successful"'
             }]
           }],
           generationConfig: {
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         status: "success",
         service: "Google Gemini",
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash-exp (latest)",
         response: text,
         usage: data.usageMetadata,
       });
