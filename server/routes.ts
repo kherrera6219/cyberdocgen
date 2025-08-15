@@ -1670,6 +1670,274 @@ Category: ${category}`;
     }
   });
 
+  // Gap Analysis Routes
+  app.get("/api/gap-analysis/reports", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userOrganizations = await storage.getUserOrganizations(userId);
+      
+      if (userOrganizations.length === 0) {
+        return res.json([]);
+      }
+
+      // For now, get reports from the first organization
+      const organizationId = userOrganizations[0].organizationId;
+      const reports = await storage.getGapAnalysisReports(organizationId);
+      
+      res.json(reports);
+    } catch (error) {
+      logger.error("Error fetching gap analysis reports", { 
+        error: error instanceof Error ? error.message : String(error)
+      }, req);
+      res.status(500).json({ message: "Failed to fetch reports" });
+    }
+  });
+
+  app.get("/api/gap-analysis/reports/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const report = await storage.getGapAnalysisReport(id);
+      
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      // Get findings and recommendations
+      const findings = await storage.getGapAnalysisFindings(id);
+      const recommendations = [];
+      
+      for (const finding of findings) {
+        const findingRecommendations = await storage.getRemediationRecommendations(finding.id);
+        recommendations.push(...findingRecommendations);
+      }
+
+      // Get maturity assessment if available
+      const maturityAssessment = await storage.getComplianceMaturityAssessment(
+        report.organizationId, 
+        report.framework
+      );
+
+      // Generate executive summary
+      const executiveSummary = {
+        overallScore: report.overallScore,
+        criticalGaps: findings.filter(f => f.riskLevel === 'critical').length,
+        highPriorityActions: recommendations.filter(r => r.priority >= 4).length,
+        estimatedRemediationTime: '3-6 months',
+        topRisks: findings
+          .filter(f => f.riskLevel === 'critical' || f.riskLevel === 'high')
+          .slice(0, 5)
+          .map(f => f.controlTitle)
+      };
+
+      res.json({
+        report,
+        findings,
+        recommendations,
+        maturityAssessment,
+        executiveSummary
+      });
+    } catch (error) {
+      logger.error("Error fetching gap analysis report details", { 
+        reportId: req.params.id,
+        error: error instanceof Error ? error.message : String(error)
+      }, req);
+      res.status(500).json({ message: "Failed to fetch report details" });
+    }
+  });
+
+  app.post("/api/gap-analysis/generate", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { framework, includeMaturityAssessment, focusAreas } = req.body;
+      
+      const userOrganizations = await storage.getUserOrganizations(userId);
+      if (userOrganizations.length === 0) {
+        return res.status(400).json({ message: "User not associated with any organization" });
+      }
+
+      const organizationId = userOrganizations[0].organizationId;
+      const companyProfiles = await storage.getCompanyProfiles(organizationId);
+      
+      if (companyProfiles.length === 0) {
+        return res.status(400).json({ message: "No company profile found" });
+      }
+
+      const companyProfile = companyProfiles[0];
+
+      // Create initial report
+      const report = await storage.createGapAnalysisReport({
+        organizationId,
+        framework,
+        overallScore: 0,
+        status: 'in_progress',
+        metadata: {
+          includeMaturityAssessment,
+          focusAreas: focusAreas || []
+        }
+      });
+
+      // Start background analysis (simplified for demo)
+      setTimeout(async () => {
+        try {
+          // Simulate analysis results
+          const mockFindings = [
+            {
+              reportId: report.id,
+              controlId: 'A.5.1',
+              controlTitle: 'Information security policies',
+              currentStatus: 'partially_implemented' as const,
+              riskLevel: 'high' as const,
+              gapDescription: 'Information security policy exists but lacks comprehensive coverage of cloud services and remote work arrangements.',
+              businessImpact: 'Moderate risk of security incidents due to unclear guidelines for cloud service usage and remote access.',
+              evidenceRequired: 'Updated policy documents, training records, and compliance attestations',
+              complianceScore: 65,
+              priority: 4,
+              estimatedEffort: 'medium' as const
+            },
+            {
+              reportId: report.id,
+              controlId: 'A.8.1',
+              controlTitle: 'Asset inventory',
+              currentStatus: 'not_implemented' as const,
+              riskLevel: 'critical' as const,
+              gapDescription: 'No comprehensive asset inventory system in place. IT assets are tracked informally.',
+              businessImpact: 'High risk of unauthorized access, data loss, and compliance violations due to unknown asset exposure.',
+              evidenceRequired: 'Asset management system, asset register, and ownership documentation',
+              complianceScore: 25,
+              priority: 5,
+              estimatedEffort: 'high' as const
+            },
+            {
+              reportId: report.id,
+              controlId: 'A.12.1',
+              controlTitle: 'Secure development lifecycle',
+              currentStatus: 'implemented' as const,
+              riskLevel: 'medium' as const,
+              gapDescription: 'Development practices include security reviews but lack automated security testing.',
+              businessImpact: 'Low to moderate risk of security vulnerabilities in applications.',
+              evidenceRequired: 'SDLC documentation, security testing reports, and code review records',
+              complianceScore: 80,
+              priority: 3,
+              estimatedEffort: 'medium' as const
+            }
+          ];
+
+          // Create findings
+          for (const findingData of mockFindings) {
+            const finding = await storage.createGapAnalysisFinding(findingData);
+            
+            // Create recommendations for high priority findings
+            if (findingData.priority >= 4) {
+              await storage.createRemediationRecommendation({
+                findingId: finding.id,
+                title: `Implement ${findingData.controlTitle}`,
+                description: `Address the identified gaps in ${findingData.controlTitle} to improve compliance posture.`,
+                implementation: 'Develop comprehensive implementation plan with stakeholder engagement and phased rollout.',
+                resources: {
+                  templates: ['Policy template', 'Implementation checklist'],
+                  tools: ['Asset management system', 'Compliance tracking tool'],
+                  references: ['ISO 27001 guidance', 'Industry best practices']
+                },
+                timeframe: findingData.estimatedEffort === 'high' ? 'long_term' : 'medium_term',
+                cost: findingData.estimatedEffort,
+                priority: findingData.priority,
+                status: 'pending'
+              });
+            }
+          }
+
+          // Calculate overall score
+          const overallScore = Math.round(
+            mockFindings.reduce((sum, f) => sum + f.complianceScore, 0) / mockFindings.length
+          );
+
+          // Update report status
+          await storage.updateGapAnalysisReport(report.id, {
+            status: 'completed',
+            overallScore
+          });
+
+          // Create maturity assessment if requested
+          if (includeMaturityAssessment) {
+            await storage.createComplianceMaturityAssessment({
+              organizationId,
+              framework,
+              maturityLevel: 3,
+              assessmentData: {
+                maturityLabel: 'Defined',
+                averageScore: overallScore,
+                controlsAssessed: mockFindings.length,
+                implementationBreakdown: {
+                  notImplemented: mockFindings.filter(f => f.currentStatus === 'not_implemented').length,
+                  partiallyImplemented: mockFindings.filter(f => f.currentStatus === 'partially_implemented').length,
+                  implemented: mockFindings.filter(f => f.currentStatus === 'implemented').length,
+                  fullyCompliant: mockFindings.filter(f => f.currentStatus === 'fully_compliant').length
+                }
+              },
+              recommendations: {
+                nextSteps: [
+                  'Focus on critical and high-risk findings first',
+                  'Establish formal documentation processes',
+                  'Implement regular review and monitoring procedures'
+                ],
+                improvementAreas: mockFindings
+                  .filter(f => f.riskLevel === 'critical' || f.riskLevel === 'high')
+                  .map(f => f.controlTitle)
+              }
+            });
+          }
+
+        } catch (error) {
+          logger.error("Error in gap analysis background processing", { 
+            reportId: report.id,
+            error: error instanceof Error ? error.message : String(error)
+          });
+          
+          await storage.updateGapAnalysisReport(report.id, {
+            status: 'failed'
+          });
+        }
+      }, 2000); // 2 second delay to simulate processing
+
+      res.json({ 
+        message: "Gap analysis started",
+        reportId: report.id
+      });
+    } catch (error) {
+      logger.error("Error starting gap analysis", { 
+        framework: req.body.framework,
+        error: error instanceof Error ? error.message : String(error)
+      }, req);
+      res.status(500).json({ message: "Failed to start gap analysis" });
+    }
+  });
+
+  app.patch("/api/gap-analysis/recommendations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const updates: Partial<RemediationRecommendation> = { status };
+      if (status === 'completed') {
+        updates.completedDate = new Date();
+      }
+
+      const recommendation = await storage.updateRemediationRecommendation(id, updates);
+      
+      if (!recommendation) {
+        return res.status(404).json({ message: "Recommendation not found" });
+      }
+
+      res.json(recommendation);
+    } catch (error) {
+      logger.error("Error updating recommendation", { 
+        recommendationId: req.params.id,
+        error: error instanceof Error ? error.message : String(error)
+      }, req);
+      res.status(500).json({ message: "Failed to update recommendation" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

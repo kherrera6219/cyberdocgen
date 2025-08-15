@@ -19,6 +19,7 @@ import AuditTrail from "./pages/audit-trail";
 import DocumentVersions from "./pages/document-versions";
 import { ObjectStorageManager } from "./components/ObjectStorageManager";
 import { IndustrySpecialization } from "./components/ai/IndustrySpecialization";
+import GapAnalysis from "./pages/gap-analysis";
 import Layout from "./components/layout";
 
 function Router() {
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
           <Route path="/workspace" component={() => <DocumentWorkspace organizationId="default" />} />
           <Route path="/documents" component={Documents} />
+          <Route path="/gap-analysis" component={GapAnalysis} />
           <Route path="/audit-trail" component={AuditTrail} />
           <Route path="/document-versions/:id" component={(props: any) => <DocumentVersions documentId={props.params.id} documentTitle="Document" />} />
           <Route path="/user-profile" component={UserProfile} />

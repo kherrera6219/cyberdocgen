@@ -5,6 +5,10 @@ import {
   companyProfiles, 
   documents, 
   generationJobs,
+  gapAnalysisReports,
+  gapAnalysisFindings,
+  remediationRecommendations,
+  complianceMaturityAssessments,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -17,7 +21,15 @@ import {
   type Document, 
   type InsertDocument, 
   type GenerationJob, 
-  type InsertGenerationJob 
+  type InsertGenerationJob,
+  type GapAnalysisReport,
+  type InsertGapAnalysisReport,
+  type GapAnalysisFinding,
+  type InsertGapAnalysisFinding,
+  type RemediationRecommendation,
+  type InsertRemediationRecommendation,
+  type ComplianceMaturityAssessment,
+  type InsertComplianceMaturityAssessment 
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -398,6 +410,90 @@ export class MemStorage implements IStorage {
     this.generationJobs.set(id, updated);
     return updated;
   }
+
+  // Gap Analysis methods
+  async createGapAnalysisReport(report: InsertGapAnalysisReport): Promise<GapAnalysisReport> {
+    const id = randomUUID();
+    const newReport = { ...report, id, createdAt: new Date(), updatedAt: new Date() };
+    this.gapAnalysisReports.set(id, newReport);
+    return newReport;
+  }
+
+  async getGapAnalysisReports(organizationId: string): Promise<GapAnalysisReport[]> {
+    return Array.from(this.gapAnalysisReports.values())
+      .filter(report => report.organizationId === organizationId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getGapAnalysisReport(id: string): Promise<GapAnalysisReport | undefined> {
+    return this.gapAnalysisReports.get(id);
+  }
+
+  async updateGapAnalysisReport(id: string, updates: Partial<GapAnalysisReport>): Promise<GapAnalysisReport> {
+    const existing = this.gapAnalysisReports.get(id);
+    if (!existing) throw new Error('Report not found');
+    
+    const updated = { ...existing, ...updates, updatedAt: new Date() };
+    this.gapAnalysisReports.set(id, updated);
+    return updated;
+  }
+
+  async createGapAnalysisFinding(finding: InsertGapAnalysisFinding): Promise<GapAnalysisFinding> {
+    const id = randomUUID();
+    const newFinding = { ...finding, id, createdAt: new Date(), updatedAt: new Date() };
+    this.gapAnalysisFindings.set(id, newFinding);
+    return newFinding;
+  }
+
+  async getGapAnalysisFindings(reportId: string): Promise<GapAnalysisFinding[]> {
+    return Array.from(this.gapAnalysisFindings.values())
+      .filter(finding => finding.reportId === reportId)
+      .sort((a, b) => b.priority - a.priority);
+  }
+
+  async createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation> {
+    const id = randomUUID();
+    const newRecommendation = { ...recommendation, id, createdAt: new Date(), updatedAt: new Date() };
+    this.remediationRecommendations.set(id, newRecommendation);
+    return newRecommendation;
+  }
+
+  async getRemediationRecommendations(findingId: string): Promise<RemediationRecommendation[]> {
+    return Array.from(this.remediationRecommendations.values())
+      .filter(rec => rec.findingId === findingId)
+      .sort((a, b) => b.priority - a.priority);
+  }
+
+  async updateRemediationRecommendation(id: string, updates: Partial<RemediationRecommendation>): Promise<RemediationRecommendation> {
+    const existing = this.remediationRecommendations.get(id);
+    if (!existing) throw new Error('Recommendation not found');
+    
+    const updated = { ...existing, ...updates, updatedAt: new Date() };
+    this.remediationRecommendations.set(id, updated);
+    return updated;
+  }
+
+  async createComplianceMaturityAssessment(assessment: InsertComplianceMaturityAssessment): Promise<ComplianceMaturityAssessment> {
+    const id = randomUUID();
+    const newAssessment = { ...assessment, id, createdAt: new Date(), updatedAt: new Date() };
+    this.complianceMaturityAssessments.set(id, newAssessment);
+    return newAssessment;
+  }
+
+  async getComplianceMaturityAssessment(organizationId: string, framework: string): Promise<ComplianceMaturityAssessment | undefined> {
+    return Array.from(this.complianceMaturityAssessments.values())
+      .filter(assessment => 
+        assessment.organizationId === organizationId && 
+        assessment.framework === framework
+      )
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  }
+
+  // Private storage
+  private gapAnalysisReports = new Map<string, GapAnalysisReport>();
+  private gapAnalysisFindings = new Map<string, GapAnalysisFinding>();
+  private remediationRecommendations = new Map<string, RemediationRecommendation>();
+  private complianceMaturityAssessments = new Map<string, ComplianceMaturityAssessment>();
 }
 
 export class DatabaseStorage implements IStorage {

@@ -403,6 +403,98 @@ export type IndustryConfiguration = typeof industryConfigurations.$inferSelect;
 export type InsertIndustryConfiguration = typeof industryConfigurations.$inferInsert;
 export type OrganizationFineTuning = typeof organizationFineTuning.$inferSelect;
 export type InsertOrganizationFineTuning = typeof organizationFineTuning.$inferInsert;
+
+// Compliance Gap Analysis Tables
+export const gapAnalysisReports = pgTable("gap_analysis_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  framework: varchar("framework", { enum: ["iso27001", "soc2", "fedramp", "nist"] }).notNull(),
+  analysisDate: timestamp("analysis_date").defaultNow(),
+  overallScore: integer("overall_score").notNull(), // 0-100
+  status: varchar("status", { enum: ["pending", "in_progress", "completed", "failed"] }).default("pending"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const gapAnalysisFindings = pgTable("gap_analysis_findings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reportId: varchar("report_id").notNull().references(() => gapAnalysisReports.id, { onDelete: "cascade" }),
+  controlId: varchar("control_id").notNull(), // e.g., "A.5.1.1" for ISO 27001
+  controlTitle: varchar("control_title").notNull(),
+  currentStatus: varchar("current_status", { enum: ["not_implemented", "partially_implemented", "implemented", "fully_compliant"] }).notNull(),
+  riskLevel: varchar("risk_level", { enum: ["low", "medium", "high", "critical"] }).notNull(),
+  gapDescription: text("gap_description").notNull(),
+  businessImpact: text("business_impact").notNull(),
+  evidenceRequired: text("evidence_required"),
+  complianceScore: integer("compliance_score").notNull(), // 0-100
+  priority: integer("priority").notNull(), // 1-5
+  estimatedEffort: varchar("estimated_effort", { enum: ["low", "medium", "high"] }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const remediationRecommendations = pgTable("remediation_recommendations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  findingId: varchar("finding_id").notNull().references(() => gapAnalysisFindings.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  implementation: text("implementation").notNull(),
+  resources: jsonb("resources"), // Links, tools, templates
+  timeframe: varchar("timeframe", { enum: ["immediate", "short_term", "medium_term", "long_term"] }).notNull(),
+  cost: varchar("cost", { enum: ["low", "medium", "high"] }),
+  priority: integer("priority").notNull(),
+  status: varchar("status", { enum: ["pending", "in_progress", "completed", "deferred"] }).default("pending"),
+  assignedTo: varchar("assigned_to"),
+  dueDate: timestamp("due_date"),
+  completedDate: timestamp("completed_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const complianceMaturityAssessments = pgTable("compliance_maturity_assessments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  framework: varchar("framework", { enum: ["iso27001", "soc2", "fedramp", "nist"] }).notNull(),
+  maturityLevel: integer("maturity_level").notNull(), // 1-5 (Initial, Developing, Defined, Managed, Optimizing)
+  assessmentData: jsonb("assessment_data").notNull(),
+  recommendations: jsonb("recommendations"),
+  nextReviewDate: timestamp("next_review_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas for gap analysis
+export const insertGapAnalysisReportSchema = createInsertSchema(gapAnalysisReports).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+export const insertGapAnalysisFindingSchema = createInsertSchema(gapAnalysisFindings).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+export const insertRemediationRecommendationSchema = createInsertSchema(remediationRecommendations).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+export const insertComplianceMaturityAssessmentSchema = createInsertSchema(complianceMaturityAssessments).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+// Gap analysis type exports
+export type InsertGapAnalysisReport = z.infer<typeof insertGapAnalysisReportSchema>;
+export type GapAnalysisReport = typeof gapAnalysisReports.$inferSelect;
+export type InsertGapAnalysisFinding = z.infer<typeof insertGapAnalysisFindingSchema>;
+export type GapAnalysisFinding = typeof gapAnalysisFindings.$inferSelect;
+export type InsertRemediationRecommendation = z.infer<typeof insertRemediationRecommendationSchema>;
+export type RemediationRecommendation = typeof remediationRecommendations.$inferSelect;
+export type InsertComplianceMaturityAssessment = z.infer<typeof insertComplianceMaturityAssessmentSchema>;
+export type ComplianceMaturityAssessment = typeof complianceMaturityAssessments.$inferSelect;
 export type FineTuningMetric = typeof fineTuningMetrics.$inferSelect;
 export type InsertFineTuningMetric = typeof fineTuningMetrics.$inferInsert;
 export type InsertUser = z.infer<typeof insertUserSchema>;
