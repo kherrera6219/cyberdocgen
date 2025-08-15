@@ -92,7 +92,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
 
 // Error handling middleware
 export function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-  console.error('Error:', {
+  logger.error('Error:', {
     message: err.message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     method: req.method,
@@ -121,7 +121,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
   
   res.on('finish', () => {
     const duration = Date.now() - start;
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url} ${res.statusCode} - ${duration}ms - ${req.ip}`);
+    logger.info(`${new Date().toISOString()} - ${req.method} ${req.url} ${res.statusCode} - ${duration}ms - ${req.ip}`);
   });
 
   next();

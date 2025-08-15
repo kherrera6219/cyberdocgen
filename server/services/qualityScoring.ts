@@ -106,7 +106,7 @@ Be specific and actionable in feedback.`;
         return this.parseQualityAnalysis(resultText, framework);
       }
     } catch (error) {
-      console.error("Quality analysis failed:", error);
+      logger.error("Quality analysis failed:", error);
       throw new Error("Failed to analyze document quality");
     }
   }
@@ -139,7 +139,7 @@ Return JSON with numeric scores for each dimension.`;
 
       return JSON.parse(response.choices[0].message.content || "{}") as ContentAnalysis;
     } catch (error) {
-      console.error("Content structure analysis failed:", error);
+      logger.error("Content structure analysis failed:", error);
       return {
         clarity: 70,
         completeness: 65,
@@ -201,7 +201,7 @@ Return JSON with:
         };
       }
     } catch (error) {
-      console.error("Framework alignment check failed:", error);
+      logger.error("Framework alignment check failed:", error);
       throw new Error("Failed to check framework alignment");
     }
   }
@@ -249,7 +249,7 @@ Focus on high-impact, practical improvements.`;
 
       return JSON.parse(response.choices[0].message.content || "{}");
     } catch (error) {
-      console.error("Improvement plan generation failed:", error);
+      logger.error("Improvement plan generation failed:", error);
       throw new Error("Failed to generate improvement plan");
     }
   }

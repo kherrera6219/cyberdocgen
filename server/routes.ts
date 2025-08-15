@@ -5,7 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { auditService } from "./services/auditService";
 import { versionService } from "./services/versionService";
 import { logger } from "./utils/logger";
-import { validateSchema, paginationSchema, idParamSchema } from "./utils/validation";
+import { validateRequest, commonSchemas } from "./utils/validation";
 import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema } from "@shared/schema";
 import { generateComplianceDocuments, frameworkTemplates } from "./services/openai";
 import { aiOrchestrator, type AIModel, type GenerationOptions } from "./services/aiOrchestrator";
@@ -62,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: unknown) {
       metricsCollector.trackAIOperation('analysis', false);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error("AI Health check failed:", error);
+      logger.error("AI Health check failed", { error: errorMessage });
       res.status(500).json({ message: "Health check failed", error: errorMessage });
     }
   });
@@ -109,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(organizations);
     } catch (error) {
-      console.error("Error fetching organizations:", error);
+      logger.error("Error fetching organizations:", error);
       res.status(500).json({ message: "Failed to fetch organizations" });
     }
   });
@@ -131,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(organization);
     } catch (error) {
-      console.error("Error creating organization:", error);
+      logger.error("Error creating organization:", error);
       res.status(500).json({ message: "Failed to create organization" });
     }
   });
@@ -242,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Documents processed successfully" 
       });
     } catch (error) {
-      console.error('Error processing documents:', error);
+      logger.error('Error processing documents:', error);
       res.status(500).json({ message: 'Failed to process documents' });
     }
   });
@@ -306,7 +306,7 @@ Category: ${category}`;
 
       res.json({ success: true, document });
     } catch (error) {
-      console.error('Error generating document:', error);
+      logger.error('Error generating document:', error);
       res.status(500).json({ message: 'Failed to generate document' });
     }
   });
@@ -348,7 +348,7 @@ Category: ${category}`;
       
       res.json(mockVersions);
     } catch (error) {
-      console.error('Error fetching document versions:', error);
+      logger.error('Error fetching document versions:', error);
       res.status(500).json({ message: 'Failed to fetch document versions' });
     }
   });
@@ -382,7 +382,7 @@ Category: ${category}`;
         versionId: "new-version-id"
       });
     } catch (error) {
-      console.error('Error creating document version:', error);
+      logger.error('Error creating document version:', error);
       res.status(500).json({ message: 'Failed to create document version' });
     }
   });
@@ -412,7 +412,7 @@ Category: ${category}`;
         message: "Document restored to selected version"
       });
     } catch (error) {
-      console.error('Error restoring document version:', error);
+      logger.error('Error restoring document version:', error);
       res.status(500).json({ message: 'Failed to restore document version' });
     }
   });
@@ -467,7 +467,7 @@ Category: ${category}`;
 
       res.json(mockAuditTrail);
     } catch (error) {
-      console.error('Error fetching audit trail:', error);
+      logger.error('Error fetching audit trail:', error);
       res.status(500).json({ message: 'Failed to fetch audit trail' });
     }
   });
@@ -497,7 +497,7 @@ Category: ${category}`;
 
       res.json(mockApprovals);
     } catch (error) {
-      console.error('Error fetching document approvals:', error);
+      logger.error('Error fetching document approvals:', error);
       res.status(500).json({ message: 'Failed to fetch document approvals' });
     }
   });
@@ -530,7 +530,7 @@ Category: ${category}`;
         approvalId: "new-approval-id"
       });
     } catch (error) {
-      console.error('Error requesting approval:', error);
+      logger.error('Error requesting approval:', error);
       res.status(500).json({ message: 'Failed to request approval' });
     }
   });
@@ -697,7 +697,7 @@ Category: ${category}`;
             documentsGenerated: templates.length,
           });
         } catch (error) {
-          console.error("Document generation failed:", error);
+          logger.error("Document generation failed:", error);
           await storage.updateGenerationJob(job.id, {
             status: "failed",
           });
@@ -764,7 +764,7 @@ Category: ${category}`;
       metricsCollector.trackAIOperation('analysis', true);
       res.json(analysis);
     } catch (error) {
-      console.error("Quality analysis failed:", error);
+      logger.error("Quality analysis failed:", error);
       res.status(500).json({ message: "Failed to analyze document quality" });
     }
   });
@@ -799,7 +799,7 @@ Category: ${category}`;
 
       res.json(insights);
     } catch (error) {
-      console.error("Insight generation failed:", error);
+      logger.error("Insight generation failed:", error);
       res.status(500).json({ message: "Failed to generate compliance insights" });
     }
   });
@@ -849,7 +849,7 @@ Category: ${category}`;
         } : null
       });
     } catch (error) {
-      console.error("Single document generation failed:", error);
+      logger.error("Single document generation failed:", error);
       res.status(500).json({ message: "Failed to generate document" });
     }
   });
@@ -1536,7 +1536,7 @@ Category: ${category}`;
       const configurations = service.getIndustryConfigurations();
       res.json({ success: true, configurations });
     } catch (error) {
-      console.error("Error fetching industry configurations:", error);
+      logger.error("Error fetching industry configurations:", error);
       res.status(500).json({ success: false, error: "Failed to fetch configurations" });
     }
   });
@@ -1553,7 +1553,7 @@ Category: ${category}`;
       
       res.json({ success: true, configuration });
     } catch (error) {
-      console.error("Error fetching industry configuration:", error);
+      logger.error("Error fetching industry configuration:", error);
       res.status(500).json({ success: false, error: "Failed to fetch configuration" });
     }
   });
@@ -1593,7 +1593,7 @@ Category: ${category}`;
 
       res.json({ success: true, result });
     } catch (error) {
-      console.error("Error creating fine-tuning configuration:", error);
+      logger.error("Error creating fine-tuning configuration:", error);
       res.status(500).json({ success: false, error: "Failed to create configuration" });
     }
   });
@@ -1631,7 +1631,7 @@ Category: ${category}`;
 
       res.json({ success: true, content: generatedContent });
     } catch (error) {
-      console.error("Error generating optimized document:", error);
+      logger.error("Error generating optimized document:", error);
       res.status(500).json({ success: false, error: "Failed to generate document" });
     }
   });
@@ -1665,7 +1665,7 @@ Category: ${category}`;
 
       res.json({ success: true, assessment: riskAssessment });
     } catch (error) {
-      console.error("Error assessing industry risks:", error);
+      logger.error("Error assessing industry risks:", error);
       res.status(500).json({ success: false, error: "Failed to assess risks" });
     }
   });

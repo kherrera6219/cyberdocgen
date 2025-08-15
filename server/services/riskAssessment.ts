@@ -138,7 +138,7 @@ Focus on:
         return this.parseRiskAssessmentText(resultText, companyProfile, frameworks);
       }
     } catch (error) {
-      console.error("Risk assessment failed:", error);
+      logger.error("Risk assessment failed:", error);
       throw new Error("Failed to conduct risk assessment");
     }
   }
@@ -183,7 +183,7 @@ Include:
       const result = JSON.parse(response.choices[0].message.content || "{}");
       return result as ThreatAssessment;
     } catch (error) {
-      console.error("Threat analysis failed:", error);
+      logger.error("Threat analysis failed:", error);
       throw new Error("Failed to analyze threat landscape");
     }
   }
@@ -248,7 +248,7 @@ Base assessment on:
         };
       }
     } catch (error) {
-      console.error("Readiness calculation failed:", error);
+      logger.error("Readiness calculation failed:", error);
       throw new Error("Failed to calculate compliance readiness");
     }
   }
@@ -307,7 +307,7 @@ Prioritize by impact, feasibility, and cost-effectiveness.`;
 
       return JSON.parse(response.choices[0].message.content || "{}");
     } catch (error) {
-      console.error("Roadmap generation failed:", error);
+      logger.error("Roadmap generation failed:", error);
       throw new Error("Failed to generate mitigation roadmap");
     }
   }

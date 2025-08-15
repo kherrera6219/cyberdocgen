@@ -83,7 +83,7 @@ Focus on cybersecurity, data protection, and compliance aspects.`;
         return this.parseAnalysisText(analysisText, filename);
       }
     } catch (error) {
-      console.error("Document analysis failed:", error);
+      logger.error("Document analysis failed:", error);
       throw new Error("Failed to analyze document");
     }
   }
@@ -118,7 +118,7 @@ Only include fields with actual values found in the document.`;
 
       return JSON.parse(response.choices[0].message.content || "{}");
     } catch (error) {
-      console.error("Company profile extraction failed:", error);
+      logger.error("Company profile extraction failed:", error);
       return {};
     }
   }
@@ -135,7 +135,7 @@ Only include fields with actual values found in the document.`;
 
       return response.data[0].embedding;
     } catch (error) {
-      console.error("Embedding generation failed:", error);
+      logger.error("Embedding generation failed:", error);
       throw new Error("Failed to generate embeddings");
     }
   }
@@ -203,7 +203,7 @@ Keep the response focused and actionable.`;
 
       return (response.content[0] as any).text;
     } catch (error) {
-      console.error("RAG insights generation failed:", error);
+      logger.error("RAG insights generation failed:", error);
       throw new Error("Failed to generate insights");
     }
   }

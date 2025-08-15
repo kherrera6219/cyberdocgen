@@ -53,10 +53,10 @@ class Logger {
 
     switch (level) {
       case LogLevel.ERROR:
-        console.error(formattedLog);
+        logger.error(formattedLog);
         break;
       case LogLevel.WARN:
-        console.warn(formattedLog);
+        logger.warn(formattedLog);
         break;
       case LogLevel.INFO:
         console.info(formattedLog);

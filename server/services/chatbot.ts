@@ -76,7 +76,7 @@ export class ComplianceChatbot {
 
       return response;
     } catch (error) {
-      console.error("Chatbot processing failed:", error);
+      logger.error("Chatbot processing failed:", error);
       throw new Error("Failed to process message");
     }
   }
@@ -157,7 +157,7 @@ Format your response as JSON with:
         return this.parseResponseText(responseText, relevantDocs);
       }
     } catch (error) {
-      console.error("Response generation failed:", error);
+      logger.error("Response generation failed:", error);
       
       // Fallback to OpenAI
       return this.generateFallbackResponse(message, relevantDocs, framework);
@@ -202,7 +202,7 @@ Provide a helpful, actionable response.`;
         followUpQuestions: ["What specific compliance areas need attention?", "How can I improve my security posture?"]
       };
     } catch (error) {
-      console.error("Fallback response failed:", error);
+      logger.error("Fallback response failed:", error);
       throw new Error("Failed to generate response");
     }
   }
@@ -227,7 +227,7 @@ Provide a helpful, actionable response.`;
         }
       }));
     } catch (error) {
-      console.error("Failed to get user document context:", error);
+      logger.error("Failed to get user document context:", error);
       return [];
     }
   }

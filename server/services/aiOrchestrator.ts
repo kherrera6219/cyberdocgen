@@ -63,7 +63,7 @@ export class AIOrchestrator {
         selectedModel = 'gpt-4o';
       }
     } catch (error) {
-      console.error(`Error with ${selectedModel}, falling back to alternative:`, error);
+      logger.error(`Error with ${selectedModel}, falling back to alternative:`, error);
       // Fallback to alternative model
       if (selectedModel === 'claude-sonnet-4') {
         content = await generateWithOpenAI(template, companyProfile, framework);
@@ -87,7 +87,7 @@ export class AIOrchestrator {
         result.feedback = analysis.feedback;
         result.suggestions = analysis.suggestions;
       } catch (error) {
-        console.error('Quality analysis failed:', error);
+        logger.error('Quality analysis failed:', error);
       }
     }
     
@@ -135,7 +135,7 @@ export class AIOrchestrator {
         
         // Cross-validation with alternative model
         if (enableCrossValidation && result.qualityScore && result.qualityScore < 80) {
-          console.log(`Low quality score (${result.qualityScore}) for ${template.title}, attempting cross-validation`);
+          logger.info(`Low quality score (${result.qualityScore}) for ${template.title}, attempting cross-validation`);
           
           const alternativeModel: AIModel = result.model === 'gpt-4o' ? 'claude-sonnet-4' : 'gpt-4o';
           const alternativeResult = await this.generateDocument(template, companyProfile, framework, {
@@ -157,7 +157,7 @@ export class AIOrchestrator {
         await new Promise(resolve => setTimeout(resolve, 1500));
         
       } catch (error) {
-        console.error(`Error generating ${template.title}:`, error);
+        logger.error(`Error generating ${template.title}:`, error);
         results.push({
           content: `Error generating ${template.title}: ${error instanceof Error ? error.message : 'Unknown error'}`,
           model: 'error'
@@ -253,7 +253,7 @@ export class AIOrchestrator {
       });
       results.openai = true;
     } catch (error) {
-      console.error('OpenAI health check failed:', error);
+      logger.error('OpenAI health check failed:', error);
     }
     
     // Test Anthropic with minimal API call
@@ -267,7 +267,7 @@ export class AIOrchestrator {
       });
       results.anthropic = true;
     } catch (error) {
-      console.error('Anthropic health check failed:', error);
+      logger.error('Anthropic health check failed:', error);
     }
     
     results.overall = results.openai || results.anthropic;

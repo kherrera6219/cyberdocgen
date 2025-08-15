@@ -97,7 +97,7 @@ Format as a structured document with clear headings, numbered sections, and prof
     
     throw new Error('Unexpected response format from Claude');
   } catch (error) {
-    console.error("Error generating document with Claude:", error);
+    logger.error("Error generating document with Claude:", error);
     throw new Error(`Failed to generate document with Claude: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -153,7 +153,7 @@ Respond in JSON format with:
     
     throw new Error('Unexpected response format from Claude');
   } catch (error) {
-    console.error("Error analyzing document quality:", error);
+    logger.error("Error analyzing document quality:", error);
     return {
       score: 75,
       feedback: "Quality analysis unavailable due to service error.",
@@ -214,7 +214,7 @@ Provide analysis in JSON format:
     
     throw new Error('Unexpected response format from Claude');
   } catch (error) {
-    console.error("Error generating compliance insights:", error);
+    logger.error("Error generating compliance insights:", error);
     return {
       riskScore: 50,
       keyRisks: ["Analysis unavailable"],

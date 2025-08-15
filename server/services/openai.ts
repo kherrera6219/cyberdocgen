@@ -156,7 +156,7 @@ Make the document practical and implementable, with specific controls, procedure
 
     return response.choices[0].message.content || "";
   } catch (error) {
-    console.error("Error generating document:", error);
+    logger.error("Error generating document:", error);
     throw new Error(`Failed to generate document: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -189,7 +189,7 @@ export async function generateComplianceDocuments(
       // Add small delay to prevent rate limiting
       await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
-      console.error(`Error generating ${template.title}:`, error);
+      logger.error(`Error generating ${template.title}:`, error);
       // Continue with other documents even if one fails
       documents.push(`Error generating ${template.title}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
