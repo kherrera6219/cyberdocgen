@@ -2667,6 +2667,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
   const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth.js');
   app.use('/api/auth/enterprise', enterpriseAuthRoutes);
 
+  // Cloud Integration Routes
+  const { default: cloudIntegrationRoutes } = await import('./routes/cloudIntegration.js');
+  app.use('/api/cloud', cloudIntegrationRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }

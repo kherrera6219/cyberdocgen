@@ -260,6 +260,136 @@ export const mfaSettings = pgTable("mfa_settings", {
   enabledIdx: index("idx_mfa_settings_enabled").on(table.userId, table.isEnabled),
 }));
 
+// Cloud storage integrations table
+export const cloudIntegrations = pgTable("cloud_integrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  provider: varchar("provider").notNull(), // 'google_drive', 'onedrive', 'dropbox'
+  providerUserId: varchar("provider_user_id").notNull(),
+  displayName: varchar("display_name").notNull(),
+  email: varchar("email").notNull(),
+  accessTokenEncrypted: text("access_token_encrypted").notNull(),
+  refreshTokenEncrypted: text("refresh_token_encrypted"),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  scopes: jsonb("scopes").$type<string[]>().default([]),
+  isActive: boolean("is_active").notNull().default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  syncStatus: varchar("sync_status").default("pending"), // 'pending', 'syncing', 'completed', 'error'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userProviderUnique: unique().on(table.userId, table.provider),
+  providerIdx: index("idx_cloud_integrations_provider").on(table.provider),
+  userIdIdx: index("idx_cloud_integrations_user_id").on(table.userId),
+  orgIdIdx: index("idx_cloud_integrations_org_id").on(table.organizationId),
+}));
+
+// Cloud files metadata table
+export const cloudFiles = pgTable("cloud_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  integrationId: varchar("integration_id").references(() => cloudIntegrations.id, { onDelete: 'cascade' }).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  providerFileId: varchar("provider_file_id").notNull(),
+  fileName: varchar("file_name").notNull(),
+  filePath: varchar("file_path").notNull(),
+  fileType: varchar("file_type").notNull(), // 'pdf', 'docx', 'xlsx', etc.
+  fileSize: integer("file_size").notNull(),
+  mimeType: varchar("mime_type").notNull(),
+  isSecurityLocked: boolean("is_security_locked").default(false),
+  securityLevel: varchar("security_level").default("standard"), // 'standard', 'restricted', 'confidential'
+  permissions: jsonb("permissions").$type<{
+    canView: boolean;
+    canEdit: boolean;
+    canDownload: boolean;
+    canShare: boolean;
+  }>().default({ canView: true, canEdit: false, canDownload: false, canShare: false }),
+  metadata: jsonb("metadata").$type<{
+    createdBy?: string;
+    modifiedBy?: string;
+    version?: string;
+    tags?: string[];
+    description?: string;
+  }>(),
+  thumbnailUrl: varchar("thumbnail_url"),
+  downloadUrl: varchar("download_url"),
+  webViewUrl: varchar("web_view_url"),
+  lastModified: timestamp("last_modified"),
+  syncedAt: timestamp("synced_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  integrationFileUnique: unique().on(table.integrationId, table.providerFileId),
+  fileTypeIdx: index("idx_cloud_files_type").on(table.fileType),
+  securityIdx: index("idx_cloud_files_security").on(table.securityLevel),
+  integrationIdx: index("idx_cloud_files_integration").on(table.integrationId),
+  orgIdIdx: index("idx_cloud_files_org_id").on(table.organizationId),
+}));
+
+// OAuth providers table for SSO
+export const oauthProviders = pgTable("oauth_providers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  provider: varchar("provider").notNull(), // 'google', 'microsoft', 'github'
+  providerId: varchar("provider_id").notNull(), // External user ID
+  email: varchar("email").notNull(),
+  displayName: varchar("display_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  accessTokenEncrypted: text("access_token_encrypted"),
+  refreshTokenEncrypted: text("refresh_token_encrypted"),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  isPrimary: boolean("is_primary").default(false), // Primary OAuth account
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userProviderUnique: unique().on(table.userId, table.provider),
+  providerIdUnique: unique().on(table.provider, table.providerId),
+  providerIdx: index("idx_oauth_providers_provider").on(table.provider),
+  userIdIdx: index("idx_oauth_providers_user_id").on(table.userId),
+}));
+
+// PDF security settings table
+export const pdfSecuritySettings = pgTable("pdf_security_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fileId: varchar("file_id").references(() => cloudFiles.id, { onDelete: 'cascade' }).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  
+  // Password protection
+  hasUserPassword: boolean("has_user_password").default(false),
+  hasOwnerPassword: boolean("has_owner_password").default(false),
+  userPasswordEncrypted: text("user_password_encrypted"),
+  ownerPasswordEncrypted: text("owner_password_encrypted"),
+  
+  // Permissions
+  allowPrinting: boolean("allow_printing").default(false),
+  allowCopying: boolean("allow_copying").default(false),
+  allowModifying: boolean("allow_modifying").default(false),
+  allowAnnotations: boolean("allow_annotations").default(false),
+  allowFormFilling: boolean("allow_form_filling").default(false),
+  allowAssembly: boolean("allow_assembly").default(false),
+  allowDegradedPrinting: boolean("allow_degraded_printing").default(false),
+  
+  // Encryption settings
+  encryptionLevel: varchar("encryption_level").default("AES256"), // 'RC4_40', 'RC4_128', 'AES128', 'AES256'
+  keyLength: integer("key_length").default(256),
+  
+  // Watermark settings
+  hasWatermark: boolean("has_watermark").default(false),
+  watermarkText: varchar("watermark_text"),
+  watermarkOpacity: decimal("watermark_opacity").default("0.3"),
+  watermarkPosition: varchar("watermark_position").default("center"), // 'center', 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  fileIdUnique: unique().on(table.fileId),
+  fileIdIdx: index("idx_pdf_security_file_id").on(table.fileId),
+  orgIdIdx: index("idx_pdf_security_org_id").on(table.organizationId),
+  encryptionIdx: index("idx_pdf_security_encryption").on(table.encryptionLevel),
+}));
+
 // Document Workspace for AI editing and collaboration
 export const documentWorkspace = pgTable("document_workspace", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
