@@ -279,7 +279,7 @@ router.post('/challenge', async (req: any, res) => {
 
     // In production, determine available MFA methods from database
     const availableMethods = ['totp', 'sms'];
-    
+
     await auditService.logAuditEvent({
       action: AuditAction.READ,
       resourceType: 'mfa_challenge_request',
@@ -305,6 +305,45 @@ router.post('/challenge', async (req: any, res) => {
   } catch (error: any) {
     logger.error('MFA challenge request failed', { error: error.message, userId: req.user?.claims?.sub });
     res.status(500).json({ message: 'Failed to create MFA challenge' });
+  }
+});
+
+/**
+ * POST /api/auth/mfa/backup-codes
+ * Generate backup codes for user
+ */
+router.post('/backup-codes', async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const mfaSetup = await mfaService.setupTOTP(userId); // Re-using TOTP setup for backup code generation logic
+
+    // Encrypt and store the backup codes (in production implementation)
+    const encryptedBackupCodes = await encryptionService.encryptSensitiveField(
+      JSON.stringify(mfaSetup.backupCodes),
+      DataClassification.RESTRICTED
+    );
+
+    await auditService.logAuditEvent({
+      action: AuditAction.CREATE,
+      resourceType: 'mfa_backup_codes',
+      resourceId: userId,
+      ipAddress: req.ip,
+      riskLevel: RiskLevel.MEDIUM,
+      additionalContext: { codesCount: mfaSetup.backupCodes.length }
+    });
+
+    res.json({
+      backupCodes: mfaSetup.backupCodes, // Show once during setup
+      message: 'Backup codes generated successfully. Please save them securely.'
+    });
+
+  } catch (error: any) {
+    logger.error('MFA backup codes generation failed', { error: error.message, userId: req.user?.claims?.sub });
+    res.status(500).json({ message: 'Failed to generate backup codes' });
   }
 });
 

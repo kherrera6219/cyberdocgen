@@ -5,9 +5,11 @@
     "security:validate-encryption": "tsx -e \"import('./scripts/encrypt-existing-data.ts').then(m => m.validateEncryption()).then(console.log)\"",
     "compliance:audit-report": "tsx -e \"import('./server/services/auditService.ts').then(m => m.auditService.generateAuditReport(new Date(Date.now() - 30*24*60*60*1000), new Date())).then(console.log)\"",
     "compliance:validate": "tsx scripts/validate-compliance.ts",
-    "compliance:full-check": "npm run db:push && npm run compliance:validate",
+    "compliance:full-check": "npm run db:push && tsx scripts/validate-compliance.ts && tsx scripts/production-deployment-check.ts",
     "deployment:check": "tsx scripts/production-deployment-check.ts",
     "deployment:prepare": "npm run db:push && npm run security:encrypt-data && npm run deployment:check",
-    "db:encrypt-setup": "npm run db:push && npm run security:encrypt-data"
+    "db:encrypt-setup": "npm run db:push && npm run security:encrypt-data",
+    "final-validation": "tsx scripts/final-production-validation.ts",
+    "production-ready": "npm run db:push && npm run security:encrypt-data && npm run compliance:final-validation"
   }
 }

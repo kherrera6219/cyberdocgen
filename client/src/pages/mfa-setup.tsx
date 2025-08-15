@@ -1,247 +1,575 @@
-import { useState } from 'react';
-import { useNavigate } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+import React, { useState, useEffect } from 'react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { Badge } from '../components/ui/badge';
+import { Separator } from '../components/ui/separator';
 import { 
   Shield, 
   Smartphone, 
-  MessageSquare, 
+  QrCode, 
   Key, 
   CheckCircle, 
-  ArrowLeft,
-  Fingerprint
+  XCircle,
+  Copy,
+  Download,
+  Loader2
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import GoogleAuthenticatorSetup from '@/components/auth/GoogleAuthenticatorSetup';
+import { useAuth } from '../hooks/useAuth';
 
-export default function MFASetup() {
-  const navigate = useNavigate();
+interface MFAStatus {
+  enabled: boolean;
+  totpEnabled: boolean;
+  smsEnabled: boolean;
+  backupCodesGenerated: boolean;
+}
+
+interface TOTPSetup {
+  secret: string;
+  qrCode: string;
+  manualEntryKey: string;
+}
+
+export default function MFASetupPage() {
   const { user } = useAuth();
-  const [activeMethod, setActiveMethod] = useState<string | null>(null);
+  const [status, setStatus] = useState<MFAStatus | null>(null);
+  const [totpSetup, setTotpSetup] = useState<TOTPSetup | null>(null);
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [activeStep, setActiveStep] = useState<'status' | 'totp-setup' | 'sms-setup' | 'backup-codes'>('status');
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    loadMFAStatus();
+  }, []);
 
-  const authMethods = [
-    {
-      id: 'totp',
-      name: 'Google Authenticator',
-      description: 'Generate time-based codes using Google Authenticator app',
-      icon: Smartphone,
-      security: 'High',
-      recommended: true,
-      color: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-    },
-    {
-      id: 'sms',
-      name: 'SMS Authentication',
-      description: 'Receive verification codes via text message',
-      icon: MessageSquare,
-      security: 'Medium',
-      recommended: false,
-      color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-    },
-    {
-      id: 'passkey',
-      name: 'Passkey (WebAuthn)',
-      description: 'Use biometric authentication or hardware security keys',
-      icon: Fingerprint,
-      security: 'Highest',
-      recommended: true,
-      color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
-      comingSoon: true,
-    },
-  ];
-
-  const handleMethodComplete = () => {
-    setActiveMethod(null);
-    // Could refresh auth methods status here
+  const loadMFAStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/mfa/status', {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setStatus(data);
+      }
+    } catch (err) {
+      console.error('Failed to load MFA status:', err);
+    }
   };
 
-  if (activeMethod === 'totp') {
+  const setupTOTP = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/auth/mfa/setup/totp', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTotpSetup(data);
+        setActiveStep('totp-setup');
+      } else {
+        const error = await response.json();
+        setError(error.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to setup TOTP');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyTOTP = async () => {
+    if (!verificationCode) return;
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/auth/mfa/verify/totp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ token: verificationCode })
+      });
+      
+      if (response.ok) {
+        setSuccess('TOTP authentication enabled successfully!');
+        setVerificationCode('');
+        loadMFAStatus();
+        setActiveStep('status');
+      } else {
+        const error = await response.json();
+        setError(error.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to verify TOTP');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const setupSMS = async () => {
+    if (!phoneNumber) return;
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/auth/mfa/setup/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ phoneNumber })
+      });
+      
+      if (response.ok) {
+        setSuccess('SMS verification code sent!');
+        setActiveStep('sms-setup');
+      } else {
+        const error = await response.json();
+        setError(error.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to setup SMS');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifySMS = async () => {
+    if (!verificationCode) return;
+    
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/auth/mfa/verify/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ code: verificationCode })
+      });
+      
+      if (response.ok) {
+        setSuccess('SMS authentication enabled successfully!');
+        setVerificationCode('');
+        loadMFAStatus();
+        setActiveStep('status');
+      } else {
+        const error = await response.json();
+        setError(error.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to verify SMS');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateBackupCodes = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/auth/mfa/backup-codes', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setBackupCodes(data.codes);
+        setActiveStep('backup-codes');
+        loadMFAStatus();
+      } else {
+        const error = await response.json();
+        setError(error.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate backup codes');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setSuccess('Copied to clipboard!');
+    setTimeout(() => setSuccess(''), 2000);
+  };
+
+  const downloadBackupCodes = () => {
+    const content = `ComplianceAI MFA Backup Codes\nGenerated: ${new Date().toISOString()}\n\n${backupCodes.join('\n')}\n\nStore these codes securely. Each code can only be used once.`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'complianceai-backup-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (!status) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-        <GoogleAuthenticatorSetup
-          userId={user.id}
-          onComplete={handleMethodComplete}
-          onCancel={() => setActiveMethod(null)}
-        />
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <Card className="w-full max-w-4xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
-            <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-          </div>
-          <CardTitle className="text-3xl">Secure Your Account</CardTitle>
-          <CardDescription className="text-lg">
-            Add an extra layer of security to your ComplianceAI account with multi-factor authentication
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-8">
-          <div className="bg-amber-50 dark:bg-amber-900/30 p-4 rounded-lg">
-            <div className="flex items-start gap-3">
-              <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-amber-800 dark:text-amber-300">Why Enable MFA?</h3>
-                <p className="text-amber-700 dark:text-amber-400 text-sm mt-1">
-                  Multi-factor authentication significantly reduces the risk of unauthorized account access, 
-                  protecting your sensitive compliance data and business information.
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Multi-Factor Authentication</h1>
+        <p className="text-gray-600 mt-2">
+          Enhance your account security with additional authentication methods
+        </p>
+      </div>
 
-          <Tabs defaultValue="methods" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="methods">Authentication Methods</TabsTrigger>
-              <TabsTrigger value="setup">Setup Guide</TabsTrigger>
-            </TabsList>
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-            <TabsContent value="methods" className="space-y-6 mt-6">
-              <div className="grid gap-4 md:grid-cols-1">
-                {authMethods.map((method) => {
-                  const IconComponent = method.icon;
-                  return (
-                    <Card 
-                      key={method.id} 
-                      className={`cursor-pointer transition-all hover:shadow-md ${
-                        method.comingSoon ? 'opacity-60' : ''
-                      }`}
-                      onClick={() => !method.comingSoon && setActiveMethod(method.id)}
-                    >
-                      <CardContent className="flex items-center gap-4 p-6">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${method.color}`}>
-                          <IconComponent className="h-6 w-6" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-lg">{method.name}</h3>
-                            {method.recommended && (
-                              <Badge variant="secondary" className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                Recommended
-                              </Badge>
-                            )}
-                            {method.comingSoon && (
-                              <Badge variant="outline">
-                                Coming Soon
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-gray-600 dark:text-gray-300 mb-2">{method.description}</p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">Security Level:</span>
-                            <Badge 
-                              variant="outline" 
-                              className={
-                                method.security === 'Highest' ? 'border-purple-500 text-purple-700 dark:text-purple-300' :
-                                method.security === 'High' ? 'border-green-500 text-green-700 dark:text-green-300' :
-                                'border-blue-500 text-blue-700 dark:text-blue-300'
-                              }
-                            >
-                              {method.security}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div>
-                          {!method.comingSoon ? (
-                            <Button>
-                              Setup
-                            </Button>
-                          ) : (
-                            <Button disabled variant="outline">
-                              Coming Soon
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </TabsContent>
+      {success && (
+        <Alert className="mb-6">
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
 
-            <TabsContent value="setup" className="space-y-6 mt-6">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">1</Badge>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-2">Choose Your Method</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Select the authentication method that works best for you. We recommend Google Authenticator for the best balance of security and convenience.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">2</Badge>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-2">Complete Setup</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Follow the guided setup process for your chosen method. This typically involves scanning a QR code or entering a phone number.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Badge className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">3</Badge>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-2">Save Backup Codes</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Store your backup codes in a secure location. These will allow you to access your account if you lose your primary authentication method.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                    <CheckCircle className="h-3 w-3" />
+      {activeStep === 'status' && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* TOTP Authentication */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <Shield className="h-6 w-6 text-blue-600" />
+                {status.totpEnabled ? (
+                  <Badge variant="default" className="bg-green-100 text-green-800">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Enabled
                   </Badge>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-2">You're Protected!</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Your account is now secured with multi-factor authentication. You'll be prompted for an additional code when logging in from new devices.
-                    </p>
-                  </div>
+                ) : (
+                  <Badge variant="secondary">
+                    <XCircle className="w-3 h-3 mr-1" />
+                    Disabled
+                  </Badge>
+                )}
+              </div>
+              <CardTitle>Authenticator App</CardTitle>
+              <CardDescription>
+                Use Google Authenticator, Authy, or similar apps for time-based codes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!status.totpEnabled ? (
+                <Button onClick={setupTOTP} disabled={isLoading} className="w-full">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Setting up...
+                    </>
+                  ) : (
+                    'Setup Authenticator'
+                  )}
+                </Button>
+              ) : (
+                <div className="text-sm text-green-600">
+                  ✓ Authenticator app is configured and active
                 </div>
-              </div>
+              )}
+            </CardContent>
+          </Card>
 
-              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">Pro Tips:</h3>
-                <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
-                  <li>• Enable multiple methods for redundancy</li>
-                  <li>• Keep your backup codes in a password manager or secure physical location</li>
-                  <li>• Test your authentication method before completing setup</li>
-                  <li>• Update your recovery information if you change phone numbers</li>
-                </ul>
+          {/* SMS Authentication */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <Smartphone className="h-6 w-6 text-green-600" />
+                {status.smsEnabled ? (
+                  <Badge variant="default" className="bg-green-100 text-green-800">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Enabled
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <XCircle className="w-3 h-3 mr-1" />
+                    Disabled
+                  </Badge>
+                )}
               </div>
-            </TabsContent>
-          </Tabs>
+              <CardTitle>SMS Verification</CardTitle>
+              <CardDescription>
+                Receive verification codes via text message
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!status.smsEnabled ? (
+                <div className="space-y-3">
+                  <Input
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                  <Button 
+                    onClick={setupSMS} 
+                    disabled={!phoneNumber || isLoading} 
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Setting up...
+                      </>
+                    ) : (
+                      'Setup SMS'
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-sm text-green-600">
+                  ✓ SMS verification is configured and active
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          <div className="flex justify-between items-center pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Skip for Now
-            </Button>
-            
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              You can always set this up later in your account settings
+          {/* Backup Codes */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <Key className="h-6 w-6 text-orange-600" />
+                {status.backupCodesGenerated ? (
+                  <Badge variant="default" className="bg-green-100 text-green-800">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Generated
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <XCircle className="w-3 h-3 mr-1" />
+                    Not Generated
+                  </Badge>
+                )}
+              </div>
+              <CardTitle>Backup Codes</CardTitle>
+              <CardDescription>
+                Single-use codes for account recovery
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={generateBackupCodes} 
+                disabled={isLoading} 
+                className="w-full"
+                variant={status.backupCodesGenerated ? "outline" : "default"}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : status.backupCodesGenerated ? (
+                  'Regenerate Codes'
+                ) : (
+                  'Generate Codes'
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {activeStep === 'totp-setup' && totpSetup && (
+        <Card className="max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <QrCode className="h-12 w-12 mx-auto mb-4 text-blue-600" />
+            <CardTitle>Setup Authenticator App</CardTitle>
+            <CardDescription>
+              Scan the QR code with your authenticator app or enter the key manually
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* QR Code would be displayed here */}
+            <div className="text-center">
+              <img 
+                src={totpSetup.qrCode} 
+                alt="TOTP QR Code" 
+                className="mx-auto border rounded-lg p-4 bg-white"
+              />
             </div>
-          </div>
-        </CardContent>
-      </Card>
+
+            <div>
+              <label className="text-sm font-medium">Manual Entry Key:</label>
+              <div className="flex items-center space-x-2 mt-1">
+                <Input 
+                  value={totpSetup.manualEntryKey} 
+                  readOnly 
+                  className="font-mono text-sm"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(totpSetup.manualEntryKey)}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div>
+              <label className="text-sm font-medium">Verification Code:</label>
+              <Input
+                type="text"
+                placeholder="000000"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="text-center text-xl tracking-wider mt-1"
+                maxLength={6}
+              />
+            </div>
+
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setActiveStep('status')}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={verifyTOTP}
+                disabled={!verificationCode || verificationCode.length !== 6 || isLoading}
+                className="flex-1"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  'Verify & Enable'
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeStep === 'sms-setup' && (
+        <Card className="max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <Smartphone className="h-12 w-12 mx-auto mb-4 text-green-600" />
+            <CardTitle>Verify Phone Number</CardTitle>
+            <CardDescription>
+              Enter the verification code sent to your phone
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Verification Code:</label>
+              <Input
+                type="text"
+                placeholder="000000"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="text-center text-xl tracking-wider mt-1"
+                maxLength={6}
+              />
+            </div>
+
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setActiveStep('status')}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={verifySMS}
+                disabled={!verificationCode || verificationCode.length !== 6 || isLoading}
+                className="flex-1"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  'Verify & Enable'
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeStep === 'backup-codes' && backupCodes.length > 0 && (
+        <Card className="max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <Key className="h-12 w-12 mx-auto mb-4 text-orange-600" />
+            <CardTitle>Backup Codes Generated</CardTitle>
+            <CardDescription>
+              Save these codes securely. Each can only be used once.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-2 font-mono text-sm">
+              {backupCodes.map((code, index) => (
+                <div key={index} className="p-2 bg-gray-50 rounded text-center">
+                  {code}
+                </div>
+              ))}
+            </div>
+
+            <Alert>
+              <AlertDescription>
+                Store these codes in a secure location. You'll need them to access your account if you lose your primary MFA method.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => copyToClipboard(backupCodes.join('\n'))}
+                className="flex-1"
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy All
+              </Button>
+              <Button
+                variant="outline"
+                onClick={downloadBackupCodes}
+                className="flex-1"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </Button>
+            </div>
+
+            <Button
+              onClick={() => setActiveStep('status')}
+              className="w-full"
+            >
+              Done
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
