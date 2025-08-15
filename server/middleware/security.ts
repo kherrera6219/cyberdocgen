@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { rateLimit } from "express-rate-limit";
 import { logger } from "../utils/logger";
+import { performanceService } from '../services/performanceService';
+import { threatDetectionService } from '../services/threatDetectionService';
 
 // Rate limiting configurations
 export const generalLimiter = rateLimit({
@@ -63,8 +65,8 @@ export function validateRequest(req: Request, res: Response, next: NextFunction)
   // Check Content-Type for POST/PUT requests
   if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
     if (!req.is('application/json')) {
-      return res.status(400).json({ 
-        message: "Content-Type must be application/json" 
+      return res.status(400).json({
+        message: "Content-Type must be application/json"
       });
     }
   }
@@ -111,6 +113,38 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   next();
 }
 
+// Threat detection middleware
+export const threatDetection = (req: Request, res: Response, next: NextFunction) => {
+  const startTime = Date.now();
+
+  // Analyze request for security threats
+  const threat = threatDetectionService.analyzeRequest(req);
+
+  if (threat && threatDetectionService.shouldBlockRequest(threat)) {
+    logger.error('Request blocked due to security threat', {
+      ip: req.ip,
+      url: req.url,
+      threat: threat.type,
+      severity: threat.severity
+    });
+
+    return res.status(403).json({
+      success: false,
+      message: 'Request blocked for security reasons',
+      code: 'SECURITY_THREAT_DETECTED'
+    });
+  }
+
+  // Record performance metrics
+  res.on('finish', () => {
+    const responseTime = Date.now() - startTime;
+    const isError = res.statusCode >= 400;
+    performanceService.recordRequest(responseTime, isError);
+  });
+
+  next();
+};
+
 // Error handling middleware
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   // Skip if response already sent
@@ -118,8 +152,8 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     return next(err);
   }
 
-  logger.error('Error occurred', { 
-    error: err.message, 
+  logger.error('Error occurred', {
+    error: err.message,
     stack: err.stack,
     url: req.url,
     method: req.method,
@@ -145,11 +179,11 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   }
 
   const statusCode = err.statusCode || err.status || 500;
-  const message = process.env.NODE_ENV === 'production' 
-    ? 'Internal server error' 
+  const message = process.env.NODE_ENV === 'production'
+    ? 'Internal server error'
     : err.message;
 
-  res.status(statusCode).json({ 
+  res.status(statusCode).json({
     message,
     timestamp: new Date().toISOString(),
     ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })

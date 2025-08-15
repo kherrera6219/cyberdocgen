@@ -308,6 +308,45 @@ router.delete('/cloud-integrations/:integrationId', isAuthenticated, isAdmin, as
 });
 
 /**
+ * Get comprehensive system monitoring dashboard
+ */
+router.get('/monitoring', isAuthenticated, isAdmin, async (req: any, res) => {
+  try {
+    const { performanceService } = await import('../services/performanceService');
+    const { alertingService } = await import('../services/alertingService');
+    const { threatDetectionService } = await import('../services/threatDetectionService');
+    const { healthCheck } = await import('../utils/health');
+
+    const [performance, alerts, security, health] = await Promise.all([
+      performanceService.getMetrics(),
+      alertingService.getAlertMetrics(),
+      threatDetectionService.getSecurityMetrics(),
+      healthCheck()
+    ]);
+
+    res.json({
+      success: true,
+      monitoring: {
+        performance,
+        alerts,
+        security,
+        health: {
+          status: health.status,
+          uptime: health.uptime,
+          checks: health.checks
+        }
+      }
+    });
+  } catch (error: any) {
+    logger.error('Failed to get monitoring data', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve monitoring data'
+    });
+  }
+});
+
+/**
  * Get system statistics (admin dashboard)
  */
 router.get('/stats', isAuthenticated, isAdmin, async (req: any, res) => {

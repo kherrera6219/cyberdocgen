@@ -1,17 +1,23 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { 
-  generalLimiter, 
-  sanitizeInput, 
-  validateRequest, 
-  securityHeaders, 
-  errorHandler 
+import {
+  generalLimiter,
+  sanitizeInput,
+  validateRequest,
+  securityHeaders,
+  errorHandler,
+  corsOptions,
+  threatDetection
 } from "./middleware/security";
 import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
 import { validateEnvironment } from "./utils/validation";
 import { logger } from "./utils/logger";
 import { healthCheckHandler, readinessCheckHandler, livenessCheckHandler } from "./utils/health";
+import { performanceService } from './services/performanceService';
+import { alertingService } from './services/alertingService';
+import { threatDetectionService } from './services/threatDetectionService';
+
 
 // Validate environment variables before starting
 validateEnvironment();
@@ -28,6 +34,12 @@ app.get('/live', livenessCheckHandler);
 
 // Security middleware - only apply to API routes
 app.use(securityHeaders);
+app.use(cors(corsOptions));
+
+// Security and performance monitoring
+app.use(threatDetection);
+
+// Request logging and validation
 app.use('/api', validateRouteAccess);
 app.use('/api', logRoutePerformance);
 app.use('/api', generalLimiter);

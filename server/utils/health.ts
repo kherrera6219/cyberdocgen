@@ -2,6 +2,13 @@ import { Request, Response } from "express";
 import { db } from "../db";
 import { logger } from "./logger";
 
+interface HealthCheckResult {
+  status: "pass" | "fail" | "warn";
+  message: string;
+  responseTime?: number;
+  details?: Record<string, any>;
+}
+
 interface HealthCheck {
   status: "healthy" | "unhealthy" | "degraded";
   timestamp: string;
@@ -15,11 +22,36 @@ interface HealthCheck {
   };
 }
 
-interface HealthCheckResult {
-  status: "pass" | "fail" | "warn";
-  message: string;
-  responseTime?: number;
-  details?: Record<string, any>;
+interface HealthStatus {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: string;
+  uptime: number;
+  version: string;
+  checks: {
+    database: boolean;
+    redis?: boolean;
+    external_apis: boolean;
+    ai_services: boolean;
+    encryption: boolean;
+    audit_system: boolean;
+    security_services: boolean;
+  };
+  performance: {
+    responseTime: number;
+    errorRate: number;
+    requestsPerSecond: number;
+    memoryUsage: number;
+    cacheHitRate: number;
+  };
+  security: {
+    activeThreats: number;
+    blockedRequests: number;
+    suspiciousIPs: number;
+  };
+  alerts: {
+    active: number;
+    critical: number;
+  };
 }
 
 class HealthCheckService {
@@ -30,7 +62,7 @@ class HealthCheckService {
       const start = Date.now();
       await db.execute('SELECT 1');
       const responseTime = Date.now() - start;
-      
+
       return {
         status: responseTime > 1000 ? "warn" : "pass",
         message: responseTime > 1000 ? "Database responding slowly" : "Database connection healthy",
@@ -73,7 +105,7 @@ class HealthCheckService {
 
   async checkExternalServices(): Promise<HealthCheckResult> {
     const services = [];
-    
+
     // Check OpenAI API if configured
     if (process.env.OPENAI_API_KEY) {
       try {
@@ -96,10 +128,10 @@ class HealthCheckService {
     }
 
     const failedServices = services.filter(s => s.status === "fail");
-    
+
     return {
       status: failedServices.length > 0 ? "warn" : "pass",
-      message: failedServices.length > 0 
+      message: failedServices.length > 0
         ? `${failedServices.length} external service(s) unavailable`
         : "All external services healthy",
       details: { services },
@@ -134,7 +166,7 @@ export async function healthCheckHandler(req: Request, res: Response): Promise<v
   try {
     const health = await healthCheckService.performHealthCheck();
     const statusCode = health.status === "healthy" ? 200 : health.status === "degraded" ? 200 : 503;
-    
+
     res.status(statusCode).json(health);
   } catch (error) {
     logger.error("Health check failed", { error: error.message });
@@ -175,4 +207,70 @@ export async function livenessCheckHandler(req: Request, res: Response): Promise
     timestamp: new Date().toISOString(),
     uptime: Date.now() - healthCheckService["startTime"],
   });
+}
+
+async function checkExternalAPIs(): Promise<boolean> {
+  try {
+    // Add actual API health checks here
+    return true;
+  } catch (error) {
+    logger.error('External API health check failed:', error);
+    return false;
+  }
+}
+
+async function checkAIServices(): Promise<boolean> {
+  try {
+    const { aiOrchestrator } = await import('../services/aiOrchestrator');
+    const healthStatus = await aiOrchestrator.healthCheck();
+    return healthStatus.overall;
+  } catch (error) {
+    logger.error('AI services health check failed:', error);
+    return false;
+  }
+}
+
+async function checkEncryption(): Promise<boolean> {
+  try {
+    const { encryptionService } = await import('../services/encryption');
+    // Test encryption/decryption cycle
+    const testData = 'health-check-test';
+    const encrypted = await encryptionService.encryptSensitiveField(testData, 'CONFIDENTIAL');
+    const decrypted = await encryptionService.decryptSensitiveField(encrypted);
+    return decrypted === testData;
+  } catch (error) {
+    logger.error('Encryption service health check failed:', error);
+    return false;
+  }
+}
+
+async function checkAuditSystem(): Promise<boolean> {
+  try {
+    const { auditService } = await import('../services/auditService');
+    // Test audit logging
+    await auditService.logAuditEvent({
+      userId: 'system',
+      action: 'CREATE',
+      resourceType: 'health_check',
+      resourceId: 'test',
+      ipAddress: '127.0.0.1',
+      riskLevel: 'LOW',
+      additionalContext: { type: 'health_check' }
+    });
+    return true;
+  } catch (error) {
+    logger.error('Audit system health check failed:', error);
+    return false;
+  }
+}
+
+async function checkSecurityServices(): Promise<boolean> {
+  try {
+    const { threatDetectionService } = await import('../services/threatDetectionService');
+    const metrics = threatDetectionService.getSecurityMetrics();
+    return typeof metrics.totalEvents === 'number';
+  } catch (error) {
+    logger.error('Security services health check failed:', error);
+    return false;
+  }
 }
