@@ -95,7 +95,10 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
       title: string;
       description?: string;
     }) => {
-      return apiRequest("/api/documents/generate", "POST", data);
+      return apiRequest("/api/documents/generate", {
+        method: "POST",
+        body: data
+      });
     },
     onSuccess: () => {
       toast({
@@ -116,7 +119,9 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (documentId: string) => {
-      return apiRequest(`/api/documents/${documentId}`, "DELETE");
+      return apiRequest(`/api/documents/${documentId}`, {
+        method: "DELETE"
+      });
     },
     onSuccess: () => {
       toast({

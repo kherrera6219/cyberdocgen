@@ -131,7 +131,10 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
   // Create new version mutation
   const createVersionMutation = useMutation({
     mutationFn: async (data: { changes: string; changeType: string }) => {
-      return apiRequest(`/api/documents/${documentId}/versions`, "POST", data);
+      return apiRequest(`/api/documents/${documentId}/versions`, {
+        method: "POST", 
+        body: data
+      });
     },
     onSuccess: () => {
       toast({
@@ -152,7 +155,9 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
   // Restore version mutation
   const restoreVersionMutation = useMutation({
     mutationFn: async (versionId: string) => {
-      return apiRequest(`/api/documents/${documentId}/versions/${versionId}/restore`, "POST");
+      return apiRequest(`/api/documents/${documentId}/versions/${versionId}/restore`, {
+        method: "POST"
+      });
     },
     onSuccess: () => {
       toast({

@@ -75,9 +75,12 @@ export default function Dashboard() {
     mutationFn: async ({ framework }: { framework: string }) => {
       if (!profile) throw new Error("No company profile found");
       
-      return await apiRequest("POST", "/api/generate-documents", {
-        companyProfileId: profile.id,
-        framework,
+      return await apiRequest("/api/generate-documents", {
+        method: "POST",
+        body: {
+          companyProfileId: profile.id,
+          framework,
+        }
       });
     },
     onSuccess: (data) => {
@@ -142,6 +145,10 @@ export default function Dashboard() {
     setIsGenerating(true);
     setCurrentFramework(framework);
     generateDocsMutation.mutate({ framework });
+  };
+
+  const handleStartGeneration = (framework: string) => {
+    handleGenerateDocuments(framework);
   };
 
   const recentDocuments = documents
