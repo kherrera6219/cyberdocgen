@@ -27,7 +27,7 @@ Features a comprehensive authentication system integrated with Replit's OpenID C
 The core functionality relies on OpenAI's API (GPT-4) to generate compliance documents. It uses predefined templates customized with company profile information, and includes progress tracking for generation jobs. Advanced AI features include multi-model integration (Anthropic Claude 4.0 Sonnet alongside OpenAI GPT-4o), intelligent orchestration, document analysis with RAG, an AI-powered compliance chatbot, an advanced risk assessment engine, and AI-driven quality scoring.
 
 ## Comprehensive Template Library
-The platform now includes 13+ production-ready templates covering both compliance frameworks and operational governance:
+The platform now includes 17+ production-ready templates covering compliance frameworks, operational governance, and certification documentation:
 
 ### Compliance Framework Templates (9 templates)
 - **ISO 27001:2022**: 4 comprehensive templates including ISMS Scope, Information Security Policy, Risk Assessment, and Statement of Applicability
@@ -40,6 +40,12 @@ The platform now includes 13+ production-ready templates covering both complianc
 - **Role Appointments**: Formal role appointment documents with responsibilities, authorities, and performance metrics  
 - **Required Logs and Monitoring**: Detailed specifications for security event logs, system logs, and compliance monitoring
 - **Compliance Checklists**: Interactive assessment checklists for audit preparation and compliance verification
+
+### Certification Process Documentation (4 templates)
+- **ISO 27001 Management Assertion Statement**: Formal management commitment statements for ISMS certification readiness
+- **FedRAMP Authorization Memorandum**: Official system characterization and authorization request documentation
+- **SOC 2 Type 2 Management Assertion Letter**: Comprehensive management assertion letters for SOC 2 attestation engagements
+- **Security Awareness Posters & Notices**: Professional workplace security awareness materials and system use notifications
 
 ## Advanced AI Fine-Tuning System
 Comprehensive industry-specific AI fine-tuning capabilities with custom model configurations for Healthcare, Financial Services, Government, and Technology sectors. Features include adaptive learning, custom prompt generation, industry-specific risk assessment, optimized document generation, and real-time accuracy metrics. Integrated with both OpenAI GPT-4o and Anthropic Claude 4.0 Sonnet with intelligent model selection based on industry requirements.
