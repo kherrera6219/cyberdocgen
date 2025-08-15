@@ -393,7 +393,7 @@ export function ObjectStorageManager() {
                     <DialogHeader>
                       <DialogTitle>Upload File</DialogTitle>
                       <DialogDescription>
-                        Upload files (images, PDFs, documents) to object storage
+                        Select a file to upload to your secure object storage
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
