@@ -18,6 +18,7 @@ import DocumentWorkspace from "./pages/document-workspace";
 import AuditTrail from "./pages/audit-trail";
 import DocumentVersions from "./pages/document-versions";
 import { ObjectStorageManager } from "./components/ObjectStorageManager";
+import { IndustrySpecialization } from "./components/ai/IndustrySpecialization";
 import Layout from "./components/layout";
 
 function Router() {
@@ -40,6 +41,7 @@ function Router() {
           <Route path="/user-profile" component={UserProfile} />
           <Route path="/organizations" component={OrganizationSetup} />
           <Route path="/storage" component={ObjectStorageManager} />
+          <Route path="/ai-specialization" component={IndustrySpecialization} />
         </>
       )}
       <Route component={NotFound} />

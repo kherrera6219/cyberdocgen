@@ -1528,6 +1528,148 @@ Category: ${category}`;
     return contentTypes[extension || ''] || 'application/octet-stream';
   }
 
+  // AI Fine-tuning routes
+  app.get("/api/ai/industries", isAuthenticated, async (req, res) => {
+    try {
+      const { AIFineTuningService } = await import('./services/aiFineTuningService');
+      const service = new AIFineTuningService();
+      const configurations = service.getIndustryConfigurations();
+      res.json({ success: true, configurations });
+    } catch (error) {
+      console.error("Error fetching industry configurations:", error);
+      res.status(500).json({ success: false, error: "Failed to fetch configurations" });
+    }
+  });
+
+  app.get("/api/ai/industries/:industryId", isAuthenticated, async (req, res) => {
+    try {
+      const { AIFineTuningService } = await import('./services/aiFineTuningService');
+      const service = new AIFineTuningService();
+      const configuration = service.getIndustryConfiguration(req.params.industryId);
+      
+      if (!configuration) {
+        return res.status(404).json({ success: false, error: "Industry not found" });
+      }
+      
+      res.json({ success: true, configuration });
+    } catch (error) {
+      console.error("Error fetching industry configuration:", error);
+      res.status(500).json({ success: false, error: "Failed to fetch configuration" });
+    }
+  });
+
+  app.post("/api/ai/fine-tune", isAuthenticated, async (req, res) => {
+    try {
+      const { industryId, requirements, customInstructions, priority } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      if (!industryId || !requirements) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Industry ID and requirements are required" 
+        });
+      }
+
+      const { AIFineTuningService } = await import('./services/aiFineTuningService');
+      const service = new AIFineTuningService();
+      
+      const result = await service.createCustomConfiguration({
+        industryId,
+        organizationId: userId,
+        requirements: Array.isArray(requirements) ? requirements : [requirements],
+        customInstructions,
+        priority: priority || 'medium'
+      });
+
+      // Log the fine-tuning operation
+      await storage.createAuditEntry({
+        userId,
+        action: "ai_fine_tuning_created",
+        entityType: "ai_configuration",
+        entityId: result.configId,
+        details: { industryId, accuracy: result.accuracy },
+        metadata: { requirements, customInstructions, priority }
+      });
+
+      res.json({ success: true, result });
+    } catch (error) {
+      console.error("Error creating fine-tuning configuration:", error);
+      res.status(500).json({ success: false, error: "Failed to create configuration" });
+    }
+  });
+
+  app.post("/api/ai/generate-optimized", isAuthenticated, async (req, res) => {
+    try {
+      const { configId, documentType, context } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      if (!documentType || !context) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Document type and context are required" 
+        });
+      }
+
+      const { AIFineTuningService } = await import('./services/aiFineTuningService');
+      const service = new AIFineTuningService();
+      
+      const generatedContent = await service.generateOptimizedDocument(
+        configId || `default-${context.industry}`,
+        documentType,
+        context
+      );
+
+      // Log the optimized generation
+      await storage.createAuditEntry({
+        userId,
+        action: "ai_optimized_generation",
+        entityType: "document",
+        entityId: `opt-${Date.now()}`,
+        details: { documentType, industry: context.industry },
+        metadata: { configId, context }
+      });
+
+      res.json({ success: true, content: generatedContent });
+    } catch (error) {
+      console.error("Error generating optimized document:", error);
+      res.status(500).json({ success: false, error: "Failed to generate document" });
+    }
+  });
+
+  app.post("/api/ai/assess-risks", isAuthenticated, async (req, res) => {
+    try {
+      const { industryId, organizationContext } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      if (!industryId || !organizationContext) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Industry ID and organization context are required" 
+        });
+      }
+
+      const { AIFineTuningService } = await import('./services/aiFineTuningService');
+      const service = new AIFineTuningService();
+      
+      const riskAssessment = await service.assessIndustryRisks(industryId, organizationContext);
+
+      // Log the risk assessment
+      await storage.createAuditEntry({
+        userId,
+        action: "ai_risk_assessment",
+        entityType: "risk_assessment",
+        entityId: `risk-${Date.now()}`,
+        details: { industryId, riskScore: riskAssessment.riskScore },
+        metadata: { organizationContext, identifiedRisks: riskAssessment.identifiedRisks.length }
+      });
+
+      res.json({ success: true, assessment: riskAssessment });
+    } catch (error) {
+      console.error("Error assessing industry risks:", error);
+      res.status(500).json({ success: false, error: "Failed to assess risks" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

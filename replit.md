@@ -26,6 +26,9 @@ Features a comprehensive authentication system integrated with Replit's OpenID C
 ## AI Document Generation
 The core functionality relies on OpenAI's API (GPT-4) to generate compliance documents. It uses predefined templates customized with company profile information, and includes progress tracking for generation jobs. Advanced AI features include multi-model integration (Anthropic Claude 4.0 Sonnet alongside OpenAI GPT-4o), intelligent orchestration, document analysis with RAG, an AI-powered compliance chatbot, an advanced risk assessment engine, and AI-driven quality scoring.
 
+## Advanced AI Fine-Tuning System
+Comprehensive industry-specific AI fine-tuning capabilities with custom model configurations for Healthcare, Financial Services, Government, and Technology sectors. Features include adaptive learning, custom prompt generation, industry-specific risk assessment, optimized document generation, and real-time accuracy metrics. Integrated with both OpenAI GPT-4o and Anthropic Claude 4.0 Sonnet with intelligent model selection based on industry requirements.
+
 # External Dependencies
 
 ## Third-Party Services

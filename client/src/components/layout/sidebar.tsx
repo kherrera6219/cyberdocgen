@@ -4,6 +4,7 @@ import {
   LayoutDashboard, 
   Building, 
   Database,
+  Brain,
   Tag, 
   Shield, 
   Flag, 
@@ -24,6 +25,7 @@ const mainNavItems: NavItem[] = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/profile", icon: Building, label: "Company Profile" },
   { href: "/storage", icon: Database, label: "Object Storage" },
+  { href: "/ai-specialization", icon: Brain, label: "AI Specialization" },
 ];
 
 const frameworkNavItems: NavItem[] = [

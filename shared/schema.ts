@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
-import { pgTable, text, varchar, jsonb, timestamp, integer, boolean, index, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, jsonb, timestamp, integer, boolean, index, unique, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -358,6 +358,53 @@ export const insertDocumentWorkspaceSchema = createInsertSchema(documentWorkspac
 
 // Type exports
 export type User = typeof users.$inferSelect;
+
+// AI Fine-tuning configuration tables
+export const industryConfigurations = pgTable("industry_configurations", {
+  id: varchar("id").primaryKey(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  primaryFrameworks: text("primary_frameworks").array(),
+  specializations: text("specializations").array(),
+  riskFactors: text("risk_factors").array(),
+  complianceRequirements: text("compliance_requirements").array(),
+  customPrompts: jsonb("custom_prompts"),
+  modelPreferences: jsonb("model_preferences"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const organizationFineTuning = pgTable("organization_fine_tuning", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  industryId: varchar("industry_id").notNull(),
+  configId: varchar("config_id").notNull(),
+  status: varchar("status").notNull().default("pending"),
+  customPrompts: jsonb("custom_prompts"),
+  modelSettings: jsonb("model_settings"),
+  accuracy: decimal("accuracy", { precision: 5, scale: 4 }),
+  requirements: text("requirements").array(),
+  customInstructions: text("custom_instructions"),
+  priority: varchar("priority").default("medium"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const fineTuningMetrics = pgTable("fine_tuning_metrics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  configId: varchar("config_id").notNull(),
+  metricType: varchar("metric_type").notNull(), // accuracy, performance, user_satisfaction
+  value: decimal("value", { precision: 10, scale: 6 }),
+  metadata: jsonb("metadata"),
+  measuredAt: timestamp("measured_at").defaultNow(),
+});
+
+export type IndustryConfiguration = typeof industryConfigurations.$inferSelect;
+export type InsertIndustryConfiguration = typeof industryConfigurations.$inferInsert;
+export type OrganizationFineTuning = typeof organizationFineTuning.$inferSelect;
+export type InsertOrganizationFineTuning = typeof organizationFineTuning.$inferInsert;
+export type FineTuningMetric = typeof fineTuningMetrics.$inferSelect;
+export type InsertFineTuningMetric = typeof fineTuningMetrics.$inferInsert;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
