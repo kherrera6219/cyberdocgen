@@ -151,7 +151,6 @@ Make the document practical and implementable, with specific controls, procedure
         { role: "user", content: userPrompt }
       ],
       max_tokens: 4000,
-      temperature: 0.3,
     });
 
     return response.choices[0].message.content || "";

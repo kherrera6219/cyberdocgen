@@ -87,7 +87,6 @@ Format as a structured document with clear headings, numbered sections, and prof
         }
       ],
       model: DEFAULT_MODEL_STR,
-      temperature: 0.3,
     });
 
     const content = message.content[0];
@@ -138,7 +137,6 @@ Respond in JSON format with:
         }
       ],
       model: DEFAULT_MODEL_STR,
-      temperature: 0.2,
     });
 
     const responseContent = message.content[0];
@@ -198,7 +196,6 @@ Provide analysis in JSON format:
         }
       ],
       model: DEFAULT_MODEL_STR,
-      temperature: 0.3,
     });
 
     const responseContent = message.content[0];

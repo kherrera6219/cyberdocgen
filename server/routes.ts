@@ -2186,7 +2186,6 @@ Category: ${category}`;
           { role: "user", content: `Generate a detailed ${documentType} document for ${framework} compliance.` }
         ],
         max_completion_tokens: 3000,
-        temperature: 0.3,
       });
 
       res.json({
@@ -2256,7 +2255,7 @@ Category: ${category}`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 2000, temperature: 0.2 }
+          generationConfig: { maxOutputTokens: 2000 }
         })
       });
 
@@ -2336,7 +2335,6 @@ Category: ${category}`;
           { role: "user", content: `Context: ${context || 'General compliance question'}. Question: ${question}` }
         ],
         max_completion_tokens: 1000,
-        temperature: 0.2,
       });
 
       res.json({
@@ -2386,7 +2384,6 @@ Category: ${category}`;
             { role: "user", content: `Company: ${companyProfile.name}, Industry: ${companyProfile.industry}` }
           ],
           max_completion_tokens: 3000,
-          temperature: 0.3,
         });
         result = response.choices[0].message.content;
         modelUsed = "gpt-5";
