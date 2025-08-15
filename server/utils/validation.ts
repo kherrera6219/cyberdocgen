@@ -27,7 +27,7 @@ export function validateEnvironment(): EnvConfig {
         errors: error.errors.map(err => ({
           path: err.path.join('.'),
           message: err.message,
-          received: err.input,
+          code: err.code,
         }))
       });
       

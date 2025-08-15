@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { rateLimit } from "express-rate-limit";
+import { logger } from "../utils/logger";
 
 // Rate limiting configurations
 export const generalLimiter = rateLimit({
@@ -123,6 +124,9 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     const duration = Date.now() - start;
     logger.info(`${new Date().toISOString()} - ${req.method} ${req.url} ${res.statusCode} - ${duration}ms - ${req.ip}`);
   });
+
+  next();
+}
 
   next();
 }
