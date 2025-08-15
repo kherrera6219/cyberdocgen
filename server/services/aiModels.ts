@@ -4,31 +4,34 @@
  */
 
 export const AI_MODELS = {
-  // OpenAI - GPT-4o (latest available)
+  // OpenAI - GPT-5 (Released August 7, 2025)
   OPENAI: {
-    primary: "gpt-4o",
-    fallback: "gpt-4-turbo",
-    description: "Most advanced OpenAI model available",
-    capabilities: ["advanced reasoning", "code generation", "document analysis"],
-    maxTokens: 128000,
-  },
-
-  // Anthropic - Claude 3.5 Sonnet (latest stable)
-  ANTHROPIC: {
-    primary: "claude-3-5-sonnet-20241022",
-    fallback: "claude-3-haiku-20240307",
-    description: "Latest stable Claude model with superior reasoning",
-    capabilities: ["analytical reasoning", "compliance analysis", "risk assessment"],
+    primary: "gpt-5",
+    fallback: "gpt-5-mini",
+    description: "Latest GPT-5 with unified intelligence system and real-time routing",
+    capabilities: ["unified reasoning", "advanced coding", "document generation", "real-time routing"],
     maxTokens: 200000,
+    released: "2025-08-07",
   },
 
-  // Google - Gemini 2.0 Flash (experimental latest)
+  // Anthropic - Claude Opus 4.1 (Released August 5, 2025) 
+  ANTHROPIC: {
+    primary: "claude-opus-4-1",
+    fallback: "claude-sonnet-4",
+    description: "World's best coding model with hybrid reasoning capabilities",
+    capabilities: ["hybrid reasoning", "advanced coding", "7-hour autonomous tasks", "extended thinking"],
+    maxTokens: 500000,
+    released: "2025-08-05",
+  },
+
+  // Google - Gemini 2.5 Pro (Available now with thinking)
   GOOGLE: {
-    primary: "gemini-2.0-flash-exp",
-    fallback: "gemini-1.5-flash",
-    description: "Latest experimental Gemini with massive context",
-    capabilities: ["large context", "multimodal analysis", "document processing"],
+    primary: "gemini-2.5-pro",
+    fallback: "gemini-2.5-pro-preview-06-05",
+    description: "Latest Gemini with built-in thinking capabilities and 1M token context",
+    capabilities: ["thinking model", "multimodal", "1M token context", "adaptive reasoning"],
     maxTokens: 1000000,
+    released: "2025-03-01",
   },
 } as const;
 
