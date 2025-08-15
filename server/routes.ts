@@ -108,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-3-5-sonnet-20241022",
         max_tokens: 50,
         messages: [{ role: "user", content: "Say 'Claude API test successful'" }],
       });
@@ -116,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         status: "success",
         service: "Anthropic Claude",
-        model: "claude-sonnet-4-20250514",
+        model: "claude-3-5-sonnet-20241022",
         response: response.content[0]?.text,
         usage: response.usage,
       });
@@ -129,6 +129,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
         code: error.status || "unknown",
       });
     }
+  });
+
+  // Test Google Gemini API key endpoint
+  app.get("/api/test/gemini", async (req, res) => {
+    try {
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({
+          status: "error",
+          service: "Google Gemini",
+          error: "GEMINI_API_KEY not configured",
+        });
+      }
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: 'Say "Gemini API test successful"'
+            }]
+          }],
+          generationConfig: {
+            maxOutputTokens: 50,
+            temperature: 0.7,
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        return res.status(500).json({
+          status: "error",
+          service: "Google Gemini",
+          error: `HTTP ${response.status}: ${error}`,
+        });
+      }
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      res.json({
+        status: "success",
+        service: "Google Gemini",
+        model: "gemini-1.5-flash",
+        response: text,
+        usage: data.usageMetadata,
+      });
+    } catch (error: any) {
+      console.error("Gemini API test failed:", error);
+      res.status(500).json({
+        status: "error",
+        service: "Google Gemini",
+        error: error.message,
+      });
+    }
+  });
+
+  // Comprehensive AI services health check
+  app.get("/api/test/all-ai", async (req, res) => {
+    const results = {
+      timestamp: new Date().toISOString(),
+      services: {
+        openai: { status: "unknown", error: null },
+        claude: { status: "unknown", error: null },
+        gemini: { status: "unknown", error: null }
+      },
+      summary: { working: 0, total: 3 }
+    };
+
+    // Test OpenAI
+    try {
+      const openaiResponse = await fetch(`http://localhost:5000/api/test/openai`);
+      if (openaiResponse.ok) {
+        results.services.openai.status = "working";
+        results.summary.working++;
+      } else {
+        results.services.openai.status = "error";
+        results.services.openai.error = `HTTP ${openaiResponse.status}`;
+      }
+    } catch (error: any) {
+      results.services.openai.status = "error";
+      results.services.openai.error = error.message;
+    }
+
+    // Test Claude
+    try {
+      const claudeResponse = await fetch(`http://localhost:5000/api/test/claude`);
+      if (claudeResponse.ok) {
+        results.services.claude.status = "working";
+        results.summary.working++;
+      } else {
+        results.services.claude.status = "error";
+        results.services.claude.error = `HTTP ${claudeResponse.status}`;
+      }
+    } catch (error: any) {
+      results.services.claude.status = "error";
+      results.services.claude.error = error.message;
+    }
+
+    // Test Gemini
+    try {
+      const geminiResponse = await fetch(`http://localhost:5000/api/test/gemini`);
+      if (geminiResponse.ok) {
+        results.services.gemini.status = "working";
+        results.summary.working++;
+      } else {
+        results.services.gemini.status = "error";
+        results.services.gemini.error = `HTTP ${geminiResponse.status}`;
+      }
+    } catch (error: any) {
+      results.services.gemini.status = "error";
+      results.services.gemini.error = error.message;
+    }
+
+    res.json(results);
   });
 
   // Auth middleware
