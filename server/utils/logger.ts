@@ -100,34 +100,39 @@ class Logger {
 
   // This method was rewritten to prevent infinite recursion
   error(message: string, meta?: any, req?: Request): void {
-    const timestamp = new Date().toISOString();
-    const logId = crypto.randomBytes(4).toString('hex');
+    try {
+      const timestamp = new Date().toISOString();
+      const logId = crypto.randomBytes(4).toString('hex');
 
-    const entry: AuditLogEntry = {
-      timestamp,
-      level: 'error' as LogLevel, // Explicitly casting to LogLevel
-      message,
-      meta,
-      logId,
-      service: 'complianceai'
-    };
+      const entry: AuditLogEntry = {
+        timestamp,
+        level: 'error' as LogLevel, // Explicitly casting to LogLevel
+        message,
+        meta,
+        logId,
+        service: 'complianceai'
+      };
 
-    // Console output for errors
-    const colorCode = '\x1b[31m'; // Red for errors
-    console.error(`${colorCode}[${timestamp}] [ERROR] ${message}\x1b[0m`, meta || '');
+      // Console output for errors
+      const colorCode = '\x1b[31m'; // Red for errors
+      console.error(`${colorCode}[${timestamp}] [ERROR] ${message}\x1b[0m`, meta || '');
 
-    // Store in audit trail
-    this.auditLogs.push(entry);
+      // Store in audit trail
+      this.auditLogs.push(entry);
 
-    // Keep only last 10000 entries in memory
-    if (this.auditLogs.length > 10000) {
-      this.auditLogs = this.auditLogs.slice(-10000);
-    }
+      // Keep only last 10000 entries in memory
+      if (this.auditLogs.length > 10000) {
+        this.auditLogs = this.auditLogs.slice(-10000);
+      }
 
-    // In production, also write to error output
-    if (process.env.NODE_ENV === 'production') {
-      // In a real scenario, this might send to an external service
-      console.error(`[PRODUCTION ERROR] ${message}`, meta);
+      // In production, also write to error output
+      if (process.env.NODE_ENV === 'production') {
+        // In a real scenario, this might send to an external service
+        console.error(`[PRODUCTION ERROR] ${message}`, meta);
+      }
+    } catch (e) {
+      // Fallback to console.error to prevent recursion
+      console.error(`Error logging failed: ${message}`, meta);
     }
   }
 

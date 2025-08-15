@@ -243,6 +243,13 @@ export function ObjectStorageManager() {
     </Card>
   );
 
+  // Dummy function for rename, needs implementation
+  const handleRename = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Implement rename logic here
+    console.log("Rename logic needs implementation");
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -381,7 +388,7 @@ export function ObjectStorageManager() {
                       <span className="ml-2 text-lg">Upload File</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Upload File</DialogTitle>
                     </DialogHeader>
@@ -442,7 +449,7 @@ export function ObjectStorageManager() {
                       <span className="ml-2 text-lg">Upload Text</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Upload Text Content</DialogTitle>
                     </DialogHeader>
