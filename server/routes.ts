@@ -314,41 +314,27 @@ Category: ${category}`;
   // Document versions endpoints
   app.get('/api/documents/:id/versions', isAuthenticated, async (req: any, res) => {
     try {
-      // Mock versions data - replace with actual storage call
-      const mockVersions = [
-        {
-          id: "ver-3",
-          documentId: req.params.id,
-          versionNumber: 3,
-          title: "Information Security Policy v3.0",
-          content: "# Information Security Policy v3.0\n\n## Overview...",
-          changes: "Major update: Added cloud security controls, enhanced incident response",
-          changeType: "major",
-          createdBy: req.user?.claims?.sub || "user-1",
-          createdAt: new Date("2024-08-14T16:00:00Z"),
-          status: "published",
-          fileSize: 45000,
-          checksum: "a1b2c3d4e5f6..."
-        },
-        {
-          id: "ver-2",
-          documentId: req.params.id,
-          versionNumber: 2,
-          title: "Information Security Policy v2.1",
-          content: "# Information Security Policy v2.1\n\n## Overview...",
-          changes: "Minor update: Fixed typos, updated compliance references",
-          changeType: "minor",
-          createdBy: req.user?.claims?.sub || "user-1",
-          createdAt: new Date("2024-08-10T14:30:00Z"),
-          status: "archived",
-          fileSize: 42000,
-          checksum: "b2c3d4e5f6g7..."
-        }
-      ];
+      const documentId = req.params.id;
+      const userId = req.user?.claims?.sub;
       
-      res.json(mockVersions);
-    } catch (error) {
-      logger.error('Error fetching document versions:', error);
+      const versions = await versionService.getVersionHistory(documentId);
+      
+      // Log version access
+      await auditService.logAction({
+        action: "view",
+        entityType: "document",
+        entityId: documentId,
+        userId: userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        sessionId: req.sessionID,
+        metadata: { action: "view_versions", versionCount: versions.length }
+      });
+      
+      res.json(versions);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error fetching document versions:', { error: errorMessage, documentId: req.params.id }, req);
       res.status(500).json({ message: 'Failed to fetch document versions' });
     }
   });
@@ -356,33 +342,50 @@ Category: ${category}`;
   // Create new document version
   app.post('/api/documents/:id/versions', isAuthenticated, async (req: any, res) => {
     try {
-      const { changes, changeType } = req.body;
+      const { title, content, changes, changeType = "minor" } = req.body;
+      const documentId = req.params.id;
+      const userId = req.user?.claims?.sub;
       
-      // Create audit trail entry
-      const auditEntry = {
+      if (!title || !content) {
+        return res.status(400).json({ message: "Title and content are required" });
+      }
+
+      const document = await storage.getDocument(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      const version = await versionService.createVersion({
+        documentId,
+        title,
+        content,
+        changes,
+        changeType,
+        createdBy: userId
+      });
+
+      // Log version creation
+      await auditService.logAction({
+        action: "create",
         entityType: "document",
-        entityId: req.params.id,
-        action: "update",
-        userId: req.user?.claims?.sub || "temp-user-id",
-        userEmail: req.user?.claims?.email,
-        userName: req.user?.claims?.first_name + " " + req.user?.claims?.last_name,
-        organizationId: req.user?.organizationId || "default-org",
-        oldValues: { version: "previous" },
-        newValues: { version: "new", changes, changeType },
-        metadata: { changeType, automated: false },
+        entityId: documentId,
+        userId: userId,
         ipAddress: req.ip,
         userAgent: req.get('User-Agent'),
-        sessionId: req.sessionID
-      };
+        sessionId: req.sessionID,
+        oldValues: { version: document.version },
+        newValues: { version: version.versionNumber, changes, changeType },
+        metadata: { versionId: version.id, changeType, automated: false }
+      });
 
-      // In real implementation, create version and audit entry
       res.json({ 
         success: true, 
         message: "Version created successfully",
-        versionId: "new-version-id"
+        version
       });
-    } catch (error) {
-      logger.error('Error creating document version:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error creating document version:', { error: errorMessage, documentId: req.params.id }, req);
       res.status(500).json({ message: 'Failed to create document version' });
     }
   });
@@ -390,85 +393,127 @@ Category: ${category}`;
   // Restore document version
   app.post('/api/documents/:id/versions/:versionId/restore', isAuthenticated, async (req: any, res) => {
     try {
-      // Create audit trail entry
-      const auditEntry = {
-        entityType: "document",
-        entityId: req.params.id,
+      const documentId = req.params.id;
+      const versionId = req.params.versionId;
+      const userId = req.user?.claims?.sub;
+
+      const document = await storage.getDocument(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      const restoredVersion = await versionService.restoreVersion(documentId, versionId);
+
+      // Log version restoration
+      await auditService.logAction({
         action: "update",
-        userId: req.user?.claims?.sub || "temp-user-id",
-        userEmail: req.user?.claims?.email,
-        userName: req.user?.claims?.first_name + " " + req.user?.claims?.last_name,
-        organizationId: "temp-org-id",
-        oldValues: { currentVersion: "current" },
-        newValues: { restoredFromVersion: req.params.versionId },
-        metadata: { action: "version_restore", versionId: req.params.versionId },
+        entityType: "document",
+        entityId: documentId,
+        userId: userId,
         ipAddress: req.ip,
         userAgent: req.get('User-Agent'),
-        sessionId: req.sessionID
-      };
+        sessionId: req.sessionID,
+        oldValues: { version: document.version },
+        newValues: { version: restoredVersion.versionNumber, restoredFromVersion: versionId },
+        metadata: { 
+          action: "version_restore", 
+          versionId: versionId, 
+          restoredVersionNumber: restoredVersion.versionNumber 
+        }
+      });
 
       res.json({ 
         success: true, 
-        message: "Document restored to selected version"
+        message: "Document restored to selected version",
+        version: restoredVersion
       });
-    } catch (error) {
-      logger.error('Error restoring document version:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error restoring document version:', { error: errorMessage, documentId: req.params.id, versionId: req.params.versionId }, req);
       res.status(500).json({ message: 'Failed to restore document version' });
+    }
+  });
+
+  // Compare document versions
+  app.get('/api/documents/:id/versions/:version1/compare/:version2', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id: documentId, version1, version2 } = req.params;
+      const userId = req.user?.claims?.sub;
+
+      const comparison = await versionService.compareVersions(documentId, version1, version2);
+
+      // Log version comparison
+      await auditService.logAction({
+        action: "view",
+        entityType: "document",
+        entityId: documentId,
+        userId: userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        sessionId: req.sessionID,
+        metadata: { 
+          action: "version_compare", 
+          version1, 
+          version2,
+          diffCount: comparison.diff.added.length + comparison.diff.removed.length + comparison.diff.modified.length
+        }
+      });
+
+      res.json(comparison);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error comparing document versions:', { error: errorMessage, documentId: req.params.id }, req);
+      res.status(500).json({ message: 'Failed to compare document versions' });
     }
   });
 
   // Audit trail endpoints
   app.get('/api/audit-trail', isAuthenticated, async (req: any, res) => {
     try {
-      // Mock audit trail data
-      const mockAuditTrail = [
-        {
-          id: "audit-1",
-          entityType: "document",
-          entityId: "doc-1",
-          action: "create",
-          userId: req.user?.claims?.sub || "user-1",
-          userEmail: req.user?.claims?.email || "user@company.com",
-          userName: (req.user?.claims?.first_name || "User") + " " + (req.user?.claims?.last_name || "Name"),
-          organizationId: "org-1",
-          oldValues: null,
-          newValues: {
-            title: "Information Security Policy",
-            framework: "ISO27001",
-            status: "draft"
-          },
-          metadata: {
-            documentType: "policy",
-            framework: "ISO27001"
-          },
-          timestamp: new Date("2024-08-14T10:30:00Z"),
-          ipAddress: "192.168.1.100",
-          userAgent: req.get('User-Agent'),
-          sessionId: req.sessionID
-        },
-        {
-          id: "audit-2",
-          entityType: "document",
-          entityId: "doc-1",
-          action: "approve",
-          userId: req.user?.claims?.sub || "user-2",
-          userEmail: req.user?.claims?.email || "ciso@company.com",
-          userName: "Chief Information Security Officer",
-          organizationId: "org-1",
-          oldValues: { status: "in_progress" },
-          newValues: { status: "approved" },
-          metadata: { approverRole: "ciso" },
-          timestamp: new Date("2024-08-14T16:45:00Z"),
-          ipAddress: "192.168.1.102",
-          userAgent: req.get('User-Agent'),
-          sessionId: req.sessionID
-        }
-      ];
+      const { page = 1, limit = 50, entityType, action, search, dateFrom, dateTo } = req.query;
+      const userId = req.user?.claims?.sub;
+      
+      const auditQuery = {
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+        ...(entityType && { entityType: entityType as string }),
+        ...(action && { action: action as string }),
+        ...(search && { search: search as string }),
+        ...(dateFrom && { dateFrom: new Date(dateFrom as string) }),
+        ...(dateTo && { dateTo: new Date(dateTo as string) })
+      };
 
-      res.json(mockAuditTrail);
-    } catch (error) {
-      logger.error('Error fetching audit trail:', error);
+      const result = await auditService.getAuditLogs(auditQuery);
+      
+      // Log the audit trail access
+      await auditService.logAction({
+        action: "view",
+        entityType: "audit_trail",
+        entityId: "system",
+        userId: userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        sessionId: req.sessionID,
+        metadata: { filters: auditQuery }
+      });
+
+      res.json(result);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error fetching audit trail:', { error: errorMessage, userId: req.user?.claims?.sub }, req);
       res.status(500).json({ message: 'Failed to fetch audit trail' });
+    }
+  });
+
+  // Audit statistics endpoint
+  app.get('/api/audit-trail/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const stats = await auditService.getAuditStats();
+      res.json(stats);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error fetching audit stats:', { error: errorMessage, userId: req.user?.claims?.sub }, req);
+      res.status(500).json({ message: 'Failed to fetch audit statistics' });
     }
   });
 

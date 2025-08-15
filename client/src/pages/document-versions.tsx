@@ -28,6 +28,12 @@ import {
 } from "lucide-react";
 import type { DocumentVersion } from "@shared/schema";
 
+interface VersionComparisonProps {
+  documentId: string;
+  version1: number;
+  version2: number;
+}
+
 // Mock document versions data
 const mockVersions: DocumentVersion[] = [
   {
