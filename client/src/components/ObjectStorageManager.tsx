@@ -23,6 +23,7 @@ import {
   CheckCircle,
   AlertCircle
 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, VisuallyHidden } from "@/components/ui/dialog";
 
 interface StorageStats {
   totalFiles: number;
@@ -180,7 +181,7 @@ export function ObjectStorageManager() {
       reader.onload = (e) => {
         const result = e.target?.result as string;
         const base64Data = result.split(',')[1]; // Remove data:mime/type;base64, prefix
-        
+
         uploadFileMutation.mutate({
           filename: selectedFile.name,
           data: base64Data,
@@ -199,7 +200,7 @@ export function ObjectStorageManager() {
 
   const handleTextUpload = () => {
     if (!uploadData.trim()) return;
-    
+
     const filename = `text-upload-${Date.now()}`;
     uploadTextMutation.mutate({ filename, content: uploadData });
   };
@@ -393,7 +394,7 @@ export function ObjectStorageManager() {
                     <option value="backups">Backups</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="file-input">Select File</Label>
                   <Input
