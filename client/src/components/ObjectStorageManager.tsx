@@ -23,7 +23,8 @@ import {
   CheckCircle,
   AlertCircle
 } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, VisuallyHidden } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
 interface StorageStats {
   totalFiles: number;
@@ -391,10 +392,10 @@ export function ObjectStorageManager() {
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Upload File</DialogTitle>
+                      <DialogDescription>
+                        Upload files (images, PDFs, documents) to object storage
+                      </DialogDescription>
                     </DialogHeader>
-                    <CardDescription>
-                      Upload files (images, PDFs, documents) to object storage
-                    </CardDescription>
                     <div className="space-y-4">
                       <div>
                         <Label htmlFor="folder-select">Upload Folder</Label>
@@ -452,10 +453,10 @@ export function ObjectStorageManager() {
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Upload Text Content</DialogTitle>
+                      <DialogDescription>
+                        Upload text content directly to object storage
+                      </DialogDescription>
                     </DialogHeader>
-                    <CardDescription>
-                      Upload text content directly to object storage
-                    </CardDescription>
                     <div className="space-y-4">
                       <div>
                         <Label htmlFor="text-data">Text Content</Label>

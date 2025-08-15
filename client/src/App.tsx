@@ -48,16 +48,40 @@ function Router() {
         </>
       )}
       {/* Enterprise Authentication Routes */}
-      <Route path="/enterprise-signup" component={lazy(() => import("@/pages/enterprise-signup"))} />
-      <Route path="/forgot-password" component={lazy(() => import("@/pages/forgot-password"))} />
-      <Route path="/reset-password" component={lazy(() => import("@/pages/reset-password"))} />
-      <Route path="/mfa-setup" component={lazy(() => import("@/pages/mfa-setup"))} />
+      <Route path="/enterprise-signup">
+        <Suspense fallback={<div>Loading...</div>}>
+          {React.createElement(lazy(() => import("@/pages/enterprise-signup")))}
+        </Suspense>
+      </Route>
+      <Route path="/forgot-password">
+        <Suspense fallback={<div>Loading...</div>}>
+          {React.createElement(lazy(() => import("@/pages/forgot-password")))}
+        </Suspense>
+      </Route>
+      <Route path="/reset-password">
+        <Suspense fallback={<div>Loading...</div>}>
+          {React.createElement(lazy(() => import("@/pages/reset-password")))}
+        </Suspense>
+      </Route>
+      <Route path="/mfa-setup">
+        <Suspense fallback={<div>Loading...</div>}>
+          {React.createElement(lazy(() => import("@/pages/mfa-setup")))}
+        </Suspense>
+      </Route>
 
       {/* Admin Routes */}
-      <Route path="/admin" component={lazy(() => import("@/pages/admin-settings"))} />
+      <Route path="/admin">
+        <Suspense fallback={<div>Loading...</div>}>
+          {React.createElement(lazy(() => import("@/pages/admin-settings")))}
+        </Suspense>
+      </Route>
 
       {/* Cloud Integration Routes */}
-      <Route path="/cloud-integrations" component={lazy(() => import("@/pages/cloud-integrations"))} />
+      <Route path="/cloud-integrations">
+        <Suspense fallback={<div>Loading...</div>}>
+          {React.createElement(lazy(() => import("@/pages/cloud-integrations")))}
+        </Suspense>
+      </Route>
 
       <Route component={NotFound} />
     </Switch>
