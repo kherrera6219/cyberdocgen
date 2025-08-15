@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { DashboardSkeleton } from "@/components/loading/loading-skeleton";
@@ -453,6 +453,9 @@ export default function Dashboard() {
               <Zap className="w-5 h-5 text-primary" />
               <span>Generating {currentFramework} Documents</span>
             </DialogTitle>
+            <DialogDescription>
+              AI is generating customized compliance documents based on your company profile. This process typically takes 10-15 minutes.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -464,10 +467,7 @@ export default function Dashboard() {
               <Progress value={generationProgress} className="w-full" />
             </div>
             
-            <p className="text-sm text-gray-600">
-              AI is generating customized compliance documents based on your company profile. 
-              This process typically takes 10-15 minutes.
-            </p>
+
             
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-xs text-blue-700">
@@ -483,6 +483,9 @@ export default function Dashboard() {
         <DialogContent className="max-w-6xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>Document Templates - {previewFramework}</DialogTitle>
+            <DialogDescription>
+              Preview available document templates for {previewFramework} compliance framework
+            </DialogDescription>
           </DialogHeader>
           {showPreview && (
             <DocumentPreview 
