@@ -262,10 +262,3 @@ export function requireMFAForHighRisk(req: Request, res: Response, next: NextFun
   next();
 }
 
-export {
-  securityHeaders,
-  threatDetection,
-  sanitizeInput,
-  generalLimiter,
-  auditLogger
-};
