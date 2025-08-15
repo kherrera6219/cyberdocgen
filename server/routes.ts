@@ -338,7 +338,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/company-profiles", async (req, res) => {
+  // Import MFA middleware for Phase 2 security
+  const { requireMFA, enforceMFATimeout } = await import('./middleware/mfa.js');
+
+  app.post("/api/company-profiles", requireMFA, enforceMFATimeout, async (req, res) => {
     try {
       const validatedData = insertCompanyProfileSchema.parse(req.body);
       const profile = await storage.createCompanyProfile(validatedData);
@@ -351,7 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/company-profiles/:id", async (req, res) => {
+  app.put("/api/company-profiles/:id", requireMFA, enforceMFATimeout, async (req, res) => {
     try {
       const validatedData = insertCompanyProfileSchema.partial().parse(req.body);
       const profile = await storage.updateCompanyProfile(req.params.id, validatedData);
@@ -427,8 +430,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI document generation endpoint
-  app.post('/api/documents/generate', isAuthenticated, async (req: any, res) => {
+  // AI document generation endpoint with Phase 2 MFA protection
+  app.post('/api/documents/generate', isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
     try {
       const { framework, category, title, description } = req.body;
       
@@ -1029,7 +1032,7 @@ Category: ${category}`;
     }
   });
 
-  app.post("/api/documents/generate-single", isAuthenticated, async (req: any, res) => {
+  app.post("/api/documents/generate-single", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
     try {
       const { companyProfileId, framework, template, model = 'auto', includeQualityAnalysis = false } = req.body;
       const userId = req.user.claims.sub;
@@ -2656,8 +2659,9 @@ Format with clear headings, numbered sections, and actionable guidance.`;
     }
   });
 
-  // Phase 1 Focus - Remove MFA for now to achieve 100% Phase 1
-  // MFA will be added in Phase 2
+  // Phase 2 Implementation - MFA Routes Integration
+  const { default: mfaRoutes } = await import('./routes/mfa.js');
+  app.use('/api/auth/mfa', mfaRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
