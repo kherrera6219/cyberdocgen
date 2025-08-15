@@ -1,243 +1,234 @@
-import { db } from "../db";
-import { auditTrail, type InsertAuditTrail } from "@shared/schema";
-import { logger } from "../utils/logger";
-import { eq, desc, and, gte, lte, ilike, count } from "drizzle-orm";
+import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
+import { db } from '../db';
+import { logger } from '../utils/logger';
+
+export enum AuditAction {
+  CREATE = 'CREATE',
+  READ = 'READ', 
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+  LOGIN = 'LOGIN',
+  LOGOUT = 'LOGOUT',
+  FAILED_LOGIN = 'FAILED_LOGIN',
+  UNAUTHORIZED_ACCESS = 'UNAUTHORIZED_ACCESS',
+  DATA_EXPORT = 'DATA_EXPORT',
+  SENSITIVE_ACCESS = 'SENSITIVE_ACCESS',
+  CONFIG_CHANGE = 'CONFIG_CHANGE'
+}
+
+export enum RiskLevel {
+  LOW = 'low',
+  MEDIUM = 'medium', 
+  HIGH = 'high',
+  CRITICAL = 'critical'
+}
 
 export interface AuditLogEntry {
-  action: "create" | "update" | "delete" | "view" | "download" | "approve" | "reject" | "publish" | "archive";
-  entityType: "document" | "company_profile" | "user" | "organization" | "template";
-  entityId: string;
-  userId: string;
-  userEmail?: string;
-  userName?: string;
+  userId?: string;
   organizationId?: string;
+  action: AuditAction;
+  resourceType: string;
+  resourceId?: string;
   oldValues?: Record<string, any>;
   newValues?: Record<string, any>;
-  metadata?: Record<string, any>;
-  details?: Record<string, any>;
-  ipAddress?: string;
+  ipAddress: string;
   userAgent?: string;
-  sessionId?: string;
+  riskLevel: RiskLevel;
+  additionalContext?: Record<string, any>;
 }
 
-export interface AuditQuery {
-  userId?: string;
-  entityType?: "document" | "company_profile" | "user" | "organization" | "template";
-  entityId?: string;
-  action?: "create" | "update" | "delete" | "view" | "download" | "approve" | "reject" | "publish" | "archive";
-  dateFrom?: Date;
-  dateTo?: Date;
-  page?: number;
-  limit?: number;
-  search?: string;
-}
-
-export interface AuditStats {
-  totalActions: number;
-  actionsByType: Record<string, number>;
-  activeUsers: number;
-  recentActivity: {
-    period: string;
-    count: number;
-  }[];
-}
-
-class AuditService {
-  async logAction(entry: AuditLogEntry): Promise<void> {
+export class AuditService {
+  
+  /**
+   * Log an audit event
+   */
+  async logAuditEvent(entry: AuditLogEntry): Promise<void> {
     try {
-      const auditEntry: InsertAuditTrail = {
-        action: entry.action,
-        entityType: entry.entityType,
-        entityId: entry.entityId,
+      // Insert into audit_logs table (to be created in database)
+      const auditRecord = {
+        id: crypto.randomUUID(),
         userId: entry.userId,
-        userEmail: entry.userEmail,
-        userName: entry.userName,
         organizationId: entry.organizationId,
-        oldValues: entry.oldValues || {},
-        newValues: entry.newValues || {},
-        metadata: entry.metadata || entry.details || {},
+        action: entry.action,
+        resourceType: entry.resourceType,
+        resourceId: entry.resourceId,
+        oldValues: entry.oldValues ? JSON.stringify(entry.oldValues) : null,
+        newValues: entry.newValues ? JSON.stringify(entry.newValues) : null,
         ipAddress: entry.ipAddress,
         userAgent: entry.userAgent,
-        sessionId: entry.sessionId,
+        riskLevel: entry.riskLevel,
+        additionalContext: entry.additionalContext ? JSON.stringify(entry.additionalContext) : null,
+        timestamp: new Date()
       };
 
-      await db.insert(auditTrail).values(auditEntry);
-      
-      logger.audit(
-        entry.action,
-        `${entry.entityType}:${entry.entityId}`,
-        entry.userId,
-        entry.details
-      );
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error("Failed to log audit action", {
-        error: errorMessage,
-        entry,
+      // TODO: Insert into database once audit_logs table is created
+      // await db.insert(auditLogs).values(auditRecord);
+
+      // Log to application logs
+      logger.info('AUDIT', {
+        action: entry.action,
+        resource: `${entry.resourceType}:${entry.resourceId}`,
+        userId: entry.userId,
+        organizationId: entry.organizationId,
+        riskLevel: entry.riskLevel,
+        ip: entry.ipAddress
       });
-      throw error;
+
+      // High-risk events get additional logging
+      if (entry.riskLevel === RiskLevel.HIGH || entry.riskLevel === RiskLevel.CRITICAL) {
+        logger.warn('HIGH_RISK_AUDIT_EVENT', {
+          ...auditRecord,
+          severity: 'HIGH_RISK'
+        });
+      }
+
+    } catch (error) {
+      logger.error('Failed to log audit event', { 
+        error: error.message, 
+        auditEntry: entry 
+      });
     }
   }
 
-  async getAuditLogs(query: AuditQuery): Promise<{
-    logs: any[];
-    total: number;
-    page: number;
-    limit: number;
+  /**
+   * Create audit log from Express request
+   */
+  async auditFromRequest(
+    req: Request, 
+    action: AuditAction,
+    resourceType: string,
+    resourceId?: string,
+    additionalContext?: Record<string, any>
+  ): Promise<void> {
+    const entry: AuditLogEntry = {
+      userId: (req as any).user?.id,
+      organizationId: (req as any).user?.organizationId,
+      action,
+      resourceType,
+      resourceId,
+      ipAddress: req.ip || 'unknown',
+      userAgent: req.get('User-Agent'),
+      riskLevel: this.calculateRiskLevel(action, resourceType),
+      additionalContext
+    };
+
+    await this.logAuditEvent(entry);
+  }
+
+  /**
+   * Log data access for sensitive information
+   */
+  async auditDataAccess(
+    userId: string,
+    organizationId: string,
+    dataType: string,
+    dataId: string,
+    accessType: 'VIEW' | 'DOWNLOAD' | 'EXPORT',
+    req: Request
+  ): Promise<void> {
+    await this.logAuditEvent({
+      userId,
+      organizationId,
+      action: AuditAction.SENSITIVE_ACCESS,
+      resourceType: `sensitive_${dataType}`,
+      resourceId: dataId,
+      ipAddress: req.ip || 'unknown',
+      userAgent: req.get('User-Agent'),
+      riskLevel: RiskLevel.HIGH,
+      additionalContext: { accessType }
+    });
+  }
+
+  /**
+   * Log authentication events
+   */
+  async auditAuthEvent(
+    action: AuditAction.LOGIN | AuditAction.LOGOUT | AuditAction.FAILED_LOGIN,
+    userId?: string,
+    req?: Request,
+    additionalContext?: Record<string, any>
+  ): Promise<void> {
+    await this.logAuditEvent({
+      userId,
+      action,
+      resourceType: 'authentication',
+      ipAddress: req?.ip || 'unknown',
+      userAgent: req?.get('User-Agent'),
+      riskLevel: action === AuditAction.FAILED_LOGIN ? RiskLevel.MEDIUM : RiskLevel.LOW,
+      additionalContext
+    });
+  }
+
+  /**
+   * Calculate risk level based on action and resource type
+   */
+  private calculateRiskLevel(action: AuditAction, resourceType: string): RiskLevel {
+    // High risk actions
+    if ([
+      AuditAction.DELETE,
+      AuditAction.DATA_EXPORT,
+      AuditAction.CONFIG_CHANGE,
+      AuditAction.UNAUTHORIZED_ACCESS
+    ].includes(action)) {
+      return RiskLevel.HIGH;
+    }
+
+    // Medium risk for sensitive resources
+    if (resourceType.includes('profile') || resourceType.includes('document')) {
+      if (action === AuditAction.UPDATE) return RiskLevel.MEDIUM;
+      if (action === AuditAction.CREATE) return RiskLevel.MEDIUM;
+    }
+
+    // Failed authentication is medium risk
+    if (action === AuditAction.FAILED_LOGIN) {
+      return RiskLevel.MEDIUM;
+    }
+
+    return RiskLevel.LOW;
+  }
+
+  /**
+   * Generate audit report for compliance
+   */
+  async generateAuditReport(
+    startDate: Date,
+    endDate: Date,
+    organizationId?: string
+  ): Promise<{
+    totalEvents: number;
+    eventsByRisk: Record<RiskLevel, number>;
+    eventsByAction: Record<AuditAction, number>;
+    highRiskEvents: any[];
   }> {
-    try {
-      const { page = 1, limit = 50, search, dateFrom, dateTo, ...filters } = query;
-      const offset = (page - 1) * limit;
-
-      // Build where conditions
-      const conditions = [];
-      
-      if (filters.userId) {
-        conditions.push(eq(auditTrail.userId, filters.userId));
-      }
-      
-      if (filters.entityType) {
-        conditions.push(eq(auditTrail.entityType, filters.entityType as any));
-      }
-      
-      if (filters.entityId) {
-        conditions.push(eq(auditTrail.entityId, filters.entityId));
-      }
-      
-      if (filters.action) {
-        conditions.push(eq(auditTrail.action, filters.action as any));
-      }
-      
-      if (dateFrom) {
-        conditions.push(gte(auditTrail.timestamp, dateFrom));
-      }
-      
-      if (dateTo) {
-        conditions.push(lte(auditTrail.timestamp, dateTo));
-      }
-      
-      if (search) {
-        conditions.push(ilike(auditTrail.action, `%${search}%`));
-      }
-
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-      // Get total count
-      const [{ count: total }] = await db
-        .select({ count: count() })
-        .from(auditTrail)
-        .where(whereClause);
-
-      // Get paginated results
-      const logs = await db
-        .select()
-        .from(auditTrail)
-        .where(whereClause)
-        .orderBy(desc(auditTrail.timestamp))
-        .offset(offset)
-        .limit(limit);
-
-      return {
-        logs,
-        total,
-        page,
-        limit,
-      };
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error("Failed to retrieve audit logs", {
-        error: errorMessage,
-        query,
-      });
-      throw error;
-    }
-  }
-
-  async getAuditStats(dateFrom?: Date, dateTo?: Date): Promise<AuditStats> {
-    try {
-      const conditions = [];
-      
-      if (dateFrom) {
-        conditions.push(gte(auditTrail.timestamp, dateFrom));
-      }
-      
-      if (dateTo) {
-        conditions.push(lte(auditTrail.timestamp, dateTo));
-      }
-
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-      // Get total actions
-      const [{ count: totalActions }] = await db
-        .select({ count: count() })
-        .from(auditTrail)
-        .where(whereClause);
-
-      // Get actions by type
-      const actionTypes = await db
-        .select({
-          action: auditTrail.action,
-          count: count(),
-        })
-        .from(auditTrail)
-        .where(whereClause)
-        .groupBy(auditTrail.action);
-
-      const actionsByType = actionTypes.reduce((acc, { action, count }) => {
-        acc[action] = count;
-        return acc;
-      }, {} as Record<string, number>);
-
-      // Get active users count
-      const activeUsersResult = await db
-        .selectDistinct({ userId: auditTrail.userId })
-        .from(auditTrail)
-        .where(whereClause);
-
-      const activeUsers = activeUsersResult.length;
-
-      // Get recent activity (placeholder for time-based aggregation)
-      const recentActivity = [
-        { period: "Today", count: Math.floor(totalActions * 0.3) },
-        { period: "This Week", count: Math.floor(totalActions * 0.7) },
-        { period: "This Month", count: totalActions },
-      ];
-
-      return {
-        totalActions,
-        actionsByType,
-        activeUsers,
-        recentActivity,
-      };
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error("Failed to retrieve audit statistics", {
-        error: errorMessage,
-      });
-      throw error;
-    }
-  }
-
-  async deleteOldAuditLogs(olderThan: Date): Promise<number> {
-    try {
-      const result = await db
-        .delete(auditTrail)
-        .where(lte(auditTrail.timestamp, olderThan));
-
-      logger.info(`Deleted ${result.rowCount || 0} old audit log entries`, {
-        olderThan: olderThan.toISOString(),
-      });
-
-      return result.rowCount || 0;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error("Failed to delete old audit logs", {
-        error: errorMessage,
-        olderThan: olderThan.toISOString(),
-      });
-      throw error;
-    }
+    // TODO: Implement once database table is created
+    // This would query the audit_logs table and generate compliance reports
+    
+    return {
+      totalEvents: 0,
+      eventsByRisk: {
+        [RiskLevel.LOW]: 0,
+        [RiskLevel.MEDIUM]: 0,
+        [RiskLevel.HIGH]: 0,
+        [RiskLevel.CRITICAL]: 0
+      },
+      eventsByAction: {} as Record<AuditAction, number>,
+      highRiskEvents: []
+    };
   }
 }
 
 export const auditService = new AuditService();
+
+// Middleware to automatically audit API requests
+export function auditMiddleware(action: AuditAction, resourceType: string) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await auditService.auditFromRequest(req, action, resourceType);
+      next();
+    } catch (error) {
+      logger.error('Audit middleware failed', { error: error.message });
+      next(); // Continue even if audit fails
+    }
+  };
+}

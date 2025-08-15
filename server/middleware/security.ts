@@ -75,18 +75,38 @@ export function validateRequest(req: Request, res: Response, next: NextFunction)
   next();
 }
 
-// Security headers middleware
+// Enhanced security headers middleware
 export function securityHeaders(req: Request, res: Response, next: NextFunction) {
   // Skip security headers for development static assets
   if (req.path.startsWith('/@') || req.path.includes('.')) {
     return next();
   }
 
-  // Security headers
+  // Core security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+  // Content Security Policy for enhanced security
+  const cspDirectives = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://apis.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https:",
+    "connect-src 'self' https://api.openai.com https://api.anthropic.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "base-uri 'self'"
+  ];
+  res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
+
+  // HSTS in production
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
 
   next();
 }
