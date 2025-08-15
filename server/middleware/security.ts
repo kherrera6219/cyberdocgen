@@ -4,6 +4,20 @@ import { logger } from "../utils/logger";
 import { performanceService } from '../services/performanceService';
 import { threatDetectionService } from '../services/threatDetectionService';
 
+// Audit logging middleware
+export const auditLogger = (req: Request, res: Response, next: NextFunction) => {
+  const auditData = {
+    method: req.method,
+    url: req.url,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    timestamp: new Date().toISOString()
+  };
+
+  logger.info('audit', `${req.method} ${req.url}`, auditData);
+  next();
+};
+
 // Rate limiting configurations
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -247,3 +261,11 @@ export function requireMFAForHighRisk(req: Request, res: Response, next: NextFun
 
   next();
 }
+
+export {
+  securityHeaders,
+  threatDetection,
+  sanitizeInput,
+  generalLimiter,
+  auditLogger
+};
