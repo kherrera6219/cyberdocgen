@@ -53,6 +53,12 @@ function Router() {
       <Route path="/reset-password" component={lazy(() => import("@/pages/reset-password"))} />
       <Route path="/mfa-setup" component={lazy(() => import("@/pages/mfa-setup"))} />
       
+      {/* Admin Routes */}
+      <Route path="/admin" component={lazy(() => import("@/pages/admin-settings"))} />
+      
+      {/* Cloud Integration Routes */}
+      <Route path="/cloud-integrations" component={lazy(() => import("@/pages/cloud-integrations"))} />
+      
       <Route component={NotFound} />
     </Switch>
   );

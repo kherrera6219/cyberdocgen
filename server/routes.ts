@@ -2671,6 +2671,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
   const { default: cloudIntegrationRoutes } = await import('./routes/cloudIntegration.js');
   app.use('/api/cloud', cloudIntegrationRoutes);
 
+  // Admin Routes
+  const { default: adminRoutes } = await import('./routes/admin.js');
+  app.use('/api/admin', adminRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }

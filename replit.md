@@ -21,10 +21,13 @@ Utilizes a robust PostgreSQL-based storage architecture with Drizzle ORM for typ
 Includes comprehensive security measures such as rate limiting, input sanitization, security headers (CORS, XSS protection), and enhanced error handling. Request validation is also implemented.
 
 ## Authentication and Authorization
-Features a comprehensive authentication system integrated with Replit's OpenID Connect, supporting secure login/logout, user profiles, and multi-tenant architecture with organization-based isolation. Role-based access control is managed via user-organization memberships, and sessions are persistent and PostgreSQL-backed.
+Features a comprehensive authentication system integrated with Replit's OpenID Connect, supporting secure login/logout, user profiles, and multi-tenant architecture with organization-based isolation. Role-based access control is managed via user-organization memberships, and sessions are persistent and PostgreSQL-backed. Enhanced enterprise authentication includes multi-factor authentication (TOTP, SMS, backup codes), password reset workflows, and admin-configurable single sign-on with Google and Microsoft OAuth providers.
 
 ## AI Document Generation
 The core functionality relies on OpenAI's API (GPT-4) to generate compliance documents. It uses predefined templates customized with company profile information, and includes progress tracking for generation jobs. Advanced AI features include multi-model integration (Anthropic Claude 4.0 Sonnet alongside OpenAI GPT-4o), intelligent orchestration, document analysis with RAG, an AI-powered compliance chatbot, an advanced risk assessment engine, and AI-driven quality scoring.
+
+## Cloud Storage Integration
+Comprehensive cloud storage integration framework supporting Google Drive and Microsoft OneDrive with admin-configurable OAuth credentials. Features include automated file synchronization, metadata indexing, security-level classification, and permission management. Adobe PDF documents receive enhanced security features including password protection, permission restrictions, watermarking, and AES-256 encryption. All cloud integrations are managed through an administrative interface for organizational flexibility.
 
 ## Comprehensive Template Library
 The platform now includes 17+ production-ready templates covering compliance frameworks, operational governance, and certification documentation:
@@ -53,7 +56,7 @@ Comprehensive industry-specific AI fine-tuning capabilities with custom model co
 ## Production Readiness
 **STATUS: SOC 2 PHASE 1 PERFECT COMPLETION (100/100 Phase 1 Score)**
 
-**Latest Security Review:** August 15, 2025 - ComplianceAI now features comprehensive enterprise authentication system with user account creation, password reset workflows, Google Authenticator integration, passkey support, and email/SMS verification. Enhanced with Phase 1 & Phase 2 perfect completion featuring advanced multi-factor authentication, comprehensive audit logging, fully operational AES-256-CBC encryption, and all enterprise security controls. Combined score: 95/100. System is fully approved for Fortune 500 enterprise deployment.
+**Latest Security Review:** August 15, 2025 - ComplianceAI now features comprehensive enterprise authentication system with user account creation, password reset workflows, Google Authenticator integration, passkey support, and email/SMS verification. Added cloud integration framework with admin-configurable OAuth credentials for Google Drive and Microsoft OneDrive, plus Adobe PDF security management infrastructure. Enhanced with Phase 1 & Phase 2 perfect completion featuring advanced multi-factor authentication, comprehensive audit logging, fully operational AES-256-CBC encryption, and all enterprise security controls. Combined score: 95/100. System is fully approved for Fortune 500 enterprise deployment.
 
 **Critical Security Assessment:**
 

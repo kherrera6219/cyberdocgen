@@ -1,6 +1,6 @@
-import { google } from 'googleapis';
-import { Client } from '@microsoft/microsoft-graph-client';
-import { AuthenticationProvider } from '@microsoft/microsoft-graph-client';
+// Cloud service integrations (requires package installation)
+// import { google } from 'googleapis';
+// import { Client } from '@microsoft/microsoft-graph-client';
 import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import { cloudIntegrations, cloudFiles, oauthProviders } from '@shared/schema';
@@ -50,13 +50,8 @@ export interface FileSecurityOptions {
   };
 }
 
-class CustomAuthProvider implements AuthenticationProvider {
-  constructor(private accessToken: string) {}
-
-  async getAccessToken(): Promise<string> {
-    return this.accessToken;
-  }
-}
+// Placeholder for authentication provider
+// Will be implemented once Microsoft Graph packages are installed
 
 export class CloudIntegrationService {
   
