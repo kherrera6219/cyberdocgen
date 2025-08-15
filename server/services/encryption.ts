@@ -17,7 +17,7 @@ export interface EncryptedData {
 }
 
 export class EncryptionService {
-  private readonly algorithm = 'aes-256-gcm';
+  private readonly algorithm = 'aes-256-cbc';
   private readonly keyLength = 32; // 256 bits
   private readonly ivLength = 16;
   private readonly tagLength = 16;
@@ -33,20 +33,18 @@ export class EncryptionService {
   }
 
   /**
-   * Encrypts sensitive data using AES-256-GCM
+   * Encrypts sensitive data using AES-256-CBC
    */
   async encryptSensitiveField(data: string, classification: DataClassification): Promise<EncryptedData> {
     try {
       const key = this.getEncryptionKey();
       const iv = crypto.randomBytes(this.ivLength);
-      const cipher = crypto.createCipher(this.algorithm, key);
-      // Note: Using createCipher for compatibility, in production use createCipherGCM
+      const cipher = crypto.createCipheriv(this.algorithm, key, iv);
 
       let encrypted = cipher.update(data, 'utf8', 'hex');
       encrypted += cipher.final('hex');
       
-      // const authTag = cipher.getAuthTag(); // Not available in createCipher
-      const authTag = Buffer.from('mock-auth-tag-for-dev'); // Development placeholder
+      const authTag = crypto.createHash('sha256').update(encrypted + classification).digest();
 
       const encryptedData: EncryptedData = {
         encryptedValue: encrypted,
@@ -69,14 +67,13 @@ export class EncryptionService {
   }
 
   /**
-   * Decrypts sensitive data using AES-256-GCM
+   * Decrypts sensitive data using AES-256-CBC
    */
   async decryptSensitiveField(encryptedData: EncryptedData, classification: DataClassification): Promise<string> {
     try {
       const key = this.getEncryptionKey();
       const iv = Buffer.from(encryptedData.iv, 'hex');
-      const decipher = crypto.createDecipher(this.algorithm, key);
-      // Note: Using createDecipher for compatibility
+      const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
 
       let decrypted = decipher.update(encryptedData.encryptedValue, 'hex', 'utf8');
       decrypted += decipher.final('utf8');

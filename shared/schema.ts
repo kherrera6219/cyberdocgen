@@ -188,6 +188,27 @@ export const documentTemplates = pgTable("document_templates", {
   encryptedAt: timestamp("encrypted_at"),
 });
 
+// Multi-Factor Authentication settings
+export const mfaSettings = pgTable("mfa_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  mfaType: text("mfa_type").notNull(), // 'totp', 'sms', 'backup_codes'
+  secretEncrypted: text("secret_encrypted"),
+  phoneNumberEncrypted: text("phone_number_encrypted"),
+  backupCodesEncrypted: text("backup_codes_encrypted"),
+  isEnabled: boolean("is_enabled").notNull().default(false),
+  isVerified: boolean("is_verified").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  failedAttempts: integer("failed_attempts").default(0),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+}, (table) => ({
+  userMfaTypeUnique: unique().on(table.userId, table.mfaType),
+  userIdIdx: index("idx_mfa_settings_user_id").on(table.userId),
+  enabledIdx: index("idx_mfa_settings_enabled").on(table.userId, table.isEnabled),
+}));
+
 // Document Workspace for AI editing and collaboration
 export const documentWorkspace = pgTable("document_workspace", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
