@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -530,7 +530,7 @@ export function IndustrySpecialization() {
                     }
                   </div>
                 </div>
-                
+
                 <div>
                   <Label>Requirements Count</Label>
                   <div className="mt-1 p-2 bg-muted rounded">

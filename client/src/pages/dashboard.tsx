@@ -1,5 +1,5 @@
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -11,14 +11,14 @@ import { DashboardSkeleton } from "@/components/loading/loading-skeleton";
 import { DocumentPreview } from "@/components/templates/document-preview";
 import { GenerationCustomizer } from "@/components/generation/GenerationCustomizer";
 import { HelpTooltip } from "@/components/help/ContextualHelp";
-import { 
-  TrendingUp, 
-  FileText, 
-  Layers, 
-  Clock, 
-  Tag, 
-  Shield, 
-  Flag, 
+import {
+  TrendingUp,
+  FileText,
+  Layers,
+  Clock,
+  Tag,
+  Shield,
+  Flag,
   Lock,
   Wand2,
   Edit,
@@ -74,7 +74,7 @@ export default function Dashboard() {
   const generateDocsMutation = useMutation({
     mutationFn: async ({ framework }: { framework: string }) => {
       if (!profile) throw new Error("No company profile found");
-      
+
       return await apiRequest("/api/generate-documents", {
         method: "POST",
         body: {
@@ -86,15 +86,15 @@ export default function Dashboard() {
     onSuccess: (data) => {
       setCurrentFramework("");
       const jobId = data.jobId;
-      
+
       // Poll for job status
       const pollJob = async () => {
         try {
           const jobResponse = await fetch(`/api/generation-jobs/${jobId}`);
           const job: GenerationJob = await jobResponse.json();
-          
+
           setGenerationProgress(job.progress);
-          
+
           if (job.status === 'completed') {
             setIsGenerating(false);
             setGenerationProgress(0);
@@ -118,7 +118,7 @@ export default function Dashboard() {
           console.error("Error polling job:", error);
         }
       };
-      
+
       setTimeout(pollJob, 1000);
     },
     onError: (error) => {
@@ -141,7 +141,7 @@ export default function Dashboard() {
       });
       return;
     }
-    
+
     setIsGenerating(true);
     setCurrentFramework(framework);
     generateDocsMutation.mutate({ framework });
@@ -187,7 +187,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary dark:bg-gray-800">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
@@ -201,7 +201,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-yellow-500 dark:bg-gray-800">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
@@ -215,7 +215,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500 dark:bg-gray-800">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
@@ -243,7 +243,7 @@ export default function Dashboard() {
               </Button>
             </div>
           </CardHeader>
-          
+
           <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
               <div>
@@ -255,7 +255,7 @@ export default function Dashboard() {
                   <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Location:</span> {profile.headquarters}</p>
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Technical Environment</h3>
                 <div className="space-y-2">
@@ -275,7 +275,7 @@ export default function Dashboard() {
           <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">AI Document Generation</CardTitle>
           <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Generate compliance documentation based on your company profile</p>
         </CardHeader>
-        
+
         <CardContent className="p-4 sm:p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* ISO 27001 Card */}
@@ -295,9 +295,9 @@ export default function Dashboard() {
                     {iso27001Progress}% Complete
                   </span>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Button 
+                  <Button
                     className="w-full bg-accent hover:bg-accent/90"
                     onClick={() => handleGenerateDocuments("ISO27001")}
                     disabled={!profile || isGenerating}
@@ -305,8 +305,8 @@ export default function Dashboard() {
                     <Wand2 className="w-4 h-4 mr-2" />
                     Generate Documents
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full"
                     onClick={() => {
                       setPreviewFramework("ISO27001");
@@ -319,7 +319,7 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* SOC 2 Type 2 Card */}
             <Card className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
               <CardContent className="p-6">
@@ -337,9 +337,9 @@ export default function Dashboard() {
                     {soc2Progress}% Complete
                   </span>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Button 
+                  <Button
                     className="w-full"
                     onClick={() => handleGenerateDocuments("SOC2")}
                     disabled={!profile || isGenerating}
@@ -347,8 +347,8 @@ export default function Dashboard() {
                     <Wand2 className="w-4 h-4 mr-2" />
                     Generate Documents
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full"
                     onClick={() => {
                       setPreviewFramework("SOC2");
@@ -362,7 +362,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Additional Frameworks Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             {/* FedRAMP Card */}
@@ -380,8 +380,8 @@ export default function Dashboard() {
                   </div>
                   <span className="text-xs bg-gray-400 text-white px-2 py-1 rounded-full">Not Started</span>
                 </div>
-                
-                <Button 
+
+                <Button
                   className="w-full"
                   onClick={() => handleGenerateDocuments("FedRAMP")}
                   disabled={!profile || isGenerating}
@@ -391,7 +391,7 @@ export default function Dashboard() {
                 </Button>
               </CardContent>
             </Card>
-            
+
             {/* NIST Card */}
             <Card className="border border-gray-200">
               <CardContent className="p-6">
@@ -407,8 +407,8 @@ export default function Dashboard() {
                   </div>
                   <span className="text-xs bg-gray-400 text-white px-2 py-1 rounded-full">Not Started</span>
                 </div>
-                
-                <Button 
+
+                <Button
                   className="w-full"
                   onClick={() => handleGenerateDocuments("NIST")}
                   disabled={!profile || isGenerating}
@@ -428,7 +428,7 @@ export default function Dashboard() {
           <CardHeader className="border-b border-gray-200">
             <CardTitle>Recent Documents</CardTitle>
           </CardHeader>
-          
+
           <CardContent className="p-6">
             <div className="space-y-4">
               {recentDocuments.map((doc) => (
@@ -463,7 +463,7 @@ export default function Dashboard() {
               AI is generating customized compliance documents based on your company profile. This process typically takes 10-15 minutes.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between text-sm mb-2">
@@ -472,9 +472,9 @@ export default function Dashboard() {
               </div>
               <Progress value={generationProgress} className="w-full" />
             </div>
-            
 
-            
+
+
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-xs text-blue-700">
                 Tip: You can continue using other features while generation is in progress.
@@ -494,14 +494,14 @@ export default function Dashboard() {
             </DialogDescription>
           </DialogHeader>
           {showPreview && (
-            <DocumentPreview 
+            <DocumentPreview
               templates={[]}
-              framework={previewFramework} 
+              framework={previewFramework}
             />
           )}
         </DialogContent>
       </Dialog>
-      
+
       {/* Generation Customizer Dialog */}
       {showCustomizer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

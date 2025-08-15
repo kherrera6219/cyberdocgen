@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,7 +97,7 @@ export function Home() {
               </div>
             </CardHeader>
           </Card>
-          
+
           <Card 
             className="hover:shadow-lg transition-all duration-300 cursor-pointer group border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105"
             onClick={() => window.location.href = '/user-profile'}

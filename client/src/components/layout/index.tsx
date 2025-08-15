@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import Sidebar from "./sidebar";
 import Header from "./header";
 import MobileNavigation from "./mobile-navigation";
@@ -14,7 +14,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="hidden lg:block">
         <Sidebar />
       </div>
-      
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-0 w-full lg:ml-0">
         <Header />
@@ -23,7 +23,7 @@ export default function Layout({ children }: LayoutProps) {
             {children}
           </div>
         </main>
-        
+
         {/* Mobile Bottom Navigation - Hidden on desktop */}
         <MobileNavigation />
       </div>

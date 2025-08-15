@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -144,10 +144,10 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          doc.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          doc.framework.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesFramework = selectedFramework === "all" || doc.framework === selectedFramework;
     const matchesStatus = selectedStatus === "all" || doc.status === selectedStatus;
-    
+
     return matchesSearch && matchesFramework && matchesStatus;
   });
 
@@ -554,7 +554,7 @@ function DocumentPreviewModal({
             {document.framework} • {document.category} • {document.status}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           {/* Document Content Preview */}
           <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">

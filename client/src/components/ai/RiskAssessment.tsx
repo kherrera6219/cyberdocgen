@@ -20,7 +20,7 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
 
 interface RiskFactor {
   category: string;

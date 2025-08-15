@@ -1,16 +1,17 @@
+import React from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, 
-  Building, 
+import {
+  LayoutDashboard,
+  Building,
   Database,
   Brain,
-  Tag, 
-  Shield, 
-  Flag, 
-  Lock, 
-  Folder, 
-  FolderOutput 
+  Tag,
+  Shield,
+  Flag,
+  Lock,
+  Folder,
+  FolderOutput
 } from "lucide-react";
 
 interface NavItem {
@@ -67,7 +68,7 @@ export default function Sidebar() {
             </Link>
           ))}
         </div>
-        
+
         <div className="mb-6">
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Compliance Frameworks</h2>
           {frameworkNavItems.map((item) => (
@@ -92,7 +93,7 @@ export default function Sidebar() {
             </Link>
           ))}
         </div>
-        
+
         <div>
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Documents</h2>
           {documentNavItems.map((item) => (

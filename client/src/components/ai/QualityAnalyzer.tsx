@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle, Lightbulb, Loader2 } from "lucide-react";
-import { useState } from "react";
 
 interface QualityAnalyzerProps {
   content: string;

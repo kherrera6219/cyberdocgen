@@ -18,13 +18,15 @@ import {
   Clock,
   AlertCircle
 } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import type { Document } from "@shared/schema";
 
 export default function Documents() {
   const [location] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const frameworkFilter = searchParams.get('framework') || '';
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
@@ -39,7 +41,7 @@ export default function Documents() {
                          doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFramework = !frameworkFilter || doc.framework === frameworkFilter;
     const matchesStatus = !statusFilter || doc.status === statusFilter;
-    
+
     return matchesSearch && matchesFramework && matchesStatus;
   });
 
@@ -120,7 +122,7 @@ export default function Documents() {
                 />
               </div>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-40">
@@ -134,11 +136,25 @@ export default function Documents() {
                 </SelectContent>
               </Select>
 
-              <Button className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">New Document</span>
-                <span className="sm:hidden">New</span>
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto">
+                    <Plus className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">New Document</span>
+                    <span className="sm:hidden">New</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Document</DialogTitle>
+                    <DialogDescription>Fill in the details below to create a new document.</DialogDescription>
+                  </DialogHeader>
+                  {/* Placeholder for the actual form */}
+                  <div className="py-4">
+                    <p>Document creation form will go here.</p>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </CardContent>
@@ -157,7 +173,7 @@ export default function Documents() {
             </Button>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -9,6 +9,9 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Upload, FileText, CheckCircle, AlertCircle, X, FileIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
+
 
 interface UploadedFile {
   file: File;
@@ -50,11 +53,11 @@ export function DocumentUploader({
         method: "POST",
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error("Upload failed");
       }
-      
+
       return await response.json();
     },
     onSuccess: (data: any) => {
@@ -66,7 +69,7 @@ export function DocumentUploader({
         }))
       );
       setIsProcessing(false);
-      
+
       toast({
         title: "Upload Complete",
         description: `Successfully processed ${data.extractedData?.length || 0} documents`,
@@ -84,7 +87,7 @@ export function DocumentUploader({
         }))
       );
       setIsProcessing(false);
-      
+
       toast({
         title: "Upload Failed",
         description: error.message || "Failed to upload and process documents",
@@ -119,7 +122,7 @@ export function DocumentUploader({
     if (uploadedFiles.length === 0) return;
 
     setIsProcessing(true);
-    
+
     // Update status to uploading
     setUploadedFiles(prev => 
       prev.map(file => ({ ...file, status: 'uploading' as const, progress: 0 }))
@@ -139,7 +142,7 @@ export function DocumentUploader({
 
     try {
       const files = uploadedFiles.map(f => f.file);
-      
+
       // Update to processing status
       setTimeout(() => {
         setUploadedFiles(prev => 
@@ -148,7 +151,7 @@ export function DocumentUploader({
       }, 2000);
 
       await uploadAndProcessMutation.mutateAsync(files);
-      
+
     } finally {
       clearInterval(progressInterval);
     }

@@ -1,3 +1,4 @@
+import React from "react";
 import { Bell, ChevronDown, Moon, Sun, Settings, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -72,12 +73,12 @@ export default function Header() {
             <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">ComplianceAI</h1>
           </div>
         </div>
-        
+
         {/* Search Bar - Hidden on small screens */}
         <div className="hidden sm:flex flex-1 max-w-md mx-4">
           <GlobalSearch />
         </div>
-        
+
         {/* Right Side Actions */}
         <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
           {/* Theme Toggle */}
@@ -89,7 +90,7 @@ export default function Header() {
           >
             {theme === "light" ? <Moon className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5" />}
           </Button>
-          
+
           {/* Notifications - Hidden on mobile */}
           <Button 
             variant="ghost" 
@@ -98,7 +99,7 @@ export default function Header() {
           >
             <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
-          
+
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

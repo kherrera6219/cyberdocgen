@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -245,7 +245,7 @@ export default function GapAnalysis() {
             <Progress value={overallScore} className="mt-2" />
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Total Gaps</CardTitle>
@@ -352,7 +352,7 @@ export default function GapAnalysis() {
                     <span className="font-bold">{category.score}%</span>
                   </div>
                   <Progress value={category.score} className="w-full" />
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Identified Gaps</span>
                     <span className="font-bold text-red-600">{category.gaps}</span>
@@ -400,7 +400,7 @@ export default function GapAnalysis() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Progress value={framework.coverage} className="w-full" />
-                  
+
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="space-y-1">
                       <div className="text-2xl font-bold text-blue-600">{framework.controls.total}</div>

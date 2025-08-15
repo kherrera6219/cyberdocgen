@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -254,7 +254,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
             {documentTitle} - Track changes and manage document versions
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -266,7 +266,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
             <GitCompare className="h-4 w-4 mr-2" />
             {compareMode ? "Exit Compare" : "Compare Versions"}
           </Button>
-          
+
           {compareMode && selectedVersions.length === 2 && (
             <Button onClick={compareVersions}>
               <GitBranch className="h-4 w-4 mr-2" />
@@ -294,7 +294,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
       <div className="relative">
         {/* Timeline Line */}
         <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
-        
+
         <div className="space-y-6">
           {versions.map((version, index) => (
             <div key={version.id} className="relative flex items-start gap-6">
@@ -341,7 +341,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                         <span>{formatFileSize(version.fileSize || 0)}</span>
                       </CardDescription>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Badge className={getChangeTypeColor(version.changeType)}>
                         <Tag className="h-3 w-3 mr-1" />
@@ -353,7 +353,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   {/* Changes Description */}
                   <div className="mb-4">
@@ -398,7 +398,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                         </Button>
                       )}
                     </div>
-                    
+
                     <div className="text-xs text-gray-500">
                       Checksum: {version.checksum?.slice(0, 12)}...
                     </div>
@@ -428,7 +428,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                 {formatFileSize(selectedVersion.fileSize || 0)}
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               {/* Changes */}
               <div>

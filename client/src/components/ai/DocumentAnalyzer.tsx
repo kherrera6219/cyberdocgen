@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,6 @@ import {
   Upload,
   Users,
 } from "lucide-react";
-import { useState } from "react";
 
 interface DocumentAnalysisResult {
   summary: string;

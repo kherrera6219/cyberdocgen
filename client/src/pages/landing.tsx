@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, FileText, CheckCircle, Users, ArrowRight, Zap, Globe, Lock } from "lucide-react";
@@ -18,15 +19,15 @@ export function Landing() {
                 </div>
               </div>
             </div>
-            
+
             <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight px-2">
               ComplianceAI
             </h1>
-            
+
             <p className="text-base sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed px-4">
               Generate comprehensive compliance documentation for ISO 27001, SOC 2, FedRAMP, and NIST frameworks with AI-powered automation
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-12 px-4">
               <Button 
                 size="lg" 
@@ -36,7 +37,7 @@ export function Landing() {
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              
+
               <Button 
                 variant="outline" 
                 size="lg"
@@ -45,7 +46,7 @@ export function Landing() {
                 Learn More
               </Button>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-6 lg:space-x-8 text-xs sm:text-sm text-gray-500 dark:text-gray-400 px-4">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
@@ -75,7 +76,7 @@ export function Landing() {
               Transform complex regulatory requirements into actionable documentation with our AI-powered platform
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
               <CardHeader className="text-center pb-4">
@@ -90,7 +91,7 @@ export function Landing() {
                 </CardDescription>
               </CardContent>
             </Card>
-            
+
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full w-fit group-hover:bg-purple-200 dark:group-hover:bg-purple-800/50 transition-colors">
@@ -104,7 +105,7 @@ export function Landing() {
                 </CardDescription>
               </CardContent>
             </Card>
-            
+
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900/30 rounded-full w-fit group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
@@ -118,7 +119,7 @@ export function Landing() {
                 </CardDescription>
               </CardContent>
             </Card>
-            
+
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full w-fit group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-colors">
@@ -147,7 +148,7 @@ export function Landing() {
               Generate comprehensive documentation for the industry's most important security and compliance standards
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { name: "ISO 27001", description: "Information Security Management", documents: "45+ documents" },

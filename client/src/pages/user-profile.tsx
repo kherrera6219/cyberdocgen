@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { User, Mail, Shield, Building, Users, Settings, Calendar } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
 export function UserProfile() {
   const { user } = useAuth() as { user: UserType | undefined };
@@ -70,7 +72,7 @@ export function UserProfile() {
                 </Avatar>
               </div>
               <CardTitle className="text-lg sm:text-xl">
-                {user.firstName || user.lastName 
+                {user.firstName || user.lastName
                   ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
                   : 'User'
                 }
@@ -157,14 +159,14 @@ export function UserProfile() {
                     {user.firstName || 'Not set'}
                   </p>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="lastName" className="text-xs sm:text-sm">Last Name</Label>
                   <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
                     {user.lastName || 'Not set'}
                   </p>
                 </div>
-                
+
                 <div className="md:col-span-2">
                   <Label htmlFor="email" className="text-xs sm:text-sm">Email Address</Label>
                   <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
@@ -197,7 +199,7 @@ export function UserProfile() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label className="text-xs sm:text-sm">Email Notifications</Label>
                 <Select defaultValue="important">

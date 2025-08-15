@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +27,6 @@ import {
   Sparkles,
   User,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 
 interface ChatMessage {
   id: string;
