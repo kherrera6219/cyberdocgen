@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { auditService } from "./services/auditService";
 import { versionService } from "./services/versionService";
 import { logger } from "./utils/logger";
@@ -64,6 +66,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error("AI Health check failed", { error: errorMessage });
       res.status(500).json({ message: "Health check failed", error: errorMessage });
+    }
+  });
+
+  // Test OpenAI API key endpoint
+  app.get("/api/test/openai", async (req, res) => {
+    try {
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: "Say 'OpenAI API test successful'" }],
+        max_tokens: 50,
+      });
+
+      res.json({
+        status: "success",
+        service: "OpenAI",
+        model: "gpt-4o",
+        response: response.choices[0]?.message?.content,
+        usage: response.usage,
+      });
+    } catch (error: any) {
+      console.error("OpenAI API test failed:", error);
+      res.status(500).json({
+        status: "error",
+        service: "OpenAI",
+        error: error.message,
+        code: error.code || "unknown",
+      });
+    }
+  });
+
+  // Test Anthropic Claude API key endpoint
+  app.get("/api/test/claude", async (req, res) => {
+    try {
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
+
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 50,
+        messages: [{ role: "user", content: "Say 'Claude API test successful'" }],
+      });
+
+      res.json({
+        status: "success",
+        service: "Anthropic Claude",
+        model: "claude-sonnet-4-20250514",
+        response: response.content[0]?.text,
+        usage: response.usage,
+      });
+    } catch (error: any) {
+      console.error("Claude API test failed:", error);
+      res.status(500).json({
+        status: "error",
+        service: "Anthropic Claude",
+        error: error.message,
+        code: error.status || "unknown",
+      });
     }
   });
 
