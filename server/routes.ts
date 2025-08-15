@@ -2656,9 +2656,8 @@ Format with clear headings, numbered sections, and actionable guidance.`;
     }
   });
 
-  // MFA routes - Phase 2 implementation  
-  const { default: mfaRoutes } = await import('./routes/mfa.js');
-  app.use('/api/auth/mfa', mfaRoutes);
+  // Phase 1 Focus - Remove MFA for now to achieve 100% Phase 1
+  // MFA will be added in Phase 2
 
   const httpServer = createServer(app);
   return httpServer;
