@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Eye, FileText, Clock, Star } from "lucide-react";
 
 interface DocumentTemplate {
@@ -150,6 +150,9 @@ This is a preview of the full document that would be generated based on your com
                         {template.complexity}
                       </Badge>
                     </DialogTitle>
+                    <DialogDescription>
+                      Preview of the {template.title} template content for {template.category} compliance documentation.
+                    </DialogDescription>
                   </DialogHeader>
                   
                   <ScrollArea className="h-96">
