@@ -6,6 +6,7 @@ import { db } from '../db';
 import { cloudIntegrations, cloudFiles, oauthProviders } from '@shared/schema';
 import { encryptionService, DataClassification } from './encryption';
 import { auditService, AuditAction, RiskLevel } from './auditService';
+import { systemConfigService } from './systemConfigService';
 import { logger } from '../utils/logger';
 
 export interface CloudIntegrationConfig {
@@ -223,7 +224,16 @@ export class CloudIntegrationService {
    */
   private async syncGoogleDriveFiles(accessToken: string): Promise<FileMetadata[]> {
     try {
-      const auth = new google.auth.OAuth2();
+      // Get OAuth credentials from system configuration
+      const credentials = await systemConfigService.getOAuthCredentials('google');
+      if (!credentials) {
+        throw new Error('Google OAuth credentials not configured');
+      }
+
+      const auth = new google.auth.OAuth2(
+        credentials.clientId,
+        credentials.clientSecret
+      );
       auth.setCredentials({ access_token: accessToken });
 
       const drive = google.drive({ version: 'v3', auth });
@@ -256,6 +266,12 @@ export class CloudIntegrationService {
    */
   private async syncOneDriveFiles(accessToken: string): Promise<FileMetadata[]> {
     try {
+      // Check if Microsoft OAuth credentials are configured
+      const credentials = await systemConfigService.getOAuthCredentials('microsoft');
+      if (!credentials) {
+        throw new Error('Microsoft OAuth credentials not configured');
+      }
+
       const authProvider = new CustomAuthProvider(accessToken);
       const graphClient = Client.initWithMiddleware({ authProvider });
 

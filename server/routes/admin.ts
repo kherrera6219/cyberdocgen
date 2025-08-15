@@ -5,6 +5,7 @@ import { db } from '../db';
 import { cloudIntegrations, users } from '@shared/schema';
 import { encryptionService, DataClassification } from '../services/encryption';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
+import { systemConfigService } from '../services/systemConfigService';
 import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
 
@@ -58,19 +59,11 @@ const isAdmin = async (req: any, res: any, next: any) => {
  */
 router.get('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) => {
   try {
-    // Return masked settings to indicate what's configured
-    const settings = {
-      googleConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-      microsoftConfigured: !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET),
-      googleClientId: process.env.GOOGLE_CLIENT_ID ? 
-        process.env.GOOGLE_CLIENT_ID.substring(0, 8) + '...' : '',
-      microsoftClientId: process.env.MICROSOFT_CLIENT_ID ? 
-        process.env.MICROSOFT_CLIENT_ID.substring(0, 8) + '...' : '',
-    };
+    const settings = await systemConfigService.getOAuthSettingsForUI();
 
     res.json({
       success: true,
-      settings,
+      ...settings,
     });
   } catch (error: any) {
     logger.error('Failed to get OAuth settings', { error: error.message });
@@ -88,45 +81,53 @@ router.post('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) =
   try {
     const settings = oauthSettingsSchema.parse(req.body);
     const userId = req.user.claims.sub;
+    const ipAddress = req.ip || '127.0.0.1';
 
-    // In a real application, you would store these in a secure configuration store
-    // For now, we'll log that they were received and would need to be set as environment variables
-    
     const configUpdates: string[] = [];
+    let hasUpdates = false;
     
-    if (settings.googleClientId) {
-      configUpdates.push('GOOGLE_CLIENT_ID updated');
-      // process.env.GOOGLE_CLIENT_ID = settings.googleClientId; // Would need proper env management
+    // Update Google OAuth credentials if provided
+    if (settings.googleClientId && settings.googleClientSecret) {
+      const success = await systemConfigService.setOAuthCredentials(
+        'google',
+        {
+          clientId: settings.googleClientId,
+          clientSecret: settings.googleClientSecret,
+        },
+        userId,
+        ipAddress
+      );
+      
+      if (success) {
+        configUpdates.push('Google OAuth credentials updated');
+        hasUpdates = true;
+      }
     }
     
-    if (settings.googleClientSecret) {
-      configUpdates.push('GOOGLE_CLIENT_SECRET updated');
-      // process.env.GOOGLE_CLIENT_SECRET = settings.googleClientSecret; // Would need proper env management
-    }
-    
-    if (settings.microsoftClientId) {
-      configUpdates.push('MICROSOFT_CLIENT_ID updated');
-      // process.env.MICROSOFT_CLIENT_ID = settings.microsoftClientId; // Would need proper env management
-    }
-    
-    if (settings.microsoftClientSecret) {
-      configUpdates.push('MICROSOFT_CLIENT_SECRET updated');
-      // process.env.MICROSOFT_CLIENT_SECRET = settings.microsoftClientSecret; // Would need proper env management
+    // Update Microsoft OAuth credentials if provided
+    if (settings.microsoftClientId && settings.microsoftClientSecret) {
+      const success = await systemConfigService.setOAuthCredentials(
+        'microsoft',
+        {
+          clientId: settings.microsoftClientId,
+          clientSecret: settings.microsoftClientSecret,
+        },
+        userId,
+        ipAddress
+      );
+      
+      if (success) {
+        configUpdates.push('Microsoft OAuth credentials updated');
+        hasUpdates = true;
+      }
     }
 
-    // Audit log
-    await auditService.logAuditEvent({
-      userId,
-      action: AuditAction.UPDATE,
-      resourceType: 'oauth_settings',
-      resourceId: 'system',
-      ipAddress: req.ip || '127.0.0.1',
-      riskLevel: RiskLevel.HIGH,
-      additionalContext: {
-        configUpdates,
-        adminAction: true,
-      },
-    });
+    if (!hasUpdates) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid OAuth credentials provided for update',
+      });
+    }
 
     logger.info('OAuth settings updated by admin', {
       userId,
@@ -136,7 +137,7 @@ router.post('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) =
     res.json({
       success: true,
       message: 'OAuth settings updated successfully',
-      note: 'Environment variables need to be updated and application restarted for changes to take effect',
+      configUpdates,
     });
   } catch (error: any) {
     logger.error('Failed to save OAuth settings', { error: error.message });
@@ -152,17 +153,7 @@ router.post('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) =
  */
 router.get('/pdf-defaults', isAuthenticated, isAdmin, async (req: any, res) => {
   try {
-    // Return default PDF security settings
-    // In a real application, these would be stored in database or configuration
-    const defaults = {
-      defaultEncryptionLevel: process.env.PDF_DEFAULT_ENCRYPTION || 'AES256',
-      defaultAllowPrinting: process.env.PDF_DEFAULT_ALLOW_PRINTING === 'true',
-      defaultAllowCopying: process.env.PDF_DEFAULT_ALLOW_COPYING === 'true',
-      defaultAllowModifying: process.env.PDF_DEFAULT_ALLOW_MODIFYING === 'true',
-      defaultAllowAnnotations: process.env.PDF_DEFAULT_ALLOW_ANNOTATIONS === 'true',
-      defaultWatermarkText: process.env.PDF_DEFAULT_WATERMARK_TEXT || 'CONFIDENTIAL',
-      defaultWatermarkOpacity: parseFloat(process.env.PDF_DEFAULT_WATERMARK_OPACITY || '0.3'),
-    };
+    const defaults = await systemConfigService.getPDFDefaults();
 
     res.json({
       success: true,
@@ -184,31 +175,16 @@ router.post('/pdf-defaults', isAuthenticated, isAdmin, async (req: any, res) => 
   try {
     const defaults = pdfDefaultsSchema.parse(req.body);
     const userId = req.user.claims.sub;
+    const ipAddress = req.ip || '127.0.0.1';
 
-    // In a real application, you would store these in a configuration table or secure store
-    const configUpdates = [
-      `PDF_DEFAULT_ENCRYPTION: ${defaults.defaultEncryptionLevel}`,
-      `PDF_DEFAULT_ALLOW_PRINTING: ${defaults.defaultAllowPrinting}`,
-      `PDF_DEFAULT_ALLOW_COPYING: ${defaults.defaultAllowCopying}`,
-      `PDF_DEFAULT_ALLOW_MODIFYING: ${defaults.defaultAllowModifying}`,
-      `PDF_DEFAULT_ALLOW_ANNOTATIONS: ${defaults.defaultAllowAnnotations}`,
-      `PDF_DEFAULT_WATERMARK_TEXT: ${defaults.defaultWatermarkText}`,
-      `PDF_DEFAULT_WATERMARK_OPACITY: ${defaults.defaultWatermarkOpacity}`,
-    ];
+    const success = await systemConfigService.setPDFDefaults(defaults, userId, ipAddress);
 
-    // Audit log
-    await auditService.logAuditEvent({
-      userId,
-      action: AuditAction.UPDATE,
-      resourceType: 'pdf_defaults',
-      resourceId: 'system',
-      ipAddress: req.ip || '127.0.0.1',
-      riskLevel: RiskLevel.MEDIUM,
-      additionalContext: {
-        configUpdates,
-        adminAction: true,
-      },
-    });
+    if (!success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to save PDF defaults',
+      });
+    }
 
     logger.info('PDF defaults updated by admin', {
       userId,

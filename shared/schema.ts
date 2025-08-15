@@ -260,6 +260,23 @@ export const mfaSettings = pgTable("mfa_settings", {
   enabledIdx: index("idx_mfa_settings_enabled").on(table.userId, table.isEnabled),
 }));
 
+// System configuration for admin-managed settings
+export const systemConfigurations = pgTable("system_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  configKey: varchar("config_key").unique().notNull(), // 'oauth_google', 'oauth_microsoft', 'pdf_defaults'
+  configType: varchar("config_type").notNull(), // 'oauth', 'security', 'system'
+  configValueEncrypted: text("config_value_encrypted").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  updatedBy: varchar("updated_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  configKeyIdx: index("idx_system_config_key").on(table.configKey),
+  configTypeIdx: index("idx_system_config_type").on(table.configType),
+}));
+
 // Cloud storage integrations table
 export const cloudIntegrations = pgTable("cloud_integrations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -564,11 +581,21 @@ export const insertDocumentWorkspaceSchema = createInsertSchema(documentWorkspac
   updatedAt: true,
 });
 
+export const insertSystemConfigurationSchema = createInsertSchema(systemConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
 export type PasskeyCredential = typeof passkeyCredentials.$inferSelect;
+export type SystemConfiguration = typeof systemConfigurations.$inferSelect;
+export type MfaSetting = typeof mfaSettings.$inferSelect;
+export type CloudIntegration = typeof cloudIntegrations.$inferSelect;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
 // AI Fine-tuning configuration tables
 export const industryConfigurations = pgTable("industry_configurations", {
