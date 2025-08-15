@@ -1044,14 +1044,653 @@ All controls subject to continuous monitoring with annual assessment and real-ti
   }
 ];
 
-// Master template registry with complete template sets
+// Operational Templates - SOPs, Role Appointments, Logs, and Checklists
+export const OperationalTemplates: DocumentTemplate[] = [
+  {
+    id: 'sop-001',
+    title: 'Standard Operating Procedure Template',
+    description: 'Comprehensive SOP template for operational procedures',
+    framework: 'General',
+    category: 'procedure',
+    priority: 1,
+    documentType: 'procedure',
+    required: false,
+    templateContent: `# Standard Operating Procedure (SOP)
+
+## Document Information
+**Title:** {{procedure_title}}
+**SOP ID:** {{sop_id}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+**Review Date:** {{review_date}}
+**Owner:** {{procedure_owner}}
+**Approved By:** {{approved_by}}
+
+## 1. Purpose and Scope
+### 1.1 Purpose
+{{purpose_description}}
+
+### 1.2 Scope
+This SOP applies to:
+- Personnel: {{applicable_personnel}}
+- Departments: {{applicable_departments}}
+- Systems: {{applicable_systems}}
+- Locations: {{applicable_locations}}
+
+## 2. Responsibilities
+### 2.1 Process Owner
+- {{owner_responsibility_1}}
+- {{owner_responsibility_2}}
+- {{owner_responsibility_3}}
+
+### 2.2 Team Members
+- {{team_responsibility_1}}
+- {{team_responsibility_2}}
+- {{team_responsibility_3}}
+
+### 2.3 Management
+- {{management_responsibility_1}}
+- {{management_responsibility_2}}
+
+## 3. Procedure Steps
+### Step 1: {{step_1_title}}
+**Responsible:** {{step_1_responsible}}
+**Action:** {{step_1_action}}
+**Requirements:** {{step_1_requirements}}
+**Documentation:** {{step_1_documentation}}
+
+### Step 2: {{step_2_title}}
+**Responsible:** {{step_2_responsible}}
+**Action:** {{step_2_action}}
+**Requirements:** {{step_2_requirements}}
+**Documentation:** {{step_2_documentation}}
+
+### Step 3: {{step_3_title}}
+**Responsible:** {{step_3_responsible}}
+**Action:** {{step_3_action}}
+**Requirements:** {{step_3_requirements}}
+**Documentation:** {{step_3_documentation}}
+
+## 4. Quality Controls
+### 4.1 Verification Steps
+- {{verification_step_1}}
+- {{verification_step_2}}
+- {{verification_step_3}}
+
+### 4.2 Success Criteria
+- {{success_criteria_1}}
+- {{success_criteria_2}}
+- {{success_criteria_3}}
+
+## 5. Documentation Requirements
+### 5.1 Required Records
+- {{required_record_1}}
+- {{required_record_2}}
+- {{required_record_3}}
+
+### 5.2 Retention Period
+{{retention_period}}
+
+## 6. Training Requirements
+- Initial training: {{initial_training}}
+- Refresher training: {{refresher_training}}
+- Competency assessment: {{competency_assessment}}
+
+## 7. Related Documents
+- {{related_document_1}}
+- {{related_document_2}}
+- {{related_document_3}}
+
+## 8. Revision History
+| Version | Date | Description | Author |
+|---------|------|-------------|--------|
+| {{version}} | {{effective_date}} | {{revision_description}} | {{author}} |
+
+**Next Review Date:** {{next_review_date}}`,
+    templateVariables: {
+      procedure_title: { type: 'text', label: 'Procedure Title', required: true },
+      sop_id: { type: 'text', label: 'SOP Identifier', required: true },
+      version: { type: 'text', label: 'Version Number', required: true },
+      procedure_owner: { type: 'text', label: 'Procedure Owner', required: true },
+      purpose_description: { type: 'text', label: 'Purpose Description', required: true },
+      applicable_personnel: { type: 'text', label: 'Applicable Personnel', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true }
+    }
+  },
+  {
+    id: 'role-001',
+    title: 'Role Appointment and Responsibilities Document',
+    description: 'Template for formal role appointments and responsibility definitions',
+    framework: 'General',
+    category: 'governance',
+    priority: 2,
+    documentType: 'appointment',
+    required: false,
+    templateContent: `# Role Appointment and Responsibilities
+
+## Appointment Information
+**Organization:** {{organization_name}}
+**Appointment Date:** {{appointment_date}}
+**Effective Date:** {{effective_date}}
+**Appointing Authority:** {{appointing_authority}}
+
+## Role Details
+### Role Information
+**Role Title:** {{role_title}}
+**Role Code:** {{role_code}}
+**Department:** {{department}}
+**Reporting Structure:** {{reporting_structure}}
+**Employment Type:** {{employment_type}}
+
+### Appointee Information
+**Name:** {{appointee_name}}
+**Employee ID:** {{employee_id}}
+**Email:** {{appointee_email}}
+**Start Date:** {{start_date}}
+**Previous Role:** {{previous_role}}
+
+## Primary Responsibilities
+### Core Functions
+1. **{{responsibility_1_title}}**
+   - {{responsibility_1_detail_1}}
+   - {{responsibility_1_detail_2}}
+   - {{responsibility_1_detail_3}}
+
+2. **{{responsibility_2_title}}**
+   - {{responsibility_2_detail_1}}
+   - {{responsibility_2_detail_2}}
+   - {{responsibility_2_detail_3}}
+
+3. **{{responsibility_3_title}}**
+   - {{responsibility_3_detail_1}}
+   - {{responsibility_3_detail_2}}
+   - {{responsibility_3_detail_3}}
+
+## Authority and Decision Rights
+### Authorized Decisions
+- {{authority_1}}
+- {{authority_2}}
+- {{authority_3}}
+
+### Approval Limits
+- Financial: {{financial_limit}}
+- Personnel: {{personnel_authority}}
+- Operational: {{operational_authority}}
+
+### Escalation Requirements
+- {{escalation_1}}
+- {{escalation_2}}
+- {{escalation_3}}
+
+## Performance Metrics
+### Key Performance Indicators
+1. **{{kpi_1_name}}**: {{kpi_1_description}}
+   - Target: {{kpi_1_target}}
+   - Measurement: {{kpi_1_measurement}}
+
+2. **{{kpi_2_name}}**: {{kpi_2_description}}
+   - Target: {{kpi_2_target}}
+   - Measurement: {{kpi_2_measurement}}
+
+3. **{{kpi_3_name}}**: {{kpi_3_description}}
+   - Target: {{kpi_3_target}}
+   - Measurement: {{kpi_3_measurement}}
+
+## Training and Development
+### Required Training
+- {{training_1}}
+- {{training_2}}
+- {{training_3}}
+
+### Professional Development
+- {{development_1}}
+- {{development_2}}
+- {{development_3}}
+
+### Certification Requirements
+- {{certification_1}}: {{cert_1_deadline}}
+- {{certification_2}}: {{cert_2_deadline}}
+
+## Compliance Requirements
+### Regulatory Obligations
+- {{compliance_1}}
+- {{compliance_2}}
+- {{compliance_3}}
+
+### Internal Policies
+- {{policy_1}}
+- {{policy_2}}
+- {{policy_3}}
+
+## Review and Evaluation
+### Performance Review Schedule
+- Initial Review: {{initial_review_date}}
+- Annual Review: {{annual_review_date}}
+- Continuous Feedback: {{feedback_schedule}}
+
+### Success Criteria
+- {{success_criteria_1}}
+- {{success_criteria_2}}
+- {{success_criteria_3}}
+
+## Signatures
+**Appointee Acceptance:**
+Name: {{appointee_name}}
+Signature: _________________
+Date: {{acceptance_date}}
+
+**Manager Approval:**
+Name: {{manager_name}}
+Signature: _________________
+Date: {{approval_date}}
+
+**HR Verification:**
+Name: {{hr_representative}}
+Signature: _________________
+Date: {{hr_verification_date}}`,
+    templateVariables: {
+      organization_name: { type: 'text', label: 'Organization Name', required: true },
+      role_title: { type: 'text', label: 'Role Title', required: true },
+      appointee_name: { type: 'text', label: 'Appointee Name', required: true },
+      appointment_date: { type: 'date', label: 'Appointment Date', required: true },
+      department: { type: 'text', label: 'Department', required: true },
+      appointing_authority: { type: 'text', label: 'Appointing Authority', required: true },
+      employment_type: { type: 'select', label: 'Employment Type', required: true, options: ['Full-time', 'Part-time', 'Contract', 'Temporary'] }
+    }
+  },
+  {
+    id: 'logs-001',
+    title: 'Required Logs and Monitoring Template',
+    description: 'Template for defining required logs, monitoring, and audit trail requirements',
+    framework: 'General',
+    category: 'monitoring',
+    priority: 3,
+    documentType: 'specification',
+    required: false,
+    templateContent: `# Required Logs and Monitoring Specification
+
+## Document Control
+**Document Title:** {{document_title}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+**Owner:** {{document_owner}}
+**Review Frequency:** {{review_frequency}}
+
+## 1. Logging Requirements Overview
+### 1.1 Purpose
+{{logging_purpose}}
+
+### 1.2 Scope
+This document covers logging requirements for:
+- **Systems:** {{covered_systems}}
+- **Applications:** {{covered_applications}}
+- **Infrastructure:** {{covered_infrastructure}}
+- **Security Controls:** {{covered_security}}
+
+## 2. Security Event Logs
+### 2.1 Authentication Logs
+**Log Type:** Authentication Events
+**Retention:** {{auth_log_retention}}
+**Format:** {{auth_log_format}}
+
+**Required Fields:**
+- User ID: {{auth_userid_req}}
+- Timestamp: {{auth_timestamp_req}}
+- Source IP: {{auth_sourceip_req}}
+- Authentication Method: {{auth_method_req}}
+- Success/Failure: {{auth_result_req}}
+- Session ID: {{auth_session_req}}
+
+**Events to Log:**
+- Successful login attempts
+- Failed login attempts
+- Account lockouts
+- Password changes
+- Privilege escalations
+- Session terminations
+
+### 2.2 Authorization Logs
+**Log Type:** Access Control Events
+**Retention:** {{authz_log_retention}}
+**Format:** {{authz_log_format}}
+
+**Required Fields:**
+- User ID: {{authz_userid_req}}
+- Resource Accessed: {{authz_resource_req}}
+- Action Performed: {{authz_action_req}}
+- Permission Level: {{authz_permission_req}}
+- Result: {{authz_result_req}}
+- Timestamp: {{authz_timestamp_req}}
+
+## 3. System Operation Logs
+### 3.1 Application Logs
+**Applications:** {{app_list}}
+**Log Level:** {{app_log_level}}
+**Retention:** {{app_log_retention}}
+
+**Required Events:**
+- Application start/stop
+- Configuration changes
+- Error conditions
+- Performance metrics
+- User transactions
+
+### 3.2 System Logs
+**Systems:** {{system_list}}
+**Log Level:** {{system_log_level}}
+**Retention:** {{system_log_retention}}
+
+**Required Events:**
+- System boot/shutdown
+- Service start/stop
+- Hardware errors
+- Resource utilization
+- Network connectivity
+
+## 4. Database Activity Logs
+### 4.1 Database Access Logs
+**Database Systems:** {{database_systems}}
+**Log Level:** {{db_log_level}}
+**Retention:** {{db_log_retention}}
+
+**Required Fields:**
+- User/Application ID
+- Database name
+- Table/Object accessed
+- SQL Command type
+- Number of records affected
+- Timestamp
+- Source connection
+
+### 4.2 Database Administrative Logs
+**Required Events:**
+- Schema changes
+- User account modifications
+- Privilege changes
+- Backup operations
+- Recovery operations
+
+## 5. Network Activity Logs
+### 5.1 Firewall Logs
+**Devices:** {{firewall_devices}}
+**Retention:** {{firewall_retention}}
+
+**Required Fields:**
+- Source IP/Port
+- Destination IP/Port
+- Protocol
+- Action (Allow/Deny)
+- Rule ID
+- Timestamp
+
+### 5.2 Network Device Logs
+**Devices:** {{network_devices}}
+**Events:** {{network_events}}
+**Retention:** {{network_retention}}
+
+## 6. Compliance and Audit Logs
+### 6.1 Regulatory Compliance Logs
+**Regulations:** {{applicable_regulations}}
+**Specific Requirements:** {{compliance_requirements}}
+**Retention:** {{compliance_retention}}
+
+### 6.2 Internal Audit Logs
+**Audit Activities:** {{audit_activities}}
+**Documentation Requirements:** {{audit_documentation}}
+**Retention:** {{audit_retention}}
+
+## 7. Log Management Requirements
+### 7.1 Centralized Logging
+**Log Aggregation System:** {{log_system}}
+**Collection Method:** {{collection_method}}
+**Real-time Processing:** {{realtime_processing}}
+
+### 7.2 Log Protection
+**Encryption:** {{log_encryption}}
+**Access Controls:** {{log_access_controls}}
+**Integrity Protection:** {{log_integrity}}
+
+### 7.3 Monitoring and Alerting
+**Monitoring Tools:** {{monitoring_tools}}
+**Alert Conditions:** {{alert_conditions}}
+**Response Procedures:** {{response_procedures}}
+
+## 8. Log Review and Analysis
+### 8.1 Regular Review Schedule
+**Daily Reviews:** {{daily_review_scope}}
+**Weekly Reviews:** {{weekly_review_scope}}
+**Monthly Reviews:** {{monthly_review_scope}}
+**Quarterly Reviews:** {{quarterly_review_scope}}
+
+### 8.2 Automated Analysis
+**SIEM Rules:** {{siem_rules}}
+**Correlation Logic:** {{correlation_logic}}
+**Machine Learning:** {{ml_analysis}}
+
+## 9. Retention and Archival
+### 9.1 Retention Periods
+| Log Type | Online Retention | Archive Retention | Destruction |
+|----------|------------------|-------------------|-------------|
+| Security Events | {{security_online}} | {{security_archive}} | {{security_destroy}} |
+| System Logs | {{system_online}} | {{system_archive}} | {{system_destroy}} |
+| Application Logs | {{app_online}} | {{app_archive}} | {{app_destroy}} |
+| Database Logs | {{db_online}} | {{db_archive}} | {{db_destroy}} |
+
+### 9.2 Archive Procedures
+**Archive Method:** {{archive_method}}
+**Archive Location:** {{archive_location}}
+**Retrieval Process:** {{retrieval_process}}
+
+## 10. Compliance Verification
+### 10.1 Log Completeness Checks
+**Verification Method:** {{completeness_method}}
+**Check Frequency:** {{completeness_frequency}}
+**Responsible Party:** {{completeness_responsible}}
+
+### 10.2 Quality Assurance
+**QA Procedures:** {{qa_procedures}}
+**Sampling Method:** {{sampling_method}}
+**Corrective Actions:** {{corrective_actions}}
+
+**Document Approval:**
+**Prepared By:** {{prepared_by}}
+**Reviewed By:** {{reviewed_by}}
+**Approved By:** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      document_title: { type: 'text', label: 'Document Title', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      logging_purpose: { type: 'text', label: 'Logging Purpose', required: true },
+      covered_systems: { type: 'text', label: 'Covered Systems', required: true },
+      auth_log_retention: { type: 'select', label: 'Authentication Log Retention', required: true, options: ['30 days', '90 days', '1 year', '7 years'] },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true }
+    }
+  },
+  {
+    id: 'checklist-001',
+    title: 'Compliance Checklist Template',
+    description: 'Comprehensive checklist template for compliance verification and audits',
+    framework: 'General',
+    category: 'checklist',
+    priority: 4,
+    documentType: 'checklist',
+    required: false,
+    templateContent: `# Compliance Checklist
+
+## Checklist Information
+**Title:** {{checklist_title}}
+**Checklist ID:** {{checklist_id}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+**Applicable Framework:** {{applicable_framework}}
+**Assessment Period:** {{assessment_period}}
+**Assessor:** {{assessor_name}}
+**Date Completed:** {{completion_date}}
+
+## Instructions
+1. Review each item carefully
+2. Mark items as Complete (✓), Incomplete (✗), or Not Applicable (N/A)
+3. Provide evidence or comments where indicated
+4. Escalate any non-compliance immediately
+5. Submit completed checklist within {{submission_timeframe}}
+
+## Section 1: Governance and Management
+### 1.1 Policy and Procedures
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Information security policy is current and approved | ⬜ | {{evidence_1_1}} | {{comments_1_1}} |
+| Policies are reviewed annually | ⬜ | {{evidence_1_2}} | {{comments_1_2}} |
+| All staff have acknowledged policy receipt | ⬜ | {{evidence_1_3}} | {{comments_1_3}} |
+| Procedure documents are version controlled | ⬜ | {{evidence_1_4}} | {{comments_1_4}} |
+
+### 1.2 Roles and Responsibilities
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Security roles are formally defined | ⬜ | {{evidence_2_1}} | {{comments_2_1}} |
+| Role assignments are documented | ⬜ | {{evidence_2_2}} | {{comments_2_2}} |
+| Segregation of duties is implemented | ⬜ | {{evidence_2_3}} | {{comments_2_3}} |
+| Management approval for role changes | ⬜ | {{evidence_2_4}} | {{comments_2_4}} |
+
+## Section 2: Risk Management
+### 2.1 Risk Assessment
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Risk assessment methodology is documented | ⬜ | {{evidence_3_1}} | {{comments_3_1}} |
+| Risk register is current and complete | ⬜ | {{evidence_3_2}} | {{comments_3_2}} |
+| Risk assessments are conducted annually | ⬜ | {{evidence_3_3}} | {{comments_3_3}} |
+| Risk treatment plans are implemented | ⬜ | {{evidence_3_4}} | {{comments_3_4}} |
+
+### 2.2 Business Continuity
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Business continuity plan exists and is current | ⬜ | {{evidence_4_1}} | {{comments_4_1}} |
+| BCP testing is conducted regularly | ⬜ | {{evidence_4_2}} | {{comments_4_2}} |
+| Recovery time objectives are defined | ⬜ | {{evidence_4_3}} | {{comments_4_3}} |
+| Backup procedures are tested | ⬜ | {{evidence_4_4}} | {{comments_4_4}} |
+
+## Section 3: Access Control
+### 3.1 User Access Management
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| User access is based on job requirements | ⬜ | {{evidence_5_1}} | {{comments_5_1}} |
+| Access requests are properly approved | ⬜ | {{evidence_5_2}} | {{comments_5_2}} |
+| Regular access reviews are conducted | ⬜ | {{evidence_5_3}} | {{comments_5_3}} |
+| Terminated user access is promptly removed | ⬜ | {{evidence_5_4}} | {{comments_5_4}} |
+
+### 3.2 Privileged Access
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Privileged accounts are minimized | ⬜ | {{evidence_6_1}} | {{comments_6_1}} |
+| Multi-factor authentication is implemented | ⬜ | {{evidence_6_2}} | {{comments_6_2}} |
+| Privileged activities are logged and monitored | ⬜ | {{evidence_6_3}} | {{comments_6_3}} |
+| Emergency access procedures exist | ⬜ | {{evidence_6_4}} | {{comments_6_4}} |
+
+## Section 4: Data Protection
+### 4.1 Data Classification
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Data classification scheme is implemented | ⬜ | {{evidence_7_1}} | {{comments_7_1}} |
+| Sensitive data is identified and labeled | ⬜ | {{evidence_7_2}} | {{comments_7_2}} |
+| Handling procedures match data classification | ⬜ | {{evidence_7_3}} | {{comments_7_3}} |
+| Data retention schedules are enforced | ⬜ | {{evidence_7_4}} | {{comments_7_4}} |
+
+### 4.2 Encryption and Protection
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Data at rest is encrypted per policy | ⬜ | {{evidence_8_1}} | {{comments_8_1}} |
+| Data in transit is encrypted | ⬜ | {{evidence_8_2}} | {{comments_8_2}} |
+| Encryption keys are properly managed | ⬜ | {{evidence_8_3}} | {{comments_8_3}} |
+| Secure disposal procedures are followed | ⬜ | {{evidence_8_4}} | {{comments_8_4}} |
+
+## Section 5: Monitoring and Incident Response
+### 5.1 Security Monitoring
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Security events are monitored 24/7 | ⬜ | {{evidence_9_1}} | {{comments_9_1}} |
+| Log retention meets regulatory requirements | ⬜ | {{evidence_9_2}} | {{comments_9_2}} |
+| Automated alerting is configured | ⬜ | {{evidence_9_3}} | {{comments_9_3}} |
+| Regular log reviews are conducted | ⬜ | {{evidence_9_4}} | {{comments_9_4}} |
+
+### 5.2 Incident Management
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Incident response plan is current | ⬜ | {{evidence_10_1}} | {{comments_10_1}} |
+| Incident response team is identified | ⬜ | {{evidence_10_2}} | {{comments_10_2}} |
+| Incidents are promptly reported | ⬜ | {{evidence_10_3}} | {{comments_10_3}} |
+| Post-incident reviews are conducted | ⬜ | {{evidence_10_4}} | {{comments_10_4}} |
+
+## Section 6: Training and Awareness
+### 6.1 Security Training
+| Item | Status | Evidence | Comments |
+|------|--------|----------|----------|
+| Security awareness training is mandatory | ⬜ | {{evidence_11_1}} | {{comments_11_1}} |
+| Training records are maintained | ⬜ | {{evidence_11_2}} | {{comments_11_2}} |
+| Role-specific training is provided | ⬜ | {{evidence_11_3}} | {{comments_11_3}} |
+| Training effectiveness is measured | ⬜ | {{evidence_11_4}} | {{comments_11_4}} |
+
+## Summary and Findings
+### Overall Compliance Status
+- **Items Reviewed:** {{total_items}}
+- **Compliant Items:** {{compliant_items}}
+- **Non-Compliant Items:** {{non_compliant_items}}
+- **Not Applicable Items:** {{na_items}}
+- **Compliance Percentage:** {{compliance_percentage}}%
+
+### Critical Findings
+1. {{critical_finding_1}}
+2. {{critical_finding_2}}
+3. {{critical_finding_3}}
+
+### Recommendations
+1. **Priority 1:** {{recommendation_1}}
+2. **Priority 2:** {{recommendation_2}}
+3. **Priority 3:** {{recommendation_3}}
+
+### Action Plan
+| Finding | Responsible Party | Due Date | Status |
+|---------|------------------|----------|--------|
+| {{action_1}} | {{responsible_1}} | {{due_1}} | {{status_1}} |
+| {{action_2}} | {{responsible_2}} | {{due_2}} | {{status_2}} |
+| {{action_3}} | {{responsible_3}} | {{due_3}} | {{status_3}} |
+
+## Certification
+**Assessor Declaration:**
+I certify that this assessment was conducted in accordance with established procedures and that the findings accurately represent the compliance status as of {{completion_date}}.
+
+**Assessor:** {{assessor_name}}
+**Signature:** _________________
+**Date:** {{signature_date}}
+
+**Management Review:**
+**Reviewer:** {{reviewer_name}}
+**Signature:** _________________
+**Date:** {{review_date}}
+
+**Next Assessment Due:** {{next_assessment_date}}`,
+    templateVariables: {
+      checklist_title: { type: 'text', label: 'Checklist Title', required: true },
+      checklist_id: { type: 'text', label: 'Checklist ID', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      applicable_framework: { type: 'select', label: 'Applicable Framework', required: true, options: ['ISO 27001', 'SOC 2', 'FedRAMP', 'NIST 800-53', 'PCI DSS', 'HIPAA', 'GDPR'] },
+      assessor_name: { type: 'text', label: 'Assessor Name', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      submission_timeframe: { type: 'select', label: 'Submission Timeframe', required: true, options: ['24 hours', '48 hours', '1 week', '2 weeks'] }
+    }
+  }
+];
+
+// Master template registry with complete template sets including operational templates
 export const AllDocumentTemplates: Record<string, DocumentTemplate[]> = {
   'ISO27001': [...ISO27001Templates, ...AdditionalISO27001Templates],
   'SOC2': SOC2Templates,
   'FedRAMP-Low': FedRAMPLowTemplates,
   'FedRAMP-Moderate': FedRAMPModerateTemplates,
   'FedRAMP-High': FedRAMPHighTemplates,
-  'NIST-800-53': NIST80053Templates
+  'NIST-800-53': NIST80053Templates,
+  'General': OperationalTemplates
 };
 
 // Template management functions
