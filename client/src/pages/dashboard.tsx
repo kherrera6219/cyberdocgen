@@ -195,29 +195,29 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
+        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-yellow-500 dark:bg-gray-800">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Frameworks</p>
-                <p className="text-2xl font-bold text-gray-900">{activeFrameworks}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Active Frameworks</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{activeFrameworks}</p>
               </div>
-              <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
-                <Layers className="w-6 h-6 text-warning" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-yellow-500/10 to-yellow-500/20 rounded-lg flex items-center justify-center shadow-sm">
+                <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
+        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500 dark:bg-gray-800">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Next Deadline</p>
-                <p className="text-2xl font-bold text-gray-900">45d</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Next Deadline</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">45d</p>
               </div>
-              <div className="w-12 h-12 bg-danger/10 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-danger" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-red-500/10 to-red-500/20 rounded-lg flex items-center justify-center shadow-sm">
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
               </div>
             </div>
           </CardContent>
@@ -240,21 +240,21 @@ export default function Dashboard() {
           <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
               <div>
-                <h3 className="text-md font-semibold text-gray-900 mb-4">Basic Information</h3>
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Basic Information</h3>
                 <div className="space-y-2">
-                  <p><span className="font-medium">Company:</span> {profile.companyName}</p>
-                  <p><span className="font-medium">Industry:</span> {profile.industry}</p>
-                  <p><span className="font-medium">Size:</span> {profile.companySize}</p>
-                  <p><span className="font-medium">Location:</span> {profile.headquarters}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Company:</span> {profile.companyName}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Industry:</span> {profile.industry}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Size:</span> {profile.companySize}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Location:</span> {profile.headquarters}</p>
                 </div>
               </div>
               
               <div>
-                <h3 className="text-md font-semibold text-gray-900 mb-4">Technical Environment</h3>
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Technical Environment</h3>
                 <div className="space-y-2">
-                  <p><span className="font-medium">Cloud:</span> {profile.cloudInfrastructure.join(', ')}</p>
-                  <p><span className="font-medium">Data Classification:</span> {profile.dataClassification}</p>
-                  <p><span className="font-medium">Applications:</span> {profile.businessApplications}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Cloud:</span> {profile.cloudInfrastructure.join(', ')}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Data Classification:</span> {profile.dataClassification}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Applications:</span> {profile.businessApplications}</p>
                 </div>
               </div>
             </div>

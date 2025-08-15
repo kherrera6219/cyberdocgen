@@ -43,7 +43,7 @@ export default function Header() {
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
-      <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+      <div className="flex items-center justify-between px-3 sm:px-4 lg:px-6 py-3 sm:py-4 max-w-full">
         {/* Mobile Menu Button & Logo */}
         <div className="flex items-center space-x-2 sm:space-x-4">
           {/* Mobile Menu Button - Only visible on mobile */}

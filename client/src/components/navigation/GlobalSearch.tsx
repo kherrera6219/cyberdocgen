@@ -199,11 +199,11 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
   }, []);
 
   const defaultTrigger = (
-    <Button variant="outline" className="relative w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64">
-      <Search className="mr-2 h-4 w-4" />
-      <span className="hidden lg:inline-flex">Search...</span>
-      <span className="inline-flex lg:hidden">Search</span>
-      <kbd className="pointer-events-none absolute right-1.5 top-2 hidden h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+    <Button variant="outline" className="relative w-full sm:w-auto justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64">
+      <Search className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+      <span className="hidden md:inline-flex">Search...</span>
+      <span className="inline-flex md:hidden">Search</span>
+      <kbd className="pointer-events-none absolute right-1.5 top-1.5 sm:top-2 hidden h-5 sm:h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 lg:flex">
         <span className="text-xs">⌘</span>K
       </kbd>
     </Button>
@@ -214,8 +214,8 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl p-0">
-        <DialogHeader className="p-4 pb-0">
+      <DialogContent className="w-[95vw] max-w-2xl p-0 m-2 sm:m-0">
+        <DialogHeader className="p-3 sm:p-4 pb-0">
           <DialogTitle className="sr-only">Global Search</DialogTitle>
           <DialogDescription className="sr-only">
             Search for documents, profiles, and navigate to different pages
@@ -227,9 +227,9 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
             placeholder="Search documents, profiles, pages..."
             value={searchQuery}
             onValueChange={setSearchQuery}
-            className="border-none focus:ring-0"
+            className="border-none focus:ring-0 text-sm sm:text-base"
           />
-          <CommandList className="max-h-96">
+          <CommandList className="max-h-80 sm:max-h-96">
             {!searchQuery && recentSearches.length > 0 && (
               <CommandGroup heading="Recent Searches">
                 {recentSearches.map((search, index) => (

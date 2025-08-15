@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -137,38 +138,69 @@ export function UserProfile() {
                   Update your personal details and contact information
                 </CardDescription>
               </div>
-              <div className="flex space-x-2">
-                <Button onClick={() => setIsEditing(!isEditing)} variant="outline" size="sm">
+              {!isEditing ? (
+                <Button onClick={() => setIsEditing(true)} variant="outline" size="sm" className="self-start sm:self-auto">
                   <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                  {isEditing ? 'Cancel' : 'Edit'}
+                  Edit
                 </Button>
-                {isEditing && (
+              ) : (
+                <div className="flex space-x-2">
                   <Button onClick={handleSave} size="sm">
                     Save Changes
                   </Button>
-                )}
-              </div>
+                  <Button 
+                    onClick={() => setIsEditing(false)} 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName" className="text-xs sm:text-sm">First Name</Label>
-                  <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
-                    {user.firstName || 'Not set'}
-                  </p>
+                  {isEditing ? (
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="Enter first name"
+                      className="mt-1 text-sm"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
+                      {user.firstName || 'Not set'}
+                    </p>
+                  )}
                 </div>
                 
                 <div>
                   <Label htmlFor="lastName" className="text-xs sm:text-sm">Last Name</Label>
-                  <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
-                    {user.lastName || 'Not set'}
-                  </p>
+                  {isEditing ? (
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="Enter last name"
+                      className="mt-1 text-sm"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
+                      {user.lastName || 'Not set'}
+                    </p>
+                  )}
                 </div>
                 
                 <div className="md:col-span-2">
                   <Label htmlFor="email" className="text-xs sm:text-sm">Email Address</Label>
                   <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
                     {user.email}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Email changes require verification
                   </p>
                 </div>
               </div>

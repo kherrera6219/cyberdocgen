@@ -86,23 +86,23 @@ export default function Documents() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-6 sm:h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 sm:w-1/4"></div>
+          <div className="h-48 sm:h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-3 sm:pb-4 lg:pb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
           {frameworkFilter ? `${frameworkFilter} Documents` : 'Document Library'}
         </h1>
-        <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">Manage your compliance documentation and exports</p>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">Manage your compliance documentation and exports</p>
       </div>
 
       {/* Filters and Search */}

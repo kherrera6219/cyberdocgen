@@ -80,27 +80,27 @@ export default function CompanyProfile() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-6 sm:h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 sm:w-1/4"></div>
+          <div className="h-48 sm:h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Company Profile</h1>
-        <p className="text-gray-600">Configure your company information for accurate compliance documentation</p>
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="space-y-2 sm:space-y-3">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Company Profile</h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Configure your company information for accurate compliance documentation</p>
       </div>
 
-      <Card>
-        <CardHeader className="border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <Building className="w-6 h-6 text-primary" />
-            <CardTitle>Company Information</CardTitle>
+      <Card className="shadow-sm">
+        <CardHeader className="border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <Building className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
+            <CardTitle className="text-base sm:text-lg">Company Information</CardTitle>
           </div>
         </CardHeader>
         
