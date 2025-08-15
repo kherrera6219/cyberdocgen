@@ -75,11 +75,10 @@ export default function Dashboard() {
     mutationFn: async ({ framework }: { framework: string }) => {
       if (!profile) throw new Error("No company profile found");
       
-      const response = await apiRequest("POST", "/api/generate-documents", {
+      return await apiRequest("POST", "/api/generate-documents", {
         companyProfileId: profile.id,
         framework,
       });
-      return response.json();
     },
     onSuccess: (data) => {
       setCurrentFramework("");
@@ -497,12 +496,27 @@ export default function Dashboard() {
       </Dialog>
       
       {/* Generation Customizer Dialog */}
-      <GenerationCustomizer
-        isOpen={showCustomizer}
-        onClose={() => setShowCustomizer(false)}
-        framework={selectedFramework}
-        onGenerate={handleCustomGenerate}
-      />
+      {showCustomizer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Customize Generation</h3>
+            <p className="text-gray-600 mb-4">
+              Customize AI document generation for {selectedFramework} framework.
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowCustomizer(false)} variant="outline">
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                setShowCustomizer(false);
+                handleStartGeneration(selectedFramework);
+              }}>
+                Generate Documents
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
