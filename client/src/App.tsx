@@ -17,6 +17,7 @@ import EnhancedCompanyProfile from "./pages/enhanced-company-profile";
 import DocumentWorkspace from "./pages/document-workspace";
 import AuditTrail from "./pages/audit-trail";
 import DocumentVersions from "./pages/document-versions";
+import { ObjectStorageManager } from "./components/ObjectStorageManager";
 import Layout from "./components/layout";
 
 function Router() {
@@ -38,6 +39,7 @@ function Router() {
           <Route path="/document-versions/:id" component={(props: any) => <DocumentVersions documentId={props.params.id} documentTitle="Document" />} />
           <Route path="/user-profile" component={UserProfile} />
           <Route path="/organizations" component={OrganizationSetup} />
+          <Route path="/storage" component={ObjectStorageManager} />
         </>
       )}
       <Route component={NotFound} />

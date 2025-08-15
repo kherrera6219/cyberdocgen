@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
   Building, 
+  Database,
   Tag, 
   Shield, 
   Flag, 
@@ -22,6 +23,7 @@ interface NavItem {
 const mainNavItems: NavItem[] = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/profile", icon: Building, label: "Company Profile" },
+  { href: "/storage", icon: Database, label: "Object Storage" },
 ];
 
 const frameworkNavItems: NavItem[] = [

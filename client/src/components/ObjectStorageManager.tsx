@@ -37,6 +37,18 @@ interface StorageStats {
   lastUpdated: string;
 }
 
+interface StorageStatsResponse {
+  success: boolean;
+  stats: StorageStats;
+  error?: string;
+}
+
+interface FileListResponse {
+  success: boolean;
+  files: string[];
+  error?: string;
+}
+
 interface FileItem {
   name: string;
   folder: string;
@@ -53,28 +65,28 @@ export function ObjectStorageManager() {
   const queryClient = useQueryClient();
 
   // Get storage statistics
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<StorageStatsResponse>({
     queryKey: ["/api/storage/stats"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // List all files
-  const { data: allFiles, isLoading: filesLoading } = useQuery({
+  const { data: allFiles, isLoading: filesLoading } = useQuery<FileListResponse>({
     queryKey: ["/api/storage/list"],
   });
 
   // List files by folder
-  const { data: documentFiles } = useQuery({
+  const { data: documentFiles } = useQuery<FileListResponse>({
     queryKey: ["/api/storage/list", "documents"],
     queryFn: () => apiRequest("/api/storage/list?folder=documents"),
   });
 
-  const { data: profileFiles } = useQuery({
+  const { data: profileFiles } = useQuery<FileListResponse>({
     queryKey: ["/api/storage/list", "profiles"],
     queryFn: () => apiRequest("/api/storage/list?folder=profiles"),
   });
 
-  const { data: backupFiles } = useQuery({
+  const { data: backupFiles } = useQuery<FileListResponse>({
     queryKey: ["/api/storage/list", "backups"],
     queryFn: () => apiRequest("/api/storage/list?folder=backups"),
   });
