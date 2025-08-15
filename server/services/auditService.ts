@@ -62,8 +62,14 @@ export class AuditService {
         timestamp: new Date()
       };
 
-      // TODO: Insert into database once audit_logs table is created
-      // await db.insert(auditLogs).values(auditRecord);
+      // Insert into database audit_logs table
+      try {
+        const { auditLogs } = await import('../../shared/schema');
+        await db.insert(auditLogs).values(auditRecord);
+      } catch (dbError: any) {
+        logger.error('Failed to insert audit log to database', { error: dbError?.message || 'Unknown error' });
+        // Continue with application logging even if database insert fails
+      }
 
       // Log to application logs
       logger.info('AUDIT', {
@@ -83,9 +89,9 @@ export class AuditService {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to log audit event', { 
-        error: error.message, 
+        error: error?.message || 'Unknown error', 
         auditEntry: entry 
       });
     }
@@ -220,14 +226,34 @@ export class AuditService {
 
 export const auditService = new AuditService();
 
+// Legacy method aliases for backward compatibility
+(auditService as any).logAction = async (params: any) => {
+  // Convert old format to new format
+  const req = {
+    ip: params.ipAddress,
+    get: (header: string) => header === 'User-Agent' ? params.userAgent : undefined,
+    user: { id: params.userId }
+  } as any;
+  
+  const action = params.action === 'view' ? AuditAction.READ : 
+                params.action === 'create' ? AuditAction.CREATE :
+                params.action === 'update' ? AuditAction.UPDATE :
+                params.action === 'delete' ? AuditAction.DELETE :
+                AuditAction.READ;
+  
+  return auditService.auditFromRequest(req, action, params.entityType, params.entityId, params.metadata);
+};
+
+(auditService as any).logAudit = (auditService as any).logAction;
+
 // Middleware to automatically audit API requests
 export function auditMiddleware(action: AuditAction, resourceType: string) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       await auditService.auditFromRequest(req, action, resourceType);
       next();
-    } catch (error) {
-      logger.error('Audit middleware failed', { error: error.message });
+    } catch (error: any) {
+      logger.error('Audit middleware failed', { error: error?.message || 'Unknown error' });
       next(); // Continue even if audit fails
     }
   };

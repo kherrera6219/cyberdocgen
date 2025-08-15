@@ -559,6 +559,32 @@ export const insertDocumentVersionSchema = createInsertSchema(documentVersions).
 });
 
 export type InsertDocumentVersion = z.infer<typeof insertDocumentVersionSchema>;
+
+// Audit Logs Table for SOC 2 Compliance
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  organizationId: varchar("organization_id").references(() => organizations.id),
+  action: varchar("action").notNull(),
+  resourceType: varchar("resource_type").notNull(),
+  resourceId: varchar("resource_id"),
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  ipAddress: varchar("ip_address").notNull(),
+  userAgent: varchar("user_agent"),
+  riskLevel: varchar("risk_level").notNull().default("low"),
+  additionalContext: jsonb("additional_context"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+}, (table) => [
+  index("idx_audit_logs_user_id").on(table.userId),
+  index("idx_audit_logs_action").on(table.action),
+  index("idx_audit_logs_timestamp").on(table.timestamp),
+  index("idx_audit_logs_risk_level").on(table.riskLevel)
+]);
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
 export type DocumentVersion = typeof documentVersions.$inferSelect;
 
 // Audit Trail table for comprehensive logging with extended AI actions

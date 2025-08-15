@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import { auditService } from "./services/auditService";
+import { auditService, AuditAction } from "./services/auditService";
 import { versionService } from "./services/versionService";
 import { logger } from "./utils/logger";
 import { validateRequest, commonSchemas } from "./utils/validation";
@@ -259,14 +259,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       
       // Log user access for audit trail
-      await auditService.logAction({
-        action: "view",
-        entityType: "user",
-        entityId: userId,
-        userId: userId,
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent'),
-      });
+      await auditService.auditFromRequest(
+        req,
+        AuditAction.READ,
+        'user',
+        userId
+      );
       
       res.json(user);
     } catch (error: any) {
