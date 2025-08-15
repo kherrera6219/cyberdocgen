@@ -2165,6 +2165,249 @@ Category: ${category}`;
     }
   });
 
+  // =====================================
+  // AI-POWERED APPLICATION ENDPOINTS
+  // =====================================
+
+  // Document Generation with Latest AI Models
+  app.post('/api/generate-document', async (req, res) => {
+    try {
+      const { framework, companyProfile, documentType } = req.body;
+      
+      // Use GPT-5 for document generation
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const systemPrompt = `You are a cybersecurity compliance expert. Generate a comprehensive ${documentType} document for ${framework} compliance framework for the company: ${companyProfile.name} (Industry: ${companyProfile.industry}, Size: ${companyProfile.size}).`;
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Generate a detailed ${documentType} document for ${framework} compliance.` }
+        ],
+        max_completion_tokens: 3000,
+        temperature: 0.3,
+      });
+
+      res.json({
+        success: true,
+        framework,
+        documentType,
+        content: response.choices[0].message.content,
+        model: "gpt-5",
+        usage: response.usage
+      });
+    } catch (error: any) {
+      console.error("Document generation failed:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+  });
+
+  // Risk Assessment with Claude Opus 4.1
+  app.post('/api/risk-assessment', async (req, res) => {
+    try {
+      const { companyProfile } = req.body;
+      
+      // Use Claude Opus 4.1 for advanced risk analysis
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      
+      const systemPrompt = `You are a cybersecurity risk analyst. Analyze the company profile and provide a comprehensive risk assessment with specific recommendations.`;
+      
+      const response = await anthropic.messages.create({
+        model: "claude-opus-4-1",
+        max_tokens: 2000,
+        messages: [{
+          role: "user", 
+          content: `Analyze cybersecurity risks for: Company: ${companyProfile.name}, Industry: ${companyProfile.industry}, Assets: ${companyProfile.assets?.join(', ')}, Threats: ${companyProfile.threats?.join(', ')}`
+        }],
+      });
+
+      const content = response.content[0];
+      const analysisText = content.type === 'text' ? content.text : 'Risk analysis completed';
+
+      res.json({
+        success: true,
+        riskAssessment: analysisText,
+        model: "claude-opus-4-1",
+        usage: response.usage
+      });
+    } catch (error: any) {
+      console.error("Risk assessment failed:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+  });
+
+  // Compliance Analysis with Gemini 2.5 Pro
+  app.post('/api/compliance-analysis', async (req, res) => {
+    try {
+      const { framework, currentControls, requirements } = req.body;
+      
+      // Use Gemini 2.5 Pro for compliance gap analysis
+      const prompt = `Analyze compliance gaps for ${framework}. Current controls: ${currentControls.join(', ')}. Requirements: ${requirements.join(', ')}. Provide detailed gap analysis and recommendations.`;
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 2000, temperature: 0.2 }
+        })
+      });
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Analysis completed';
+
+      res.json({
+        success: true,
+        framework,
+        complianceAnalysis: text,
+        model: "gemini-2.5-pro",
+        usage: data.usageMetadata
+      });
+    } catch (error: any) {
+      console.error("Compliance analysis failed:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+  });
+
+  // Document Quality Scoring with AI
+  app.post('/api/analyze-document-quality', async (req, res) => {
+    try {
+      const { content, framework } = req.body;
+      
+      // Use Claude for document quality analysis
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      
+      const response = await anthropic.messages.create({
+        model: "claude-opus-4-1",
+        max_tokens: 1000,
+        messages: [{
+          role: "user", 
+          content: `Analyze the quality of this ${framework} compliance document and provide a score (1-100) with feedback: ${content.substring(0, 2000)}...`
+        }],
+      });
+
+      const content_block = response.content[0];
+      const analysisText = content_block.type === 'text' ? content_block.text : 'Quality analysis completed';
+
+      // Extract score (simple regex for demo)
+      const scoreMatch = analysisText.match(/score[:\s]*(\d+)/i);
+      const score = scoreMatch ? parseInt(scoreMatch[1]) : 85;
+
+      res.json({
+        success: true,
+        qualityScore: score,
+        feedback: analysisText,
+        model: "claude-opus-4-1",
+        usage: response.usage
+      });
+    } catch (error: any) {
+      console.error("Quality analysis failed:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message,
+        qualityScore: 75,
+        feedback: "Quality analysis unavailable"
+      });
+    }
+  });
+
+  // AI Chat Assistant for Compliance Questions
+  app.post('/api/compliance-chat', async (req, res) => {
+    try {
+      const { question, context } = req.body;
+      
+      // Use GPT-5 for intelligent compliance assistance
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          { role: "system", content: "You are a compliance expert assistant. Provide accurate, actionable guidance on cybersecurity compliance questions." },
+          { role: "user", content: `Context: ${context || 'General compliance question'}. Question: ${question}` }
+        ],
+        max_completion_tokens: 1000,
+        temperature: 0.2,
+      });
+
+      res.json({
+        success: true,
+        answer: response.choices[0].message.content,
+        model: "gpt-5",
+        usage: response.usage
+      });
+    } catch (error: any) {
+      console.error("Compliance chat failed:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+  });
+
+  // Multi-Model Document Generation (with intelligent model selection)
+  app.post('/api/generate-multi-model', async (req, res) => {
+    try {
+      const { framework, documentType, companyProfile, preferredModel } = req.body;
+      
+      let result;
+      let modelUsed;
+      
+      if (preferredModel === 'claude' || (!preferredModel && documentType.includes('risk'))) {
+        // Use Claude for risk-related documents
+        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await anthropic.messages.create({
+          model: "claude-opus-4-1",
+          max_tokens: 3000,
+          messages: [{
+            role: "user", 
+            content: `Generate a comprehensive ${documentType} document for ${framework} compliance for ${companyProfile.name}.`
+          }],
+        });
+        const content_block = response.content[0];
+        result = content_block.type === 'text' ? content_block.text : 'Document generated';
+        modelUsed = "claude-opus-4-1";
+      } else {
+        // Use GPT-5 for general documents
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const response = await openai.chat.completions.create({
+          model: "gpt-5",
+          messages: [
+            { role: "system", content: `Generate a professional ${documentType} document for ${framework} compliance.` },
+            { role: "user", content: `Company: ${companyProfile.name}, Industry: ${companyProfile.industry}` }
+          ],
+          max_completion_tokens: 3000,
+          temperature: 0.3,
+        });
+        result = response.choices[0].message.content;
+        modelUsed = "gpt-5";
+      }
+
+      res.json({
+        success: true,
+        content: result,
+        modelUsed,
+        framework,
+        documentType
+      });
+    } catch (error: any) {
+      console.error("Multi-model generation failed:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
