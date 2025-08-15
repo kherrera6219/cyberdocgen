@@ -382,6 +382,22 @@ export type InsertDocumentWorkspace = z.infer<typeof insertDocumentWorkspaceSche
 export type GenerationJob = typeof generationJobs.$inferSelect;
 export type InsertGenerationJob = z.infer<typeof insertGenerationJobSchema>;
 
+// Extended types for audit actions including AI operations
+export const AuditAction = z.enum([
+  "view", "download", "delete", "create", "update", "approve", "reject", "publish", "archive",
+  // AI-specific actions
+  "generate_insights", "analyze", "extract", "chat", "assess", "score"
+]);
+
+export const AuditEntityType = z.enum([
+  "user", "template", "document", "company_profile", "organization",
+  // AI-specific entities
+  "ai_conversation", "risk_assessment", "threat_landscape", "document_quality"
+]);
+
+export type AuditActionType = z.infer<typeof AuditAction>;
+export type AuditEntityTypeEnum = z.infer<typeof AuditEntityType>;
+
 // Document Versions table for version control
 export const documentVersions = pgTable("document_versions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -406,12 +422,12 @@ export const insertDocumentVersionSchema = createInsertSchema(documentVersions).
 export type InsertDocumentVersion = z.infer<typeof insertDocumentVersionSchema>;
 export type DocumentVersion = typeof documentVersions.$inferSelect;
 
-// Audit Trail table for comprehensive logging
+// Audit Trail table for comprehensive logging with extended AI actions
 export const auditTrail = pgTable("audit_trail", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  entityType: varchar("entity_type", { enum: ["document", "company_profile", "user", "organization", "template"] }).notNull(),
+  entityType: text("entity_type").notNull(), // Extended to support AI entities
   entityId: varchar("entity_id").notNull(),
-  action: varchar("action", { enum: ["create", "update", "delete", "view", "download", "approve", "reject", "publish", "archive"] }).notNull(),
+  action: text("action").notNull(), // Extended to support AI actions
   userId: varchar("user_id").notNull(),
   userEmail: varchar("user_email"),
   userName: varchar("user_name"),

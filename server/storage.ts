@@ -127,16 +127,24 @@ export class MemStorage implements IStorage {
   }
 
   async upsertUser(user: UpsertUser): Promise<User> {
-    const existing = this.users.get(user.id);
+    const id = user.id;
+    if (!id) {
+      throw new Error("User ID is required for upsert operation");
+    }
+    
+    const existing = this.users.get(id);
     if (existing) {
-      const { id, ...updateData } = user;
-      const updated = await this.updateUser(id, updateData);
-      return updated!;
+      const { id: userId, ...updateData } = user;
+      const updated = await this.updateUser(userId, updateData);
+      if (!updated) {
+        throw new Error("Failed to update user");
+      }
+      return updated;
     } else {
-      const { id, ...insertUser } = user;
+      const { id: userId, ...insertUser } = user;
       const newUser = await this.createUser(insertUser);
-      this.users.set(id, { ...newUser, id });
-      return { ...newUser, id };
+      this.users.set(userId, { ...newUser, id: userId });
+      return { ...newUser, id: userId };
     }
   }
 
@@ -247,8 +255,6 @@ export class MemStorage implements IStorage {
       id,
       cloudInfrastructure: Array.isArray(insertProfile.cloudInfrastructure) ? insertProfile.cloudInfrastructure : [],
       isActive: insertProfile.isActive ?? true,
-      complianceRequirements: insertProfile.complianceRequirements || null,
-      organizationalStructure: insertProfile.organizationalStructure || null,
       keyPersonnel: insertProfile.keyPersonnel || null,
       frameworkConfigs: insertProfile.frameworkConfigs || null,
       uploadedDocs: insertProfile.uploadedDocs || null,
@@ -506,7 +512,7 @@ export class DatabaseStorage implements IStorage {
         eq(userOrganizations.userId, userId),
         eq(userOrganizations.organizationId, organizationId)
       ));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Company Profile methods
@@ -529,15 +535,27 @@ export class DatabaseStorage implements IStorage {
   async createCompanyProfile(insertProfile: InsertCompanyProfile): Promise<CompanyProfile> {
     const [profile] = await db
       .insert(companyProfiles)
-      .values(insertProfile)
+      .values([insertProfile])
       .returning();
     return profile;
   }
 
   async updateCompanyProfile(id: string, updateData: Partial<InsertCompanyProfile>): Promise<CompanyProfile | undefined> {
+    const updateValues = {
+      ...updateData,
+      updatedAt: new Date(),
+      // Ensure array fields are properly handled
+      cloudInfrastructure: Array.isArray(updateData.cloudInfrastructure) ? updateData.cloudInfrastructure : undefined,
+    };
+    
+    // Remove undefined values to prevent database errors
+    const cleanUpdateValues = Object.fromEntries(
+      Object.entries(updateValues).filter(([, value]) => value !== undefined)
+    );
+    
     const [profile] = await db
       .update(companyProfiles)
-      .set({ ...updateData, updatedAt: new Date() })
+      .set(cleanUpdateValues)
       .where(eq(companyProfiles.id, id))
       .returning();
     return profile || undefined;
@@ -552,28 +570,12 @@ export class DatabaseStorage implements IStorage {
   async getDocuments(organizationId?: string): Promise<Document[]> {
     if (organizationId) {
       return await db
-        .select({
-          id: documents.id,
-          companyProfileId: documents.companyProfileId,
-          createdBy: documents.createdBy,
-          title: documents.title,
-          description: documents.description,
-          framework: documents.framework,
-          category: documents.category,
-          content: documents.content,
-          status: documents.status,
-          version: documents.version,
-          reviewedBy: documents.reviewedBy,
-          reviewedAt: documents.reviewedAt,
-          approvedBy: documents.approvedBy,
-          approvedAt: documents.approvedAt,
-          createdAt: documents.createdAt,
-          updatedAt: documents.updatedAt,
-        })
+        .select()
         .from(documents)
         .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
         .where(eq(companyProfiles.organizationId, organizationId))
-        .orderBy(desc(documents.updatedAt));
+        .orderBy(desc(documents.updatedAt))
+        .then(results => results.map(result => result.documents));
     }
     return await db.select().from(documents).orderBy(desc(documents.updatedAt));
   }
@@ -597,15 +599,27 @@ export class DatabaseStorage implements IStorage {
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
     const [document] = await db
       .insert(documents)
-      .values(insertDocument)
+      .values([insertDocument])
       .returning();
     return document;
   }
 
   async updateDocument(id: string, updateData: Partial<InsertDocument>): Promise<Document | undefined> {
+    const updateValues = {
+      ...updateData,
+      updatedAt: new Date(),
+      // Ensure array fields are properly handled
+      tags: Array.isArray(updateData.tags) ? updateData.tags : undefined,
+    };
+    
+    // Remove undefined values to prevent database errors
+    const cleanUpdateValues = Object.fromEntries(
+      Object.entries(updateValues).filter(([, value]) => value !== undefined)
+    );
+    
     const [document] = await db
       .update(documents)
-      .set({ ...updateData, updatedAt: new Date() })
+      .set(cleanUpdateValues)
       .where(eq(documents.id, id))
       .returning();
     return document || undefined;
@@ -613,7 +627,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocument(id: string): Promise<boolean> {
     const result = await db.delete(documents).where(eq(documents.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Generation Job methods
@@ -625,24 +639,12 @@ export class DatabaseStorage implements IStorage {
   async getGenerationJobs(organizationId?: string): Promise<GenerationJob[]> {
     if (organizationId) {
       return await db
-        .select({
-          id: generationJobs.id,
-          companyProfileId: generationJobs.companyProfileId,
-          createdBy: generationJobs.createdBy,
-          framework: generationJobs.framework,
-          status: generationJobs.status,
-          progress: generationJobs.progress,
-          documentsGenerated: generationJobs.documentsGenerated,
-          totalDocuments: generationJobs.totalDocuments,
-          errorMessage: generationJobs.errorMessage,
-          completedAt: generationJobs.completedAt,
-          createdAt: generationJobs.createdAt,
-          updatedAt: generationJobs.updatedAt,
-        })
+        .select()
         .from(generationJobs)
         .innerJoin(companyProfiles, eq(generationJobs.companyProfileId, companyProfiles.id))
         .where(eq(companyProfiles.organizationId, organizationId))
-        .orderBy(desc(generationJobs.createdAt));
+        .orderBy(desc(generationJobs.createdAt))
+        .then(results => results.map(result => result.generation_jobs));
     }
     return await db.select().from(generationJobs).orderBy(desc(generationJobs.createdAt));
   }
@@ -658,7 +660,7 @@ export class DatabaseStorage implements IStorage {
   async createGenerationJob(insertJob: InsertGenerationJob): Promise<GenerationJob> {
     const [job] = await db
       .insert(generationJobs)
-      .values(insertJob)
+      .values([insertJob])
       .returning();
     return job;
   }

@@ -15,16 +15,54 @@ import { riskAssessmentService } from "./services/riskAssessment";
 import { qualityScoringService } from "./services/qualityScoring";
 import { generationLimiter } from "./middleware/security";
 import { z } from "zod";
+import { metricsCollector } from "./monitoring/metrics";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add metrics collection middleware
+  app.use(metricsCollector.requestMetrics());
+
+  // System health endpoint with comprehensive metrics
+  app.get("/health", async (req, res) => {
+    try {
+      const metrics = metricsCollector.getMetrics();
+      const healthStatus = {
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        uptime: metrics.uptime,
+        version: "1.0.0",
+        environment: process.env.NODE_ENV || "development",
+        metrics: {
+          requests: metrics.requests.total,
+          avgResponseTime: metrics.computedMetrics.avgResponseTime,
+          errorRate: metrics.computedMetrics.errorRate
+        }
+      };
+      res.json(healthStatus);
+    } catch (error) {
+      res.status(500).json({ status: "unhealthy", error: "Health check failed" });
+    }
+  });
+
+  // Metrics endpoint for monitoring
+  app.get("/metrics", async (req, res) => {
+    try {
+      const metrics = metricsCollector.getMetrics();
+      res.json(metrics);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to retrieve metrics" });
+    }
+  });
+
   // Public health check endpoint - must be before auth setup
   app.get("/api/ai/health", async (req: any, res) => {
     try {
       const health = await aiOrchestrator.healthCheck();
       res.json(health);
-    } catch (error) {
+    } catch (error: unknown) {
+      metricsCollector.trackAIOperation('analysis', false);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error("AI Health check failed:", error);
-      res.status(500).json({ message: "Health check failed", error: error.message });
+      res.status(500).json({ message: "Health check failed", error: errorMessage });
     }
   });
 
@@ -722,6 +760,7 @@ Category: ${category}`;
       }
 
       const analysis = await aiOrchestrator.analyzeQuality(content, framework);
+      metricsCollector.trackAIOperation('analysis', true);
       res.json(analysis);
     } catch (error) {
       console.error("Quality analysis failed:", error);
@@ -745,7 +784,8 @@ Category: ${category}`;
 
       const insights = await aiOrchestrator.generateInsights(companyProfile, framework);
       
-      // Log insight generation for audit trail
+      // Track AI operation and log insight generation for audit trail
+      metricsCollector.trackAIOperation('analysis', true);
       await auditService.logAction({
         action: "generate_insights",
         entityType: "company_profile",

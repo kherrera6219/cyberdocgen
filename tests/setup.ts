@@ -1,41 +1,21 @@
-import "@testing-library/jest-dom";
-import { vi } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { execSync } from 'child_process';
+import { pool } from '../server/db';
 
-// Mock environment variables
-vi.mock("../server/db", () => ({
-  db: {
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
-
-// Mock fetch for API tests
-global.fetch = vi.fn();
-
-// Mock localStorage
-Object.defineProperty(window, "localStorage", {
-  value: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-  },
-  writable: true,
+// Test environment setup
+beforeAll(async () => {
+  // Ensure test database is clean
+  try {
+    await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
+    console.log('Test database reset successfully');
+  } catch (error) {
+    console.error('Database reset failed:', error);
+    throw error;
+  }
 });
 
-// Mock window.matchMedia
-Object.defineProperty(window, "matchMedia", {
-  writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
+afterAll(async () => {
+  await pool.end();
 });
+
+export { describe, it, expect };
