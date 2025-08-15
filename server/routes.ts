@@ -2319,13 +2319,43 @@ Category: ${category}`;
         });
       }
 
+      // Create a default company profile if none provided for standalone documents
+      let finalCompanyProfileId = companyProfileId;
+      
+      if (!finalCompanyProfileId) {
+        // For standalone documents, use a system user ID or create one
+        let systemUserId = createdBy;
+        if (!systemUserId || systemUserId === 'system') {
+          // Create or get system user
+          let systemUser = await storage.getUserByEmail('system@compliance.ai');
+          if (!systemUser) {
+            systemUser = await storage.createUser({
+              email: 'system@compliance.ai',
+              firstName: 'System',
+              lastName: 'Generated'
+            });
+          }
+          systemUserId = systemUser.id;
+        }
+        
+        // Create a default system profile for standalone documents
+        const systemProfile = await storage.createCompanyProfile({
+          name: 'System Generated',
+          industry: 'General',
+          size: 'Small',
+          description: 'Auto-generated profile for standalone documents',
+          createdBy: systemUserId
+        });
+        finalCompanyProfileId = systemProfile.id;
+      }
+
       const documentData = {
         title,
         content,
         framework,
         category: category || 'general',
         status: 'draft' as const,
-        companyProfileId: companyProfileId || null,
+        companyProfileId: finalCompanyProfileId,
         createdBy: createdBy || 'system'
       };
 
@@ -2630,4 +2660,15 @@ Format with clear headings, numbered sections, and actionable guidance.`;
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Helper function for content types
+function getContentType(format: string): string {
+  const contentTypes: Record<string, string> = {
+    'pdf': 'application/pdf',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'txt': 'text/plain',
+    'html': 'text/html'
+  };
+  return contentTypes[format.toLowerCase()] || 'text/plain';
 }
