@@ -23,6 +23,14 @@ import { IndustrySpecialization } from "./components/ai/IndustrySpecialization";
 import GapAnalysis from "./pages/gap-analysis";
 import Layout from "./components/layout";
 
+// Lazy load components
+const EnterpriseSignup = lazy(() => import("@/pages/enterprise-signup"));
+const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
+const ResetPassword = lazy(() => import("@/pages/reset-password"));
+const MfaSetup = lazy(() => import("@/pages/mfa-setup"));
+const AdminSettings = lazy(() => import("@/pages/admin-settings"));
+const CloudIntegrations = lazy(() => import("@/pages/cloud-integrations"));
+
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -50,36 +58,36 @@ function Router() {
       {/* Enterprise Authentication Routes */}
       <Route path="/enterprise-signup">
         <Suspense fallback={<div>Loading...</div>}>
-          {React.createElement(lazy(() => import("@/pages/enterprise-signup")))}
+          <EnterpriseSignup />
         </Suspense>
       </Route>
       <Route path="/forgot-password">
         <Suspense fallback={<div>Loading...</div>}>
-          {React.createElement(lazy(() => import("@/pages/forgot-password")))}
+          <ForgotPassword />
         </Suspense>
       </Route>
       <Route path="/reset-password">
         <Suspense fallback={<div>Loading...</div>}>
-          {React.createElement(lazy(() => import("@/pages/reset-password")))}
+          <ResetPassword />
         </Suspense>
       </Route>
       <Route path="/mfa-setup">
         <Suspense fallback={<div>Loading...</div>}>
-          {React.createElement(lazy(() => import("@/pages/mfa-setup")))}
+          <MfaSetup />
         </Suspense>
       </Route>
 
       {/* Admin Routes */}
       <Route path="/admin">
         <Suspense fallback={<div>Loading...</div>}>
-          {React.createElement(lazy(() => import("@/pages/admin-settings")))}
+          <AdminSettings />
         </Suspense>
       </Route>
 
       {/* Cloud Integration Routes */}
       <Route path="/cloud-integrations">
         <Suspense fallback={<div>Loading...</div>}>
-          {React.createElement(lazy(() => import("@/pages/cloud-integrations")))}
+          <CloudIntegrations />
         </Suspense>
       </Route>
 
