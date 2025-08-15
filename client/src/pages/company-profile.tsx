@@ -16,6 +16,7 @@ import { insertCompanyProfileSchema } from "@shared/schema";
 import type { CompanyProfile, InsertCompanyProfile } from "@shared/schema";
 import { Building, Save } from "lucide-react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import React, { useState, useEffect, lazy } from "react";
 
 
 export default function CompanyProfile() {

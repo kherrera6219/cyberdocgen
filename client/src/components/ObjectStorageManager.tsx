@@ -389,10 +389,10 @@ export function ObjectStorageManager() {
                       <span className="ml-2 text-lg">Upload File</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
+                  <DialogContent className="sm:max-w-[425px]" aria-describedby="file-upload-description">
                     <DialogHeader>
                       <DialogTitle>Upload File</DialogTitle>
-                      <DialogDescription>
+                      <DialogDescription id="file-upload-description">
                         Select a file to upload to your secure object storage
                       </DialogDescription>
                     </DialogHeader>
@@ -450,10 +450,10 @@ export function ObjectStorageManager() {
                       <span className="ml-2 text-lg">Upload Text</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
+                  <DialogContent className="sm:max-w-[425px]" aria-describedby="text-upload-description">
                     <DialogHeader>
                       <DialogTitle>Upload Text Content</DialogTitle>
-                      <DialogDescription>
+                      <DialogDescription id="text-upload-description">
                         Upload text content directly to object storage
                       </DialogDescription>
                     </DialogHeader>
