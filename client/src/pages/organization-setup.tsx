@@ -15,6 +15,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { Building, Users, Plus, Settings, Globe, Mail } from "lucide-react";
 import { insertOrganizationSchema, type Organization } from "@shared/schema";
 import { z } from "zod";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
 
 const formSchema = insertOrganizationSchema.extend({
   slug: z.string().min(3).max(50).regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),

@@ -15,6 +15,8 @@ import { HelpTooltip } from "@/components/help/ContextualHelp";
 import { insertCompanyProfileSchema } from "@shared/schema";
 import type { CompanyProfile, InsertCompanyProfile } from "@shared/schema";
 import { Building, Save } from "lucide-react";
+import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
 
 export default function CompanyProfile() {
   const { toast } = useToast();
@@ -103,7 +105,7 @@ export default function CompanyProfile() {
             <CardTitle className="text-base sm:text-lg">Company Information</CardTitle>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -193,7 +195,7 @@ export default function CompanyProfile() {
                     />
                   </div>
                 </div>
-                
+
                 {/* Technical Information */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Environment</h3>

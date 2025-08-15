@@ -33,7 +33,7 @@ const enhancedCompanyProfileSchema = insertCompanyProfileSchema.extend({
   itManagerEmail: z.string().email().optional().or(z.literal("")),
   legalCounselName: z.string().optional(),
   legalCounselEmail: z.string().email().optional().or(z.literal("")),
-  
+
   // Framework configurations
   selectedFrameworks: z.array(z.string()).default([]),
   fedRampLevel: z.enum(["low", "moderate", "high"]).optional(),
