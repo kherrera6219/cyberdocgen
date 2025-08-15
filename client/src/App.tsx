@@ -31,6 +31,10 @@ const MfaSetup = lazy(() => import("@/pages/mfa-setup"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const CloudIntegrations = lazy(() => import("@/pages/cloud-integrations"));
 
+// Placeholder for AuditTrailComplete and UserProfileNew components
+const AuditTrailComplete = lazy(() => import("./pages/audit-trail-complete"));
+const UserProfileNew = lazy(() => import("./pages/user-profile-new"));
+
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -88,6 +92,18 @@ function Router() {
       <Route path="/cloud-integrations">
         <Suspense fallback={<div>Loading...</div>}>
           <CloudIntegrations />
+        </Suspense>
+      </Route>
+
+      {/* Corrected and new routes */}
+      <Route path="/audit-trail/complete">
+        <Suspense fallback={<div>Loading...</div>}>
+          <AuditTrailComplete />
+        </Suspense>
+      </Route>
+      <Route path="/profile/settings">
+        <Suspense fallback={<div>Loading...</div>}>
+          <UserProfileNew />
         </Suspense>
       </Route>
 

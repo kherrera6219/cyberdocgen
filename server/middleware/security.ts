@@ -54,7 +54,7 @@ export function sanitizeInput(req: Request, res: Response, next: NextFunction) {
   if (req.body) {
     req.body = sanitize(req.body);
   }
-  
+
   next();
 }
 
@@ -112,34 +112,54 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
 }
 
 // Error handling middleware
-export function errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-  logger.error('Error:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    method: req.method,
-    url: req.url,
-    ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    timestamp: new Date().toISOString()
-  });
-
-  // Don't expose internal errors in production
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(500).json({
-      message: "An internal server error occurred"
-    });
+export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+  // Skip if response already sent
+  if (res.headersSent) {
+    return next(err);
   }
 
-  res.status(err.status || 500).json({
-    message: err.message || "Internal server error",
-    stack: err.stack
+  logger.error('Error occurred', { 
+    error: err.message, 
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    userId: (req as any).user?.claims?.sub || 'anonymous'
+  }, req);
+
+  if (err.code === 'EBADCSRFTOKEN') {
+    return res.status(403).json({ message: 'Invalid CSRF token' });
+  }
+
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ message: 'Request entity too large' });
+  }
+
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ message: 'Validation failed', details: err.details });
+  }
+
+  if (err.name === 'UnauthorizedError') {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  const statusCode = err.statusCode || err.status || 500;
+  const message = process.env.NODE_ENV === 'production' 
+    ? 'Internal server error' 
+    : err.message;
+
+  res.status(statusCode).json({ 
+    message,
+    timestamp: new Date().toISOString(),
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
   });
-}
+};
 
 // Request logging middleware
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     logger.info(`${new Date().toISOString()} - ${req.method} ${req.url} ${res.statusCode} - ${duration}ms - ${req.ip}`);

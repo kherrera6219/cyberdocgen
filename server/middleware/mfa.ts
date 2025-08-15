@@ -28,17 +28,49 @@ export function requireMFA(req: Request & any, res: Response, next: NextFunction
       });
     }
 
-    // Check if this is a high-risk operation that requires MFA
-    const highRiskPaths = [
+    // High-security routes that require MFA
+    const HIGH_SECURITY_ROUTES = [
       '/api/company-profiles',
       '/api/documents/generate',
-      '/api/encryption',
-      '/api/admin'
+      '/api/documents/generate-single',
+      '/api/generation-jobs',
+      '/api/admin',
+      '/api/auth/enterprise',
+      '/api/storage/backups',
+      '/api/audit-trail',
+      '/api/gap-analysis/generate'
     ];
 
-    const requiresMFA = highRiskPaths.some(path => req.path.startsWith(path)) || 
-                       req.method === 'DELETE' ||
-                       (req.method === 'POST' && req.path.includes('/generate'));
+    // Medium-security routes that may require MFA based on risk factors
+    const MEDIUM_SECURITY_ROUTES = [
+      '/api/documents',
+      '/api/storage/documents',
+      '/api/ai/analyze-document',
+      '/api/cloud'
+    ];
+
+    const isHighSecurityRoute = HIGH_SECURITY_ROUTES.some(path => req.path.startsWith(path));
+    const isMediumSecurityRoute = MEDIUM_SECURITY_ROUTES.some(path => req.path.startsWith(path));
+
+    let requiresMFA = isHighSecurityRoute;
+
+    // Additional checks for MFA requirement
+    if (!requiresMFA) {
+      if (req.method === 'DELETE') {
+        requiresMFA = true;
+      } else if (req.method === 'POST' && req.path.includes('/generate')) {
+        requiresMFA = true;
+      } else if (isMediumSecurityRoute) {
+        // For medium security routes, MFA might be required based on risk
+        // This part would need more sophisticated logic (e.g., checking user risk score)
+        // For now, let's assume MFA is required for medium routes if not verified recently
+        const mfaTimeout = 30 * 60 * 1000; // 30 minutes
+        const mfaVerifiedAt = req.session.mfaVerifiedAt;
+        if (!mfaVerifiedAt || new Date().getTime() - new Date(mfaVerifiedAt).getTime() > mfaTimeout) {
+          requiresMFA = true;
+        }
+      }
+    }
 
     req.mfaRequired = requiresMFA;
 
@@ -86,10 +118,15 @@ export function verifyMFA(req: Request & any, res: Response, next: NextFunction)
     }
 
     if (!mfaToken) {
-      return res.status(403).json({ 
-        message: 'MFA token required',
-        mfaRequired: true 
-      });
+      // If MFA was required but no token provided, return 403
+      if (req.mfaRequired) {
+        return res.status(403).json({ 
+          message: 'MFA token required',
+          mfaRequired: true 
+        });
+      }
+      // If MFA was not required, proceed without a token
+      return next();
     }
 
     // In a full implementation, verify the MFA token here
@@ -128,10 +165,11 @@ export function enforceMFATimeout(req: Request & any, res: Response, next: NextF
     const mfaTimeout = 30 * 60 * 1000; // 30 minutes
     const mfaVerifiedAt = req.session.mfaVerifiedAt;
 
-    if (req.mfaRequired && mfaVerifiedAt) {
+    // Only enforce timeout if MFA was actually required and verified
+    if (req.mfaRequired && req.session.mfaVerified && mfaVerifiedAt) {
       const now = new Date();
       const verifiedAt = new Date(mfaVerifiedAt);
-      
+
       if (now.getTime() - verifiedAt.getTime() > mfaTimeout) {
         // MFA verification expired
         req.session.mfaVerified = false;

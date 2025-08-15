@@ -8,6 +8,7 @@ import {
   securityHeaders, 
   errorHandler 
 } from "./middleware/security";
+import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
 import { validateEnvironment } from "./utils/validation";
 import { logger } from "./utils/logger";
 import { healthCheckHandler, readinessCheckHandler, livenessCheckHandler } from "./utils/health";
@@ -27,6 +28,8 @@ app.get('/live', livenessCheckHandler);
 
 // Security middleware - only apply to API routes
 app.use(securityHeaders);
+app.use('/api', validateRouteAccess);
+app.use('/api', logRoutePerformance);
 app.use('/api', generalLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
