@@ -1,4 +1,5 @@
 import { Switch, Route } from "wouter";
+import { lazy } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -46,6 +47,12 @@ function Router() {
           <Route path="/ai-specialization" component={IndustrySpecialization} />
         </>
       )}
+      {/* Enterprise Authentication Routes */}
+      <Route path="/enterprise-signup" component={lazy(() => import("@/pages/enterprise-signup"))} />
+      <Route path="/forgot-password" component={lazy(() => import("@/pages/forgot-password"))} />
+      <Route path="/reset-password" component={lazy(() => import("@/pages/reset-password"))} />
+      <Route path="/mfa-setup" component={lazy(() => import("@/pages/mfa-setup"))} />
+      
       <Route component={NotFound} />
     </Switch>
   );

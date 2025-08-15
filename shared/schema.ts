@@ -25,6 +25,18 @@ export const users = pgTable("users", {
   role: varchar("role").notNull().default("user"), // user, admin, org_admin
   isActive: boolean("is_active").notNull().default(true),
   lastLoginAt: timestamp("last_login_at"),
+  // Enterprise authentication fields
+  passwordHash: varchar("password_hash"), // For local account creation
+  emailVerified: boolean("email_verified").default(false),
+  phoneNumber: varchar("phone_number"),
+  phoneVerified: boolean("phone_verified").default(false),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  // Account status and security
+  accountStatus: varchar("account_status", { enum: ["active", "suspended", "pending_verification"] }).default("pending_verification"),
+  failedLoginAttempts: integer("failed_login_attempts").default(0),
+  accountLockedUntil: timestamp("account_locked_until"),
+  // Passkey support
+  passkeyEnabled: boolean("passkey_enabled").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -189,6 +201,42 @@ export const documentTemplates = pgTable("document_templates", {
 });
 
 // Multi-Factor Authentication settings
+// Password reset tokens table
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Email verification tokens table
+export const emailVerificationTokens = pgTable("email_verification_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token").notNull().unique(),
+  email: varchar("email").notNull(), // New email for email change verification
+  expiresAt: timestamp("expires_at").notNull(),
+  verifiedAt: timestamp("verified_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Passkey credentials table
+export const passkeyCredentials = pgTable("passkey_credentials", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  credentialId: varchar("credential_id").notNull().unique(),
+  publicKey: text("public_key").notNull(),
+  counter: integer("counter").notNull().default(0),
+  deviceType: varchar("device_type"), // "platform" or "cross-platform"
+  deviceName: varchar("device_name"), // User-friendly device name
+  transports: jsonb("transports"), // Array of transport methods
+  createdAt: timestamp("created_at").defaultNow(),
+  lastUsedAt: timestamp("last_used_at"),
+});
+
+// Enhanced MFA settings table
 export const mfaSettings = pgTable("mfa_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
@@ -198,6 +246,9 @@ export const mfaSettings = pgTable("mfa_settings", {
   backupCodesEncrypted: text("backup_codes_encrypted"),
   isEnabled: boolean("is_enabled").notNull().default(false),
   isVerified: boolean("is_verified").notNull().default(false),
+  // Google Authenticator specific fields
+  authenticatorName: varchar("authenticator_name").default("Google Authenticator"),
+  qrCodeUrl: text("qr_code_url"), // For setup process
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
@@ -385,6 +436,9 @@ export const insertDocumentWorkspaceSchema = createInsertSchema(documentWorkspac
 
 // Type exports
 export type User = typeof users.$inferSelect;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
+export type PasskeyCredential = typeof passkeyCredentials.$inferSelect;
 
 // AI Fine-tuning configuration tables
 export const industryConfigurations = pgTable("industry_configurations", {

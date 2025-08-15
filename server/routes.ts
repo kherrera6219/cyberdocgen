@@ -2663,6 +2663,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
   const { default: mfaRoutes } = await import('./routes/mfa.js');
   app.use('/api/auth/mfa', mfaRoutes);
 
+  // Enterprise Authentication Routes
+  const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth.js');
+  app.use('/api/auth/enterprise', enterpriseAuthRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }

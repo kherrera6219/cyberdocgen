@@ -360,6 +360,19 @@ export class MFAService {
     
     return token;
   }
+
+  async getAllMFASettings(userId: string) {
+    const mfaSettings = await db.select()
+      .from(mfaSettingsTable)
+      .where(eq(mfaSettingsTable.userId, userId));
+    return mfaSettings;
+  }
+
+  async getPasskeyCount(userId: string): Promise<number> {
+    // This would query the passkey credentials table
+    // For now, return 0 as placeholder
+    return 0;
+  }
 }
 
 export const mfaService = new MFAService();
