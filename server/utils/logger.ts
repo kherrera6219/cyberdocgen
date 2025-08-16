@@ -1,20 +1,23 @@
-import { Request } from 'express';
+import { Request } from "express";
 
 export enum LogLevel {
-  ERROR = 'error',
-  WARN = 'warn',
-  INFO = 'info',
-  DEBUG = 'debug',
+  ERROR = "error",
+  WARN = "warn",
+  INFO = "info",
+  DEBUG = "debug",
 }
 
 class Logger {
-  private isDev = process.env.NODE_ENV !== 'production';
-
-  private format(level: LogLevel, message: string, context?: Record<string, any>, req?: Request): string {
+  private format(
+    level: LogLevel,
+    message: string,
+    context?: Record<string, any>,
+    req?: Request
+  ): string {
     const timestamp = new Date().toISOString();
     let line = `[${timestamp}] [${level.toUpperCase()}]`;
 
-    const requestId = req?.headers?.['x-request-id'];
+    const requestId = req?.headers?.["x-request-id"];
     const userId = (req as any)?.user?.claims?.sub;
     const ip = req?.ip;
 
@@ -31,7 +34,12 @@ class Logger {
     return line;
   }
 
-  private log(level: LogLevel, message: string, context?: Record<string, any>, req?: Request): void {
+  private log(
+    level: LogLevel,
+    message: string,
+    context?: Record<string, any>,
+    req?: Request
+  ): void {
     const line = this.format(level, message, context, req);
     switch (level) {
       case LogLevel.ERROR:
@@ -44,7 +52,7 @@ class Logger {
         console.info(line);
         break;
       case LogLevel.DEBUG:
-        if (this.isDev) {
+        if (process.env.NODE_ENV !== "production") {
           console.debug(line);
         }
         break;
@@ -67,12 +75,24 @@ class Logger {
     this.log(LogLevel.DEBUG, message, context, req);
   }
 
-  audit(action: string, resource: string, userId: string, details?: Record<string, any>, req?: Request): void {
+  audit(
+    action: string,
+    resource: string,
+    userId: string,
+    details?: Record<string, any>,
+    req?: Request
+  ): void {
     this.info(`AUDIT: ${action} on ${resource}`, { userId, ...details }, req);
   }
 
-  security(event: string, severity: 'low' | 'medium' | 'high', details?: Record<string, any>, req?: Request): void {
-    const level = severity === 'high' ? LogLevel.ERROR : severity === 'medium' ? LogLevel.WARN : LogLevel.INFO;
+  security(
+    event: string,
+    severity: "low" | "medium" | "high",
+    details?: Record<string, any>,
+    req?: Request
+  ): void {
+    const level =
+      severity === "high" ? LogLevel.ERROR : severity === "medium" ? LogLevel.WARN : LogLevel.INFO;
     this.log(level, `SECURITY: ${event}`, { severity, ...details }, req);
   }
 }

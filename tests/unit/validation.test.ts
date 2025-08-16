@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import {
-  sanitizeString,
+  idParamSchema,
+  paginationSchema,
   sanitizeEmail,
   sanitizeFilename,
-  validateSchema,
-  paginationSchema,
-  idParamSchema,
+  sanitizeString,
   searchSchema,
+  validateSchema,
 } from "../../server/utils/validation";
 
 describe("Validation Utils", () => {
@@ -27,7 +27,7 @@ describe("Validation Utils", () => {
     it("should remove javascript: protocols", () => {
       const input = 'Hello javascript:alert("xss") World';
       const result = sanitizeString(input);
-      expect(result).toBe("Hello alert(\"xss\") World");
+      expect(result).toBe('Hello alert("xss") World');
     });
 
     it("should remove event handlers", () => {
@@ -166,7 +166,7 @@ describe("Validation Utils", () => {
 
       middleware(req, res, next);
 
-      expect(req.validated).toEqual({ name: "John", age: "25" });
+      expect(req.validated).toEqual({ name: "John", age: 25 });
       expect(next).toHaveBeenCalled();
       expect(res.status).not.toHaveBeenCalled();
     });
