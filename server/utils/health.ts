@@ -70,12 +70,13 @@ class HealthCheckService {
         message: responseTime > 1000 ? "Database responding slowly" : "Database connection healthy",
         responseTime,
       };
-    } catch (error) {
-      logger.error("Database health check failed", { error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error("Database health check failed", { error: message });
       return {
         status: "fail",
         message: "Database connection failed",
-        details: { error: error.message },
+        details: { error: message },
       };
     }
   }
@@ -262,8 +263,8 @@ async function checkExternalAPIs(): Promise<boolean> {
   try {
     // Add actual API health checks here
     return true;
-  } catch (error) {
-    logger.error('External API health check failed:', error);
+  } catch (error: unknown) {
+    logger.error('External API health check failed:', { error });
     return false;
   }
 }
@@ -273,42 +274,42 @@ async function checkAIServices(): Promise<boolean> {
     const { aiOrchestrator } = await import('../services/aiOrchestrator');
     const healthStatus = await aiOrchestrator.healthCheck();
     return healthStatus.overall;
-  } catch (error) {
-    logger.error('AI services health check failed:', error);
+  } catch (error: unknown) {
+    logger.error('AI services health check failed:', { error });
     return false;
   }
 }
 
 async function checkEncryption(): Promise<boolean> {
   try {
-    const { encryptionService } = await import('../services/encryption');
+    const { encryptionService, DataClassification } = await import('../services/encryption');
     // Test encryption/decryption cycle
     const testData = 'health-check-test';
-    const encrypted = await encryptionService.encryptSensitiveField(testData, 'CONFIDENTIAL');
-    const decrypted = await encryptionService.decryptSensitiveField(encrypted);
+    const encrypted = await encryptionService.encryptSensitiveField(testData, DataClassification.CONFIDENTIAL);
+    const decrypted = await encryptionService.decryptSensitiveField(encrypted, DataClassification.CONFIDENTIAL);
     return decrypted === testData;
-  } catch (error) {
-    logger.error('Encryption service health check failed:', error);
+  } catch (error: unknown) {
+    logger.error('Encryption service health check failed:', { error });
     return false;
   }
 }
 
 async function checkAuditSystem(): Promise<boolean> {
   try {
-    const { auditService } = await import('../services/auditService');
+    const { auditService, AuditAction, RiskLevel } = await import('../services/auditService');
     // Test audit logging
     await auditService.logAuditEvent({
       userId: 'system',
-      action: 'CREATE',
+      action: AuditAction.CREATE,
       resourceType: 'health_check',
       resourceId: 'test',
       ipAddress: '127.0.0.1',
-      riskLevel: 'LOW',
+      riskLevel: RiskLevel.LOW,
       additionalContext: { type: 'health_check' }
     });
     return true;
-  } catch (error) {
-    logger.error('Audit system health check failed:', error);
+  } catch (error: unknown) {
+    logger.error('Audit system health check failed:', { error });
     return false;
   }
 }
@@ -318,8 +319,8 @@ async function checkSecurityServices(): Promise<boolean> {
     const { threatDetectionService } = await import('../services/threatDetectionService');
     const metrics = threatDetectionService.getSecurityMetrics();
     return typeof metrics.totalEvents === 'number';
-  } catch (error) {
-    logger.error('Security services health check failed:', error);
+  } catch (error: unknown) {
+    logger.error('Security services health check failed:', { error });
     return false;
   }
 }

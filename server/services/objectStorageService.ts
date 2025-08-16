@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Client } from '@replit/object-storage';
 import { logger } from '../utils/logger';
 

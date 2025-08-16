@@ -24,28 +24,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
   app.use(metricsCollector.requestMetrics());
 
-  // System health endpoint with comprehensive metrics
-  app.get("/health", async (req, res) => {
-    try {
-      const metrics = metricsCollector.getMetrics();
-      const healthStatus = {
-        status: "healthy",
-        timestamp: new Date().toISOString(),
-        uptime: metrics.uptime,
-        version: "1.0.0",
-        environment: process.env.NODE_ENV || "development",
-        metrics: {
-          requests: metrics.requests.total,
-          avgResponseTime: metrics.computedMetrics.avgResponseTime,
-          errorRate: metrics.computedMetrics.errorRate
-        }
-      };
-      res.json(healthStatus);
-    } catch (error) {
-      res.status(500).json({ status: "unhealthy", error: "Health check failed" });
-    }
-  });
-
   // Metrics endpoint for monitoring
   app.get("/metrics", async (req, res) => {
     try {
@@ -69,185 +47,188 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test OpenAI API key endpoint
-  app.get("/api/test/openai", async (req, res) => {
-    try {
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
+  // Development-only AI service test endpoints
+  if (process.env.NODE_ENV === "development") {
+    // Test OpenAI API key endpoint
+    app.get("/api/test/openai", async (req, res) => {
+      try {
+        const openai = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [{ role: "user", content: "Say 'OpenAI GPT-5 API test successful'" }],
-        max_completion_tokens: 50,
-      });
+        const response = await openai.chat.completions.create({
+          model: "gpt-5",
+          messages: [{ role: "user", content: "Say 'OpenAI GPT-5 API test successful'" }],
+          max_completion_tokens: 50,
+        });
 
-      res.json({
-        status: "success",
-        service: "OpenAI",
-        model: "gpt-5",
-        response: response.choices[0]?.message?.content,
-        usage: response.usage,
-      });
-    } catch (error: any) {
-      console.error("OpenAI API test failed:", error);
-      res.status(500).json({
-        status: "error",
-        service: "OpenAI",
-        error: error.message,
-        code: error.code || "unknown",
-      });
-    }
-  });
-
-  // Test Anthropic Claude API key endpoint
-  app.get("/api/test/claude", async (req, res) => {
-    try {
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-
-      const response = await anthropic.messages.create({
-        model: "claude-opus-4-1",
-        max_tokens: 50,
-        messages: [{ role: "user", content: "Say 'Claude Opus 4.1 API test successful'" }],
-      });
-
-      res.json({
-        status: "success",
-        service: "Anthropic Claude",
-        model: "claude-opus-4-1",
-        response: response.content[0]?.text,
-        usage: response.usage,
-      });
-    } catch (error: any) {
-      console.error("Claude API test failed:", error);
-      res.status(500).json({
-        status: "error",
-        service: "Anthropic Claude",
-        error: error.message,
-        code: error.status || "unknown",
-      });
-    }
-  });
-
-  // Test Google Gemini API key endpoint
-  app.get("/api/test/gemini", async (req, res) => {
-    try {
-      if (!process.env.GEMINI_API_KEY) {
-        return res.status(500).json({
+        res.json({
+          status: "success",
+          service: "OpenAI",
+          model: "gpt-5",
+          response: response.choices[0]?.message?.content,
+          usage: response.usage,
+        });
+      } catch (error: any) {
+        console.error("OpenAI API test failed:", error);
+        res.status(500).json({
           status: "error",
-          service: "Google Gemini",
-          error: "GEMINI_API_KEY not configured",
+          service: "OpenAI",
+          error: error.message,
+          code: error.code || "unknown",
         });
       }
+    });
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    // Test Anthropic Claude API key endpoint
+    app.get("/api/test/claude", async (req, res) => {
+      try {
+        const anthropic = new Anthropic({
+          apiKey: process.env.ANTHROPIC_API_KEY,
+        });
+
+        const response = await anthropic.messages.create({
+          model: "claude-opus-4-1",
+          max_tokens: 50,
+          messages: [{ role: "user", content: "Say 'Claude Opus 4.1 API test successful'" }],
+        });
+
+        res.json({
+          status: "success",
+          service: "Anthropic Claude",
+          model: "claude-opus-4-1",
+          response: response.content[0]?.text,
+          usage: response.usage,
+        });
+      } catch (error: any) {
+        console.error("Claude API test failed:", error);
+        res.status(500).json({
+          status: "error",
+          service: "Anthropic Claude",
+          error: error.message,
+          code: error.status || "unknown",
+        });
+      }
+    });
+
+    // Test Google Gemini API key endpoint
+    app.get("/api/test/gemini", async (req, res) => {
+      try {
+        if (!process.env.GEMINI_API_KEY) {
+          return res.status(500).json({
+            status: "error",
+            service: "Google Gemini",
+            error: "GEMINI_API_KEY not configured",
+          });
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: 'Say "Gemini 2.5 Pro API test successful"'
+              }]
+            }],
+            generationConfig: {
+              maxOutputTokens: 50,
+              temperature: 0.7,
+            }
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          return res.status(500).json({
+            status: "error",
+            service: "Google Gemini",
+            error: `HTTP ${response.status}: ${error}`,
+          });
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        res.json({
+          status: "success",
+          service: "Google Gemini",
+          model: "gemini-2.5-pro",
+          response: text,
+          usage: data.usageMetadata,
+        });
+      } catch (error: any) {
+        console.error("Gemini API test failed:", error);
+        res.status(500).json({
+          status: "error",
+          service: "Google Gemini",
+          error: error.message,
+        });
+      }
+    });
+
+    // Comprehensive AI services health check
+    app.get("/api/test/all-ai", async (req, res) => {
+      const results = {
+        timestamp: new Date().toISOString(),
+        services: {
+          openai: { status: "unknown", error: null },
+          claude: { status: "unknown", error: null },
+          gemini: { status: "unknown", error: null }
         },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: 'Say "Gemini 2.5 Pro API test successful"'
-            }]
-          }],
-          generationConfig: {
-            maxOutputTokens: 50,
-            temperature: 0.7,
-          }
-        }),
-      });
+        summary: { working: 0, total: 3 }
+      };
 
-      if (!response.ok) {
-        const error = await response.text();
-        return res.status(500).json({
-          status: "error",
-          service: "Google Gemini",
-          error: `HTTP ${response.status}: ${error}`,
-        });
-      }
-
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      res.json({
-        status: "success",
-        service: "Google Gemini",
-        model: "gemini-2.5-pro",
-        response: text,
-        usage: data.usageMetadata,
-      });
-    } catch (error: any) {
-      console.error("Gemini API test failed:", error);
-      res.status(500).json({
-        status: "error",
-        service: "Google Gemini",
-        error: error.message,
-      });
-    }
-  });
-
-  // Comprehensive AI services health check
-  app.get("/api/test/all-ai", async (req, res) => {
-    const results = {
-      timestamp: new Date().toISOString(),
-      services: {
-        openai: { status: "unknown", error: null },
-        claude: { status: "unknown", error: null },
-        gemini: { status: "unknown", error: null }
-      },
-      summary: { working: 0, total: 3 }
-    };
-
-    // Test OpenAI
-    try {
-      const openaiResponse = await fetch(`http://localhost:5000/api/test/openai`);
-      if (openaiResponse.ok) {
-        results.services.openai.status = "working";
-        results.summary.working++;
-      } else {
+      // Test OpenAI
+      try {
+        const openaiResponse = await fetch(`http://localhost:5000/api/test/openai`);
+        if (openaiResponse.ok) {
+          results.services.openai.status = "working";
+          results.summary.working++;
+        } else {
+          results.services.openai.status = "error";
+          results.services.openai.error = `HTTP ${openaiResponse.status}`;
+        }
+      } catch (error: any) {
         results.services.openai.status = "error";
-        results.services.openai.error = `HTTP ${openaiResponse.status}`;
+        results.services.openai.error = error.message;
       }
-    } catch (error: any) {
-      results.services.openai.status = "error";
-      results.services.openai.error = error.message;
-    }
 
-    // Test Claude
-    try {
-      const claudeResponse = await fetch(`http://localhost:5000/api/test/claude`);
-      if (claudeResponse.ok) {
-        results.services.claude.status = "working";
-        results.summary.working++;
-      } else {
+      // Test Claude
+      try {
+        const claudeResponse = await fetch(`http://localhost:5000/api/test/claude`);
+        if (claudeResponse.ok) {
+          results.services.claude.status = "working";
+          results.summary.working++;
+        } else {
+          results.services.claude.status = "error";
+          results.services.claude.error = `HTTP ${claudeResponse.status}`;
+        }
+      } catch (error: any) {
         results.services.claude.status = "error";
-        results.services.claude.error = `HTTP ${claudeResponse.status}`;
+        results.services.claude.error = error.message;
       }
-    } catch (error: any) {
-      results.services.claude.status = "error";
-      results.services.claude.error = error.message;
-    }
 
-    // Test Gemini
-    try {
-      const geminiResponse = await fetch(`http://localhost:5000/api/test/gemini`);
-      if (geminiResponse.ok) {
-        results.services.gemini.status = "working";
-        results.summary.working++;
-      } else {
+      // Test Gemini
+      try {
+        const geminiResponse = await fetch(`http://localhost:5000/api/test/gemini`);
+        if (geminiResponse.ok) {
+          results.services.gemini.status = "working";
+          results.summary.working++;
+        } else {
+          results.services.gemini.status = "error";
+          results.services.gemini.error = `HTTP ${geminiResponse.status}`;
+        }
+      } catch (error: any) {
         results.services.gemini.status = "error";
-        results.services.gemini.error = `HTTP ${geminiResponse.status}`;
+        results.services.gemini.error = error.message;
       }
-    } catch (error: any) {
-      results.services.gemini.status = "error";
-      results.services.gemini.error = error.message;
-    }
 
-    res.json(results);
-  });
+      res.json(results);
+    });
+  }
 
   // Auth middleware
   await setupAuth(app);

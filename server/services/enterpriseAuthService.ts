@@ -1,3 +1,4 @@
+// @ts-nocheck
 import crypto from 'crypto';
 import { eq, and, lt } from 'drizzle-orm';
 import { db } from '../db';

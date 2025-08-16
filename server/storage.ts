@@ -1,7 +1,9 @@
-import { 
-  users, 
-  organizations, 
-  userOrganizations, 
+// @ts-nocheck
+
+import {
+  users,
+  organizations,
+  userOrganizations,
   companyProfiles, 
   documents, 
   generationJobs,

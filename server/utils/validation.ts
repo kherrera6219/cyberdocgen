@@ -76,20 +76,37 @@ export const commonSchemas = {
   }),
 };
 
-// Input sanitization
+// Sanitization helpers
+export function sanitizeString(input: string, maxLength = 1000): string {
+  return input
+    .trim()
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .slice(0, maxLength);
+}
+
+export function sanitizeEmail(input: string): string {
+  return sanitizeString(input).toLowerCase();
+}
+
+export function sanitizeFilename(input: string): string {
+  return sanitizeString(input)
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
+    .slice(0, 255);
+}
+
 export function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
-    return input
-      .trim()
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
-      .replace(/javascript:/gi, '') // Remove javascript: protocols
-      .replace(/on\w+\s*=/gi, ''); // Remove event handlers
+    return sanitizeString(input);
   }
-  
+
   if (Array.isArray(input)) {
     return input.map(sanitizeInput);
   }
-  
+
   if (input && typeof input === 'object') {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(input)) {
@@ -97,9 +114,44 @@ export function sanitizeInput(input: any): any {
     }
     return sanitized;
   }
-  
+
   return input;
 }
+
+// Validation middleware
+export function validateSchema<T extends z.ZodTypeAny>(schema: T) {
+  return (req: any, res: any, next: any) => {
+    try {
+      const data = { ...req.body, ...req.query };
+      req.validated = schema.parse(data);
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: 'Validation failed',
+          errors: error.errors,
+        });
+      }
+      next(error);
+    }
+  };
+}
+
+export const paginationSchema = z.object({
+  page: z.preprocess((v) => Number(v), z.number().int().min(1).default(1)),
+  limit: z.preprocess((v) => Number(v), z.number().int().min(1).max(100).default(20)),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+});
+
+export const idParamSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const searchSchema = z.object({
+  q: z.string().optional(),
+  framework: z.enum(['ISO27001', 'SOC2', 'PCI-DSS']).optional(),
+  status: z.enum(['approved', 'pending', 'rejected']).optional(),
+});
 
 // Rate limiting configuration
 export const rateLimitConfig = {

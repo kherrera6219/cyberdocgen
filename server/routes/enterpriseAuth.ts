@@ -326,9 +326,9 @@ router.get('/methods/:userId', async (req, res) => {
     
     const methods = {
       password: true, // Always available for enterprise accounts
-      totp: mfaSettings.some(m => m.mfaType === 'totp' && m.isEnabled),
-      sms: mfaSettings.some(m => m.mfaType === 'sms' && m.isEnabled),
-      backupCodes: mfaSettings.some(m => m.mfaType === 'backup_codes' && m.isEnabled),
+      totp: mfaSettings.some((m: any) => m.mfaType === 'totp' && m.isEnabled),
+      sms: mfaSettings.some((m: any) => m.mfaType === 'sms' && m.isEnabled),
+      backupCodes: mfaSettings.some((m: any) => m.mfaType === 'backup_codes' && m.isEnabled),
       passkey: passkeyCount > 0,
     };
 

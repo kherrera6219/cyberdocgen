@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from '../setup';
 import request from 'supertest';
 import express from 'express';
 import { registerRoutes } from '../../server/routes';
+import { healthCheckHandler } from '../../server/utils/health';
 
 describe('API Integration Tests', () => {
   let app: express.Application;
@@ -10,6 +11,7 @@ describe('API Integration Tests', () => {
   beforeAll(async () => {
     app = express();
     app.use(express.json());
+    app.get('/health', healthCheckHandler);
     server = await registerRoutes(app);
   });
 
@@ -35,8 +37,9 @@ describe('API Integration Tests', () => {
         .get('/api/ai/health')
         .expect(200);
 
-      expect(response.body).toHaveProperty('models');
-      expect(response.body).toHaveProperty('status');
+      expect(response.body).toHaveProperty('openai');
+      expect(response.body).toHaveProperty('anthropic');
+      expect(response.body).toHaveProperty('overall');
     });
   });
 
