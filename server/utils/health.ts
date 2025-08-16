@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
-import { sql } from 'drizzle-orm';
-import { logger } from './logger';
-import { db } from '../db';
-import { performanceService } from '../services/performanceService';
+import { sql } from "drizzle-orm";
+import { Request, Response } from "express";
+import { db } from "../db";
+import { performanceService } from "../services/performanceService";
+import { logger } from "./logger";
 
 interface HealthCheckResult {
   status: "pass" | "fail" | "warn";
@@ -25,7 +25,7 @@ interface HealthCheck {
 }
 
 interface HealthStatus {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
   uptime: number;
   version: string;
@@ -62,7 +62,7 @@ class HealthCheckService {
   async checkDatabase(): Promise<HealthCheckResult> {
     try {
       const start = Date.now();
-      await db.execute('SELECT 1');
+      await db.execute("SELECT 1");
       const responseTime = Date.now() - start;
 
       return {
@@ -70,12 +70,13 @@ class HealthCheckService {
         message: responseTime > 1000 ? "Database responding slowly" : "Database connection healthy",
         responseTime,
       };
-    } catch (error) {
-      logger.error("Database health check failed", { error: error.message });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error("Database health check failed", { error: message });
       return {
         status: "fail",
         message: "Database connection failed",
-        details: { error: error.message },
+        details: { error: message },
       };
     }
   }
@@ -113,7 +114,7 @@ class HealthCheckService {
       try {
         const response = await fetch("https://api.openai.com/v1/models", {
           headers: {
-            "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           },
           signal: AbortSignal.timeout(5000),
         });
@@ -129,13 +130,14 @@ class HealthCheckService {
       }
     }
 
-    const failedServices = services.filter(s => s.status === "fail");
+    const failedServices = services.filter((s) => s.status === "fail");
 
     return {
       status: failedServices.length > 0 ? "warn" : "pass",
-      message: failedServices.length > 0
-        ? `${failedServices.length} external service(s) unavailable`
-        : "All external services healthy",
+      message:
+        failedServices.length > 0
+          ? `${failedServices.length} external service(s) unavailable`
+          : "All external services healthy",
       details: { services },
     };
   }
@@ -149,8 +151,8 @@ class HealthCheckService {
     ]);
 
     const checks = { database, memory, disk, external_services };
-    const hasFailures = Object.values(checks).some(check => check.status === "fail");
-    const hasWarnings = Object.values(checks).some(check => check.status === "warn");
+    const hasFailures = Object.values(checks).some((check) => check.status === "fail");
+    const hasWarnings = Object.values(checks).some((check) => check.status === "warn");
 
     return {
       status: hasFailures ? "unhealthy" : hasWarnings ? "degraded" : "healthy",
@@ -163,6 +165,7 @@ class HealthCheckService {
 }
 
 const healthCheckService = new HealthCheckService();
+export { healthCheckService as healthCheck };
 
 export async function healthCheckHandler(req: Request, res: Response) {
   try {
@@ -170,46 +173,47 @@ export async function healthCheckHandler(req: Request, res: Response) {
     const performanceMetrics = performanceService.getDetailedMetrics();
 
     const status = {
-      status: 'healthy',
+      status: "healthy",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      version: process.env.npm_package_version || 'unknown',
+      version: process.env.npm_package_version || "unknown",
       database: dbStatus,
       performance: {
         requests: performanceMetrics.requests,
         responseTime: performanceMetrics.responseTime,
-        healthStatus: performanceMetrics.healthStatus
+        healthStatus: performanceMetrics.healthStatus,
       },
       memory: {
         used: process.memoryUsage().heapUsed,
         total: process.memoryUsage().heapTotal,
         external: process.memoryUsage().external,
-        rss: process.memoryUsage().rss
+        rss: process.memoryUsage().rss,
       },
       environment: process.env.NODE_ENV,
       features: {
-        mfa: process.env.MFA_ENABLED === 'true',
+        mfa: process.env.MFA_ENABLED === "true",
         encryption: !!process.env.ENCRYPTION_KEY,
         auditLogging: true,
-        threatDetection: true
-      }
+        threatDetection: true,
+      },
     };
 
     // Determine overall health
-    const isHealthy = dbStatus.connected && 
-                     performanceMetrics.healthStatus !== 'critical' &&
-                     process.memoryUsage().heapUsed < process.memoryUsage().heapTotal * 0.9;
+    const isHealthy =
+      dbStatus.connected &&
+      performanceMetrics.healthStatus !== "critical" &&
+      process.memoryUsage().heapUsed < process.memoryUsage().heapTotal * 0.9;
 
     if (!isHealthy) {
-      return res.status(503).json({ ...status, status: 'unhealthy' });
+      return res.status(503).json({ ...status, status: "unhealthy" });
     }
 
     res.status(200).json(status);
   } catch (error) {
     res.status(503).json({
-      status: 'unhealthy',
+      status: "unhealthy",
       timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }
@@ -234,6 +238,7 @@ export async function readinessCheckHandler(req: Request, res: Response): Promis
       res.status(503).json({
         status: "not ready",
         message: "Database not ready",
+        timestamp: new Date().toISOString(),
       });
       return;
     }
@@ -246,6 +251,7 @@ export async function readinessCheckHandler(req: Request, res: Response): Promis
     res.status(503).json({
       status: "not ready",
       message: "Service not ready",
+      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -262,64 +268,70 @@ async function checkExternalAPIs(): Promise<boolean> {
   try {
     // Add actual API health checks here
     return true;
-  } catch (error) {
-    logger.error('External API health check failed:', error);
+  } catch (error: unknown) {
+    logger.error("External API health check failed:", { error });
     return false;
   }
 }
 
 async function checkAIServices(): Promise<boolean> {
   try {
-    const { aiOrchestrator } = await import('../services/aiOrchestrator');
+    const { aiOrchestrator } = await import("../services/aiOrchestrator");
     const healthStatus = await aiOrchestrator.healthCheck();
     return healthStatus.overall;
-  } catch (error) {
-    logger.error('AI services health check failed:', error);
+  } catch (error: unknown) {
+    logger.error("AI services health check failed:", { error });
     return false;
   }
 }
 
 async function checkEncryption(): Promise<boolean> {
   try {
-    const { encryptionService } = await import('../services/encryption');
+    const { encryptionService, DataClassification } = await import("../services/encryption");
     // Test encryption/decryption cycle
-    const testData = 'health-check-test';
-    const encrypted = await encryptionService.encryptSensitiveField(testData, 'CONFIDENTIAL');
-    const decrypted = await encryptionService.decryptSensitiveField(encrypted);
+    const testData = "health-check-test";
+    const encrypted = await encryptionService.encryptSensitiveField(
+      testData,
+      DataClassification.CONFIDENTIAL
+    );
+    const decrypted = await encryptionService.decryptSensitiveField(
+      encrypted,
+      DataClassification.CONFIDENTIAL
+    );
     return decrypted === testData;
-  } catch (error) {
-    logger.error('Encryption service health check failed:', error);
+  } catch (error: unknown) {
+    logger.error("Encryption service health check failed:", { error });
     return false;
   }
 }
 
 async function checkAuditSystem(): Promise<boolean> {
   try {
-    const { auditService } = await import('../services/auditService');
+    const { auditService, AuditAction, RiskLevel } = await import("../services/auditService");
     // Test audit logging
     await auditService.logAuditEvent({
-      userId: 'system',
-      action: 'CREATE',
-      resourceType: 'health_check',
-      resourceId: 'test',
-      ipAddress: '127.0.0.1',
-      riskLevel: 'LOW',
-      additionalContext: { type: 'health_check' }
+      userId: "system",
+      action: AuditAction.CREATE,
+      resourceType: "health_check",
+      resourceId: "test",
+      ipAddress: "127.0.0.1",
+      riskLevel: RiskLevel.LOW,
+      additionalContext: { type: "health_check" },
     });
     return true;
-  } catch (error) {
-    logger.error('Audit system health check failed:', error);
+  } catch (error: unknown) {
+    logger.error("Audit system health check failed:", { error });
     return false;
   }
 }
 
 async function checkSecurityServices(): Promise<boolean> {
   try {
-    const { threatDetectionService } = await import('../services/threatDetectionService');
+    const { threatDetectionService } = await import("../services/threatDetectionService");
     const metrics = threatDetectionService.getSecurityMetrics();
-    return typeof metrics.totalEvents === 'number';
-  } catch (error) {
-    logger.error('Security services health check failed:', error);
+    return typeof metrics.totalEvents === "number";
+  } catch (error: unknown) {
+    logger.error("Security services health check failed:", { error });
     return false;
   }
 }

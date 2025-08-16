@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useLocation, Link, useNavigate } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,8 +26,7 @@ const resetPasswordSchema = z.object({
 type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
-  const [location] = useLocation();
-  const navigate = useNavigate();
+  const [location, navigate] = useLocation();
   const [token, setToken] = useState<string>('');
   const [step, setStep] = useState<'form' | 'success'>('form');
 
@@ -49,9 +48,12 @@ export default function ResetPassword() {
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (data: ResetPasswordForm) => {
-      return apiRequest('/api/auth/enterprise/reset-password', 'POST', {
-        token,
-        newPassword: data.newPassword,
+      return apiRequest('/api/auth/enterprise/reset-password', {
+        method: 'POST',
+        body: {
+          token,
+          newPassword: data.newPassword,
+        },
       });
     },
     onSuccess: () => {

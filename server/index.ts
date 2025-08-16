@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import * as cors from "cors";
+import cors from "cors";
 import {
   generalLimiter,
   sanitizeInput,
@@ -38,7 +38,7 @@ app.get('/live', livenessCheckHandler);
 
 // Security middleware - only apply to API routes
 app.use(securityHeaders);
-app.use(cors.default ? cors.default(corsOptions) : cors(corsOptions));
+app.use(cors(corsOptions));
 
 // Security and performance monitoring
 app.use(threatDetection);

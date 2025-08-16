@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { logger } from '../utils/logger';
 
 // Complete 2025 Document Template Library

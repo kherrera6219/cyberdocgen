@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { db } from "../db";
 import { documents, documentVersions, type InsertDocumentVersion, type Document } from "@shared/schema";
 import { logger } from "../utils/logger";

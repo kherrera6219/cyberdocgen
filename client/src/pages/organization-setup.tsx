@@ -266,7 +266,7 @@ export function OrganizationSetup() {
                           <FormItem>
                             <FormLabel>Website (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://example.com" {...field} />
+                              <Input placeholder="https://example.com" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -280,7 +280,7 @@ export function OrganizationSetup() {
                           <FormItem>
                             <FormLabel>Contact Email (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="contact@example.com" {...field} />
+                              <Input placeholder="contact@example.com" {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

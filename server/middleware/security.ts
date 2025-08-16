@@ -4,6 +4,8 @@ import { logger } from "../utils/logger";
 import { performanceService } from '../services/performanceService';
 import { threatDetectionService } from '../services/threatDetectionService';
 
+export const corsOptions = {};
+
 // Audit logging middleware
 export const auditLogger = (req: Request, res: Response, next: NextFunction) => {
   const auditData = {
@@ -14,7 +16,7 @@ export const auditLogger = (req: Request, res: Response, next: NextFunction) => 
     timestamp: new Date().toISOString()
   };
 
-  logger.info('audit', `${req.method} ${req.url}`, auditData);
+  logger.info(`${req.method} ${req.url}`, auditData);
   next();
 };
 

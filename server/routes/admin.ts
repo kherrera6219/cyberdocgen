@@ -321,7 +321,7 @@ router.get('/monitoring', isAuthenticated, isAdmin, async (req: any, res) => {
       performanceService.getMetrics(),
       alertingService.getAlertMetrics(),
       threatDetectionService.getSecurityMetrics(),
-      healthCheck()
+      healthCheck.performHealthCheck()
     ]);
 
     res.json({
@@ -362,34 +362,34 @@ router.get('/stats', isAuthenticated, isAdmin, async (req: any, res) => {
       db.query.cloudIntegrations.findMany({ where: eq(cloudIntegrations.isActive, true) }),
       db.query.cloudFiles.findMany(),
       // Get recent audit logs (simplified)
-      db.query.auditLogs?.findMany({ 
+      db.query.auditLogs?.findMany({
         limit: 10,
-        orderBy: (table) => [table.timestamp],
+        orderBy: (table: any) => [table.timestamp],
       }) || [],
     ]);
 
     const stats = {
       users: {
         total: totalUsers.length,
-        admins: totalUsers.filter(u => u.role === 'admin').length,
-        active: totalUsers.filter(u => u.isActive).length,
+        admins: totalUsers.filter((u: any) => u.role === 'admin').length,
+        active: totalUsers.filter((u: any) => u.isActive).length,
       },
       integrations: {
         total: activeIntegrations.length,
-        google: activeIntegrations.filter(i => i.provider === 'google_drive').length,
-        microsoft: activeIntegrations.filter(i => i.provider === 'onedrive').length,
+        google: activeIntegrations.filter((i: any) => i.provider === 'google_drive').length,
+        microsoft: activeIntegrations.filter((i: any) => i.provider === 'onedrive').length,
       },
       files: {
         total: totalCloudFiles.length,
-        secured: totalCloudFiles.filter(f => f.isSecurityLocked).length,
+        secured: totalCloudFiles.filter((f: any) => f.isSecurityLocked).length,
         byType: {
-          pdf: totalCloudFiles.filter(f => f.fileType === 'pdf').length,
-          docx: totalCloudFiles.filter(f => f.fileType === 'docx').length,
-          xlsx: totalCloudFiles.filter(f => f.fileType === 'xlsx').length,
+          pdf: totalCloudFiles.filter((f: any) => f.fileType === 'pdf').length,
+          docx: totalCloudFiles.filter((f: any) => f.fileType === 'docx').length,
+          xlsx: totalCloudFiles.filter((f: any) => f.fileType === 'xlsx').length,
         },
       },
       security: {
-        mfaEnabled: totalUsers.filter(u => u.twoFactorEnabled).length,
+        mfaEnabled: totalUsers.filter((u: any) => u.twoFactorEnabled).length,
         recentAudits: recentAudits.length,
       },
     };
