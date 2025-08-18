@@ -22,6 +22,7 @@ import { ObjectStorageManager } from "./components/ObjectStorageManager";
 import { IndustrySpecialization } from "./components/ai/IndustrySpecialization";
 import GapAnalysis from "./pages/gap-analysis";
 import Layout from "./components/layout";
+import MCPPlayground from "./pages/mcp-playground";
 
 // Lazy load components
 const EnterpriseSignup = lazy(() => import("@/pages/enterprise-signup"));
@@ -57,6 +58,7 @@ function Router() {
           <Route path="/organizations" component={OrganizationSetup} />
           <Route path="/storage" component={ObjectStorageManager} />
           <Route path="/ai-specialization" component={IndustrySpecialization} />
+          <Route path="/mcp" component={MCPPlayground} />
         </>
       )}
       {/* Enterprise Authentication Routes */}
