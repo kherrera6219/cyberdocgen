@@ -2682,6 +2682,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
   const { default: cloudIntegrationRoutes } = await import('./routes/cloudIntegration.js');
   app.use('/api/cloud', cloudIntegrationRoutes);
 
+  // MCP Routes
+  const { default: mcpRoutes } = await import('./routes/mcp.js');
+  app.use('/api', mcpRoutes);
+
   // Admin Routes
   const { default: adminRoutes } = await import('./routes/admin.js');
   app.use('/api/admin', adminRoutes);
