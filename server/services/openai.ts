@@ -1,10 +1,7 @@
-import OpenAI from "openai";
 import { type CompanyProfile } from "@shared/schema";
+import { sendMCPRequest } from "./mcpClient";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 
-});
 
 export interface DocumentTemplate {
   title: string;
@@ -144,16 +141,7 @@ The document must comply with ${framework} standards and include specific, actio
 Make the document practical and implementable, with specific controls, procedures, and measurable objectives that align with ${framework} requirements.`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      max_tokens: 4000,
-    });
-
-    return response.choices[0].message.content || "";
+    return await sendMCPRequest(`${systemPrompt}\n\n${userPrompt}`, "openai");
   } catch (error) {
     logger.error("Error generating document:", error);
     throw new Error(`Failed to generate document: ${error instanceof Error ? error.message : 'Unknown error'}`);
