@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Upload, FileText, CheckCircle, AlertCircle, X, FileIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from '@/components/ui/dialog';
-import { VisuallyHidden } from '@/components/ui/visually-hidden';
 
 
 interface UploadedFile {
@@ -44,8 +41,8 @@ export function DocumentUploader({
   const uploadAndProcessMutation = useMutation({
     mutationFn: async (files: File[]) => {
       const formData = new FormData();
-      files.forEach((file, index) => {
-        formData.append(`documents`, file);
+      files.forEach((file) => {
+        formData.append("documents", file);
       });
 
       // Upload files and process with RAG

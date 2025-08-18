@@ -117,6 +117,15 @@ export class MemStorage implements IStorage {
       profileImageUrl: user.profileImageUrl || null,
       role: user.role || "user",
       isActive: user.isActive ?? true,
+      emailVerified: user.emailVerified ?? null,
+      phoneNumber: user.phoneNumber ?? null,
+      phoneVerified: user.phoneVerified ?? null,
+      twoFactorEnabled: user.twoFactorEnabled ?? null,
+      accountStatus: user.accountStatus ?? null,
+      failedLoginAttempts: user.failedLoginAttempts ?? null,
+      accountLockedUntil: user.accountLockedUntil ?? null,
+      passkeyEnabled: user.passkeyEnabled ?? null,
+      passwordHash: user.passwordHash ?? null,
       lastLoginAt: user.lastLoginAt || null,
       createdAt: now,
       updatedAt: now,
@@ -146,17 +155,17 @@ export class MemStorage implements IStorage {
     
     const existing = this.users.get(id);
     if (existing) {
-      const { id: userId, ...updateData } = user;
-      const updated = await this.updateUser(userId, updateData);
+      const { id: _id, ...updateData } = user;
+      const updated = await this.updateUser(id, updateData);
       if (!updated) {
         throw new Error("Failed to update user");
       }
       return updated;
     } else {
-      const { id: userId, ...insertUser } = user;
+      const { id: _id, ...insertUser } = user;
       const newUser = await this.createUser(insertUser);
-      this.users.set(userId, { ...newUser, id: userId });
-      return { ...newUser, id: userId };
+      this.users.set(id, { ...newUser, id });
+      return { ...newUser, id };
     }
   }
 
@@ -267,6 +276,8 @@ export class MemStorage implements IStorage {
       id,
       cloudInfrastructure: Array.isArray(insertProfile.cloudInfrastructure) ? insertProfile.cloudInfrastructure : [],
       isActive: insertProfile.isActive ?? true,
+      complianceFrameworks: insertProfile.complianceFrameworks ?? [],
+      contactInfo: insertProfile.contactInfo || null,
       keyPersonnel: insertProfile.keyPersonnel || null,
       frameworkConfigs: insertProfile.frameworkConfigs || null,
       uploadedDocs: insertProfile.uploadedDocs || null,
@@ -337,8 +348,6 @@ export class MemStorage implements IStorage {
       reviewedAt: insertDocument.reviewedAt || null,
       approvedBy: insertDocument.approvedBy || null,
       approvedAt: insertDocument.approvedAt || null,
-      publishedAt: insertDocument.publishedAt || null,
-      approvalRequired: insertDocument.approvalRequired || false,
       aiGenerated: insertDocument.aiGenerated || false,
       aiModel: insertDocument.aiModel || null,
       generationPrompt: insertDocument.generationPrompt || null,
@@ -414,7 +423,15 @@ export class MemStorage implements IStorage {
   // Gap Analysis methods
   async createGapAnalysisReport(report: InsertGapAnalysisReport): Promise<GapAnalysisReport> {
     const id = randomUUID();
-    const newReport = { ...report, id, createdAt: new Date(), updatedAt: new Date() };
+    const newReport: GapAnalysisReport = {
+      ...report,
+      id,
+      status: report.status ?? null,
+      metadata: report.metadata ?? null,
+      analysisDate: report.analysisDate ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.gapAnalysisReports.set(id, newReport);
     return newReport;
   }
@@ -422,7 +439,9 @@ export class MemStorage implements IStorage {
   async getGapAnalysisReports(organizationId: string): Promise<GapAnalysisReport[]> {
     return Array.from(this.gapAnalysisReports.values())
       .filter(report => report.organizationId === organizationId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort(
+        (a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
+      );
   }
 
   async getGapAnalysisReport(id: string): Promise<GapAnalysisReport | undefined> {
@@ -440,7 +459,14 @@ export class MemStorage implements IStorage {
 
   async createGapAnalysisFinding(finding: InsertGapAnalysisFinding): Promise<GapAnalysisFinding> {
     const id = randomUUID();
-    const newFinding = { ...finding, id, createdAt: new Date(), updatedAt: new Date() };
+    const newFinding: GapAnalysisFinding = {
+      ...finding,
+      id,
+      evidenceRequired: finding.evidenceRequired ?? null,
+      estimatedEffort: finding.estimatedEffort ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.gapAnalysisFindings.set(id, newFinding);
     return newFinding;
   }
@@ -453,7 +479,18 @@ export class MemStorage implements IStorage {
 
   async createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation> {
     const id = randomUUID();
-    const newRecommendation = { ...recommendation, id, createdAt: new Date(), updatedAt: new Date() };
+    const newRecommendation: RemediationRecommendation = {
+      ...recommendation,
+      id,
+      resources: recommendation.resources ?? null,
+      cost: recommendation.cost ?? null,
+      status: recommendation.status ?? 'pending',
+      assignedTo: recommendation.assignedTo ?? null,
+      dueDate: recommendation.dueDate ?? null,
+      completedDate: recommendation.completedDate ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.remediationRecommendations.set(id, newRecommendation);
     return newRecommendation;
   }
@@ -475,18 +512,27 @@ export class MemStorage implements IStorage {
 
   async createComplianceMaturityAssessment(assessment: InsertComplianceMaturityAssessment): Promise<ComplianceMaturityAssessment> {
     const id = randomUUID();
-    const newAssessment = { ...assessment, id, createdAt: new Date(), updatedAt: new Date() };
+    const newAssessment: ComplianceMaturityAssessment = {
+      ...assessment,
+      id,
+      recommendations: assessment.recommendations ?? null,
+      nextReviewDate: assessment.nextReviewDate ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     this.complianceMaturityAssessments.set(id, newAssessment);
     return newAssessment;
   }
 
   async getComplianceMaturityAssessment(organizationId: string, framework: string): Promise<ComplianceMaturityAssessment | undefined> {
     return Array.from(this.complianceMaturityAssessments.values())
-      .filter(assessment => 
-        assessment.organizationId === organizationId && 
+      .filter(assessment =>
+        assessment.organizationId === organizationId &&
         assessment.framework === framework
       )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+      .sort((a, b) =>
+        (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
+      )[0];
   }
 
   // Private storage
