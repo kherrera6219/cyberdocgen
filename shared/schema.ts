@@ -595,7 +595,6 @@ export type PasskeyCredential = typeof passkeyCredentials.$inferSelect;
 export type SystemConfiguration = typeof systemConfigurations.$inferSelect;
 export type MfaSetting = typeof mfaSettings.$inferSelect;
 export type CloudIntegration = typeof cloudIntegrations.$inferSelect;
-export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
 // AI Fine-tuning configuration tables
 export const industryConfigurations = pgTable("industry_configurations", {
