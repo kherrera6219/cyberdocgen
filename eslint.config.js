@@ -3,6 +3,7 @@ import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import reactHooks from 'eslint-plugin-react-hooks';
 import security from 'eslint-plugin-security';
+import globals from 'globals';
 
 export default [
   js.configs.recommended,
@@ -13,8 +14,12 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['./tsconfig.json'],
+        project: ['./tsconfig.eslint.json'],
         tsconfigRootDir: process.cwd(),
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
       },
     },
     plugins: {
@@ -36,6 +41,14 @@ export default [
       'no-var': 'error',
       'no-duplicate-imports': 'error',
       'no-unused-expressions': 'error',
+    },
+  },
+  {
+    files: ['**/*.test.{ts,tsx}', 'tests/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.vitest,
+      },
     },
   },
   {
