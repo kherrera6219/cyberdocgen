@@ -272,8 +272,16 @@ export class CloudIntegrationService {
         throw new Error('Microsoft OAuth credentials not configured');
       }
 
+      if (!credentials.tenantId) {
+        throw new Error('Microsoft enterprise tenant ID not configured');
+      }
+
       const authProvider = new CustomAuthProvider(accessToken);
       const graphClient = Client.initWithMiddleware({ authProvider });
+
+      logger.info('Syncing OneDrive files using Microsoft enterprise tenant context', {
+        tenantId: `${credentials.tenantId.substring(0, 8)}***`,
+      });
 
       const response = await graphClient
         .api('/me/drive/root/children')
