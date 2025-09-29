@@ -1,7 +1,7 @@
 
-# Enterprise Compliance Management System
+# Compliance Management Prototype
 
-A production-ready, enterprise-grade compliance management system with AI-powered document analysis and generation capabilities.
+An experimental compliance management application that demonstrates AI-assisted document workflows. This repository is **not production ready** and several features advertised in earlier collateral are still stubs.
 
 ## 🚀 Quick Start
 
@@ -12,15 +12,13 @@ npm run dev
 
 Access the application at `http://localhost:5000`
 
-## ✨ Features
+## ✨ Current Capabilities
 
-- **AI-Powered Document Analysis** - Automated compliance document review and generation
-- **Multi-Factor Authentication** - Enterprise-grade security with MFA support
-- **Cloud Integrations** - Google Drive and Microsoft OneDrive connectivity  
-- **Compliance Automation** - Gap analysis and risk assessment tools
-- **Audit Trails** - Comprehensive logging for regulatory compliance
-- **Real-time Collaboration** - Document comments and version control
-- **Enterprise Management** - Organization setup and user management
+- **Document Workflows (Prototype)** – Sample endpoints return templated compliance documents and mock upload extraction data.
+- **Risk & Gap Analysis Mock Services** – Endpoints surface generated sample data to illustrate dashboards and reports.
+- **Authentication via Replit OIDC** – Basic login/logout using Replit OpenID Connect.
+- **MFA Scaffolding** – Middleware enforces an MFA flag but does not validate tokens yet (experimental).
+- **Cloud Integration Stubs** – REST routes exist for Google Drive and OneDrive but currently return HTTP 501 until OAuth is configured.
 
 ## 🏗️ Architecture
 
@@ -39,20 +37,20 @@ Access the application at `http://localhost:5000`
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [Architecture Details](docs/ARCHITECTURE.md)
 
-## 🔒 Security & Compliance
+## 🔒 Security & Compliance Status
 
-This system is designed for enterprise use with:
-- SOC2 compliance readiness
-- Data encryption at rest and in transit
-- Comprehensive audit logging
-- Multi-factor authentication
-- Role-based access control
-- Threat detection and monitoring
+This codebase contains scaffolding for several enterprise controls, but the implementation is incomplete. Notable limitations include:
 
+- **No completed security audit** – previous "A-" ratings were marketing copy only.
+- **Partial MFA** – verification currently trusts any provided token and should not be used for production security.
+- **Placeholder Cloud Integrations** – OAuth flows and file sync are not functional yet.
+- **AI Integrations Require Keys** – Calls to third-party LLMs expect environment variables and are not enabled by default.
+
+Refer to [`docs/GAP_ANALYSIS.md`](docs/GAP_ANALYSIS.md) for the full list of gaps and remediation suggestions.
 ## 📈 Production Status
 
-✅ **ENTERPRISE READY** - This application has passed comprehensive security audits and is approved for production deployment.
+⚠️ **IN PROGRESS** – Additional engineering, security reviews, and integrations are required before any production deployment.
 
 ---
 
-Built with ❤️ for enterprise compliance teams.
+Built with ❤️ as a learning resource for compliance engineering teams.

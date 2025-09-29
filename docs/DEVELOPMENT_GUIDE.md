@@ -2,7 +2,7 @@
 # Enterprise Compliance System - Development Guide
 
 ## Overview
-Complete enterprise-grade compliance management system with AI-powered document analysis.
+Prototype compliance management application that demonstrates AI-assisted document workflows.
 
 ## Architecture
 - **Frontend**: React + TypeScript + Tailwind CSS
@@ -20,16 +20,15 @@ npm start  # Production server
 ```
 
 ## Key Features
-- ✅ Document analysis and generation
-- ✅ Compliance gap analysis  
-- ✅ Risk assessment automation
-- ✅ Multi-factor authentication
-- ✅ Enterprise user management
-- ✅ Cloud integrations (Google Drive, OneDrive)
-- ✅ Comprehensive audit trails
-- ✅ SOC2 compliance ready
+- 🧪 Document analysis and generation prototypes (templated content)
+- 🧪 Compliance gap analysis dashboards backed by mock data
+- 🧪 Risk assessment automation using sample AI prompts
+- ⚠️ Multi-factor authentication scaffolding without real token validation
+- ⚠️ Cloud integrations pending OAuth configuration
+- ⚠️ Audit logging limited to development storage
+- ⚠️ No formal SOC 2 readiness work has been completed
 
 ## Production Ready
-This system has undergone comprehensive security audits and is ready for enterprise deployment.
+This system has **not** undergone a formal security review and should be treated as a prototype until the gaps documented in `docs/GAP_ANALYSIS.md` are addressed.
 
 For detailed documentation, see the `development-archive/` directory.

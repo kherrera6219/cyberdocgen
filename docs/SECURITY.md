@@ -2,43 +2,45 @@
 
 ## Security Overview
 
-ComplianceAI implements comprehensive security measures to protect sensitive compliance data and ensure regulatory adherence. This document outlines our security architecture, controls, and best practices.
+ComplianceAI currently implements **partial** security measures intended for demonstration purposes. This document now captures the present state of the prototype along with planned controls so readers can distinguish what is working from future intent.
 
 ## Authentication & Access Control
 
 ### Primary Authentication
-- **Provider**: Replit OpenID Connect
-- **Standards**: OAuth 2.0 with PKCE, OpenID Connect 1.0
-- **Session Management**: Secure, HTTPOnly cookies with SameSite protection
-- **Token Refresh**: Automatic token renewal for seamless user experience
+- **Provider**: Replit OpenID Connect (implemented)
+- **Standards**: OAuth 2.0 with PKCE, OpenID Connect 1.0 (provided by upstream service)
+- **Session Management**: Express session store backed by PostgreSQL (requires secure cookie configuration before production)
+- **Token Refresh**: Basic refresh flow implemented via openid-client helper
 
 ### Authorization Framework
-- **Model**: Role-Based Access Control (RBAC)
-- **Roles**: User, Admin, Organization Admin, Compliance Officer
-- **Scope**: Organization-based data isolation
-- **Permissions**: Granular resource-level access control
+- **Model**: Planned Role-Based Access Control (not yet enforced in routes)
+- **Roles**: Role constants exist in the schema but require policy enforcement
+- **Scope**: Organization scoping is not yet validated server-side
+- **Permissions**: Fine-grained access control remains a backlog item
 
 ### Multi-Tenant Security
-- **Data Isolation**: Organization-scoped database queries
-- **Cross-Tenant Protection**: Strict authorization checks
-- **Audit Separation**: Per-organization audit trails
-- **Resource Segregation**: Complete data boundary enforcement
+- **Data Isolation**: Database schema supports organization IDs but routes need verification
+- **Cross-Tenant Protection**: Authorization middleware still under development
+- **Audit Separation**: Audit service writes scoped entries but persistence needs review
+- **Resource Segregation**: File storage and AI calls are not tenant-aware yet
 
 ## Input Validation & Sanitization
 
 ### Request Validation
-- **Schema Validation**: Zod schemas for all API endpoints
-- **Content Type Validation**: Strict MIME type checking
-- **Payload Size Limits**: Configurable request size restrictions
-- **Parameter Sanitization**: XSS and injection prevention
+- **Schema Validation**: Zod schemas implemented on core CRUD endpoints; coverage is incomplete
+- **Content Type Validation**: Middleware stubs exist, detailed MIME validation still pending
+- **Payload Size Limits**: Express JSON body limit configured at 10mb
+- **Parameter Sanitization**: Basic sanitizer middleware enabled
 
 ### Data Sanitization
-- **HTML Sanitization**: DOMPurify for user content
-- **SQL Injection Prevention**: Parameterized queries via Drizzle ORM
-- **File Upload Security**: MIME type validation and content scanning
-- **Input Encoding**: Proper encoding for all user inputs
+- **HTML Sanitization**: Frontend utilities include DOMPurify hooks, not yet enforced server-side
+- **SQL Injection Prevention**: Drizzle ORM provides parameterised queries
+- **File Upload Security**: Upload route currently returns mock data (no scanning implemented)
+- **Input Encoding**: Client components encode output; server hardening required
 
 ## Security Headers & CORS
+
+_Status: configuration snippets below represent target settings. The current Express middleware applies only a subset and still allows `unsafe-inline`._
 
 ### Security Headers
 ```typescript
@@ -60,6 +62,8 @@ ComplianceAI implements comprehensive security measures to protect sensitive com
 
 ## Rate Limiting & DDoS Protection
 
+_Status: middleware stubs exist, but per-user tracking, exponential backoff, and trusted source management require implementation._
+
 ### Tiered Rate Limiting
 - **General Endpoints**: 100 requests/15 minutes
 - **Authentication**: 5 attempts/15 minutes
@@ -73,6 +77,8 @@ ComplianceAI implements comprehensive security measures to protect sensitive com
 - **Whitelist Support**: Bypass for trusted sources
 
 ## Audit Trail & Compliance
+
+_Status: audit service writes JSON entries to the database, but immutable logging and compliance workflows are still roadmap items._
 
 ### Comprehensive Logging
 - **User Actions**: All CRUD operations with full context
@@ -94,6 +100,8 @@ ComplianceAI implements comprehensive security measures to protect sensitive com
 
 ## Data Protection
 
+_Status: encryption helpers exist yet depend on environment keys; automated privacy controls have not been wired into the product._
+
 ### Encryption
 - **In Transit**: TLS 1.3 for all communications
 - **At Rest**: Database-level encryption
@@ -114,6 +122,8 @@ ComplianceAI implements comprehensive security measures to protect sensitive com
 
 ## Vulnerability Management
 
+_Status: automated scanning, penetration testing, and rollback procedures have not been configured in CI/CD._
+
 ### Security Testing
 - **Static Analysis**: TypeScript strict mode, ESLint security rules
 - **Dependency Scanning**: Automated vulnerability checking
@@ -127,6 +137,8 @@ ComplianceAI implements comprehensive security measures to protect sensitive com
 - **Rollback Procedures**: Quick reversion capabilities
 
 ## Incident Response
+
+_Status: playbooks below describe intended processes; alerting integrations and runbooks remain unimplemented._
 
 ### Detection & Monitoring
 - **Real-time Alerts**: Automated security event detection
@@ -143,6 +155,8 @@ ComplianceAI implements comprehensive security measures to protect sensitive com
 
 ## Security Configuration
 
+_Status: describes desired state; engineering work is required to enforce these controls in all environments._
+
 ### Environment Security
 - **Secrets Management**: Secure environment variable storage
 - **Database Security**: Connection encryption and access controls
@@ -156,6 +170,8 @@ ComplianceAI implements comprehensive security measures to protect sensitive com
 - **Documentation**: Security requirement documentation
 
 ## Compliance Mapping
+
+_Status: mappings outline aspirational coverage. Formal control implementation and evidence gathering are outstanding._
 
 ### SOC 2 Type II
 - **Security**: Access controls and monitoring
