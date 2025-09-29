@@ -8,6 +8,8 @@ import { logger } from '../utils/logger';
 export interface OAuthCredentials {
   clientId: string;
   clientSecret: string;
+  tenantId?: string;
+  authorityHost?: string;
 }
 
 export interface PDFDefaults {
@@ -41,6 +43,11 @@ export class SystemConfigService {
       return {
         clientId: credentials.clientId,
         clientSecret: credentials.clientSecret,
+        tenantId: credentials.tenantId,
+        authorityHost:
+          provider === 'microsoft'
+            ? credentials.authorityHost || 'https://login.microsoftonline.com'
+            : undefined,
       };
     } catch (error: any) {
       logger.error(`Failed to get ${provider} OAuth credentials`, { error: error.message });
@@ -59,7 +66,19 @@ export class SystemConfigService {
   ): Promise<boolean> {
     try {
       const configKey = `oauth_${provider}`;
-      const credentialsJson = JSON.stringify(credentials);
+      const normalizedCredentials: OAuthCredentials = {
+        clientId: credentials.clientId.trim(),
+        clientSecret: credentials.clientSecret,
+        tenantId: credentials.tenantId?.trim(),
+        authorityHost: credentials.authorityHost?.trim() ||
+          (provider === 'microsoft' ? 'https://login.microsoftonline.com' : undefined),
+      };
+
+      if (provider === 'microsoft' && !normalizedCredentials.tenantId) {
+        throw new Error('Microsoft enterprise tenant ID is required for configuration');
+      }
+
+      const credentialsJson = JSON.stringify(normalizedCredentials);
       
       // Encrypt the credentials
       const encryptedData = await encryptionService.encryptSensitiveField(
@@ -237,7 +256,15 @@ export class SystemConfigService {
   async isOAuthConfigured(provider: 'google' | 'microsoft'): Promise<boolean> {
     try {
       const credentials = await this.getOAuthCredentials(provider);
-      return !!(credentials?.clientId && credentials?.clientSecret);
+      if (!credentials?.clientId || !credentials?.clientSecret) {
+        return false;
+      }
+
+      if (provider === 'microsoft') {
+        return !!credentials?.tenantId;
+      }
+
+      return true;
     } catch (error: any) {
       logger.error(`Failed to check ${provider} OAuth configuration`, { error: error.message });
       return false;
@@ -256,6 +283,7 @@ export class SystemConfigService {
 
       let googleClientId = '';
       let microsoftClientId = '';
+      let microsoftTenantId = '';
 
       if (googleConfigured) {
         const googleCreds = await this.getOAuthCredentials('google');
@@ -269,6 +297,9 @@ export class SystemConfigService {
         if (microsoftCreds?.clientId) {
           microsoftClientId = microsoftCreds.clientId.substring(0, 8) + '...';
         }
+        if (microsoftCreds?.tenantId) {
+          microsoftTenantId = microsoftCreds.tenantId.substring(0, 8) + '...';
+        }
       }
 
       return {
@@ -276,6 +307,7 @@ export class SystemConfigService {
         microsoftConfigured,
         googleClientId,
         microsoftClientId,
+        microsoftTenantId,
       };
     } catch (error: any) {
       logger.error('Failed to get OAuth settings for UI', { error: error.message });
@@ -284,6 +316,7 @@ export class SystemConfigService {
         microsoftConfigured: false,
         googleClientId: '',
         microsoftClientId: '',
+        microsoftTenantId: '',
       };
     }
   }

@@ -17,6 +17,33 @@ const oauthSettingsSchema = z.object({
   googleClientSecret: z.string().optional(),
   microsoftClientId: z.string().optional(),
   microsoftClientSecret: z.string().optional(),
+  microsoftTenantId: z
+    .string()
+    .regex(/^[0-9a-fA-F-]{36}$/, 'Microsoft Tenant ID must be a valid GUID')
+    .optional(),
+  microsoftAuthorityHost: z.string().url('Microsoft authority host must be a valid URL').optional(),
+}).superRefine((data, ctx) => {
+  const hasGoogleConfig = data.googleClientId || data.googleClientSecret;
+  if (hasGoogleConfig && (!data.googleClientId || !data.googleClientSecret)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['googleClientId'],
+      message: 'Google Client ID and Secret are both required when configuring Google OAuth',
+    });
+  }
+
+  const hasMicrosoftConfig =
+    data.microsoftClientId || data.microsoftClientSecret || data.microsoftTenantId || data.microsoftAuthorityHost;
+
+  if (hasMicrosoftConfig) {
+    if (!data.microsoftClientId || !data.microsoftClientSecret || !data.microsoftTenantId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['microsoftTenantId'],
+        message: 'Microsoft Client ID, Secret, and Tenant ID are required to meet enterprise configuration standards',
+      });
+    }
+  }
 });
 
 const pdfDefaultsSchema = z.object({
@@ -105,19 +132,21 @@ router.post('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) =
     }
     
     // Update Microsoft OAuth credentials if provided
-    if (settings.microsoftClientId && settings.microsoftClientSecret) {
+    if (settings.microsoftClientId && settings.microsoftClientSecret && settings.microsoftTenantId) {
       const success = await systemConfigService.setOAuthCredentials(
         'microsoft',
         {
           clientId: settings.microsoftClientId,
           clientSecret: settings.microsoftClientSecret,
+          tenantId: settings.microsoftTenantId,
+          authorityHost: settings.microsoftAuthorityHost,
         },
         userId,
         ipAddress
       );
-      
+
       if (success) {
-        configUpdates.push('Microsoft OAuth credentials updated');
+        configUpdates.push('Microsoft OAuth credentials updated with enterprise tenant requirements');
         hasUpdates = true;
       }
     }

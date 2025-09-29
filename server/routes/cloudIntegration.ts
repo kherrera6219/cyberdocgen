@@ -61,7 +61,7 @@ router.get('/auth/google/callback', (req, res) => {
 router.get('/auth/microsoft', isAuthenticated, async (req: any, res) => {
   res.status(501).json({
     success: false,
-    message: 'Microsoft OAuth integration requires admin configuration. Please contact your administrator to set up OneDrive credentials.',
+    message: 'Microsoft OAuth integration requires admin configuration with an enterprise tenant. Please contact your administrator to set up the OneDrive credentials and tenant ID.',
     requiresAdmin: true,
   });
 });

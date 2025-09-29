@@ -28,12 +28,39 @@ import { apiRequest } from '@/lib/queryClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
-const oauthConfigSchema = z.object({
-  googleClientId: z.string().optional(),
-  googleClientSecret: z.string().optional(),
-  microsoftClientId: z.string().optional(),
-  microsoftClientSecret: z.string().optional(),
-});
+const oauthConfigSchema = z
+  .object({
+    googleClientId: z.string().optional(),
+    googleClientSecret: z.string().optional(),
+    microsoftClientId: z.string().optional(),
+    microsoftClientSecret: z.string().optional(),
+    microsoftTenantId: z
+      .string()
+      .regex(/^[0-9a-fA-F-]{36}$/, 'Tenant ID must be a valid Microsoft GUID')
+      .optional(),
+    microsoftAuthorityHost: z.string().url('Authority host must be a valid URL').optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasGoogleConfig = data.googleClientId || data.googleClientSecret;
+    if (hasGoogleConfig && (!data.googleClientId || !data.googleClientSecret)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['googleClientId'],
+        message: 'Google Client ID and Secret are both required when configuring Google OAuth.',
+      });
+    }
+
+    const hasMicrosoftConfig =
+      data.microsoftClientId || data.microsoftClientSecret || data.microsoftTenantId || data.microsoftAuthorityHost;
+
+    if (hasMicrosoftConfig && (!data.microsoftClientId || !data.microsoftClientSecret || !data.microsoftTenantId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['microsoftTenantId'],
+        message: 'Microsoft Client ID, Secret, and Tenant ID are required for enterprise compliance.',
+      });
+    }
+  });
 
 const pdfSecurityDefaultsSchema = z.object({
   defaultEncryptionLevel: z.enum(['RC4_40', 'RC4_128', 'AES128', 'AES256']).default('AES256'),
@@ -86,6 +113,8 @@ export default function AdminSettings() {
       googleClientSecret: '',
       microsoftClientId: '',
       microsoftClientSecret: '',
+      microsoftTenantId: '',
+      microsoftAuthorityHost: 'https://login.microsoftonline.com',
     },
   });
 
@@ -324,8 +353,9 @@ export default function AdminSettings() {
                         </a></li>
                         <li>2. Register a new application in Azure Active Directory</li>
                         <li>3. Add Microsoft Graph API permissions (User.Read, Files.Read)</li>
-                        <li>4. Create a client secret</li>
-                        <li>5. Set redirect URI to: <code className="bg-purple-200 dark:bg-purple-800 px-1 rounded">
+                        <li>4. Capture the Directory (tenant) ID from Azure Active Directory &gt; Overview</li>
+                        <li>5. Create a client secret</li>
+                        <li>6. Set redirect URI to: <code className="bg-purple-200 dark:bg-purple-800 px-1 rounded">
                           {window.location.origin}/api/cloud/auth/microsoft/callback
                         </code></li>
                       </ol>
@@ -359,6 +389,28 @@ export default function AdminSettings() {
                             {showSecrets.microsoftClientSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </Button>
                         </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="microsoftTenantId">Microsoft Tenant ID</Label>
+                        <Input
+                          id="microsoftTenantId"
+                          placeholder="Enter Microsoft Tenant (Directory) ID"
+                          {...oauthForm.register('microsoftTenantId')}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Use the Directory (tenant) ID from Azure Active Directory to enforce enterprise scoping.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="microsoftAuthorityHost">Authority Host (optional)</Label>
+                        <Input
+                          id="microsoftAuthorityHost"
+                          placeholder="https://login.microsoftonline.com"
+                          {...oauthForm.register('microsoftAuthorityHost')}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Override for national cloud deployments. Defaults to the global Microsoft authority.
+                        </p>
                       </div>
                     </div>
                   </div>
