@@ -108,13 +108,14 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   // Content Security Policy for enhanced security
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://apis.google.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: https:",
-    "connect-src 'self' https://api.openai.com https://api.anthropic.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "script-src 'self' 'unsafe-inline' https://apis.google.com https://alcdn.msauth.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://static2.sharepointonline.com",
+    "img-src 'self' data: https: blob:",
+    "connect-src 'self' https://api.openai.com https://api.anthropic.com https://login.microsoftonline.com https://graph.microsoft.com",
+    "font-src 'self' https://fonts.gstatic.com https://static2.sharepointonline.com",
+    "frame-src 'self' https://login.microsoftonline.com",
     "frame-ancestors 'none'",
-    "form-action 'self'",
+    "form-action 'self' https://login.microsoftonline.com",
     "base-uri 'self'"
   ];
   res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
