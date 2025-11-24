@@ -28,37 +28,60 @@ export interface AuditLogEntry {
   userId?: string;
   organizationId?: string;
   action: AuditAction;
-  resourceType: string;
+  resourceType?: string;
   resourceId?: string;
+  entityType?: string;
+  entityId?: string;
   oldValues?: Record<string, any>;
   newValues?: Record<string, any>;
   ipAddress: string;
   userAgent?: string;
-  riskLevel: RiskLevel;
+  sessionId?: string;
+  metadata?: Record<string, any>;
+  riskLevel?: RiskLevel;
   additionalContext?: Record<string, any>;
+  details?: Record<string, any>;
 }
 
 export class AuditService {
-  
+
+  // Backwards compatibility wrapper
+  async logAudit(entry: AuditLogEntry): Promise<void> {
+    await this.logAuditEvent(entry);
+  }
+
+  async logAction(entry: Omit<AuditLogEntry, 'action'> & { action: AuditAction | string }): Promise<void> {
+    const normalizedAction = (Object.values(AuditAction) as string[]).includes(entry.action)
+      ? (entry.action as AuditAction)
+      : AuditAction.CREATE;
+
+    await this.logAuditEvent({ ...entry, action: normalizedAction });
+  }
+
   /**
    * Log an audit event
    */
   async logAuditEvent(entry: AuditLogEntry): Promise<void> {
     try {
+      const resourceType = entry.resourceType || entry.entityType || 'unknown';
+      const resourceId = entry.resourceId || entry.entityId;
+      const metadata = entry.metadata ?? entry.additionalContext ?? entry.details;
+      const riskLevel = entry.riskLevel ?? RiskLevel.LOW;
+
       // Insert into audit_logs table (to be created in database)
       const auditRecord = {
         id: crypto.randomUUID(),
         userId: entry.userId,
         organizationId: entry.organizationId,
         action: entry.action,
-        resourceType: entry.resourceType,
-        resourceId: entry.resourceId,
+        resourceType,
+        resourceId,
         oldValues: entry.oldValues ? JSON.stringify(entry.oldValues) : null,
         newValues: entry.newValues ? JSON.stringify(entry.newValues) : null,
         ipAddress: entry.ipAddress,
         userAgent: entry.userAgent,
-        riskLevel: entry.riskLevel,
-        additionalContext: entry.additionalContext ? JSON.stringify(entry.additionalContext) : null,
+        riskLevel,
+        additionalContext: metadata ? JSON.stringify(metadata) : null,
         timestamp: new Date()
       };
 
@@ -74,15 +97,15 @@ export class AuditService {
       // Log to application logs
       logger.info('AUDIT', {
         action: entry.action,
-        resource: `${entry.resourceType}:${entry.resourceId}`,
+        resource: `${resourceType}:${resourceId ?? 'unknown'}`,
         userId: entry.userId,
         organizationId: entry.organizationId,
-        riskLevel: entry.riskLevel,
+        riskLevel,
         ip: entry.ipAddress
       });
 
       // High-risk events get additional logging
-      if (entry.riskLevel === RiskLevel.HIGH || entry.riskLevel === RiskLevel.CRITICAL) {
+      if (riskLevel === RiskLevel.HIGH || riskLevel === RiskLevel.CRITICAL) {
         logger.warn('HIGH_RISK_AUDIT_EVENT', {
           ...auditRecord,
           severity: 'HIGH_RISK'
@@ -164,6 +187,41 @@ export class AuditService {
       riskLevel: action === AuditAction.FAILED_LOGIN ? RiskLevel.MEDIUM : RiskLevel.LOW,
       additionalContext
     });
+  }
+
+  async getAuditLogs(query: {
+    page?: number;
+    limit?: number;
+    entityType?: string;
+    action?: string;
+    search?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  }): Promise<{ data: AuditLogEntry[]; page: number; limit: number; total: number }> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 50;
+
+    // Minimal placeholder implementation until full audit trail querying is wired up
+    return {
+      data: [],
+      page,
+      limit,
+      total: 0,
+    };
+  }
+
+  async getAuditStats(): Promise<{
+    totalEvents: number;
+    highRiskEvents: number;
+    actions: Record<string, number>;
+    entities: Record<string, number>;
+  }> {
+    return {
+      totalEvents: 0,
+      highRiskEvents: 0,
+      actions: {},
+      entities: {},
+    };
   }
 
   /**

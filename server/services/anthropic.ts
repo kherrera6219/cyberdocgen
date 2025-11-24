@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { type CompanyProfile } from "@shared/schema";
+import { logger } from "../utils/logger";
 
 /*
 <important_code_snippet_instructions>

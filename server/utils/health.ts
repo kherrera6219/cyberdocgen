@@ -3,6 +3,8 @@ import { sql } from 'drizzle-orm';
 import { logger } from './logger';
 import { db } from '../db';
 import { performanceService } from '../services/performanceService';
+import { DataClassification } from '../services/encryption';
+import { AuditAction, RiskLevel } from '../services/auditService';
 
 interface HealthCheckResult {
   status: "pass" | "fail" | "warn";
@@ -71,11 +73,12 @@ class HealthCheckService {
         responseTime,
       };
     } catch (error) {
-      logger.error("Database health check failed", { error: error.message });
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Database health check failed", { error: message });
       return {
         status: "fail",
         message: "Database connection failed",
-        details: { error: error.message },
+        details: { error: message },
       };
     }
   }
@@ -284,8 +287,9 @@ async function checkEncryption(): Promise<boolean> {
     const { encryptionService } = await import('../services/encryption');
     // Test encryption/decryption cycle
     const testData = 'health-check-test';
-    const encrypted = await encryptionService.encryptSensitiveField(testData, 'CONFIDENTIAL');
-    const decrypted = await encryptionService.decryptSensitiveField(encrypted);
+    const classification = DataClassification.CONFIDENTIAL;
+    const encrypted = await encryptionService.encryptSensitiveField(testData, classification);
+    const decrypted = await encryptionService.decryptSensitiveField(encrypted, classification);
     return decrypted === testData;
   } catch (error) {
     logger.error('Encryption service health check failed:', error);
@@ -299,11 +303,11 @@ async function checkAuditSystem(): Promise<boolean> {
     // Test audit logging
     await auditService.logAuditEvent({
       userId: 'system',
-      action: 'CREATE',
+      action: AuditAction.CREATE,
       resourceType: 'health_check',
       resourceId: 'test',
       ipAddress: '127.0.0.1',
-      riskLevel: 'LOW',
+      riskLevel: RiskLevel.LOW,
       additionalContext: { type: 'health_check' }
     });
     return true;

@@ -97,17 +97,12 @@ export class AlertingService extends EventEmitter {
   }
 
   private evaluateRules() {
-    for (const [ruleId, rule] of this.rules) {
+    for (const [ruleId, rule] of Array.from(this.rules.entries())) {
       if (!rule.enabled) continue;
 
-      let shouldAlert = false;
       const metricValue = this.getMetricValue(rule.condition);
 
       if (metricValue !== null && metricValue > rule.threshold) {
-        shouldAlert = true;
-      }
-
-      if (shouldAlert) {
         this.createAlert(rule, metricValue);
       }
     }

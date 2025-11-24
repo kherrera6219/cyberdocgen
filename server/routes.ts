@@ -596,7 +596,7 @@ Category: ${category}`;
         return res.status(404).json({ message: "Document not found" });
       }
 
-      const restoredVersion = await versionService.restoreVersion(documentId, versionId);
+      const restoredVersion = await versionService.restoreVersion(documentId, versionId, userId);
 
       // Log version restoration
       await auditService.logAction({
@@ -612,7 +612,7 @@ Category: ${category}`;
         metadata: { 
           action: "version_restore", 
           versionId: versionId, 
-          restoredVersionNumber: restoredVersion.versionNumber 
+          restoredVersionNumber: restoredVersion.versionNumber
         }
       });
 

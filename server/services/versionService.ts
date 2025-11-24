@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { documents, documentVersions, type InsertDocumentVersion, type Document } from "@shared/schema";
+import { documents, documentVersions, type InsertDocumentVersion, type Document, type DocumentVersion } from "@shared/schema";
 import { logger } from "../utils/logger";
 import { eq, desc, and } from "drizzle-orm";
 import * as crypto from "crypto";
@@ -144,7 +144,7 @@ class VersionService {
     }
   }
 
-  async restoreVersion(documentId: string, versionNumber: number, userId: string): Promise<void> {
+  async restoreVersion(documentId: string, versionNumber: number, userId: string): Promise<DocumentVersion> {
     try {
       // Get the version to restore
       const versionToRestore = await this.getVersion(documentId, versionNumber);
@@ -153,7 +153,7 @@ class VersionService {
       }
 
       // Create a new version from the restored content
-      await this.createVersion({
+      const restoredVersion = await this.createVersion({
         documentId,
         title: versionToRestore.title,
         content: versionToRestore.content,
@@ -167,6 +167,8 @@ class VersionService {
         restoredFromVersion: versionNumber,
         restoredBy: userId,
       });
+
+      return restoredVersion;
     } catch (error: any) {
       logger.error("Failed to restore document version", {
         error: error.message,

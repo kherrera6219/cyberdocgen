@@ -7,24 +7,28 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  urlOrOptions: string | { method: string; body?: unknown },
-  options?: { method: string; body?: unknown },
-): Promise<any> {
-  let url: string;
-  let requestOptions: { method: string; body?: unknown };
+type ApiRequestOptions = { method?: string; body?: unknown };
 
-  if (typeof urlOrOptions === 'string') {
-    url = urlOrOptions;
-    requestOptions = options || { method: 'GET' };
-  } else {
-    throw new Error('Invalid apiRequest usage');
+export async function apiRequest(
+  url: string,
+  methodOrOptions?: string | ApiRequestOptions,
+  body?: unknown,
+): Promise<any> {
+  let method = 'GET';
+  let payload: unknown;
+
+  if (typeof methodOrOptions === 'string') {
+    method = methodOrOptions;
+    payload = body;
+  } else if (methodOrOptions) {
+    method = methodOrOptions.method ?? 'GET';
+    payload = methodOrOptions.body;
   }
 
   const res = await fetch(url, {
-    method: requestOptions.method,
-    headers: requestOptions.body ? { "Content-Type": "application/json" } : {},
-    body: requestOptions.body ? JSON.stringify(requestOptions.body) : undefined,
+    method,
+    headers: payload ? { "Content-Type": "application/json" } : {},
+    body: payload ? JSON.stringify(payload) : undefined,
     credentials: "include",
   });
 
