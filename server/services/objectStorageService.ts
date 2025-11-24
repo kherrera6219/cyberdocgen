@@ -77,10 +77,13 @@ export class ObjectStorageService {
     try {
       const filename = `profiles/${profileId}.json`;
       const { ok, error } = await this.client.uploadFromText(filename, JSON.stringify(profileData, null, 2));
-      
+
       if (!ok) {
         logger.error('Failed to upload company profile', { profileId, error });
-        return { success: false, error: error || 'Upload failed' };
+        const errorMessage = typeof error === 'string'
+          ? error
+          : (error as Error)?.message ?? 'Upload failed';
+        return { success: false, error: errorMessage };
       }
 
       logger.info('Company profile uploaded successfully', { profileId, filename });
@@ -98,10 +101,13 @@ export class ObjectStorageService {
     try {
       const filename = `documents/${documentId}.json`;
       const { ok, value, error } = await this.client.downloadAsText(filename);
-      
+
       if (!ok) {
         logger.error('Failed to download document', { documentId, error });
-        return { success: false, error: error || 'Download failed' };
+        const errorMessage = typeof error === 'string'
+          ? error
+          : (error as Error)?.message ?? 'Download failed';
+        return { success: false, error: errorMessage };
       }
 
       const parsedData = JSON.parse(value);
@@ -122,7 +128,8 @@ export class ObjectStorageService {
       
       if (!ok) {
         logger.error('Failed to download file as bytes', { path, error });
-        return { success: false, error: error || 'Download failed' };
+        const errorMessage = error instanceof Error ? error.message : error ? String(error) : 'Download failed';
+        return { success: false, error: errorMessage };
       }
 
       logger.info('File downloaded as bytes successfully', { path });
@@ -143,7 +150,8 @@ export class ObjectStorageService {
       
       if (!ok) {
         logger.error('Failed to download company profile', { profileId, error });
-        return { success: false, error: error || 'Download failed' };
+        const errorMessage = error instanceof Error ? error.message : error ? String(error) : 'Download failed';
+        return { success: false, error: errorMessage };
       }
 
       const parsedData = JSON.parse(value);
@@ -185,7 +193,8 @@ export class ObjectStorageService {
       
       if (!ok) {
         logger.error('Failed to list objects', { error });
-        return { success: false, error: error || 'List failed' };
+        const errorMessage = error instanceof Error ? error.message : error ? String(error) : 'List failed';
+        return { success: false, error: errorMessage };
       }
 
       const fileList = Array.isArray(value) ? value.map(item => typeof item === 'string' ? item : item.name || String(item)) : [];
@@ -206,7 +215,8 @@ export class ObjectStorageService {
       
       if (!ok) {
         logger.error('Failed to list objects', { error });
-        return { success: false, error: error || 'List failed' };
+        const errorMessage = error instanceof Error ? error.message : error ? String(error) : 'List failed';
+        return { success: false, error: errorMessage };
       }
 
       // Filter objects by folder prefix and convert to strings
@@ -227,10 +237,13 @@ export class ObjectStorageService {
   async deleteObject(path: string): Promise<UploadResult> {
     try {
       const { ok, error } = await this.client.delete(path);
-      
+
       if (!ok) {
+        const errorMessage = typeof error === 'string'
+          ? error
+          : (error as Error)?.message ?? 'Delete failed';
         logger.error('Failed to delete object', { path, error });
-        return { success: false, error: error || 'Delete failed' };
+        return { success: false, error: errorMessage };
       }
 
       logger.info('Object deleted successfully', { path });
@@ -274,10 +287,13 @@ export class ObjectStorageService {
     try {
       const filename = `backups/${backupId}.json`;
       const { ok, error } = await this.client.uploadFromText(filename, JSON.stringify(data, null, 2));
-      
+
       if (!ok) {
         logger.error('Failed to upload backup', { backupId, error });
-        return { success: false, error: error || 'Backup upload failed' };
+        const errorMessage = typeof error === 'string'
+          ? error
+          : (error as Error)?.message ?? 'Backup upload failed';
+        return { success: false, error: errorMessage };
       }
 
       logger.info('Backup uploaded successfully', { backupId, filename });
@@ -295,10 +311,13 @@ export class ObjectStorageService {
     try {
       const filename = `backups/${backupId}.json`;
       const { ok, value, error } = await this.client.downloadAsText(filename);
-      
+
       if (!ok) {
         logger.error('Failed to download backup', { backupId, error });
-        return { success: false, error: error || 'Backup download failed' };
+        const errorMessage = typeof error === 'string'
+          ? error
+          : (error as Error)?.message ?? 'Backup download failed';
+        return { success: false, error: errorMessage };
       }
 
       const parsedData = JSON.parse(value);
@@ -317,10 +336,13 @@ export class ObjectStorageService {
     try {
       const filename = `audit-logs/${logId}.json`;
       const { ok, error } = await this.client.uploadFromText(filename, JSON.stringify(logs, null, 2));
-      
+
       if (!ok) {
         logger.error('Failed to upload audit logs', { logId, error });
-        return { success: false, error: error || 'Audit logs upload failed' };
+        const errorMessage = typeof error === 'string'
+          ? error
+          : (error as Error)?.message ?? 'Audit logs upload failed';
+        return { success: false, error: errorMessage };
       }
 
       logger.info('Audit logs uploaded successfully', { logId, filename, logCount: logs.length });

@@ -1,4 +1,7 @@
 import crypto from 'crypto';
+import { eq } from 'drizzle-orm';
+import { db } from '../db';
+import { mfaSettings } from '@shared/schema';
 import { logger } from '../utils/logger';
 import { auditService, AuditAction, RiskLevel } from './auditService';
 
@@ -362,10 +365,10 @@ export class MFAService {
   }
 
   async getAllMFASettings(userId: string) {
-    const mfaSettings = await db.select()
-      .from(mfaSettingsTable)
-      .where(eq(mfaSettingsTable.userId, userId));
-    return mfaSettings;
+    const settings = await db.select()
+      .from(mfaSettings)
+      .where(eq(mfaSettings.userId, userId));
+    return settings;
   }
 
   async getPasskeyCount(userId: string): Promise<number> {

@@ -87,7 +87,7 @@ export class ThreatDetectionService {
     const query = req.query ? JSON.stringify(req.query) : '';
 
     // Analyze all patterns
-    for (const [patternId, pattern] of this.patterns) {
+    for (const [patternId, pattern] of Array.from(this.patterns.entries())) {
       let isMatch = false;
       const testData = `${url} ${body} ${query}`;
 
@@ -249,7 +249,7 @@ export class ThreatDetectionService {
     // Clean up old suspicious IPs (reset after 24 hours of inactivity)
     setInterval(() => {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      for (const [ip, data] of this.suspiciousIPs.entries()) {
+      for (const [ip, data] of Array.from(this.suspiciousIPs.entries())) {
         if (data.lastAttempt < oneDayAgo) {
           this.suspiciousIPs.delete(ip);
         }

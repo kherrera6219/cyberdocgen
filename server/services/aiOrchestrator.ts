@@ -1,6 +1,7 @@
 import { type CompanyProfile } from "@shared/schema";
 import { generateDocument as generateWithOpenAI, generateComplianceDocuments as generateBatchWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
+import { logger } from "../utils/logger";
 
 export type AIModel = 'gpt-4o' | 'claude-sonnet-4' | 'auto';
 

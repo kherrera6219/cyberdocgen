@@ -9,6 +9,7 @@ import {
   gapAnalysisFindings,
   remediationRecommendations,
   complianceMaturityAssessments,
+  auditTrail,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -29,7 +30,9 @@ import {
   type RemediationRecommendation,
   type InsertRemediationRecommendation,
   type ComplianceMaturityAssessment,
-  type InsertComplianceMaturityAssessment 
+  type InsertComplianceMaturityAssessment,
+  type InsertAuditTrail,
+  type AuditTrail
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -78,6 +81,25 @@ export interface IStorage {
   getGenerationJobsByCompanyProfile(companyProfileId: string): Promise<GenerationJob[]>;
   createGenerationJob(job: InsertGenerationJob): Promise<GenerationJob>;
   updateGenerationJob(id: string, job: Partial<InsertGenerationJob>): Promise<GenerationJob | undefined>;
+
+  // Gap analysis methods
+  createGapAnalysisReport(report: InsertGapAnalysisReport): Promise<GapAnalysisReport>;
+  getGapAnalysisReports(organizationId: string): Promise<GapAnalysisReport[]>;
+  getGapAnalysisReport(id: string): Promise<GapAnalysisReport | undefined>;
+  updateGapAnalysisReport(id: string, updates: Partial<GapAnalysisReport>): Promise<GapAnalysisReport>;
+  createGapAnalysisFinding(finding: InsertGapAnalysisFinding): Promise<GapAnalysisFinding>;
+  getGapAnalysisFindings(reportId: string): Promise<GapAnalysisFinding[]>;
+  createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation>;
+  getRemediationRecommendations(findingId: string): Promise<RemediationRecommendation[]>;
+  updateRemediationRecommendation(id: string, updates: Partial<RemediationRecommendation>): Promise<RemediationRecommendation>;
+  createComplianceMaturityAssessment(assessment: InsertComplianceMaturityAssessment): Promise<ComplianceMaturityAssessment>;
+  getComplianceMaturityAssessment(
+    organizationId: string,
+    framework: ComplianceMaturityAssessment["framework"]
+  ): Promise<ComplianceMaturityAssessment | undefined>;
+
+  // Audit trail
+  createAuditEntry(entry: InsertAuditTrail): Promise<AuditTrail>;
 }
 
 export class MemStorage implements IStorage {
@@ -106,8 +128,8 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(user => user.email === email);
   }
 
-  async createUser(user: InsertUser): Promise<User> {
-    const id = randomUUID();
+  async createUser(user: InsertUser, idOverride?: string): Promise<User> {
+    const id = idOverride ?? randomUUID();
     const now = new Date();
     const newUser: User = {
       ...user,
@@ -118,6 +140,15 @@ export class MemStorage implements IStorage {
       role: user.role || "user",
       isActive: user.isActive ?? true,
       lastLoginAt: user.lastLoginAt || null,
+      passwordHash: user.passwordHash ?? null,
+      emailVerified: user.emailVerified ?? null,
+      phoneNumber: user.phoneNumber ?? null,
+      phoneVerified: user.phoneVerified ?? null,
+      twoFactorEnabled: user.twoFactorEnabled ?? false,
+      accountStatus: user.accountStatus ?? "pending_verification",
+      failedLoginAttempts: user.failedLoginAttempts ?? 0,
+      accountLockedUntil: user.accountLockedUntil ?? null,
+      passkeyEnabled: user.passkeyEnabled ?? false,
       createdAt: now,
       updatedAt: now,
     };
@@ -139,24 +170,20 @@ export class MemStorage implements IStorage {
   }
 
   async upsertUser(user: UpsertUser): Promise<User> {
-    const id = user.id;
-    if (!id) {
-      throw new Error("User ID is required for upsert operation");
-    }
-    
+    const id = user.id ?? randomUUID();
     const existing = this.users.get(id);
     if (existing) {
-      const { id: userId, ...updateData } = user;
-      const updated = await this.updateUser(userId, updateData);
+      const { id: _userId, ...updateData } = user;
+      const updated = await this.updateUser(id, updateData);
       if (!updated) {
         throw new Error("Failed to update user");
       }
       return updated;
     } else {
-      const { id: userId, ...insertUser } = user;
-      const newUser = await this.createUser(insertUser);
-      this.users.set(userId, { ...newUser, id: userId });
-      return { ...newUser, id: userId };
+      const { id: _userId, ...insertUser } = user;
+      const newUser = await this.createUser(insertUser, id);
+      this.users.set(id, newUser);
+      return newUser;
     }
   }
 
@@ -266,6 +293,8 @@ export class MemStorage implements IStorage {
       ...insertProfile,
       id,
       cloudInfrastructure: Array.isArray(insertProfile.cloudInfrastructure) ? insertProfile.cloudInfrastructure : [],
+      complianceFrameworks: insertProfile.complianceFrameworks ?? [],
+      contactInfo: insertProfile.contactInfo ?? null,
       isActive: insertProfile.isActive ?? true,
       keyPersonnel: insertProfile.keyPersonnel || null,
       frameworkConfigs: insertProfile.frameworkConfigs || null,
@@ -285,6 +314,7 @@ export class MemStorage implements IStorage {
       ...existing,
       ...updateData,
       cloudInfrastructure: Array.isArray(updateData.cloudInfrastructure) ? updateData.cloudInfrastructure : existing.cloudInfrastructure,
+      complianceFrameworks: updateData.complianceFrameworks ?? existing.complianceFrameworks,
       updatedAt: new Date(),
     };
     this.companyProfiles.set(id, updated);
@@ -328,7 +358,7 @@ export class MemStorage implements IStorage {
       subFramework: insertDocument.subFramework || null,
       documentType: insertDocument.documentType || "text",
       templateData: insertDocument.templateData || null,
-      tags: Array.isArray(insertDocument.tags) ? insertDocument.tags : null,
+      tags: Array.isArray(insertDocument.tags) ? insertDocument.tags : [],
       fileName: insertDocument.fileName || null,
       fileType: insertDocument.fileType || null,
       fileSize: insertDocument.fileSize || null,
@@ -337,8 +367,6 @@ export class MemStorage implements IStorage {
       reviewedAt: insertDocument.reviewedAt || null,
       approvedBy: insertDocument.approvedBy || null,
       approvedAt: insertDocument.approvedAt || null,
-      publishedAt: insertDocument.publishedAt || null,
-      approvalRequired: insertDocument.approvalRequired || false,
       aiGenerated: insertDocument.aiGenerated || false,
       aiModel: insertDocument.aiModel || null,
       generationPrompt: insertDocument.generationPrompt || null,
@@ -414,7 +442,15 @@ export class MemStorage implements IStorage {
   // Gap Analysis methods
   async createGapAnalysisReport(report: InsertGapAnalysisReport): Promise<GapAnalysisReport> {
     const id = randomUUID();
-    const newReport = { ...report, id, createdAt: new Date(), updatedAt: new Date() };
+    const newReport: GapAnalysisReport = {
+      ...report,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      metadata: report.metadata ?? null,
+      status: report.status ?? "pending",
+      analysisDate: report.analysisDate ?? new Date(),
+    };
     this.gapAnalysisReports.set(id, newReport);
     return newReport;
   }
@@ -422,7 +458,9 @@ export class MemStorage implements IStorage {
   async getGapAnalysisReports(organizationId: string): Promise<GapAnalysisReport[]> {
     return Array.from(this.gapAnalysisReports.values())
       .filter(report => report.organizationId === organizationId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) =>
+        (b.createdAt?.getTime?.() ?? 0) - (a.createdAt?.getTime?.() ?? 0)
+      );
   }
 
   async getGapAnalysisReport(id: string): Promise<GapAnalysisReport | undefined> {
@@ -440,7 +478,14 @@ export class MemStorage implements IStorage {
 
   async createGapAnalysisFinding(finding: InsertGapAnalysisFinding): Promise<GapAnalysisFinding> {
     const id = randomUUID();
-    const newFinding = { ...finding, id, createdAt: new Date(), updatedAt: new Date() };
+    const newFinding: GapAnalysisFinding = {
+      ...finding,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      evidenceRequired: finding.evidenceRequired ?? null,
+      estimatedEffort: finding.estimatedEffort ?? null,
+    };
     this.gapAnalysisFindings.set(id, newFinding);
     return newFinding;
   }
@@ -453,7 +498,18 @@ export class MemStorage implements IStorage {
 
   async createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation> {
     const id = randomUUID();
-    const newRecommendation = { ...recommendation, id, createdAt: new Date(), updatedAt: new Date() };
+    const newRecommendation: RemediationRecommendation = {
+      ...recommendation,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      cost: recommendation.cost ?? null,
+      status: recommendation.status ?? "pending",
+      assignedTo: recommendation.assignedTo ?? null,
+      dueDate: recommendation.dueDate ?? null,
+      completedDate: recommendation.completedDate ?? null,
+      resources: recommendation.resources ?? null,
+    };
     this.remediationRecommendations.set(id, newRecommendation);
     return newRecommendation;
   }
@@ -475,18 +531,50 @@ export class MemStorage implements IStorage {
 
   async createComplianceMaturityAssessment(assessment: InsertComplianceMaturityAssessment): Promise<ComplianceMaturityAssessment> {
     const id = randomUUID();
-    const newAssessment = { ...assessment, id, createdAt: new Date(), updatedAt: new Date() };
+    const newAssessment: ComplianceMaturityAssessment = {
+      ...assessment,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      recommendations: assessment.recommendations ?? null,
+      nextReviewDate: assessment.nextReviewDate ?? null,
+    };
     this.complianceMaturityAssessments.set(id, newAssessment);
     return newAssessment;
   }
 
-  async getComplianceMaturityAssessment(organizationId: string, framework: string): Promise<ComplianceMaturityAssessment | undefined> {
+  async getComplianceMaturityAssessment(
+    organizationId: string,
+    framework: ComplianceMaturityAssessment["framework"]
+  ): Promise<ComplianceMaturityAssessment | undefined> {
     return Array.from(this.complianceMaturityAssessments.values())
-      .filter(assessment => 
-        assessment.organizationId === organizationId && 
+      .filter(assessment =>
+        assessment.organizationId === organizationId &&
         assessment.framework === framework
       )
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+      .sort((a, b) =>
+        (b.createdAt?.getTime?.() ?? 0) - (a.createdAt?.getTime?.() ?? 0)
+      )[0];
+  }
+
+  async createAuditEntry(entry: InsertAuditTrail): Promise<AuditTrail> {
+    const id = randomUUID();
+    const newEntry: AuditTrail = {
+      ...entry,
+      id,
+      timestamp: new Date(),
+      organizationId: entry.organizationId ?? null,
+      userEmail: entry.userEmail ?? null,
+      userName: entry.userName ?? null,
+      oldValues: entry.oldValues ?? null,
+      newValues: entry.newValues ?? null,
+      metadata: entry.metadata ?? null,
+      ipAddress: entry.ipAddress ?? null,
+      userAgent: entry.userAgent ?? null,
+      sessionId: entry.sessionId ?? null,
+    };
+    this.auditEntries.set(id, newEntry);
+    return newEntry;
   }
 
   // Private storage
@@ -494,6 +582,7 @@ export class MemStorage implements IStorage {
   private gapAnalysisFindings = new Map<string, GapAnalysisFinding>();
   private remediationRecommendations = new Map<string, RemediationRecommendation>();
   private complianceMaturityAssessments = new Map<string, ComplianceMaturityAssessment>();
+  private auditEntries = new Map<string, AuditTrail>();
 }
 
 export class DatabaseStorage implements IStorage {
@@ -768,6 +857,136 @@ export class DatabaseStorage implements IStorage {
       .where(eq(generationJobs.id, id))
       .returning();
     return job || undefined;
+  }
+
+  // Gap analysis methods
+  async createGapAnalysisReport(report: InsertGapAnalysisReport): Promise<GapAnalysisReport> {
+    const [newReport] = await db
+      .insert(gapAnalysisReports)
+      .values(report)
+      .returning();
+    return newReport;
+  }
+
+  async getGapAnalysisReports(organizationId: string): Promise<GapAnalysisReport[]> {
+    return db
+      .select()
+      .from(gapAnalysisReports)
+      .where(eq(gapAnalysisReports.organizationId, organizationId))
+      .orderBy(desc(gapAnalysisReports.createdAt));
+  }
+
+  async getGapAnalysisReport(id: string): Promise<GapAnalysisReport | undefined> {
+    const [report] = await db
+      .select()
+      .from(gapAnalysisReports)
+      .where(eq(gapAnalysisReports.id, id));
+    return report || undefined;
+  }
+
+  async updateGapAnalysisReport(id: string, updates: Partial<GapAnalysisReport>): Promise<GapAnalysisReport> {
+    const [updated] = await db
+      .update(gapAnalysisReports)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(gapAnalysisReports.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Report not found");
+    }
+    return updated;
+  }
+
+  async createGapAnalysisFinding(finding: InsertGapAnalysisFinding): Promise<GapAnalysisFinding> {
+    const [newFinding] = await db
+      .insert(gapAnalysisFindings)
+      .values(finding)
+      .returning();
+    return newFinding;
+  }
+
+  async getGapAnalysisFindings(reportId: string): Promise<GapAnalysisFinding[]> {
+    return db
+      .select()
+      .from(gapAnalysisFindings)
+      .where(eq(gapAnalysisFindings.reportId, reportId))
+      .orderBy(desc(gapAnalysisFindings.createdAt));
+  }
+
+  async createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation> {
+    const [newRecommendation] = await db
+      .insert(remediationRecommendations)
+      .values(recommendation)
+      .returning();
+    return newRecommendation;
+  }
+
+  async getRemediationRecommendations(findingId: string): Promise<RemediationRecommendation[]> {
+    return db
+      .select()
+      .from(remediationRecommendations)
+      .where(eq(remediationRecommendations.findingId, findingId))
+      .orderBy(desc(remediationRecommendations.createdAt));
+  }
+
+  async updateRemediationRecommendation(id: string, updates: Partial<RemediationRecommendation>): Promise<RemediationRecommendation> {
+    const [updated] = await db
+      .update(remediationRecommendations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(remediationRecommendations.id, id))
+      .returning();
+
+    if (!updated) {
+      throw new Error("Recommendation not found");
+    }
+
+    return updated;
+  }
+
+  async createComplianceMaturityAssessment(assessment: InsertComplianceMaturityAssessment): Promise<ComplianceMaturityAssessment> {
+    const [newAssessment] = await db
+      .insert(complianceMaturityAssessments)
+      .values(assessment)
+      .returning();
+    return newAssessment;
+  }
+
+  async getComplianceMaturityAssessment(
+    organizationId: string,
+    framework: ComplianceMaturityAssessment["framework"]
+  ): Promise<ComplianceMaturityAssessment | undefined> {
+    const [assessment] = await db
+      .select()
+      .from(complianceMaturityAssessments)
+      .where(
+        and(
+          eq(complianceMaturityAssessments.organizationId, organizationId),
+          eq(complianceMaturityAssessments.framework, framework)
+        )
+      )
+      .orderBy(desc(complianceMaturityAssessments.createdAt));
+
+    return assessment || undefined;
+  }
+
+  async createAuditEntry(entry: InsertAuditTrail): Promise<AuditTrail> {
+    const preparedEntry: InsertAuditTrail = {
+      ...entry,
+      organizationId: entry.organizationId ?? null,
+      userEmail: entry.userEmail ?? null,
+      userName: entry.userName ?? null,
+      oldValues: entry.oldValues ?? null,
+      newValues: entry.newValues ?? null,
+      metadata: entry.metadata ?? null,
+      ipAddress: entry.ipAddress ?? null,
+      userAgent: entry.userAgent ?? null,
+      sessionId: entry.sessionId ?? null,
+    };
+
+    const [newEntry] = await db
+      .insert(auditTrail)
+      .values(preparedEntry)
+      .returning();
+    return newEntry;
   }
 }
 

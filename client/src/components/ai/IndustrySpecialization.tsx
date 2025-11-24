@@ -81,7 +81,7 @@ export function IndustrySpecialization() {
   const queryClient = useQueryClient();
 
   // Get available industry configurations
-  const { data: industries, isLoading: industriesLoading } = useQuery({
+  const { data: industries, isLoading: industriesLoading } = useQuery<{ configurations: IndustryConfig[] }>({
     queryKey: ["/api/ai/industries"],
   });
 
@@ -91,7 +91,7 @@ export function IndustrySpecialization() {
   };
 
   // Get specific industry configuration
-  const { data: industryConfig } = useQuery({
+  const { data: industryConfig } = useQuery<IndustryConfig | undefined>({
     queryKey: ["/api/ai/industries", selectedIndustry],
     queryFn: () => apiRequest(`/api/ai/industries/${selectedIndustry}`),
     enabled: !!selectedIndustry,

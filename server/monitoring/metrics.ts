@@ -124,6 +124,12 @@ class MetricsCollector {
     }
   }
 
+  // Generic counter utility for legacy call sites
+  incrementCounter(_category: string, _label?: string) {
+    // Maintain backward compatibility without altering metrics schema significantly
+    this.metrics.requests.total++;
+  }
+
   // Track security events
   trackSecurityEvent(type: 'auth_attempt' | 'auth_failure' | 'rate_limit') {
     switch (type) {

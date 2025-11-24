@@ -1,5 +1,4 @@
-// PDF processing library (requires package installation)
-// import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { pdfSecuritySettings, cloudFiles } from '@shared/schema';
@@ -153,7 +152,6 @@ export class PDFSecurityService {
             opacity: opacity * 0.5,
             rotate: {
               angle: Math.PI / 6, // 30 degrees
-              origin: [width / 2, height / 2],
             },
           });
         }
@@ -226,11 +224,11 @@ export class PDFSecurityService {
   ): Promise<void> {
     try {
       const userPasswordEncrypted = config.userPassword
-        ? await encryptionService.encryptSensitiveField(config.userPassword, DataClassification.RESTRICTED)
+        ? JSON.stringify(await encryptionService.encryptSensitiveField(config.userPassword, DataClassification.RESTRICTED))
         : null;
 
       const ownerPasswordEncrypted = config.ownerPassword
-        ? await encryptionService.encryptSensitiveField(config.ownerPassword, DataClassification.RESTRICTED)
+        ? JSON.stringify(await encryptionService.encryptSensitiveField(config.ownerPassword, DataClassification.RESTRICTED))
         : null;
 
       await db.insert(pdfSecuritySettings).values({

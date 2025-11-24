@@ -192,7 +192,7 @@ export class PerformanceService {
   private startCacheCleanup() {
     setInterval(() => {
       const now = Date.now();
-      for (const [key, item] of this.cache.entries()) {
+      for (const [key, item] of Array.from(this.cache.entries())) {
         if (now > item.expiry) {
           this.cache.delete(key);
         }
@@ -233,7 +233,7 @@ export class PerformanceService {
     let totalRequests = 0;
     let totalHits = 0;
 
-    for (const item of this.cache.values()) {
+    for (const item of Array.from(this.cache.values())) {
       totalRequests++;
       totalHits += item.hits;
     }

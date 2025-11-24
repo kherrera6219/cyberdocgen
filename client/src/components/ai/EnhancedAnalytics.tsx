@@ -78,7 +78,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
   const [selectedFramework, setSelectedFramework] = useState("all");
 
   // Analytics data query
-  const { data: analytics, isLoading } = useQuery({
+  const { data: analytics, isLoading } = useQuery<AnalyticsSummary>({
     queryKey: ["/api/analytics/summary", timeRange, selectedFramework],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -157,7 +157,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
     { month: "Oct", score: 61 },
   ];
 
-  const frameworkData = Object.entries((analyticsData as any)?.frameworkProgress || {}).map(
+  const frameworkData = Object.entries(analyticsData.frameworkProgress || {}).map(
     ([name, value]) => ({
       name,
       value,

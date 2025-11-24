@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { eq, and, lt } from 'drizzle-orm';
+import { eq, and, lt, isNull } from 'drizzle-orm';
 import { db } from '../db';
 import { users, passwordResetTokens, emailVerificationTokens, passkeyCredentials, mfaSettings } from '@shared/schema';
 import { encryptionService, DataClassification } from './encryption';
@@ -257,7 +257,7 @@ export class EnterpriseAuthService {
       const resetRecord = await db.query.passwordResetTokens.findFirst({
         where: and(
           eq(passwordResetTokens.token, request.token),
-          eq(passwordResetTokens.usedAt, null)
+          isNull(passwordResetTokens.usedAt)
         ),
       });
 
@@ -327,7 +327,7 @@ export class EnterpriseAuthService {
       }
 
       // Generate TOTP secret
-      const secret = crypto.randomBytes(20).toString('base32');
+      const secret = crypto.randomBytes(20).toString('hex');
       
       // Create QR code URL for Google Authenticator
       const qrCodeUrl = `otpauth://totp/ComplianceAI:${user.email}?secret=${secret}&issuer=ComplianceAI&algorithm=SHA1&digits=6&period=30`;
@@ -338,14 +338,14 @@ export class EnterpriseAuthService {
       );
 
       // Encrypt sensitive data
-      const secretEncrypted = await encryptionService.encryptSensitiveField(
+      const secretEncrypted = JSON.stringify(await encryptionService.encryptSensitiveField(
         secret,
         DataClassification.RESTRICTED
-      );
-      const backupCodesEncrypted = await encryptionService.encryptSensitiveField(
+      ));
+      const backupCodesEncrypted = JSON.stringify(await encryptionService.encryptSensitiveField(
         JSON.stringify(backupCodes),
         DataClassification.RESTRICTED
-      );
+      ));
 
       // Store MFA settings
       await db.insert(mfaSettings).values({
