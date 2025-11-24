@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';

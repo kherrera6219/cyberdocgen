@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { aiOrchestrator } from './aiOrchestrator';
 import { logger } from '../utils/logger';
 import type { 

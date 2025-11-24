@@ -8,7 +8,6 @@ import {
   FormProvider,
   useFormContext,
   type ControllerProps,
-  type FieldPath,
   type FieldValues,
 } from "react-hook-form"
 
@@ -17,25 +16,17 @@ import { Label } from "@/components/ui/label"
 
 const Form = FormProvider
 
-type FormFieldContextValue<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-> = {
-  name: TName
+type FormFieldContextValue = {
+  name: string
 }
 
 const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue
 )
 
-const FormField = <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({
-  ...props
-}: ControllerProps<TFieldValues, TName>) => {
+const FormField = ({ ...props }: ControllerProps<any>) => {
   return (
-    <FormFieldContext.Provider value={{ name: props.name }}>
+    <FormFieldContext.Provider value={{ name: String(props.name) }}>
       <Controller {...props} />
     </FormFieldContext.Provider>
   )

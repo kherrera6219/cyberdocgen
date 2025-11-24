@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
 import { type CompanyProfile } from "@shared/schema";
+import { logger } from "../utils/logger";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

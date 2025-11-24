@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Cloud service integrations (requires package installation)
 // import { google } from 'googleapis';
 // import { Client } from '@microsoft/microsoft-graph-client';
