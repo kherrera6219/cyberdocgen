@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { type CompanyProfile } from "@shared/schema";
 import {
   AlertTriangle,
   BarChart3,
@@ -79,7 +80,7 @@ export function RiskAssessment({ className }: RiskAssessmentProps) {
   const { toast } = useToast();
 
   // Get company profile
-  const { data: companyProfile } = useQuery({
+  const { data: companyProfile } = useQuery<CompanyProfile | undefined>({
     queryKey: ["/api/company-profile"],
   });
 

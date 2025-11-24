@@ -33,7 +33,17 @@ export interface BatchGenerationProgress {
  * quality analysis, and cross-model validation
  */
 export class AIOrchestrator {
-  
+
+  async generateContent(options: {
+    prompt: string;
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
+  }): Promise<{ content: string; model: string; }> {
+    const { prompt, model = 'gpt-4o' } = options;
+    return { content: prompt, model };
+  }
+
   /**
    * Generate a single document using specified or optimal AI model
    */

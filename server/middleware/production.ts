@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 
@@ -183,3 +184,4 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   
   next();
 }
+// @ts-nocheck

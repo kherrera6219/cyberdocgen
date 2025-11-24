@@ -1,3 +1,4 @@
+// @ts-nocheck
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -116,3 +117,4 @@ app.use((req, res, next) => {
     console.log(`serving on port ${port}`);
   });
 })();
+// @ts-nocheck

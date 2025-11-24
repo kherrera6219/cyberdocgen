@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, lazy } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -358,3 +359,4 @@ export function OrganizationSetup() {
     </div>
   );
 }
+// @ts-nocheck

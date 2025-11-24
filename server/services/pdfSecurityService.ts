@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, degrees, rgb, StandardFonts } from 'pdf-lib';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { pdfSecuritySettings, cloudFiles } from '@shared/schema';
@@ -150,9 +150,7 @@ export class PDFSecurityService {
             font,
             color: watermarkColor,
             opacity: opacity * 0.5,
-            rotate: {
-              angle: Math.PI / 6, // 30 degrees
-            },
+            rotate: degrees(30),
           });
         }
       }
