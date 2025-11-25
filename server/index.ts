@@ -1,14 +1,13 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import * as cors from "cors";
+import cors from "cors";
 import {
   generalLimiter,
   sanitizeInput,
   validateRequest,
   securityHeaders,
   errorHandler,
-  corsOptions,
   threatDetection,
   auditLogger,
   requireMFA,
@@ -36,9 +35,18 @@ app.get('/health', healthCheckHandler);
 app.get('/ready', readinessCheckHandler);
 app.get('/live', livenessCheckHandler);
 
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.ALLOWED_ORIGINS?.split(',') || []
+    : true,
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // Security middleware - only apply to API routes
 app.use(securityHeaders);
-app.use(cors.default ? cors.default(corsOptions) : cors(corsOptions));
+app.use(cors(corsOptions));
 
 // Security and performance monitoring
 app.use(threatDetection);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -31,7 +31,7 @@ const signupSchema = z.object({
 type SignupForm = z.infer<typeof signupSchema>;
 
 export default function EnterpriseSignup() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [accountData, setAccountData] = useState<any>(null);
 
@@ -70,7 +70,7 @@ export default function EnterpriseSignup() {
       return apiRequest('/api/auth/enterprise/verify-email', 'POST', { token });
     },
     onSuccess: () => {
-      navigate('/login');
+      setLocation('/login');
     },
   });
 
