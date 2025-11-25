@@ -1,58 +1,49 @@
+# CyberDocGen
 
-# Enterprise Compliance Management System
+CyberDocGen is an Express + React TypeScript application for AI-assisted compliance documentation. The repository includes a secured API layer with AI orchestration and a Vite-powered client served through the same Node.js process.
 
-A production-ready, enterprise-grade compliance management system with AI-powered document analysis and generation capabilities.
+## Repository layout
+- `server/` – Express server, security middleware, AI orchestration, and API routes
+- `client/` – React application and UI composition
+- `shared/` – Zod schemas and types shared by client and server
+- `tests/` – Vitest-based unit and integration coverage
+- `scripts/` – Operational utilities for production validation and encryption checks
+- `docs/` – Project documentation
 
-## 🚀 Quick Start
+## Prerequisites
+- Node.js 20+
+- npm 10+
+- PostgreSQL database URL for Drizzle ORM
+- API keys for the AI providers you want to exercise (OpenAI and Anthropic are required by default)
 
-```bash
-npm install
-npm run dev
-```
+## Quick start
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Configure environment variables (see `docs/CONFIGURATION.md` for details) and create a `.env` file in the repository root.
+3. Start the development server (serves API + client on the same port):
+   ```bash
+   npm run dev
+   ```
+4. Access the app at `http://localhost:5000`.
 
-Access the application at `http://localhost:5000`
+## Useful scripts
+- `npm run dev` – Start the Express server with Vite middleware for local development
+- `npm run build` – Build the client and bundle the server for production
+- `npm start` – Run the bundled server from `dist/`
+- `npm run check` – Type-check the project
+- `npm run db:push` – Apply Drizzle schema changes to the configured PostgreSQL database
 
-## ✨ Features
+## Development notes
+- Health endpoints are available at `/health`, `/ready`, and `/live`.
+- AI service diagnostics live under `/api/ai/health` and `/api/test/*` routes.
+- Security middleware enforces request validation, rate limiting, sanitization, and MFA gates for high-risk flows.
 
-- **AI-Powered Document Analysis** - Automated compliance document review and generation
-- **Multi-Factor Authentication** - Enterprise-grade security with MFA support
-- **Cloud Integrations** - Google Drive and Microsoft OneDrive connectivity  
-- **Compliance Automation** - Gap analysis and risk assessment tools
-- **Audit Trails** - Comprehensive logging for regulatory compliance
-- **Real-time Collaboration** - Document comments and version control
-- **Enterprise Management** - Organization setup and user management
-
-## 🏗️ Architecture
-
-- **Frontend**: React 18 + TypeScript + Tailwind CSS
-- **Backend**: Node.js + Express + TypeScript
-- **Database**: PostgreSQL + Drizzle ORM
-- **AI Services**: OpenAI, Anthropic Claude, Google AI
-- **Authentication**: OpenID Connect + MFA
-- **Security**: Multi-layer protection, encryption, threat detection
-
-## 📚 Documentation
-
-- [Development Guide](docs/DEVELOPMENT_GUIDE.md)
-- [API Documentation](docs/API.md) 
-- [Security Overview](docs/SECURITY.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Architecture Details](docs/ARCHITECTURE.md)
-
-## 🔒 Security & Compliance
-
-This system is designed for enterprise use with:
-- SOC2 compliance readiness
-- Data encryption at rest and in transit
-- Comprehensive audit logging
-- Multi-factor authentication
-- Role-based access control
-- Threat detection and monitoring
-
-## 📈 Production Status
-
-✅ **ENTERPRISE READY** - This application has passed comprehensive security audits and is approved for production deployment.
-
----
-
-Built with ❤️ for enterprise compliance teams.
+## Documentation
+Additional documentation lives in the `docs/` directory:
+- `docs/CONFIGURATION.md` – Environment variables and operational configuration
+- `docs/API.md` – HTTP API reference
+- `docs/ARCHITECTURE.md` – System architecture overview
+- `docs/SECURITY.md` – Security posture and controls
+- `docs/DEPLOYMENT.md` – Deployment considerations
