@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useLocation, Link, useNavigate } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,8 +26,7 @@ const resetPasswordSchema = z.object({
 type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
-  const [location] = useLocation();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const [token, setToken] = useState<string>('');
   const [step, setStep] = useState<'form' | 'success'>('form');
 
@@ -102,7 +101,7 @@ export default function ResetPassword() {
 
             <div className="flex flex-col gap-2">
               <Button
-                onClick={() => navigate('/login')}
+                onClick={() => setLocation('/login')}
                 className="w-full"
               >
                 Continue to Login
