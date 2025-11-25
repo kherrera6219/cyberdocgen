@@ -8,8 +8,16 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+const authConfigured =
+  !!process.env.REPLIT_DOMAINS &&
+  !!process.env.REPL_ID &&
+  !!process.env.SESSION_SECRET &&
+  !!process.env.DATABASE_URL;
+
+if (!authConfigured) {
+  console.warn(
+    "Replit auth environment variables missing. Falling back to stubbed authentication middleware.",
+  );
 }
 
 const getOidcConfig = memoize(
@@ -67,6 +75,15 @@ async function upsertUser(
 }
 
 export async function setupAuth(app: Express) {
+  if (!authConfigured) {
+    // Register a minimal session middleware to keep Express happy during tests
+    app.use((req, _res, next) => {
+      req.isAuthenticated = () => false;
+      return next();
+    });
+    return;
+  }
+
   app.set("trust proxy", 1);
   app.use(getSession());
   app.use(passport.initialize());
@@ -128,6 +145,10 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  if (!authConfigured) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {

@@ -1,9 +1,13 @@
 import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
 import { type CompanyProfile } from "@shared/schema";
+import { logger } from "../utils/logger";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+
+const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
+const anthropic = anthropicApiKey ? new Anthropic({ apiKey: anthropicApiKey }) : null;
 
 export interface DocumentAnalysisResult {
   summary: string;
@@ -43,6 +47,11 @@ export class DocumentAnalysisService {
     filename: string,
     framework?: string
   ): Promise<DocumentAnalysisResult> {
+    if (!anthropic) {
+      logger.warn("Anthropic API key not configured. Returning fallback analysis result.");
+      return this.parseAnalysisText("{}", filename);
+    }
+
     const analysisPrompt = `Analyze this compliance document and extract key information:
 
 Document: ${filename}
@@ -92,6 +101,11 @@ Focus on cybersecurity, data protection, and compliance aspects.`;
    * Extract company profile information from documents
    */
   async extractCompanyProfile(content: string): Promise<Partial<CompanyProfile>> {
+    if (!openai) {
+      logger.warn("OpenAI API key not configured. Returning empty company profile.");
+      return {};
+    }
+
     const extractionPrompt = `Extract company profile information from this document:
 
 ${content}

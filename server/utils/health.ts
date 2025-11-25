@@ -169,50 +169,24 @@ const healthCheckService = new HealthCheckService();
 
 export async function healthCheckHandler(req: Request, res: Response) {
   try {
-    const dbStatus = await checkDatabaseHealth();
-    const performanceMetrics = performanceService.getDetailedMetrics();
+    const [healthStatus, performanceMetrics] = await Promise.all([
+      healthCheckService.performHealthCheck(),
+      Promise.resolve(performanceService.getDetailedMetrics()),
+    ]);
 
-    const status = {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      version: process.env.npm_package_version || 'unknown',
-      database: dbStatus,
-      performance: {
-        requests: performanceMetrics.requests,
-        responseTime: performanceMetrics.responseTime,
-        healthStatus: performanceMetrics.healthStatus
-      },
-      memory: {
-        used: process.memoryUsage().heapUsed,
-        total: process.memoryUsage().heapTotal,
-        external: process.memoryUsage().external,
-        rss: process.memoryUsage().rss
-      },
-      environment: process.env.NODE_ENV,
-      features: {
-        mfa: process.env.MFA_ENABLED === 'true',
-        encryption: !!process.env.ENCRYPTION_KEY,
-        auditLogging: true,
-        threatDetection: true
-      }
+    const responseBody = {
+      ...healthStatus,
+      performance: performanceMetrics,
     };
 
-    // Determine overall health
-    const isHealthy = dbStatus.connected && 
-                     performanceMetrics.healthStatus !== 'critical' &&
-                     process.memoryUsage().heapUsed < process.memoryUsage().heapTotal * 0.9;
-
-    if (!isHealthy) {
-      return res.status(503).json({ ...status, status: 'unhealthy' });
-    }
-
-    res.status(200).json(status);
+    const statusCode = healthStatus.status === "unhealthy" ? 503 : 200;
+    res.status(statusCode).json(responseBody);
   } catch (error) {
+    logger.error("Health check failed", { error });
     res.status(503).json({
-      status: 'unhealthy',
+      status: "unhealthy",
       timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }

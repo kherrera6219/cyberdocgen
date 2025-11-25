@@ -5,8 +5,25 @@ import { storage } from "../storage";
 import { type CompanyProfile } from "@shared/schema";
 import { logger } from "../utils/logger";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+
+const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
+const anthropic = anthropicApiKey ? new Anthropic({ apiKey: anthropicApiKey }) : null;
+
+const requireOpenAI = () => {
+  if (!openai) {
+    throw new Error("OpenAI API key not configured");
+  }
+  return openai;
+};
+
+const requireAnthropic = () => {
+  if (!anthropic) {
+    throw new Error("Anthropic API key not configured");
+  }
+  return anthropic;
+};
 
 export interface ChatMessage {
   id: string;
@@ -140,7 +157,7 @@ Format your response as JSON with:
 
     try {
       // Use Anthropic for complex reasoning and analysis
-      const response = await anthropic.messages.create({
+      const response = await requireAnthropic().messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1500,
         messages: [
@@ -187,7 +204,7 @@ Framework: ${framework || 'General compliance'}
 Provide a helpful, actionable response.`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await requireOpenAI().chat.completions.create({
         model: "gpt-4o",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1000
@@ -260,7 +277,7 @@ Provide a helpful, actionable response.`;
    */
   async generateConversationTitle(firstMessage: string): Promise<string> {
     try {
-      const response = await openai.chat.completions.create({
+      const response = await requireOpenAI().chat.completions.create({
         model: "gpt-4o",
         messages: [{
           role: "user",

@@ -5,6 +5,11 @@ import { pool } from '../server/db';
 // Test environment setup
 beforeAll(async () => {
   // Ensure test database is clean
+  if (!pool) {
+    console.warn('DATABASE_URL not set, skipping database reset for tests.');
+    return;
+  }
+
   try {
     await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
     console.log('Test database reset successfully');
@@ -15,7 +20,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await pool.end();
+  if (pool) {
+    await pool.end();
+  }
 });
 
-export { describe, it, expect };
+export { describe, it, expect, beforeAll, afterAll };

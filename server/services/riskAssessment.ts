@@ -3,8 +3,11 @@ import OpenAI from "openai";
 import { type CompanyProfile } from "@shared/schema";
 import { logger } from "../utils/logger";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+const openaiApiKey = process.env.OPENAI_API_KEY;
+
+const anthropic = anthropicApiKey ? new Anthropic({ apiKey: anthropicApiKey }) : null;
+const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
 
 export interface RiskFactor {
   category: string;
@@ -89,7 +92,11 @@ export class RiskAssessmentService {
     frameworks: string[],
     existingDocuments?: string[]
   ): Promise<RiskAssessmentResult> {
-    
+
+    if (!anthropic) {
+      throw new Error("Anthropic API key not configured");
+    }
+
     const assessmentPrompt = `Conduct a comprehensive cybersecurity risk assessment for:
 
 Company Profile:
@@ -152,7 +159,11 @@ Focus on:
     companySize: string,
     frameworks: string[]
   ): Promise<ThreatAssessment> {
-    
+
+    if (!openai) {
+      throw new Error("OpenAI API key not configured");
+    }
+
     const threatPrompt = `Analyze the current threat landscape for:
 
 Industry: ${industry}
@@ -203,7 +214,11 @@ Include:
     majorInitiatives: string[];
     timelineEstimate: string;
   }> {
-    
+
+    if (!anthropic) {
+      throw new Error("Anthropic API key not configured");
+    }
+
     const readinessPrompt = `Assess compliance readiness for ${framework}:
 
 Company: ${companyProfile.companyName}

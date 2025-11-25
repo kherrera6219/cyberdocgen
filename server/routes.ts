@@ -328,7 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Company Profile routes
-  app.get("/api/company-profiles", async (req, res) => {
+  app.get("/api/company-profiles", isAuthenticated, async (req, res) => {
     try {
       const profiles = await storage.getCompanyProfiles();
       res.json(profiles);
@@ -337,7 +337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/company-profiles/:id", async (req, res) => {
+  app.get("/api/company-profiles/:id", isAuthenticated, async (req, res) => {
     try {
       const profile = await storage.getCompanyProfile(req.params.id);
       if (!profile) {
@@ -382,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document routes
-  app.get("/api/documents", async (req, res) => {
+  app.get("/api/documents", isAuthenticated, async (req, res) => {
     try {
       const { companyProfileId, framework } = req.query;
       
@@ -774,7 +774,7 @@ Category: ${category}`;
     }
   });
 
-  app.get("/api/documents/:id", async (req, res) => {
+  app.get("/api/documents/:id", isAuthenticated, async (req, res) => {
     try {
       const document = await storage.getDocument(req.params.id);
       if (!document) {

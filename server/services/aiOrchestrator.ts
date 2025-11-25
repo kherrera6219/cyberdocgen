@@ -3,6 +3,8 @@ import { generateDocument as generateWithOpenAI, generateComplianceDocuments as 
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
 import { logger } from "../utils/logger";
 
+const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+
 export type AIModel = 'gpt-4o' | 'claude-sonnet-4' | 'auto';
 
 export interface GenerationOptions {
@@ -236,42 +238,56 @@ export class AIOrchestrator {
     openai: boolean;
     anthropic: boolean;
     overall: boolean;
+    status: "available" | "degraded";
+    models: { provider: string; model: string; available: boolean }[];
   }> {
     const results = {
       openai: false,
       anthropic: false,
-      overall: false
+      overall: false,
+      status: "degraded" as const,
+      models: [
+        { provider: "openai", model: "gpt-4o", available: false },
+        { provider: "anthropic", model: DEFAULT_ANTHROPIC_MODEL, available: false },
+      ],
     };
 
-    // Test OpenAI with minimal API call
-    try {
-      const openai = await import('openai');
-      const client = new openai.default({ apiKey: process.env.OPENAI_API_KEY });
-      await client.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: "Test" }],
-        max_tokens: 5
-      });
-      results.openai = true;
-    } catch (error) {
-      logger.error('OpenAI health check failed:', error);
+    // Test OpenAI with minimal API call when configured
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        const openai = await import('openai');
+        const client = new openai.default({ apiKey: process.env.OPENAI_API_KEY });
+        await client.chat.completions.create({
+          model: "gpt-4o",
+          messages: [{ role: "user", content: "Test" }],
+          max_tokens: 5
+        });
+        results.openai = true;
+        results.models[0].available = true;
+      } catch (error) {
+        logger.error('OpenAI health check failed:', error);
+      }
     }
-    
-    // Test Anthropic with minimal API call
-    try {
-      const Anthropic = await import('@anthropic-ai/sdk');
-      const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
-      await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 5,
-        messages: [{ role: "user", content: "Test" }]
-      });
-      results.anthropic = true;
-    } catch (error) {
-      logger.error('Anthropic health check failed:', error);
+
+    // Test Anthropic with minimal API call when configured
+    if (process.env.ANTHROPIC_API_KEY) {
+      try {
+        const Anthropic = await import('@anthropic-ai/sdk');
+        const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
+        await client.messages.create({
+          model: DEFAULT_ANTHROPIC_MODEL,
+          max_tokens: 5,
+          messages: [{ role: "user", content: "Test" }]
+        });
+        results.anthropic = true;
+        results.models[1].available = true;
+      } catch (error) {
+        logger.error('Anthropic health check failed:', error);
+      }
     }
-    
+
     results.overall = results.openai || results.anthropic;
+    results.status = results.overall ? "available" : "degraded";
     return results;
   }
 }

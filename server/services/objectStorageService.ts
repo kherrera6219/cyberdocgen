@@ -23,6 +23,24 @@ export class ObjectStorageService {
   private client: Client;
 
   constructor() {
+    const storageConfigured =
+      !!process.env.OBJECT_STORAGE_URL ||
+      !!process.env.REPLIT_OBJECT_STORAGE ||
+      process.env.NODE_ENV === "production";
+
+    if (!storageConfigured) {
+      this.client = {
+        uploadFromText: async () => ({ ok: true, error: null }),
+        uploadFromBytes: async () => ({ ok: true, error: null }),
+        downloadAsText: async () => ({ ok: true, value: "", error: null }),
+        downloadAsBytes: async () => ({ ok: true, value: Buffer.from("") as any, error: null }),
+        downloadAsStream: async () => ({ ok: true, value: null as any, error: null }),
+        list: async () => ({ ok: true, value: [], error: null }),
+        delete: async () => ({ ok: true, error: null }),
+      } as unknown as Client;
+      return;
+    }
+
     this.client = new Client();
   }
 
