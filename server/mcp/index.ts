@@ -12,3 +12,18 @@ export { default as mcpRouter } from './server';
 // Tool exports
 export { internalTools } from './tools/internal';
 export { externalTools } from './tools/external';
+export { advancedTools } from './tools/advanced';
+
+// Integration layer
+export {
+  processChatMessage,
+  generateWithExistingService,
+  batchGenerateWithExistingService,
+  getComplianceInsights,
+  analyzeQualityWithExistingService,
+  checkAIServiceHealth,
+  MCPLegacyAdapter,
+  createMCPChatbotWrapper,
+  createAgentDocumentGenerator,
+  createAgentRiskAssessor
+} from './integration';

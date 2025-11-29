@@ -7,6 +7,7 @@ import { toolRegistry } from './toolRegistry';
 import { agentClient } from './agentClient';
 import { internalTools } from './tools/internal';
 import { externalTools } from './tools/external';
+import { advancedTools } from './tools/advanced';
 import { AgentConfig, AgentCapability } from './types';
 import { logger } from '../utils/logger';
 
@@ -23,6 +24,11 @@ export function initializeMCP(): void {
 
   // Register all external tools
   externalTools.forEach(tool => {
+    toolRegistry.registerTool(tool);
+  });
+
+  // Register all advanced tools
+  advancedTools.forEach(tool => {
     toolRegistry.registerTool(tool);
   });
 
@@ -53,7 +59,10 @@ function registerPredefinedAgents(): void {
       'perform_gap_analysis',
       'search_documents',
       'web_search',
-      'get_regulatory_updates'
+      'get_regulatory_updates',
+      'get_framework_info',
+      'calculate_compliance_score',
+      'get_compliance_suggestions'
     ],
     systemPrompt: `You are an expert compliance assistant specializing in cybersecurity frameworks like ISO 27001, SOC 2, NIST, and GDPR.
 
@@ -91,7 +100,11 @@ Always:
       'generate_document',
       'analyze_document_quality',
       'get_documents',
-      'web_search'
+      'web_search',
+      'get_document_templates',
+      'get_framework_info',
+      'batch_generate_documents',
+      'get_version_history'
     ],
     systemPrompt: `You are a specialized document generation agent focused on creating high-quality compliance documentation.
 
@@ -129,7 +142,10 @@ Always:
       'get_documents',
       'web_search',
       'get_regulatory_updates',
-      'search_documents'
+      'search_documents',
+      'calculate_compliance_score',
+      'generate_audit_report',
+      'get_framework_info'
     ],
     systemPrompt: `You are a cybersecurity risk assessment specialist with expertise in:
 - Organizational risk analysis
@@ -213,7 +229,11 @@ Always:
       'get_company_profile',
       'web_search',
       'get_regulatory_updates',
-      'check_api_health'
+      'check_api_health',
+      'get_framework_info',
+      'get_compliance_suggestions',
+      'calculate_compliance_score',
+      'ai_health_check'
     ],
     systemPrompt: `You are a friendly and knowledgeable compliance chatbot helping users with:
 - Answering compliance questions
