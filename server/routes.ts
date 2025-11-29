@@ -2696,6 +2696,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
   const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth.js');
   app.use('/api/auth/enterprise', enterpriseAuthRoutes);
 
+  // MCP (Model Context Protocol) Routes
+  const { default: mcpRoutes } = await import('./mcp/server.js');
+  app.use('/api/mcp', isAuthenticated, mcpRoutes);
+
   // Cloud Integration Routes
   const { default: cloudIntegrationRoutes } = await import('./routes/cloudIntegration.js');
   app.use('/api/cloud', cloudIntegrationRoutes);

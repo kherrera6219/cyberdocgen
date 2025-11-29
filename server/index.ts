@@ -97,6 +97,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize MCP (Model Context Protocol) system
+  try {
+    const { initializeMCP } = await import('./mcp/initialize.js');
+    initializeMCP();
+    logger.info('MCP system initialized');
+  } catch (error) {
+    logger.error('Failed to initialize MCP system', { error });
+  }
+
   const server = await registerRoutes(app);
 
   // Use the enhanced error handler
