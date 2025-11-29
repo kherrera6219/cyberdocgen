@@ -89,7 +89,7 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      console.log(logLine);
+      logger.info(logLine);
     }
   });
 
@@ -121,6 +121,6 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    console.log(`serving on port ${port}`);
+    logger.info(`Server started on port ${port}`, { port, environment: process.env.NODE_ENV });
   });
 })();

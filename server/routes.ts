@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         usage: response.usage,
       });
     } catch (error: any) {
-      console.error("OpenAI API test failed:", error);
+      logger.error("OpenAI API test failed", { error: error.message, code: error.code });
       res.status(500).json({
         status: "error",
         service: "OpenAI",
@@ -121,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         usage: response.usage,
       });
     } catch (error: any) {
-      console.error("Claude API test failed:", error);
+      logger.error("Claude API test failed", { error: error.message, status: error.status });
       res.status(500).json({
         status: "error",
         service: "Anthropic Claude",
@@ -180,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         usage: data.usageMetadata,
       });
     } catch (error: any) {
-      console.error("Gemini API test failed:", error);
+      logger.error("Gemini API test failed", { error: error.message });
       res.status(500).json({
         status: "error",
         service: "Google Gemini",
@@ -299,8 +299,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json(organizations);
-    } catch (error) {
-      logger.error("Error fetching organizations:", error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Error fetching organizations", { error: errorMessage });
       res.status(500).json({ message: "Failed to fetch organizations" });
     }
   });
@@ -321,8 +322,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       res.status(201).json(organization);
-    } catch (error) {
-      logger.error("Error creating organization:", error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Error creating organization", { error: errorMessage });
       res.status(500).json({ message: "Failed to create organization" });
     }
   });
@@ -332,7 +334,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const profiles = await storage.getCompanyProfiles();
       res.json(profiles);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Failed to fetch company profiles", { error: errorMessage });
       res.status(500).json({ message: "Failed to fetch company profiles" });
     }
   });
@@ -344,7 +348,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Company profile not found" });
       }
       res.json(profile);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Failed to fetch company profile", { error: errorMessage, profileId: req.params.id });
       res.status(500).json({ message: "Failed to fetch company profile" });
     }
   });
@@ -385,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/documents", async (req, res) => {
     try {
       const { companyProfileId, framework } = req.query;
-      
+
       let documents;
       if (companyProfileId) {
         documents = await storage.getDocumentsByCompanyProfile(companyProfileId as string);
@@ -394,9 +400,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         documents = await storage.getDocuments();
       }
-      
+
       res.json(documents);
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Failed to fetch documents", { error: errorMessage });
       res.status(500).json({ message: "Failed to fetch documents" });
     }
   });
@@ -435,8 +443,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         extractedData,
         message: "Documents processed successfully" 
       });
-    } catch (error) {
-      logger.error('Error processing documents:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Error processing documents', { error: errorMessage });
       res.status(500).json({ message: 'Failed to process documents' });
     }
   });
@@ -499,8 +508,9 @@ Category: ${category}`;
       });
 
       res.json({ success: true, document });
-    } catch (error) {
-      logger.error('Error generating document:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Error generating document', { error: errorMessage });
       res.status(500).json({ message: 'Failed to generate document' });
     }
   });
@@ -522,7 +532,7 @@ Category: ${category}`;
         ipAddress: req.ip,
         userAgent: req.get('User-Agent'),
         sessionId: req.sessionID,
-        metadata: { action: "view_versions", versionCount: versions.length }
+        metadata: { viewAction: "view_versions", versionCount: versions.length }
       });
       
       res.json(versions);
@@ -1002,8 +1012,9 @@ Category: ${category}`;
       const analysis = await aiOrchestrator.analyzeQuality(content, framework);
       metricsCollector.trackAIOperation('analysis', true);
       res.json(analysis);
-    } catch (error) {
-      logger.error("Quality analysis failed:", error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Quality analysis failed", { error: errorMessage });
       res.status(500).json({ message: "Failed to analyze document quality" });
     }
   });
@@ -1037,8 +1048,9 @@ Category: ${category}`;
       });
 
       res.json(insights);
-    } catch (error) {
-      logger.error("Insight generation failed:", error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Insight generation failed", { error: errorMessage });
       res.status(500).json({ message: "Failed to generate compliance insights" });
     }
   });
@@ -1087,8 +1099,9 @@ Category: ${category}`;
           suggestions: result.suggestions
         } : null
       });
-    } catch (error) {
-      logger.error("Single document generation failed:", error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Single document generation failed", { error: errorMessage });
       res.status(500).json({ message: "Failed to generate document" });
     }
   });
@@ -1350,12 +1363,13 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "document",
         entityId: documentId,
-        action: "create",
+        action: AuditAction.CREATE,
         userId,
-        metadata: { 
-          action: "storage_upload",
+        ipAddress: req.ip,
+        metadata: {
+          storageAction: "storage_upload",
           storageProvider: "replit",
-          path: result.path 
+          path: result.path
         }
       });
 
@@ -1383,10 +1397,11 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "document",
         entityId: documentId,
-        action: "download",
+        action: AuditAction.READ,
         userId,
-        metadata: { 
-          action: "storage_download",
+        ipAddress: req.ip,
+        metadata: {
+          storageAction: "storage_download",
           storageProvider: "replit"
         }
       });
@@ -1416,12 +1431,13 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "company_profile",
         entityId: profileId,
-        action: "create",
+        action: AuditAction.CREATE,
         userId,
-        metadata: { 
-          action: "storage_upload",
+        ipAddress: req.ip,
+        metadata: {
+          storageAction: "storage_upload",
           storageProvider: "replit",
-          path: result.path 
+          path: result.path
         }
       });
 
@@ -1449,10 +1465,11 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "company_profile",
         entityId: profileId,
-        action: "download",
+        action: AuditAction.READ,
         userId,
-        metadata: { 
-          action: "storage_download",
+        ipAddress: req.ip,
+        metadata: {
+          storageAction: "storage_download",
           storageProvider: "replit"
         }
       });
@@ -1483,10 +1500,11 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "document",
         entityId: filename,
-        action: "create",
+        action: AuditAction.CREATE,
         userId,
-        metadata: { 
-          action: "file_upload",
+        ipAddress: req.ip,
+        metadata: {
+          storageAction: "file_upload",
           storageProvider: "replit",
           path: result.path,
           folder,
@@ -2195,10 +2213,10 @@ Category: ${category}`;
       const stats = DocumentTemplateService.getTemplateStats();
       res.json({ ...stats });
     } catch (error: any) {
-      console.error("Failed to get templates:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Failed to get templates", { error: error.message });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2220,10 +2238,10 @@ Category: ${category}`;
 
       res.json({ template });
     } catch (error: any) {
-      console.error("Failed to get template:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Failed to get template", { error: error.message, templateId: req.params.templateId });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2242,10 +2260,10 @@ Category: ${category}`;
         templates: requiredTemplates 
       });
     } catch (error: any) {
-      console.error("Failed to get required templates:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Failed to get required templates", { error: error.message, framework: req.params.framework });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2311,10 +2329,10 @@ Category: ${category}`;
       }
 
     } catch (error: any) {
-      console.error("Document export failed:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Document export failed", { error: error.message, format: req.body.format });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2379,10 +2397,10 @@ Category: ${category}`;
       });
 
     } catch (error: any) {
-      console.error("Document save failed:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Document save failed", { error: error.message, title: req.body.title });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2462,10 +2480,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         usage: response.usage
       });
     } catch (error: any) {
-      console.error("Document generation failed:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Document generation failed", { error: error.message, framework: req.body.framework, documentType: req.body.documentType });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2499,10 +2517,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         usage: response.usage
       });
     } catch (error: any) {
-      console.error("Risk assessment failed:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Risk assessment failed", { error: error.message });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2535,10 +2553,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         usage: data.usageMetadata
       });
     } catch (error: any) {
-      console.error("Compliance analysis failed:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Compliance analysis failed", { error: error.message, framework: req.body.framework });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2575,9 +2593,9 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         usage: response.usage
       });
     } catch (error: any) {
-      console.error("Quality analysis failed:", error);
-      res.status(500).json({ 
-        success: false, 
+      logger.error("Quality analysis failed", { error: error.message, framework: req.body.framework });
+      res.status(500).json({
+        success: false,
         error: error.message,
         qualityScore: 75,
         feedback: "Quality analysis unavailable"
@@ -2609,10 +2627,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         usage: response.usage
       });
     } catch (error: any) {
-      console.error("Compliance chat failed:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Compliance chat failed", { error: error.message });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });
@@ -2662,10 +2680,10 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         documentType
       });
     } catch (error: any) {
-      console.error("Multi-model generation failed:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
+      logger.error("Multi-model generation failed", { error: error.message, framework: req.body.framework, documentType: req.body.documentType });
+      res.status(500).json({
+        success: false,
+        error: error.message
       });
     }
   });

@@ -265,19 +265,45 @@ export class AuditService {
     eventsByAction: Record<AuditAction, number>;
     highRiskEvents: any[];
   }> {
-    // TODO: Implement once database table is created
-    // This would query the audit_logs table and generate compliance reports
-    
+    // Filter audit logs based on date range and organization
+    const filteredLogs = this.auditLogs.filter(log => {
+      const logDate = new Date(log.timestamp);
+      const inDateRange = logDate >= startDate && logDate <= endDate;
+      const matchesOrg = !organizationId || log.organizationId === organizationId;
+      return inDateRange && matchesOrg;
+    });
+
+    // Initialize counters
+    const eventsByRisk: Record<RiskLevel, number> = {
+      [RiskLevel.LOW]: 0,
+      [RiskLevel.MEDIUM]: 0,
+      [RiskLevel.HIGH]: 0,
+      [RiskLevel.CRITICAL]: 0
+    };
+
+    const eventsByAction: Record<string, number> = {};
+    const highRiskEvents: any[] = [];
+
+    // Process logs
+    filteredLogs.forEach(log => {
+      // Count by risk level
+      eventsByRisk[log.riskLevel]++;
+
+      // Count by action
+      const actionKey = log.action.toString();
+      eventsByAction[actionKey] = (eventsByAction[actionKey] || 0) + 1;
+
+      // Collect high risk events
+      if (log.riskLevel === RiskLevel.HIGH || log.riskLevel === RiskLevel.CRITICAL) {
+        highRiskEvents.push(log);
+      }
+    });
+
     return {
-      totalEvents: 0,
-      eventsByRisk: {
-        [RiskLevel.LOW]: 0,
-        [RiskLevel.MEDIUM]: 0,
-        [RiskLevel.HIGH]: 0,
-        [RiskLevel.CRITICAL]: 0
-      },
-      eventsByAction: {} as Record<AuditAction, number>,
-      highRiskEvents: []
+      totalEvents: filteredLogs.length,
+      eventsByRisk,
+      eventsByAction: eventsByAction as Record<AuditAction, number>,
+      highRiskEvents: highRiskEvents.slice(0, 100) // Limit to 100 most recent
     };
   }
 }

@@ -88,7 +88,8 @@ export function cacheMiddleware(duration: number = 300) {
     const cachedResponse = cache.get(cacheKey);
     if (cachedResponse) {
       res.setHeader('X-Cache', 'HIT');
-      return res.json(cachedResponse);
+      res.json(cachedResponse);
+      return;
     }
 
     // Override res.json to cache the response

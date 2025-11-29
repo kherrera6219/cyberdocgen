@@ -14,7 +14,7 @@ export const auditLogger = (req: Request, res: Response, next: NextFunction) => 
     timestamp: new Date().toISOString()
   };
 
-  logger.info('audit', `${req.method} ${req.url}`, auditData);
+  logger.info(`${req.method} ${req.url}`, auditData);
   next();
 };
 
