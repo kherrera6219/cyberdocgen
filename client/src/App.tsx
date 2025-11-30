@@ -24,6 +24,7 @@ import GapAnalysis from "./pages/gap-analysis";
 import Layout from "./components/layout";
 
 // Lazy load components
+const EnterpriseLogin = lazy(() => import("@/pages/enterprise-login"));
 const EnterpriseSignup = lazy(() => import("@/pages/enterprise-signup"));
 const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 const ResetPassword = lazy(() => import("@/pages/reset-password"));
@@ -60,6 +61,11 @@ function Router() {
         </>
       )}
       {/* Enterprise Authentication Routes */}
+      <Route path="/login">
+        <Suspense fallback={<div>Loading...</div>}>
+          <EnterpriseLogin />
+        </Suspense>
+      </Route>
       <Route path="/enterprise-signup">
         <Suspense fallback={<div>Loading...</div>}>
           <EnterpriseSignup />
