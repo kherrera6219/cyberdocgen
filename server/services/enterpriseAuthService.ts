@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 import { eq, and, lt, isNull } from 'drizzle-orm';
 import { db } from '../db';
 import { users, passwordResetTokens, emailVerificationTokens, passkeyCredentials, mfaSettings } from '@shared/schema';
@@ -66,8 +67,8 @@ export class EnterpriseAuthService {
         throw new Error('Account with this email already exists');
       }
 
-      // Hash password using built-in crypto
-      const passwordHash = crypto.createHash('sha256').update(request.password + 'salt').digest('hex');
+      // Hash password using bcrypt with secure salt rounds
+      const passwordHash = await bcrypt.hash(request.password, this.SALT_ROUNDS);
 
       // Generate email verification token
       const emailToken = this.generateSecureToken();
@@ -265,8 +266,8 @@ export class EnterpriseAuthService {
         return false;
       }
 
-      // Hash new password using built-in crypto
-      const passwordHash = crypto.createHash('sha256').update(request.newPassword + 'salt').digest('hex');
+      // Hash new password using bcrypt with secure salt rounds
+      const passwordHash = await bcrypt.hash(request.newPassword, this.SALT_ROUNDS);
 
       // Update user password and clear lockout
       await db.update(users)
@@ -536,6 +537,79 @@ export class EnterpriseAuthService {
         accountUnlocked: true,
       },
     });
+  }
+
+  /**
+   * Verify password against hash
+   */
+  async verifyPassword(plainPassword: string, passwordHash: string): Promise<boolean> {
+    try {
+      return await bcrypt.compare(plainPassword, passwordHash);
+    } catch (error: any) {
+      logger.error('Password verification failed', { error: error.message });
+      return false;
+    }
+  }
+
+  /**
+   * Authenticate user with email and password
+   */
+  async authenticateUser(email: string, password: string, ipAddress?: string): Promise<{ success: boolean; user?: any; error?: string }> {
+    try {
+      const user = await db.query.users.findFirst({
+        where: eq(users.email, email.toLowerCase()),
+      });
+
+      if (!user) {
+        // Don't reveal if email exists
+        return { success: false, error: 'Invalid credentials' };
+      }
+
+      // Check if account is locked
+      if (await this.isAccountLocked(user.id)) {
+        return { success: false, error: 'Account is locked due to too many failed login attempts' };
+      }
+
+      // Check if account is active
+      if (user.accountStatus !== 'active') {
+        return { success: false, error: 'Account is not active. Please verify your email.' };
+      }
+
+      // Verify password
+      const isPasswordValid = await this.verifyPassword(password, user.passwordHash || '');
+
+      if (!isPasswordValid) {
+        await this.recordFailedLogin(user.id, ipAddress);
+        return { success: false, error: 'Invalid credentials' };
+      }
+
+      // Record successful login
+      await this.recordSuccessfulLogin(user.id, ipAddress);
+
+      logger.info('User authenticated successfully', {
+        userId: user.id,
+        email: user.email,
+      });
+
+      return {
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          emailVerified: user.emailVerified,
+          twoFactorEnabled: user.twoFactorEnabled,
+          passkeyEnabled: user.passkeyEnabled,
+        },
+      };
+    } catch (error: any) {
+      logger.error('Authentication failed', {
+        email: email.toLowerCase(),
+        error: error.message
+      });
+      return { success: false, error: 'Authentication failed' };
+    }
   }
 
   /**

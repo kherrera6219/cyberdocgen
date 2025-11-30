@@ -7,6 +7,12 @@ import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 
 const router = Router();
 
+// Login schema
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
 // Account creation schema
 const createAccountSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -51,6 +57,55 @@ const passkeyRegistrationSchema = z.object({
   deviceName: z.string().min(1, 'Device name required'),
   deviceType: z.enum(['platform', 'cross-platform']),
   transports: z.array(z.string()),
+});
+
+/**
+ * Login with email and password
+ */
+router.post('/login', async (req, res) => {
+  try {
+    const validatedData = loginSchema.parse(req.body);
+    const ipAddress = req.ip || req.socket.remoteAddress;
+
+    const result = await enterpriseAuthService.authenticateUser(
+      validatedData.email,
+      validatedData.password,
+      ipAddress
+    );
+
+    if (!result.success) {
+      return res.status(401).json({
+        success: false,
+        message: result.error || 'Authentication failed',
+      });
+    }
+
+    // Create session for the user
+    if (req.session) {
+      req.session.userId = result.user?.id;
+      req.session.email = result.user?.email;
+    }
+
+    logger.info('User logged in successfully', {
+      userId: result.user?.id,
+      email: result.user?.email,
+      mfaEnabled: result.user?.twoFactorEnabled,
+    });
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: result.user,
+      requiresMFA: result.user?.twoFactorEnabled || false,
+    });
+  } catch (error: any) {
+    logger.error('Login failed', { error: error.message });
+    res.status(400).json({
+      success: false,
+      message: 'Login failed',
+      errors: error.issues || [{ message: error.message }],
+    });
+  }
 });
 
 /**
@@ -309,6 +364,52 @@ router.post('/register-passkey', async (req, res) => {
       success: false,
       message: 'Passkey registration failed',
       errors: error.issues || [{ message: error.message }],
+    });
+  }
+});
+
+/**
+ * Logout user and destroy session
+ */
+router.post('/logout', async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    const email = req.session?.email;
+
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          logger.error('Session destruction failed', { error: err.message });
+        }
+      });
+    }
+
+    // Audit log
+    if (userId) {
+      await auditService.logAuditEvent({
+        userId,
+        action: AuditAction.DELETE,
+        resourceType: 'user_session',
+        resourceId: userId,
+        ipAddress: req.ip || req.socket.remoteAddress || '127.0.0.1',
+        riskLevel: RiskLevel.LOW,
+        additionalContext: {
+          logout: true,
+        },
+      });
+    }
+
+    logger.info('User logged out', { userId, email });
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error: any) {
+    logger.error('Logout failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Logout failed',
     });
   }
 });

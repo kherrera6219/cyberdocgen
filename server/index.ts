@@ -89,7 +89,7 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      console.log(logLine);
+      logger.info(logLine);
     }
   });
 
@@ -97,6 +97,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize MCP (Model Context Protocol) system
+  try {
+    const { initializeMCP } = await import('./mcp/initialize.js');
+    initializeMCP();
+    logger.info('MCP system initialized');
+  } catch (error) {
+    logger.error('Failed to initialize MCP system', { error });
+  }
+
   const server = await registerRoutes(app);
 
   // Use the enhanced error handler
@@ -121,6 +130,6 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    console.log(`serving on port ${port}`);
+    logger.info(`Server started on port ${port}`, { port, environment: process.env.NODE_ENV });
   });
 })();
