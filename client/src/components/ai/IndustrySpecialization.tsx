@@ -48,6 +48,10 @@ interface IndustryConfig {
   };
 }
 
+interface IndustryConfigResponse {
+  configuration: IndustryConfig;
+}
+
 interface FineTuningResult {
   configId: string;
   industryId: string;
@@ -91,7 +95,7 @@ export function IndustrySpecialization() {
   };
 
   // Get specific industry configuration
-  const { data: industryConfig } = useQuery<IndustryConfig | undefined>({
+  const { data: industryConfig } = useQuery<IndustryConfigResponse | undefined>({
     queryKey: ["/api/ai/industries", selectedIndustry],
     queryFn: () => apiRequest(`/api/ai/industries/${selectedIndustry}`),
     enabled: !!selectedIndustry,
@@ -524,8 +528,8 @@ export function IndustrySpecialization() {
                 <div>
                   <Label>Selected Industry</Label>
                   <div className="mt-1 p-2 bg-muted rounded">
-                    {selectedIndustry ? 
-                       industries.configurations?.find((i: IndustryConfig) => i.id === selectedIndustry)?.name || selectedIndustry
+                    {selectedIndustry ?
+                       industries?.configurations?.find((i: IndustryConfig) => i.id === selectedIndustry)?.name || selectedIndustry
                       : "No industry selected"
                     }
                   </div>
@@ -579,8 +583,8 @@ export function IndustrySpecialization() {
                 <div>
                   <Label>Selected Industry</Label>
                   <div className="mt-1 p-2 bg-muted rounded">
-                    {selectedIndustry ? 
-                       industries.configurations?.find((i: IndustryConfig) => i.id === selectedIndustry)?.name || selectedIndustry
+                    {selectedIndustry ?
+                       industries?.configurations?.find((i: IndustryConfig) => i.id === selectedIndustry)?.name || selectedIndustry
                       : "No industry selected"
                     }
                   </div>

@@ -79,7 +79,7 @@ export function RiskAssessment({ className }: RiskAssessmentProps) {
   const { toast } = useToast();
 
   // Get company profile
-  const { data: companyProfile } = useQuery({
+  const { data: companyProfile } = useQuery<{ industry?: string; companySize?: string } | undefined>({
     queryKey: ["/api/company-profile"],
   });
 
