@@ -903,3 +903,260 @@ export const documentApprovalsRelations = relations(documentApprovals, ({ one })
     references: [documentVersions.id],
   }),
 }));
+
+// ========================================
+// PHASE 3: Data Residency, Privacy & AI Guardrails
+// ========================================
+
+// Data Residency Policies - Tenant-level geographic data controls
+export const dataResidencyPolicies = pgTable("data_residency_policies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
+  policyName: varchar("policy_name").notNull(),
+  region: varchar("region").notNull(), // us-east-1, eu-west-1, ap-southeast-1, etc.
+  dataTypes: jsonb("data_types").$type<string[]>().notNull().default([]), // documents, ai_cache, audit_logs, etc.
+  enforceStrict: boolean("enforce_strict").notNull().default(true),
+  allowedRegions: jsonb("allowed_regions").$type<string[]>().notNull().default([]),
+  blockedRegions: jsonb("blocked_regions").$type<string[]>().notNull().default([]),
+  status: varchar("status", { enum: ["active", "inactive", "pending"] }).notNull().default("active"),
+  validatedAt: timestamp("validated_at"),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_residency_org").on(table.organizationId),
+  index("idx_residency_status").on(table.status),
+]);
+
+// Data Retention Policies - Configurable data lifecycle management
+export const dataRetentionPolicies = pgTable("data_retention_policies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
+  policyName: varchar("policy_name").notNull(),
+  dataType: varchar("data_type").notNull(), // documents, ai_responses, audit_logs, user_data, etc.
+  retentionDays: integer("retention_days").notNull(), // Number of days to retain data
+  deleteAfterExpiry: boolean("delete_after_expiry").notNull().default(true),
+  archiveBeforeDelete: boolean("archive_before_delete").notNull().default(true),
+  archiveLocation: varchar("archive_location"), // s3, glacier, local, etc.
+  complianceFramework: varchar("compliance_framework"), // GDPR, HIPAA, SOC2, etc.
+  status: varchar("status", { enum: ["active", "inactive", "pending"] }).notNull().default("active"),
+  lastEnforcedAt: timestamp("last_enforced_at"),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_retention_org").on(table.organizationId),
+  index("idx_retention_status").on(table.status),
+  index("idx_retention_type").on(table.dataType),
+]);
+
+// AI Guardrails Logs - Track AI safety checks and interventions
+export const aiGuardrailsLogs = pgTable("ai_guardrails_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id),
+  userId: varchar("user_id").references(() => users.id),
+  requestId: varchar("request_id").notNull(), // Correlate with AI request
+  guardrailType: varchar("guardrail_type").notNull(), // prompt_shield, pii_redaction, output_classifier, content_moderation
+  action: varchar("action").notNull(), // allowed, blocked, redacted, flagged, human_review_required
+  severity: varchar("severity", { enum: ["low", "medium", "high", "critical"] }).notNull(),
+
+  // Input analysis
+  originalPrompt: text("original_prompt"),
+  sanitizedPrompt: text("sanitized_prompt"),
+  promptRiskScore: decimal("prompt_risk_score", { precision: 5, scale: 2 }),
+
+  // PII Detection and Redaction
+  piiDetected: boolean("pii_detected").notNull().default(false),
+  piiTypes: jsonb("pii_types").$type<string[]>(), // email, ssn, credit_card, phone, address, etc.
+  piiRedacted: boolean("pii_redacted").notNull().default(false),
+
+  // Output analysis
+  originalResponse: text("original_response"),
+  sanitizedResponse: text("sanitized_response"),
+  responseRiskScore: decimal("response_risk_score", { precision: 5, scale: 2 }),
+
+  // Content classification
+  contentCategories: jsonb("content_categories").$type<string[]>(), // safe, policy_violation, toxic, harmful, etc.
+  moderationFlags: jsonb("moderation_flags").$type<{
+    hate: number;
+    harassment: number;
+    violence: number;
+    sexual: number;
+    selfHarm: number;
+    pii: number;
+  }>(),
+
+  // Human review
+  requiresHumanReview: boolean("requires_human_review").notNull().default(false),
+  humanReviewedAt: timestamp("human_reviewed_at"),
+  humanReviewedBy: varchar("human_reviewed_by").references(() => users.id),
+  humanReviewDecision: varchar("human_review_decision", { enum: ["approved", "rejected", "modified"] }),
+  humanReviewNotes: text("human_review_notes"),
+
+  // Metadata
+  modelProvider: varchar("model_provider"), // openai, anthropic, etc.
+  modelName: varchar("model_name"),
+  processingTimeMs: integer("processing_time_ms"),
+  ipAddress: varchar("ip_address"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_guardrails_org").on(table.organizationId),
+  index("idx_guardrails_user").on(table.userId),
+  index("idx_guardrails_type").on(table.guardrailType),
+  index("idx_guardrails_action").on(table.action),
+  index("idx_guardrails_severity").on(table.severity),
+  index("idx_guardrails_review").on(table.requiresHumanReview),
+  index("idx_guardrails_created").on(table.createdAt),
+]);
+
+// Model Cards - AI Model transparency and documentation
+export const modelCards = pgTable("model_cards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  modelProvider: varchar("model_provider").notNull(), // openai, anthropic, custom
+  modelName: varchar("model_name").notNull(),
+  modelVersion: varchar("model_version").notNull(),
+
+  // Model Information
+  description: text("description").notNull(),
+  intendedUse: text("intended_use").notNull(),
+  limitations: text("limitations").notNull(),
+  trainingData: text("training_data"),
+
+  // Performance Metrics
+  performanceMetrics: jsonb("performance_metrics").$type<{
+    accuracy?: number;
+    precision?: number;
+    recall?: number;
+    f1Score?: number;
+    latencyMs?: number;
+    customMetrics?: Record<string, number>;
+  }>(),
+
+  // Bias and Fairness
+  biasAssessment: text("bias_assessment"),
+  fairnessMetrics: jsonb("fairness_metrics").$type<{
+    demographicParity?: number;
+    equalOpportunity?: number;
+    notes?: string;
+  }>(),
+
+  // Safety and Ethics
+  safetyEvaluations: text("safety_evaluations"),
+  ethicalConsiderations: text("ethical_considerations"),
+
+  // Data Privacy
+  privacyFeatures: jsonb("privacy_features").$type<string[]>(), // encryption, pii_filtering, data_minimization
+  dataRetentionPolicy: text("data_retention_policy"),
+  dataResidency: text("data_residency"),
+
+  // Compliance
+  complianceFrameworks: jsonb("compliance_frameworks").$type<string[]>(), // SOC2, GDPR, HIPAA, etc.
+  certifications: jsonb("certifications").$type<string[]>(),
+
+  // Contact and Support
+  contactInfo: jsonb("contact_info").$type<{
+    supportEmail?: string;
+    documentation?: string;
+    responsible?: string;
+  }>(),
+
+  status: varchar("status", { enum: ["active", "deprecated", "experimental"] }).notNull().default("active"),
+  publishedAt: timestamp("published_at"),
+  lastReviewedAt: timestamp("last_reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_model_provider").on(table.modelProvider),
+  index("idx_model_name").on(table.modelName),
+  index("idx_model_status").on(table.status),
+  unique().on(table.modelProvider, table.modelName, table.modelVersion),
+]);
+
+// AI Usage Transparency - Track and disclose AI usage to users
+export const aiUsageDisclosures = pgTable("ai_usage_disclosures", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  actionType: varchar("action_type").notNull(), // document_generation, analysis, chatbot, risk_assessment, etc.
+
+  // Model Information
+  modelProvider: varchar("model_provider").notNull(),
+  modelName: varchar("model_name").notNull(),
+  modelCardId: varchar("model_card_id").references(() => modelCards.id),
+
+  // Disclosure Details
+  purposeDescription: text("purpose_description").notNull(),
+  dataUsed: jsonb("data_used").$type<string[]>(), // Types of data sent to AI
+  dataRetentionDays: integer("data_retention_days"),
+  dataStorageRegion: varchar("data_storage_region"),
+
+  // User Consent
+  userConsented: boolean("user_consented").notNull().default(false),
+  consentedAt: timestamp("consented_at"),
+  consentVersion: varchar("consent_version"),
+
+  // Transparency
+  aiContribution: varchar("ai_contribution").notNull(), // full, partial, assisted, review
+  humanOversight: boolean("human_oversight").notNull().default(false),
+
+  // Result Metadata
+  tokensUsed: integer("tokens_used"),
+  costEstimate: decimal("cost_estimate", { precision: 10, scale: 4 }),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_disclosure_org").on(table.organizationId),
+  index("idx_disclosure_user").on(table.userId),
+  index("idx_disclosure_action").on(table.actionType),
+  index("idx_disclosure_provider").on(table.modelProvider),
+  index("idx_disclosure_created").on(table.createdAt),
+]);
+
+// Relations for Phase 3 tables
+export const dataResidencyPoliciesRelations = relations(dataResidencyPolicies, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [dataResidencyPolicies.organizationId],
+    references: [organizations.id],
+  }),
+  creator: one(users, {
+    fields: [dataResidencyPolicies.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const dataRetentionPoliciesRelations = relations(dataRetentionPolicies, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [dataRetentionPolicies.organizationId],
+    references: [organizations.id],
+  }),
+  creator: one(users, {
+    fields: [dataRetentionPolicies.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const aiGuardrailsLogsRelations = relations(aiGuardrailsLogs, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [aiGuardrailsLogs.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [aiGuardrailsLogs.userId],
+    references: [users.id],
+  }),
+}));
+
+export const aiUsageDisclosuresRelations = relations(aiUsageDisclosures, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [aiUsageDisclosures.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [aiUsageDisclosures.userId],
+    references: [users.id],
+  }),
+  modelCard: one(modelCards, {
+    fields: [aiUsageDisclosures.modelCardId],
+    references: [modelCards.id],
+  }),
+}));
