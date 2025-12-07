@@ -283,6 +283,13 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
+### Branch Strategy & Stability
+
+- **Single Source of Truth**: All active development is consolidated on the `main` branch so downstream branches can be safely deleted after merging.
+- **Feature Branches Only for Work-In-Progress**: Create short-lived feature branches from `main` and open pull requests back to `main`.
+- **Quality Gate Visibility**: `npm run check` currently reports outstanding type errors in legacy UI flows; fixes are being staged incrementally alongside security hardening.
+- **Security Posture**: GitHub security alerts are being triaged on `main` with dependency updates prioritized for high/critical advisories.
+
 ## 💻 Development
 
 ### Available Scripts

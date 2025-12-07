@@ -164,22 +164,21 @@ class ModelTransparencyService {
     modelVersion?: string
   ): Promise<ModelCard | null> {
     try {
-      let query = db
-        .select()
-        .from(modelCards)
-        .where(
-          and(
-            eq(modelCards.modelProvider, modelProvider),
-            eq(modelCards.modelName, modelName),
-            eq(modelCards.status, "active")
-          )
-        );
+      const conditions = [
+        eq(modelCards.modelProvider, modelProvider),
+        eq(modelCards.modelName, modelName),
+        eq(modelCards.status, "active"),
+      ];
 
       if (modelVersion) {
-        query = query.where(eq(modelCards.modelVersion, modelVersion));
+        conditions.push(eq(modelCards.modelVersion, modelVersion));
       }
 
-      const [card] = await query.limit(1);
+      const [card] = await db
+        .select()
+        .from(modelCards)
+        .where(and(...conditions))
+        .limit(1);
 
       return (card as ModelCard) || null;
     } catch (error: any) {
@@ -282,21 +281,21 @@ class ModelTransparencyService {
     }
   ): Promise<AIUsageDisclosure[]> {
     try {
-      let query = db
+      const baseQuery = db
         .select()
         .from(aiUsageDisclosures)
         .where(eq(aiUsageDisclosures.userId, userId))
         .orderBy(aiUsageDisclosures.createdAt);
 
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
+      const limitedQuery = options?.limit
+        ? baseQuery.limit(options.limit)
+        : baseQuery;
 
-      if (options?.offset) {
-        query = query.offset(options.offset);
-      }
+      const finalQuery = options?.offset
+        ? limitedQuery.offset(options.offset)
+        : limitedQuery;
 
-      const disclosures = await query;
+      const disclosures = await finalQuery;
 
       return disclosures as AIUsageDisclosure[];
     } catch (error: any) {
@@ -319,21 +318,21 @@ class ModelTransparencyService {
     }
   ): Promise<AIUsageDisclosure[]> {
     try {
-      let query = db
+      const baseQuery = db
         .select()
         .from(aiUsageDisclosures)
         .where(eq(aiUsageDisclosures.organizationId, organizationId))
         .orderBy(aiUsageDisclosures.createdAt);
 
-      if (options?.limit) {
-        query = query.limit(options.limit);
-      }
+      const limitedQuery = options?.limit
+        ? baseQuery.limit(options.limit)
+        : baseQuery;
 
-      if (options?.offset) {
-        query = query.offset(options.offset);
-      }
+      const finalQuery = options?.offset
+        ? limitedQuery.offset(options.offset)
+        : limitedQuery;
 
-      const disclosures = await query;
+      const disclosures = await finalQuery;
 
       return disclosures as AIUsageDisclosure[];
     } catch (error: any) {
