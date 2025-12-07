@@ -10,7 +10,22 @@ export interface DocumentTemplate {
   framework: string;
   category: string;
   priority: number;
-  documentType: 'policy' | 'procedure' | 'plan' | 'assessment' | 'standard' | 'control' | 'framework' | 'training' | 'report';
+  documentType:
+    | 'policy'
+    | 'procedure'
+    | 'plan'
+    | 'assessment'
+    | 'standard'
+    | 'control'
+    | 'framework'
+    | 'training'
+    | 'report'
+    | 'poster'
+    | 'appointment'
+    | 'specification'
+    | 'checklist'
+    | 'statement'
+    | 'memorandum';
   required: boolean;
   templateContent: string;
   templateVariables: {

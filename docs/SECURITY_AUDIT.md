@@ -96,6 +96,12 @@ This security audit evaluates the ComplianceAI platform's security posture, iden
 **Enhancement**: Implement automated vulnerability scanning
 **Tools**: Dependabot, Snyk, or npm audit in CI/CD
 
+### 🚨 GitHub Security Alerts Triage
+- **Scope**: Use GitHub's Dependabot alerts as the primary feed for upstream package vulnerabilities.
+- **Process**: Triage alerts weekly, prioritize high/critical severities, and patch or pin versions on `main`.
+- **Verification**: Run `npm audit --audit-level=high` after updates and document remediation notes in pull requests.
+- **Tracking**: Capture any deferred fixes in the security backlog to keep visibility on remaining risk.
+
 ## Compliance Assessment
 
 ### SOC 2 Type II Readiness

@@ -1,7 +1,10 @@
+import OpenAI from "openai";
 import { type CompanyProfile } from "@shared/schema";
 import { generateDocument as generateWithOpenAI, generateComplianceDocuments as generateBatchWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
 import { logger } from "../utils/logger";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export type AIModel = 'gpt-4o' | 'claude-sonnet-4' | 'auto';
 
@@ -25,6 +28,13 @@ export interface BatchGenerationProgress {
   completed: number;
   total: number;
   model: string;
+}
+
+export interface ContentGenerationRequest {
+  prompt: string;
+  model?: AIModel;
+  temperature?: number;
+  maxTokens?: number;
 }
 
 /**
@@ -165,8 +175,32 @@ export class AIOrchestrator {
         });
       }
     }
-    
+
     return results;
+  }
+
+  /**
+   * Lightweight content generation for remediation guidance and free-form prompts
+   */
+  async generateContent(request: ContentGenerationRequest): Promise<{ content: string; model: string }> {
+    const { prompt, model = 'gpt-4o', temperature = 0.4, maxTokens = 1500 } = request;
+
+    try {
+      const response = await openai.responses.create({
+        model,
+        input: prompt,
+        temperature,
+        max_output_tokens: maxTokens,
+      });
+
+      return {
+        content: response.output_text ?? '',
+        model,
+      };
+    } catch (error) {
+      logger.error('Content generation failed:', error);
+      return { content: '', model };
+    }
   }
   
   /**
