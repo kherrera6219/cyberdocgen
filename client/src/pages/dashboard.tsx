@@ -1,18 +1,20 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { DashboardSkeleton } from "@/components/loading/loading-skeleton";
 import { DocumentPreview } from "@/components/templates/document-preview";
-import { AIInsightsDashboard } from "@/components/ai/AIInsightsDashboard";
-import { RiskHeatmap } from "@/components/ai/RiskHeatmap";
-import { ControlPrioritizer } from "@/components/ai/ControlPrioritizer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorCard } from "@/components/ui/loading-error-states";
+
+const AIInsightsDashboard = lazy(() => import("@/components/ai/AIInsightsDashboard").then(m => ({ default: m.AIInsightsDashboard })));
+const RiskHeatmap = lazy(() => import("@/components/ai/RiskHeatmap").then(m => ({ default: m.RiskHeatmap })));
+const ControlPrioritizer = lazy(() => import("@/components/ai/ControlPrioritizer").then(m => ({ default: m.ControlPrioritizer })));
 import {
   TrendingUp,
   FileText,
@@ -330,7 +332,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* AI Insights Dashboard wrapped with ErrorBoundary */}
+      {/* AI Insights Dashboard wrapped with ErrorBoundary and Suspense for code-splitting */}
       <ErrorBoundary
         fallback={
           <ErrorCard
@@ -339,15 +341,34 @@ export default function Dashboard() {
           />
         }
       >
-        <AIInsightsDashboard 
-          companyProfile={profile ? { industry: profile.industry, companySize: profile.companySize } : undefined}
-          documentsCount={completedDocs}
-          frameworksActive={activeFrameworks}
-          onViewDetails={() => window.location.href = '/gap-analysis'}
-        />
+        <Suspense fallback={
+          <Card className="border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-gray-900 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-4 w-56" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Skeleton className="h-32 rounded-xl" />
+                <Skeleton className="h-32 rounded-xl" />
+                <Skeleton className="h-32 rounded-xl" />
+              </div>
+            </CardContent>
+          </Card>
+        }>
+          <AIInsightsDashboard 
+            companyProfile={profile ? { industry: profile.industry, companySize: profile.companySize } : undefined}
+            documentsCount={completedDocs}
+            frameworksActive={activeFrameworks}
+            onViewDetails={() => window.location.href = '/gap-analysis'}
+          />
+        </Suspense>
       </ErrorBoundary>
 
-      {/* Risk Heatmap and Control Prioritizer wrapped with ErrorBoundary */}
+      {/* Risk Heatmap and Control Prioritizer wrapped with ErrorBoundary and Suspense for code-splitting */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
         <ErrorBoundary
           fallback={
@@ -357,7 +378,26 @@ export default function Dashboard() {
             />
           }
         >
-          <RiskHeatmap />
+          <Suspense fallback={
+            <Card className="border-0 bg-white dark:bg-gray-800 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Skeleton className="h-9 w-9 rounded-lg" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <Skeleton key={i} className="h-12 w-full rounded-lg" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          }>
+            <RiskHeatmap />
+          </Suspense>
         </ErrorBoundary>
         <ErrorBoundary
           fallback={
@@ -367,7 +407,26 @@ export default function Dashboard() {
             />
           }
         >
-          <ControlPrioritizer onImplementControl={(id) => console.log('Implementing control:', id)} />
+          <Suspense fallback={
+            <Card className="border-0 bg-white dark:bg-gray-800 shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Skeleton className="h-9 w-9 rounded-lg" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-40" />
+                    <Skeleton className="h-4 w-52" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {[1, 2, 3].map(i => (
+                    <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          }>
+            <ControlPrioritizer onImplementControl={(id) => console.log('Implementing control:', id)} />
+          </Suspense>
         </ErrorBoundary>
       </div>
 
