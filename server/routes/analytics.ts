@@ -2,9 +2,16 @@ import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import { logger } from '../utils/logger';
 import { isAuthenticated } from '../replitAuth';
+import { validateBody } from '../middleware/routeValidation';
+import {
+  riskAssessmentRequestSchema,
+  complianceAnalysisRequestSchema,
+  documentQualityAnalysisSchema,
+  complianceChatRequestSchema
+} from '../validation/requestSchemas';
 
 export function registerAnalyticsRoutes(router: Router) {
-  router.post('/risk-assessment', isAuthenticated, async (req: any, res) => {
+  router.post('/risk-assessment', isAuthenticated, validateBody(riskAssessmentRequestSchema), async (req: any, res) => {
     try {
       const { companyProfile } = req.body;
       
@@ -39,7 +46,7 @@ export function registerAnalyticsRoutes(router: Router) {
     }
   });
 
-  router.post('/compliance-analysis', isAuthenticated, async (req: any, res) => {
+  router.post('/compliance-analysis', isAuthenticated, validateBody(complianceAnalysisRequestSchema), async (req: any, res) => {
     try {
       const { framework, currentControls, requirements } = req.body;
       
@@ -71,7 +78,7 @@ export function registerAnalyticsRoutes(router: Router) {
     }
   });
 
-  router.post('/analyze-document-quality', isAuthenticated, async (req: any, res) => {
+  router.post('/analyze-document-quality', isAuthenticated, validateBody(documentQualityAnalysisSchema), async (req: any, res) => {
     try {
       const { content, framework, documentType } = req.body;
       
@@ -103,13 +110,13 @@ export function registerAnalyticsRoutes(router: Router) {
     }
   });
 
-  router.post('/compliance-chat', isAuthenticated, async (req: any, res) => {
+  router.post('/compliance-chat', isAuthenticated, validateBody(complianceChatRequestSchema), async (req: any, res) => {
     try {
       const { message, context, framework } = req.body;
       
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       
-      const systemPrompt = `You are an expert ${framework} compliance advisor. Answer questions clearly and provide actionable guidance. Context: ${context || 'General compliance inquiry'}`;
+      const systemPrompt = `You are an expert ${framework || 'compliance'} compliance advisor. Answer questions clearly and provide actionable guidance. Context: ${context || 'General compliance inquiry'}`;
       
       const response = await anthropic.messages.create({
         model: "claude-sonnet-4-20250514",

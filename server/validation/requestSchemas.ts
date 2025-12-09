@@ -200,3 +200,75 @@ export type AdminUserUpdateInput = z.infer<typeof adminUserUpdateSchema>;
 export type StorageUploadInput = z.infer<typeof storageUploadSchema>;
 export type CompanyProfileCreateInput = z.infer<typeof companyProfileCreateSchema>;
 export type CompanyProfileUpdateInput = z.infer<typeof companyProfileUpdateSchema>;
+
+export const riskAssessmentRequestSchema = z.object({
+  companyProfile: z.object({
+    name: z.string().min(1, 'Company name is required'),
+    industry: z.string().optional(),
+    assets: z.array(z.string()).optional(),
+    threats: z.array(z.string()).optional(),
+  }),
+});
+
+export const complianceAnalysisRequestSchema = z.object({
+  framework: z.string().min(1, 'Framework is required'),
+  currentControls: z.array(z.string()).default([]),
+  requirements: z.array(z.string()).default([]),
+});
+
+export const documentQualityAnalysisSchema = z.object({
+  content: z.string().min(1, 'Content is required'),
+  framework: z.string().optional(),
+  documentType: z.string().optional(),
+});
+
+export const complianceChatRequestSchema = z.object({
+  message: z.string().min(1, 'Message is required').max(10000),
+  context: z.string().optional(),
+  framework: z.string().optional(),
+});
+
+export type RiskAssessmentRequestInput = z.infer<typeof riskAssessmentRequestSchema>;
+export type ComplianceAnalysisRequestInput = z.infer<typeof complianceAnalysisRequestSchema>;
+export type DocumentQualityAnalysisInput = z.infer<typeof documentQualityAnalysisSchema>;
+export type ComplianceChatRequestInput = z.infer<typeof complianceChatRequestSchema>;
+
+export const exportDocumentRequestSchema = z.object({
+  content: z.string().min(1, 'Content is required'),
+  format: z.enum(['pdf', 'docx', 'txt', 'html']),
+  filename: z.string().optional(),
+});
+
+export const saveDocumentRequestSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
+  framework: z.string().min(1, 'Framework is required'),
+  category: z.string().optional(),
+  companyProfileId: z.string().optional(),
+  createdBy: z.string().optional(),
+});
+
+export const generateDocumentRequestSchema = z.object({
+  framework: z.string().min(1, 'Framework is required'),
+  companyProfile: z.object({
+    name: z.string().min(1),
+    industry: z.string().optional(),
+    size: z.string().optional(),
+  }),
+  documentType: z.string().min(1, 'Document type is required'),
+  templateId: z.string().optional(),
+  variables: z.record(z.any()).optional(),
+});
+
+export const generationJobCreateSchema = z.object({
+  companyProfileId: z.string().min(1, 'Company profile ID is required'),
+  framework: z.string().min(1, 'Framework is required'),
+  model: z.enum(['auto', 'openai', 'anthropic', 'gemini']).optional().default('auto'),
+  includeQualityAnalysis: z.boolean().optional().default(false),
+  enableCrossValidation: z.boolean().optional().default(false),
+});
+
+export type ExportDocumentRequestInput = z.infer<typeof exportDocumentRequestSchema>;
+export type SaveDocumentRequestInput = z.infer<typeof saveDocumentRequestSchema>;
+export type GenerateDocumentRequestInput = z.infer<typeof generateDocumentRequestSchema>;
+export type GenerationJobCreateInput = z.infer<typeof generationJobCreateSchema>;

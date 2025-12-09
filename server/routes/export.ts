@@ -3,6 +3,12 @@ import OpenAI from 'openai';
 import { logger } from '../utils/logger';
 import { storage } from '../storage';
 import { isAuthenticated } from '../replitAuth';
+import { validateBody } from '../middleware/routeValidation';
+import {
+  exportDocumentRequestSchema,
+  saveDocumentRequestSchema,
+  generateDocumentRequestSchema
+} from '../validation/requestSchemas';
 
 function getContentType(format: string): string {
   const contentTypes: Record<string, string> = {
@@ -16,24 +22,9 @@ function getContentType(format: string): string {
 }
 
 export function registerExportRoutes(router: Router) {
-  router.post('/export-document', isAuthenticated, async (req: any, res) => {
+  router.post('/export-document', isAuthenticated, validateBody(exportDocumentRequestSchema), async (req: any, res) => {
     try {
       const { content, format, filename } = req.body;
-      
-      if (!content || !format) {
-        return res.status(400).json({
-          success: false,
-          error: 'Content and format are required'
-        });
-      }
-
-      const exportFormats = ['pdf', 'docx', 'txt', 'html'];
-      if (!exportFormats.includes(format.toLowerCase())) {
-        return res.status(400).json({
-          success: false,
-          error: `Unsupported format. Supported formats: ${exportFormats.join(', ')}`
-        });
-      }
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const exportFilename = filename || `document-${timestamp}.${format}`;
@@ -82,16 +73,9 @@ export function registerExportRoutes(router: Router) {
     }
   });
 
-  router.post('/save-document', isAuthenticated, async (req: any, res) => {
+  router.post('/save-document', isAuthenticated, validateBody(saveDocumentRequestSchema), async (req: any, res) => {
     try {
       const { title, content, framework, category, companyProfileId, createdBy } = req.body;
-      
-      if (!title || !content || !framework) {
-        return res.status(400).json({
-          success: false,
-          error: 'Title, content, and framework are required'
-        });
-      }
 
       let finalCompanyProfileId = companyProfileId;
       
@@ -148,7 +132,7 @@ export function registerExportRoutes(router: Router) {
     }
   });
 
-  router.post('/generate-document', isAuthenticated, async (req: any, res) => {
+  router.post('/generate-document', isAuthenticated, validateBody(generateDocumentRequestSchema), async (req: any, res) => {
     try {
       const { framework, companyProfile, documentType, templateId, variables } = req.body;
       

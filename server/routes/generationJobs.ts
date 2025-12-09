@@ -5,6 +5,8 @@ import { logger } from '../utils/logger';
 import { aiOrchestrator, type AIModel, type GenerationOptions } from '../services/aiOrchestrator';
 import { frameworkTemplates } from '../services/openai';
 import { generationLimiter } from '../middleware/security';
+import { validateBody } from '../middleware/routeValidation';
+import { generationJobCreateSchema } from '../validation/requestSchemas';
 
 export function registerGenerationJobsRoutes(router: Router) {
   router.get("/", isAuthenticated, async (req: any, res) => {
@@ -38,14 +40,10 @@ export function registerGenerationJobsRoutes(router: Router) {
 }
 
 export function registerGenerateDocumentsRoutes(router: Router) {
-  router.post("/", generationLimiter, isAuthenticated, async (req: any, res) => {
+  router.post("/", generationLimiter, isAuthenticated, validateBody(generationJobCreateSchema), async (req: any, res) => {
     try {
       const { companyProfileId, framework, model = 'auto', includeQualityAnalysis = false, enableCrossValidation = false } = req.body;
       const userId = req.user.claims.sub;
-      
-      if (!companyProfileId || !framework) {
-        return res.status(400).json({ message: "Company profile ID and framework are required" });
-      }
 
       const companyProfile = await storage.getCompanyProfile(companyProfileId);
       if (!companyProfile) {
