@@ -11,7 +11,7 @@ import { DocumentPreview } from "@/components/templates/document-preview";
 import { AIInsightsDashboard } from "@/components/ai/AIInsightsDashboard";
 import { RiskHeatmap } from "@/components/ai/RiskHeatmap";
 import { ControlPrioritizer } from "@/components/ai/ControlPrioritizer";
-import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorCard } from "@/components/ui/loading-error-states";
 import {
   TrendingUp,

@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Component, ErrorInfo, ReactNode, ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, RefreshCw } from "lucide-react";
@@ -7,6 +7,7 @@ interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  onRetry?: () => void;
 }
 
 interface State {
@@ -34,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log error to console in development
-    if (process.env.NODE_ENV === "development") {
+    if (import.meta.env.DEV) {
       console.error("ErrorBoundary caught an error:", error, errorInfo);
     }
 
@@ -42,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.props.onError?.(error, errorInfo);
 
     // In production, send to error tracking service
-    if (process.env.NODE_ENV === "production") {
+    if (import.meta.env.PROD) {
       // TODO: Send to error tracking service (e.g., Sentry, Azure Application Insights)
       this.logErrorToService(error, errorInfo);
     }
@@ -66,6 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleRetry = (): void => {
     this.setState({ hasError: false, error: undefined, errorId: "" });
+    this.props.onRetry?.();
   };
 
   private handleReload = (): void => {
@@ -79,21 +81,26 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-[400px] flex items-center justify-center p-4">
+        <div 
+          className="min-h-[400px] flex items-center justify-center p-4"
+          role="alert"
+          aria-live="assertive"
+          data-testid="error-boundary-container"
+        >
           <Card className="max-w-md w-full">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-destructive" aria-hidden="true" />
               </div>
-              <CardTitle className="text-red-900 dark:text-red-100">Something went wrong</CardTitle>
+              <CardTitle>Something went wrong</CardTitle>
               <CardDescription>
                 An unexpected error occurred. Please try again or reload the page.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {process.env.NODE_ENV === "development" && this.state.error && (
-                <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-md">
-                  <p className="text-sm font-mono text-red-600 dark:text-red-400">
+              {import.meta.env.DEV && this.state.error && (
+                <div className="p-3 bg-muted rounded-md">
+                  <p className="text-sm font-mono text-destructive" data-testid="text-error-message">
                     {this.state.error.message}
                   </p>
                 </div>
@@ -102,23 +109,23 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button
                   onClick={this.handleRetry}
                   variant="outline"
-                  size="sm"
                   className="flex-1"
+                  data-testid="button-error-retry"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
                   Try Again
                 </Button>
                 <Button
                   onClick={this.handleReload}
                   variant="default"
-                  size="sm"
                   className="flex-1"
+                  data-testid="button-error-reload"
                 >
                   Reload Page
                 </Button>
               </div>
               {this.state.errorId && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                <p className="text-xs text-muted-foreground text-center" data-testid="text-error-id">
                   Error ID: {this.state.errorId}
                 </p>
               )}
@@ -134,13 +141,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
 // Higher-order component for easier usage
 export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
+  WrappedComponent: ComponentType<P>,
   fallback?: ReactNode
-): React.ComponentType<P> {
-  return function WrappedComponent(props: P) {
+): ComponentType<P> {
+  return function ErrorBoundaryWrapper(props: P) {
     return (
       <ErrorBoundary fallback={fallback}>
-        <Component {...props} />
+        <WrappedComponent {...props} />
       </ErrorBoundary>
     );
   };

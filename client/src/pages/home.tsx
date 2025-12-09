@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { WelcomeTutorial } from "@/components/onboarding/WelcomeTutorial";
 import { QuickStartChecklist } from "@/components/onboarding/QuickStartChecklist";
-import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { 
   User, 
   LogOut, 
