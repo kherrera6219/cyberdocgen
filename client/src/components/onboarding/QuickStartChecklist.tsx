@@ -24,16 +24,13 @@ interface QuickStartChecklistProps {
 export function QuickStartChecklist({ className }: QuickStartChecklistProps) {
   const [isVisible, setIsVisible] = useState(true);
 
-  // Fetch data to determine completion status
-  const { data: profiles = [] } = useQuery<CompanyProfile[]>({
-    queryKey: ["/api/company-profiles"],
-  });
+  // Get profile from shared organization context
+  const { profile } = useOrganization();
 
+  // Fetch documents
   const { data: documents = [] } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
-
-  const profile = profiles[0];
   const hasDocuments = documents.length > 0;
   const hasCompletedDocuments = documents.some(doc => doc.status === 'complete');
 
