@@ -299,6 +299,7 @@ export class MemStorage implements IStorage {
       keyPersonnel: insertProfile.keyPersonnel || null,
       frameworkConfigs: insertProfile.frameworkConfigs || null,
       uploadedDocs: insertProfile.uploadedDocs || null,
+      websiteUrl: insertProfile.websiteUrl ?? null,
       createdAt: now,
       updatedAt: now,
     };
