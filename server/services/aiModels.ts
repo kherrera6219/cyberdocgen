@@ -4,14 +4,14 @@
  */
 
 export const AI_MODELS = {
-  // OpenAI - GPT-5 (Released August 7, 2025)
+  // OpenAI - GPT-4o (Latest stable model)
   OPENAI: {
-    primary: "gpt-5",
-    fallback: "gpt-5-mini",
-    description: "Latest GPT-5 with unified intelligence system and real-time routing",
-    capabilities: ["unified reasoning", "advanced coding", "document generation", "real-time routing"],
-    maxTokens: 200000,
-    released: "2025-08-07",
+    primary: "gpt-4o",
+    fallback: "gpt-4o-mini",
+    description: "Latest GPT-4o with advanced reasoning and multi-modal capabilities",
+    capabilities: ["advanced reasoning", "coding", "document generation", "multi-modal"],
+    maxTokens: 128000,
+    released: "2024-05-13",
   },
 
   // Anthropic - Claude Opus 4.1 (Released August 5, 2025) 

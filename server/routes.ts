@@ -69,187 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test OpenAI API key endpoint
-  app.get("/api/test/openai", async (req, res) => {
-    try {
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-
-      const response = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [{ role: "user", content: "Say 'OpenAI GPT-5 API test successful'" }],
-        max_completion_tokens: 50,
-      });
-
-      res.json({
-        status: "success",
-        service: "OpenAI",
-        model: "gpt-5",
-        response: response.choices[0]?.message?.content,
-        usage: response.usage,
-      });
-    } catch (error: any) {
-      logger.error("OpenAI API test failed", { error: error.message, code: error.code });
-      res.status(500).json({
-        status: "error",
-        service: "OpenAI",
-        error: error.message,
-        code: error.code || "unknown",
-      });
-    }
-  });
-
-  // Test Anthropic Claude API key endpoint
-  app.get("/api/test/claude", async (req, res) => {
-    try {
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-
-      const response = await anthropic.messages.create({
-        model: "claude-opus-4-1",
-        max_tokens: 50,
-        messages: [{ role: "user", content: "Say 'Claude Opus 4.1 API test successful'" }],
-      });
-
-      res.json({
-        status: "success",
-        service: "Anthropic Claude",
-        model: "claude-opus-4-1",
-        response: response.content[0]?.text,
-        usage: response.usage,
-      });
-    } catch (error: any) {
-      logger.error("Claude API test failed", { error: error.message, status: error.status });
-      res.status(500).json({
-        status: "error",
-        service: "Anthropic Claude",
-        error: error.message,
-        code: error.status || "unknown",
-      });
-    }
-  });
-
-  // Test Google Gemini API key endpoint
-  app.get("/api/test/gemini", async (req, res) => {
-    try {
-      if (!process.env.GEMINI_API_KEY) {
-        return res.status(500).json({
-          status: "error",
-          service: "Google Gemini",
-          error: "GEMINI_API_KEY not configured",
-        });
-      }
-
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: 'Say "Gemini 2.5 Pro API test successful"'
-            }]
-          }],
-          generationConfig: {
-            maxOutputTokens: 50,
-            temperature: 0.7,
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        return res.status(500).json({
-          status: "error",
-          service: "Google Gemini",
-          error: `HTTP ${response.status}: ${error}`,
-        });
-      }
-
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      res.json({
-        status: "success",
-        service: "Google Gemini",
-        model: "gemini-2.5-pro",
-        response: text,
-        usage: data.usageMetadata,
-      });
-    } catch (error: any) {
-      logger.error("Gemini API test failed", { error: error.message });
-      res.status(500).json({
-        status: "error",
-        service: "Google Gemini",
-        error: error.message,
-      });
-    }
-  });
-
-  // Comprehensive AI services health check
-  app.get("/api/test/all-ai", async (req, res) => {
-    const results = {
-      timestamp: new Date().toISOString(),
-      services: {
-        openai: { status: "unknown", error: null },
-        claude: { status: "unknown", error: null },
-        gemini: { status: "unknown", error: null }
-      },
-      summary: { working: 0, total: 3 }
-    };
-
-    // Test OpenAI
-    try {
-      const openaiResponse = await fetch(`http://localhost:5000/api/test/openai`);
-      if (openaiResponse.ok) {
-        results.services.openai.status = "working";
-        results.summary.working++;
-      } else {
-        results.services.openai.status = "error";
-        results.services.openai.error = `HTTP ${openaiResponse.status}`;
-      }
-    } catch (error: any) {
-      results.services.openai.status = "error";
-      results.services.openai.error = error.message;
-    }
-
-    // Test Claude
-    try {
-      const claudeResponse = await fetch(`http://localhost:5000/api/test/claude`);
-      if (claudeResponse.ok) {
-        results.services.claude.status = "working";
-        results.summary.working++;
-      } else {
-        results.services.claude.status = "error";
-        results.services.claude.error = `HTTP ${claudeResponse.status}`;
-      }
-    } catch (error: any) {
-      results.services.claude.status = "error";
-      results.services.claude.error = error.message;
-    }
-
-    // Test Gemini
-    try {
-      const geminiResponse = await fetch(`http://localhost:5000/api/test/gemini`);
-      if (geminiResponse.ok) {
-        results.services.gemini.status = "working";
-        results.summary.working++;
-      } else {
-        results.services.gemini.status = "error";
-        results.services.gemini.error = `HTTP ${geminiResponse.status}`;
-      }
-    } catch (error: any) {
-      results.services.gemini.status = "error";
-      results.services.gemini.error = error.message;
-    }
-
-    res.json(results);
-  });
-
-  // Auth middleware
+  // Auth middleware - IMPORTANT: This must come before any authenticated routes
   await setupAuth(app);
 
   // Ensure all API routes have proper CORS and validation
@@ -329,8 +149,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Company Profile routes
-  app.get("/api/company-profiles", async (req, res) => {
+  // Company Profile routes - SECURED with authentication
+  app.get("/api/company-profiles", isAuthenticated, async (req: any, res) => {
     try {
       const profiles = await storage.getCompanyProfiles();
       res.json(profiles);
@@ -341,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/company-profiles/:id", async (req, res) => {
+  app.get("/api/company-profiles/:id", isAuthenticated, async (req: any, res) => {
     try {
       const profile = await storage.getCompanyProfile(req.params.id);
       if (!profile) {
@@ -356,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Import MFA middleware for Phase 2 security
-  const { requireMFA, enforceMFATimeout } = await import('./middleware/mfa.js');
+  const { requireMFA, enforceMFATimeout } = await import('./middleware/mfa');
 
   app.post("/api/company-profiles", requireMFA, enforceMFATimeout, async (req, res) => {
     try {
@@ -2462,7 +2282,7 @@ Create a professional, enterprise-ready document that meets the latest 2025 comp
 Format with clear headings, numbered sections, and actionable guidance.`;
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4o",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Generate a detailed ${documentType} document for ${framework} compliance.` }
@@ -2476,7 +2296,7 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         documentType,
         content: response.choices[0].message.content,
         templateBased: false,
-        model: "gpt-5",
+        model: "gpt-4o",
         usage: response.usage
       });
     } catch (error: any) {
@@ -2612,7 +2432,7 @@ Format with clear headings, numbered sections, and actionable guidance.`;
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4o",
         messages: [
           { role: "system", content: "You are a compliance expert assistant. Provide accurate, actionable guidance on cybersecurity compliance questions." },
           { role: "user", content: `Context: ${context || 'General compliance question'}. Question: ${question}` }
@@ -2623,7 +2443,7 @@ Format with clear headings, numbered sections, and actionable guidance.`;
       res.json({
         success: true,
         answer: response.choices[0].message.content,
-        model: "gpt-5",
+        model: "gpt-4o",
         usage: response.usage
       });
     } catch (error: any) {
@@ -2661,7 +2481,7 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         // Use GPT-5 for general documents
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         const response = await openai.chat.completions.create({
-          model: "gpt-5",
+          model: "gpt-4o",
           messages: [
             { role: "system", content: `Generate a professional ${documentType} document for ${framework} compliance.` },
             { role: "user", content: `Company: ${companyProfile.name}, Industry: ${companyProfile.industry}` }
@@ -2669,7 +2489,7 @@ Format with clear headings, numbered sections, and actionable guidance.`;
           max_completion_tokens: 3000,
         });
         result = response.choices[0].message.content;
-        modelUsed = "gpt-5";
+        modelUsed = "gpt-4o";
       }
 
       res.json({
@@ -2689,23 +2509,23 @@ Format with clear headings, numbered sections, and actionable guidance.`;
   });
 
   // Phase 2 Implementation - MFA Routes Integration
-  const { default: mfaRoutes } = await import('./routes/mfa.js');
+  const { default: mfaRoutes } = await import('./routes/mfa');
   app.use('/api/auth/mfa', mfaRoutes);
 
   // Enterprise Authentication Routes
-  const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth.js');
+  const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth');
   app.use('/api/auth/enterprise', enterpriseAuthRoutes);
 
   // MCP (Model Context Protocol) Routes
-  const { default: mcpRoutes } = await import('./mcp/server.js');
+  const { default: mcpRoutes } = await import('./mcp/server');
   app.use('/api/mcp', isAuthenticated, mcpRoutes);
 
   // Cloud Integration Routes
-  const { default: cloudIntegrationRoutes } = await import('./routes/cloudIntegration.js');
+  const { default: cloudIntegrationRoutes } = await import('./routes/cloudIntegration');
   app.use('/api/cloud', cloudIntegrationRoutes);
 
   // Admin Routes
-  const { default: adminRoutes } = await import('./routes/admin.js');
+  const { default: adminRoutes } = await import('./routes/admin');
   app.use('/api/admin', adminRoutes);
 
   const httpServer = createServer(app);
