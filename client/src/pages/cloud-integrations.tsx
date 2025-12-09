@@ -186,8 +186,8 @@ export default function CloudIntegrations() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container max-w-7xl mx-auto py-8 px-4">
+    <div className="space-y-6 sm:space-y-8">
+      <div>
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">

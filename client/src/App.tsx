@@ -111,7 +111,9 @@ function AuthenticatedRouter() {
           <AIDocGenerator />
         </Suspense>
       </Route>
-      <Route component={NotFound} />
+      <Route>
+        <NotFound />
+      </Route>
     </Switch>
   );
 }
@@ -145,7 +147,9 @@ function PublicRouter() {
           <MfaSetup />
         </Suspense>
       </Route>
-      <Route component={NotFound} />
+      <Route>
+        <NotFound fullScreen />
+      </Route>
     </Switch>
   );
 }

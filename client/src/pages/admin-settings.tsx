@@ -77,7 +77,7 @@ export default function AdminSettings() {
   // Check if user is admin
   if (!user || user.role !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-16">
         <Alert className="max-w-md">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -213,8 +213,8 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container max-w-6xl mx-auto py-8 px-4">
+    <div className="space-y-6 sm:space-y-8">
+      <div>
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
