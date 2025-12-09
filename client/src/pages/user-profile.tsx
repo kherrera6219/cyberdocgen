@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { VisuallyHidden } from "@/components/ui/visually-hidden";
 export function UserProfile() {
   const { user } = useAuth() as { user: UserType | undefined };
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
@@ -112,15 +114,33 @@ export function UserProfile() {
               <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-6 pt-0">
-              <Button variant="outline" size="sm" className="w-full justify-start text-xs sm:text-sm">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full justify-start text-xs sm:text-sm"
+                onClick={() => setLocation('/profile/settings')}
+                data-testid="button-account-settings"
+              >
                 <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                 Account Settings
               </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start text-xs sm:text-sm">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full justify-start text-xs sm:text-sm"
+                onClick={() => setLocation('/organizations')}
+                data-testid="button-manage-organizations"
+              >
                 <Building className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                 Manage Organizations
               </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start text-xs sm:text-sm">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full justify-start text-xs sm:text-sm"
+                onClick={() => setLocation('/organizations')}
+                data-testid="button-team-members"
+              >
                 <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                 Team Members
               </Button>

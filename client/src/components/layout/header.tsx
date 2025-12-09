@@ -1,9 +1,9 @@
-import React from "react";
-import { Bell, ChevronDown, Moon, Sun, Settings, Menu, X } from "lucide-react";
+import { Bell, ChevronDown, Moon, Sun, Settings, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { GlobalSearch } from "@/components/navigation/GlobalSearch";
 import MobileSidebar from "./mobile-sidebar";
@@ -11,6 +11,7 @@ import MobileSidebar from "./mobile-sidebar";
 export default function Header() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -120,7 +121,7 @@ export default function Header() {
                 <Bell className="mr-2 h-4 w-4" />
                 Notifications
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLocation('/user-profile')} data-testid="menu-settings">
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>

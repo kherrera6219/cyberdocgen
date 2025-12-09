@@ -21,6 +21,7 @@ import DocumentVersions from "./pages/document-versions";
 import { ObjectStorageManager } from "./components/ObjectStorageManager";
 import { IndustrySpecialization } from "./components/ai/IndustrySpecialization";
 import GapAnalysis from "./pages/gap-analysis";
+import ExportCenter from "./pages/export-center";
 import Layout from "./components/layout";
 
 // Lazy load components
@@ -58,6 +59,7 @@ function Router() {
           <Route path="/organizations" component={OrganizationSetup} />
           <Route path="/storage" component={ObjectStorageManager} />
           <Route path="/ai-specialization" component={IndustrySpecialization} />
+          <Route path="/export" component={ExportCenter} />
         </>
       )}
       {/* Enterprise Authentication Routes */}
