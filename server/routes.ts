@@ -20,6 +20,7 @@ import { registerExportRoutes } from "./routes/export";
 import { registerAnalyticsRoutes } from "./routes/analytics";
 import { registerAuditTrailRoutes } from "./routes/auditTrail";
 import { registerGenerationJobsRoutes, registerGenerateDocumentsRoutes } from "./routes/generationJobs";
+import { registerApprovalsRoutes } from "./routes/approvals";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
@@ -192,6 +193,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const generateDocumentsRouter = Router();
   registerGenerateDocumentsRoutes(generateDocumentsRouter);
   app.use('/api/documents/generate', generateDocumentsRouter);
+
+  const approvalsRouter = Router();
+  registerApprovalsRoutes(approvalsRouter);
+  app.use('/api/approvals', approvalsRouter);
 
   // Phase 2 Implementation - MFA Routes Integration
   const { default: mfaRoutes } = await import('./routes/mfa');

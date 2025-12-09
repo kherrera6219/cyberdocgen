@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Dialog,
   DialogContent,
@@ -28,86 +29,30 @@ import {
   Calendar,
   FileText,
   MessageSquare,
-  Filter
+  Filter,
+  AlertCircle
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import type { DocumentApproval } from "@shared/schema";
 
-interface ApprovalItem {
-  id: string;
-  title: string;
-  description: string;
-  framework: string;
-  control: string;
-  status: "pending" | "approved" | "rejected";
-  requestedBy: string;
-  requestedAt: string;
-  documentId?: string;
-  priority: "low" | "medium" | "high";
+interface EnrichedApproval extends DocumentApproval {
+  documentTitle: string;
+  documentFramework: string;
 }
 
 export default function ControlApprovals() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [selectedItem, setSelectedItem] = useState<ApprovalItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<EnrichedApproval | null>(null);
   const [reviewComment, setReviewComment] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const mockApprovals: ApprovalItem[] = [
-    {
-      id: "1",
-      title: "Information Security Policy Update",
-      description: "Annual review and update of the information security policy to align with ISO 27001:2022 requirements.",
-      framework: "ISO 27001",
-      control: "A.5.1",
-      status: "pending",
-      requestedBy: "John Smith",
-      requestedAt: "2024-12-08T10:30:00Z",
-      documentId: "doc-123",
-      priority: "high"
-    },
-    {
-      id: "2",
-      title: "Access Control Procedure",
-      description: "New procedure for managing user access rights and periodic reviews.",
-      framework: "SOC 2",
-      control: "CC6.1",
-      status: "pending",
-      requestedBy: "Jane Doe",
-      requestedAt: "2024-12-07T14:15:00Z",
-      documentId: "doc-456",
-      priority: "medium"
-    },
-    {
-      id: "3",
-      title: "Incident Response Plan",
-      description: "Updated incident response procedures including new escalation paths.",
-      framework: "FedRAMP",
-      control: "IR-4",
-      status: "approved",
-      requestedBy: "Mike Johnson",
-      requestedAt: "2024-12-05T09:00:00Z",
-      documentId: "doc-789",
-      priority: "high"
-    },
-    {
-      id: "4",
-      title: "Data Classification Policy",
-      description: "New data classification scheme for sensitive information handling.",
-      framework: "NIST 800-53",
-      control: "RA-2",
-      status: "rejected",
-      requestedBy: "Sarah Williams",
-      requestedAt: "2024-12-04T16:45:00Z",
-      priority: "low"
-    }
-  ];
+  const { data: approvals = [], isLoading, error } = useQuery<EnrichedApproval[]>({
+    queryKey: ["/api/approvals", selectedStatus],
+  });
 
-  const filteredApprovals = selectedStatus === "all" 
-    ? mockApprovals 
-    : mockApprovals.filter(a => a.status === selectedStatus);
-
-  const pendingCount = mockApprovals.filter(a => a.status === "pending").length;
+  const pendingCount = approvals.filter(a => a.status === "pending").length;
 
   const approveMutation = useMutation({
     mutationFn: async ({ id, action, comment }: { id: string; action: "approve" | "reject"; comment: string }) => {
@@ -126,9 +71,16 @@ export default function ControlApprovals() {
       setSelectedItem(null);
       setReviewComment("");
     },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to process the approval request.",
+        variant: "destructive",
+      });
+    },
   });
 
-  const handleReview = (item: ApprovalItem) => {
+  const handleReview = (item: EnrichedApproval) => {
     setSelectedItem(item);
     setIsDialogOpen(true);
   };
@@ -143,7 +95,7 @@ export default function ControlApprovals() {
     }
   };
 
-  const getStatusBadge = (status: ApprovalItem["status"]) => {
+  const getStatusBadge = (status: string | null) => {
     switch (status) {
       case "pending":
         return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
@@ -151,22 +103,28 @@ export default function ControlApprovals() {
         return <Badge className="bg-green-500"><CheckCircle2 className="w-3 h-3 mr-1" /> Approved</Badge>;
       case "rejected":
         return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  const getPriorityBadge = (priority: ApprovalItem["priority"]) => {
+  const getPriorityBadge = (priority: string | null) => {
     switch (priority) {
+      case "urgent":
       case "high":
         return <Badge variant="destructive">High</Badge>;
       case "medium":
         return <Badge className="bg-yellow-500">Medium</Badge>;
       case "low":
         return <Badge variant="secondary">Low</Badge>;
+      default:
+        return null;
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -174,6 +132,20 @@ export default function ControlApprovals() {
       minute: "2-digit"
     });
   };
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-12 text-center">
+            <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" />
+            <h3 className="text-lg font-medium mb-2">Failed to load approvals</h3>
+            <p className="text-muted-foreground">Please try refreshing the page.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -184,7 +156,7 @@ export default function ControlApprovals() {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-base px-3 py-1">
-            {pendingCount} Pending
+            {isLoading ? "..." : pendingCount} Pending
           </Badge>
         </div>
       </div>
@@ -207,54 +179,26 @@ export default function ControlApprovals() {
       </div>
 
       <div className="space-y-4">
-        {filteredApprovals.map((item) => (
-          <Card key={item.id} data-testid={`approval-card-${item.id}`}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <h3 className="font-semibold text-lg">{item.title}</h3>
-                    {getStatusBadge(item.status)}
-                    {getPriorityBadge(item.priority)}
-                  </div>
-                  <p className="text-muted-foreground mb-4">{item.description}</p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                    <div className="flex items-center gap-1">
-                      <Badge variant="outline">{item.framework}</Badge>
-                      <span>{item.control}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      <span>{item.requestedBy}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{formatDate(item.requestedAt)}</span>
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-3">
+                    <Skeleton className="h-6 w-64" />
+                    <Skeleton className="h-4 w-full" />
+                    <div className="flex gap-4">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-40" />
                     </div>
                   </div>
+                  <Skeleton className="h-9 w-20" />
                 </div>
-                <div className="flex items-center gap-2">
-                  {item.documentId && (
-                    <Button variant="outline" size="sm" data-testid={`button-view-doc-${item.id}`}>
-                      <FileText className="w-4 h-4 mr-1" />
-                      View Document
-                    </Button>
-                  )}
-                  {item.status === "pending" && (
-                    <Button 
-                      onClick={() => handleReview(item)}
-                      data-testid={`button-review-${item.id}`}
-                    >
-                      Review
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {filteredApprovals.length === 0 && (
+              </CardContent>
+            </Card>
+          ))
+        ) : approvals.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <CheckCircle2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -266,6 +210,54 @@ export default function ControlApprovals() {
               </p>
             </CardContent>
           </Card>
+        ) : (
+          approvals.map((item) => (
+            <Card key={item.id} data-testid={`approval-card-${item.id}`}>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <h3 className="font-semibold text-lg">{item.documentTitle}</h3>
+                      {getStatusBadge(item.status)}
+                      {getPriorityBadge(item.priority)}
+                    </div>
+                    <p className="text-muted-foreground mb-4">
+                      Approval request for {item.approverRole?.replace("_", " ")} review
+                    </p>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <Badge variant="outline">{item.documentFramework}</Badge>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <User className="w-4 h-4" />
+                        <span>{item.requestedBy}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{formatDate(item.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {item.documentId && (
+                      <Button variant="outline" size="sm" data-testid={`button-view-doc-${item.id}`}>
+                        <FileText className="w-4 h-4 mr-1" />
+                        View Document
+                      </Button>
+                    )}
+                    {item.status === "pending" && (
+                      <Button 
+                        onClick={() => handleReview(item)}
+                        data-testid={`button-review-${item.id}`}
+                      >
+                        Review
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
         )}
       </div>
 
@@ -281,13 +273,14 @@ export default function ControlApprovals() {
           {selectedItem && (
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium mb-1">{selectedItem.title}</h4>
-                <p className="text-sm text-muted-foreground">{selectedItem.description}</p>
+                <h4 className="font-medium mb-1">{selectedItem.documentTitle}</h4>
+                <p className="text-sm text-muted-foreground">
+                  Approval request for {selectedItem.approverRole?.replace("_", " ")} review
+                </p>
               </div>
 
               <div className="flex items-center gap-4 text-sm">
-                <Badge variant="outline">{selectedItem.framework}</Badge>
-                <span className="text-muted-foreground">{selectedItem.control}</span>
+                <Badge variant="outline">{selectedItem.documentFramework}</Badge>
               </div>
 
               <div>

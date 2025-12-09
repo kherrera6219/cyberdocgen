@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Eye, 
   Download, 
@@ -27,31 +28,33 @@ import {
   Shield, 
   Clock,
   Search,
-  Filter,
   CheckCircle2,
-  AlertTriangle,
-  Lock
+  Lock,
+  AlertCircle
 } from "lucide-react";
-
-interface AuditDocument {
-  id: string;
-  title: string;
-  type: string;
-  framework: string;
-  version: string;
-  status: "current" | "archived" | "draft";
-  lastModified: string;
-  approvedBy?: string;
-}
+import type { Document } from "@shared/schema";
 
 interface AuditLogEntry {
   id: string;
   action: string;
-  resource: string;
-  user: string;
+  entityType: string;
+  entityId: string;
+  userId: string;
+  ipAddress?: string;
+  userAgent?: string;
   timestamp: string;
-  details: string;
-  riskLevel: "low" | "medium" | "high";
+  metadata?: Record<string, unknown>;
+  riskLevel?: string;
+}
+
+interface AuditTrailResponse {
+  logs: AuditLogEntry[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export default function AuditorWorkspace() {
@@ -59,113 +62,40 @@ export default function AuditorWorkspace() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFramework, setSelectedFramework] = useState<string>("all");
 
-  const mockDocuments: AuditDocument[] = [
-    {
-      id: "1",
-      title: "Information Security Policy",
-      type: "Policy",
-      framework: "ISO 27001",
-      version: "3.2",
-      status: "current",
-      lastModified: "2024-12-01T10:00:00Z",
-      approvedBy: "John Smith"
-    },
-    {
-      id: "2",
-      title: "Access Control Procedure",
-      type: "Procedure",
-      framework: "SOC 2",
-      version: "2.1",
-      status: "current",
-      lastModified: "2024-11-28T14:30:00Z",
-      approvedBy: "Jane Doe"
-    },
-    {
-      id: "3",
-      title: "Incident Response Plan",
-      type: "Plan",
-      framework: "FedRAMP",
-      version: "1.5",
-      status: "current",
-      lastModified: "2024-11-20T09:15:00Z",
-      approvedBy: "Mike Johnson"
-    },
-    {
-      id: "4",
-      title: "Risk Assessment Report Q4",
-      type: "Report",
-      framework: "NIST 800-53",
-      version: "1.0",
-      status: "current",
-      lastModified: "2024-12-05T16:00:00Z",
-      approvedBy: "Sarah Williams"
-    },
-    {
-      id: "5",
-      title: "Business Continuity Plan",
-      type: "Plan",
-      framework: "ISO 27001",
-      version: "2.0",
-      status: "archived",
-      lastModified: "2024-10-15T11:00:00Z"
-    }
-  ];
+  const { data: documents = [], isLoading: isLoadingDocuments, error: documentsError } = useQuery<Document[]>({
+    queryKey: ["/api/documents"],
+  });
 
-  const mockAuditLog: AuditLogEntry[] = [
-    {
-      id: "1",
-      action: "Document Approved",
-      resource: "Information Security Policy v3.2",
-      user: "john.smith@company.com",
-      timestamp: "2024-12-09T10:30:00Z",
-      details: "Annual policy review completed and approved",
-      riskLevel: "low"
-    },
-    {
-      id: "2",
-      action: "Evidence Uploaded",
-      resource: "SOC 2 CC6.1 Evidence Pack",
-      user: "jane.doe@company.com",
-      timestamp: "2024-12-09T09:15:00Z",
-      details: "Quarterly access review evidence submitted",
-      riskLevel: "low"
-    },
-    {
-      id: "3",
-      action: "Control Updated",
-      resource: "AC-2 Account Management",
-      user: "mike.johnson@company.com",
-      timestamp: "2024-12-08T16:45:00Z",
-      details: "Updated control implementation details",
-      riskLevel: "medium"
-    },
-    {
-      id: "4",
-      action: "Access Granted",
-      resource: "Admin Panel",
-      user: "system@company.com",
-      timestamp: "2024-12-08T14:00:00Z",
-      details: "New admin access granted to sarah.williams@company.com",
-      riskLevel: "high"
-    },
-    {
-      id: "5",
-      action: "Document Exported",
-      resource: "Compliance Package Q4",
-      user: "jane.doe@company.com",
-      timestamp: "2024-12-07T11:30:00Z",
-      details: "Full compliance package exported for audit",
-      riskLevel: "low"
-    }
-  ];
+  const { data: auditTrailData, isLoading: isLoadingAuditLogs, error: auditError } = useQuery<AuditTrailResponse>({
+    queryKey: ["/api/audit-trail", { limit: 50 }],
+  });
 
-  const filteredDocuments = mockDocuments.filter(doc => {
+  const auditLogs = auditTrailData?.logs || [];
+
+  const mapDocumentStatus = (status: string): "current" | "archived" | "draft" => {
+    switch (status) {
+      case "approved":
+      case "published":
+      case "complete":
+        return "current";
+      case "draft":
+      case "in_progress":
+        return "draft";
+      default:
+        return "archived";
+    }
+  };
+
+  const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFramework = selectedFramework === "all" || doc.framework === selectedFramework;
     return matchesSearch && matchesFramework;
   });
 
-  const formatDate = (dateString: string) => {
+  const uniqueFrameworks = [...new Set(documents.map(d => d.framework))];
+
+  const formatDate = (dateString: string | Date | null | undefined) => {
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -175,8 +105,9 @@ export default function AuditorWorkspace() {
     });
   };
 
-  const getStatusBadge = (status: AuditDocument["status"]) => {
-    switch (status) {
+  const getStatusBadge = (status: string) => {
+    const mappedStatus = mapDocumentStatus(status);
+    switch (mappedStatus) {
       case "current":
         return <Badge className="bg-green-500"><CheckCircle2 className="w-3 h-3 mr-1" /> Current</Badge>;
       case "archived":
@@ -186,16 +117,27 @@ export default function AuditorWorkspace() {
     }
   };
 
-  const getRiskBadge = (level: AuditLogEntry["riskLevel"]) => {
+  const getRiskBadge = (level: string | undefined) => {
     switch (level) {
       case "high":
         return <Badge variant="destructive">High Risk</Badge>;
       case "medium":
         return <Badge className="bg-yellow-500">Medium</Badge>;
       case "low":
+      default:
         return <Badge variant="secondary">Low</Badge>;
     }
   };
+
+  const formatAction = (action: string) => {
+    return action
+      .replace(/_/g, " ")
+      .split(" ")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
+  const currentDocsCount = documents.filter(d => ["approved", "published", "complete"].includes(d.status)).length;
 
   return (
     <div className="p-6 space-y-6">
@@ -223,22 +165,38 @@ export default function AuditorWorkspace() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold" data-testid="text-total-docs">{mockDocuments.length}</p>
+              {isLoadingDocuments ? (
+                <Skeleton className="h-8 w-12 mx-auto mb-1" />
+              ) : (
+                <p className="text-2xl font-bold" data-testid="text-total-docs">{documents.length}</p>
+              )}
               <p className="text-sm text-muted-foreground">Total Documents</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold text-green-600" data-testid="text-current-docs">
-                {mockDocuments.filter(d => d.status === "current").length}
-              </p>
+              {isLoadingDocuments ? (
+                <Skeleton className="h-8 w-12 mx-auto mb-1" />
+              ) : (
+                <p className="text-2xl font-bold text-green-600" data-testid="text-current-docs">
+                  {currentDocsCount}
+                </p>
+              )}
               <p className="text-sm text-muted-foreground">Current</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold" data-testid="text-frameworks">4</p>
+              {isLoadingDocuments ? (
+                <Skeleton className="h-8 w-12 mx-auto mb-1" />
+              ) : (
+                <p className="text-2xl font-bold" data-testid="text-frameworks">{uniqueFrameworks.length}</p>
+              )}
               <p className="text-sm text-muted-foreground">Frameworks</p>
             </div>
             <div className="p-4 bg-muted/50 rounded-lg text-center">
-              <p className="text-2xl font-bold" data-testid="text-audit-entries">{mockAuditLog.length}</p>
-              <p className="text-sm text-muted-foreground">Audit Entries (7d)</p>
+              {isLoadingAuditLogs ? (
+                <Skeleton className="h-8 w-12 mx-auto mb-1" />
+              ) : (
+                <p className="text-2xl font-bold" data-testid="text-audit-entries">{auditLogs.length}</p>
+              )}
+              <p className="text-sm text-muted-foreground">Audit Entries (Recent)</p>
             </div>
           </div>
         </CardContent>
@@ -281,63 +239,80 @@ export default function AuditorWorkspace() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Frameworks</SelectItem>
-                      <SelectItem value="ISO 27001">ISO 27001</SelectItem>
-                      <SelectItem value="SOC 2">SOC 2</SelectItem>
-                      <SelectItem value="FedRAMP">FedRAMP</SelectItem>
-                      <SelectItem value="NIST 800-53">NIST 800-53</SelectItem>
+                      {uniqueFrameworks.map(framework => (
+                        <SelectItem key={framework} value={framework}>{framework}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document</TableHead>
-                    <TableHead>Framework</TableHead>
-                    <TableHead>Version</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Modified</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.map((doc) => (
-                    <TableRow key={doc.id} data-testid={`row-document-${doc.id}`}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{doc.title}</p>
-                          <p className="text-sm text-muted-foreground">{doc.type}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{doc.framework}</Badge>
-                      </TableCell>
-                      <TableCell>v{doc.version}</TableCell>
-                      <TableCell>{getStatusBadge(doc.status)}</TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="text-sm">{formatDate(doc.lastModified)}</p>
-                          {doc.approvedBy && (
-                            <p className="text-xs text-muted-foreground">by {doc.approvedBy}</p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button size="icon" variant="ghost" data-testid={`button-view-${doc.id}`}>
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" data-testid={`button-download-${doc.id}`}>
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+              {documentsError ? (
+                <div className="flex items-center justify-center p-8 text-muted-foreground">
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  <span>Failed to load documents. Please try again.</span>
+                </div>
+              ) : isLoadingDocuments ? (
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              ) : filteredDocuments.length === 0 ? (
+                <div className="text-center p-8 text-muted-foreground">
+                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No documents found</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document</TableHead>
+                      <TableHead>Framework</TableHead>
+                      <TableHead>Version</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Last Modified</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDocuments.map((doc) => (
+                      <TableRow key={doc.id} data-testid={`row-document-${doc.id}`}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{doc.title}</p>
+                            <p className="text-sm text-muted-foreground">{doc.category}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{doc.framework}</Badge>
+                        </TableCell>
+                        <TableCell>v{doc.version}</TableCell>
+                        <TableCell>{getStatusBadge(doc.status)}</TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm">{formatDate(doc.updatedAt)}</p>
+                            {doc.approvedBy && (
+                              <p className="text-xs text-muted-foreground">Approved</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button size="icon" variant="ghost" data-testid={`button-view-${doc.id}`}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" data-testid={`button-download-${doc.id}`}>
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -349,28 +324,48 @@ export default function AuditorWorkspace() {
               <CardDescription>Complete history of compliance-related activities</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockAuditLog.map((entry) => (
-                  <div 
-                    key={entry.id}
-                    className="flex items-start gap-4 p-4 border rounded-lg"
-                    data-testid={`audit-entry-${entry.id}`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-medium">{entry.action}</span>
-                        {getRiskBadge(entry.riskLevel)}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{entry.details}</p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                        <span>Resource: {entry.resource}</span>
-                        <span>User: {entry.user}</span>
-                        <span>{formatDate(entry.timestamp)}</span>
+              {auditError ? (
+                <div className="flex items-center justify-center p-8 text-muted-foreground">
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  <span>Failed to load audit logs. Please try again.</span>
+                </div>
+              ) : isLoadingAuditLogs ? (
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-full" />
+                  ))}
+                </div>
+              ) : auditLogs.length === 0 ? (
+                <div className="text-center p-8 text-muted-foreground">
+                  <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No audit entries found</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {auditLogs.map((entry) => (
+                    <div 
+                      key={entry.id}
+                      className="flex items-start gap-4 p-4 border rounded-lg"
+                      data-testid={`audit-entry-${entry.id}`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="font-medium">{formatAction(entry.action)}</span>
+                          {getRiskBadge(entry.riskLevel)}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {entry.entityType}: {entry.entityId}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                          <span>User: {entry.userId}</span>
+                          {entry.ipAddress && <span>IP: {entry.ipAddress}</span>}
+                          <span>{formatDate(entry.timestamp)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

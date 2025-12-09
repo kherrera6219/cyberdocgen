@@ -11,6 +11,7 @@ import {
   complianceMaturityAssessments,
   auditTrail,
   contactMessages,
+  documentApprovals,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -35,7 +36,9 @@ import {
   type InsertAuditTrail,
   type AuditTrail,
   type ContactMessage,
-  type InsertContactMessage
+  type InsertContactMessage,
+  type DocumentApproval,
+  type InsertDocumentApproval
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -106,6 +109,12 @@ export interface IStorage {
 
   // Contact messages
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
+
+  // Document approvals
+  getDocumentApprovals(status?: string): Promise<DocumentApproval[]>;
+  getDocumentApproval(id: string): Promise<DocumentApproval | undefined>;
+  createDocumentApproval(approval: InsertDocumentApproval): Promise<DocumentApproval>;
+  updateDocumentApproval(id: string, updates: Partial<InsertDocumentApproval>): Promise<DocumentApproval | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -596,6 +605,54 @@ export class MemStorage implements IStorage {
     return newMessage;
   }
 
+  // Document Approvals methods
+  async getDocumentApprovals(status?: string): Promise<DocumentApproval[]> {
+    const approvals = Array.from(this.documentApprovalsStore.values());
+    if (status && status !== "all") {
+      return approvals.filter(a => a.status === status);
+    }
+    return approvals.sort((a, b) => 
+      (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
+    );
+  }
+
+  async getDocumentApproval(id: string): Promise<DocumentApproval | undefined> {
+    return this.documentApprovalsStore.get(id);
+  }
+
+  async createDocumentApproval(approval: InsertDocumentApproval): Promise<DocumentApproval> {
+    const id = randomUUID();
+    const now = new Date();
+    const newApproval: DocumentApproval = {
+      ...approval,
+      id,
+      status: approval.status ?? "pending",
+      priority: approval.priority ?? "medium",
+      assignedTo: approval.assignedTo ?? null,
+      comments: approval.comments ?? null,
+      dueDate: approval.dueDate ?? null,
+      approvedAt: approval.approvedAt ?? null,
+      rejectedAt: approval.rejectedAt ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.documentApprovalsStore.set(id, newApproval);
+    return newApproval;
+  }
+
+  async updateDocumentApproval(id: string, updates: Partial<InsertDocumentApproval>): Promise<DocumentApproval | undefined> {
+    const existing = this.documentApprovalsStore.get(id);
+    if (!existing) return undefined;
+
+    const updated: DocumentApproval = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.documentApprovalsStore.set(id, updated);
+    return updated;
+  }
+
   // Private storage
   private gapAnalysisReports = new Map<string, GapAnalysisReport>();
   private gapAnalysisFindings = new Map<string, GapAnalysisFinding>();
@@ -603,6 +660,7 @@ export class MemStorage implements IStorage {
   private complianceMaturityAssessments = new Map<string, ComplianceMaturityAssessment>();
   private auditEntries = new Map<string, AuditTrail>();
   private contactMessagesStore = new Map<string, ContactMessage>();
+  private documentApprovalsStore = new Map<string, DocumentApproval>();
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1015,6 +1073,46 @@ export class DatabaseStorage implements IStorage {
       .values(message)
       .returning();
     return newMessage;
+  }
+
+  // Document Approvals methods
+  async getDocumentApprovals(status?: string): Promise<DocumentApproval[]> {
+    if (status && status !== "all") {
+      return await db
+        .select()
+        .from(documentApprovals)
+        .where(eq(documentApprovals.status, status as DocumentApproval["status"]))
+        .orderBy(desc(documentApprovals.createdAt));
+    }
+    return await db
+      .select()
+      .from(documentApprovals)
+      .orderBy(desc(documentApprovals.createdAt));
+  }
+
+  async getDocumentApproval(id: string): Promise<DocumentApproval | undefined> {
+    const [approval] = await db
+      .select()
+      .from(documentApprovals)
+      .where(eq(documentApprovals.id, id));
+    return approval || undefined;
+  }
+
+  async createDocumentApproval(approval: InsertDocumentApproval): Promise<DocumentApproval> {
+    const [newApproval] = await db
+      .insert(documentApprovals)
+      .values(approval)
+      .returning();
+    return newApproval;
+  }
+
+  async updateDocumentApproval(id: string, updates: Partial<InsertDocumentApproval>): Promise<DocumentApproval | undefined> {
+    const [updated] = await db
+      .update(documentApprovals)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(documentApprovals.id, id))
+      .returning();
+    return updated || undefined;
   }
 }
 
