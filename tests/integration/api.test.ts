@@ -4,13 +4,13 @@ import express from 'express';
 import { registerRoutes } from '../../server/routes';
 
 describe('API Integration Tests', () => {
-  let app: express.Application;
+  let app: any;
   let server: any;
 
   beforeAll(async () => {
     app = express();
     app.use(express.json());
-    server = await registerRoutes(app);
+    server = await registerRoutes(app as express.Express);
   });
 
   afterAll(async () => {
