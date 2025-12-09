@@ -5,8 +5,8 @@ import { logger } from "./logger";
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
-  ANTHROPIC_API_KEY: z.string().min(1, 'ANTHROPIC_API_KEY is required'),
+  OPENAI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   REPL_ID: z.string().optional(),
   REPLIT_DOMAINS: z.string().optional(),
@@ -20,6 +20,14 @@ export function validateEnvironment(): EnvConfig {
   try {
     const validated = envSchema.parse(process.env);
     logger.info('Environment validation successful');
+    
+    if (!validated.OPENAI_API_KEY) {
+      logger.warn('OPENAI_API_KEY is not set - AI features using OpenAI will not work');
+    }
+    if (!validated.ANTHROPIC_API_KEY) {
+      logger.warn('ANTHROPIC_API_KEY is not set - AI features using Anthropic will not work');
+    }
+    
     return validated;
   } catch (error) {
     if (error instanceof z.ZodError) {

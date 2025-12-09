@@ -14,9 +14,17 @@ When copying code from this code snippet, ensure you also include this informati
 const DEFAULT_MODEL_STR = "claude-sonnet-4-20250514";
 // </important_do_not_delete>
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+let anthropicClient: Anthropic | null = null;
+
+function getAnthropicClient(): Anthropic {
+  if (!anthropicClient) {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+    }
+    anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return anthropicClient;
+}
 
 export interface DocumentTemplate {
   title: string;
@@ -76,7 +84,7 @@ Format as a structured document with clear headings, numbered sections, and prof
   const userPrompt = `Generate the ${template.title} document for ${companyProfile.companyName} based on ${framework} requirements. Ensure the content is specific to their ${companyProfile.industry} industry and ${companyProfile.companySize} company size. Include practical implementation guidance that considers their current use of ${companyProfile.cloudInfrastructure.join(' and ')} infrastructure.`;
 
   try {
-    const message = await anthropic.messages.create({
+    const message = await getAnthropicClient().messages.create({
       max_tokens: 4000,
       messages: [
         { 
@@ -126,7 +134,7 @@ Respond in JSON format with:
 }`;
 
   try {
-    const message = await anthropic.messages.create({
+    const message = await getAnthropicClient().messages.create({
       max_tokens: 1000,
       messages: [
         { 
@@ -188,7 +196,7 @@ Provide analysis in JSON format:
 }`;
 
   try {
-    const message = await anthropic.messages.create({
+    const message = await getAnthropicClient().messages.create({
       max_tokens: 1000,
       messages: [
         { 

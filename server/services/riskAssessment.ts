@@ -3,8 +3,28 @@ import OpenAI from "openai";
 import { type CompanyProfile } from "@shared/schema";
 import { logger } from "../utils/logger";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let anthropicClient: Anthropic | null = null;
+let openaiClient: OpenAI | null = null;
+
+function getAnthropicClient(): Anthropic {
+  if (!anthropicClient) {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+    }
+    anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return anthropicClient;
+}
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY environment variable is not set");
+    }
+    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openaiClient;
+}
 
 export interface RiskFactor {
   category: string;
@@ -122,7 +142,7 @@ Focus on:
 - Prioritized remediation roadmap`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await getAnthropicClient().messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 3000,
         messages: [{
@@ -174,7 +194,7 @@ Include:
 - Framework-specific control gaps`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAIClient().chat.completions.create({
         model: "gpt-4o",
         messages: [{ role: "user", content: threatPrompt }],
         response_format: { type: "json_object" },
@@ -225,7 +245,7 @@ Base assessment on:
 - Typical implementation timelines`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await getAnthropicClient().messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1500,
         messages: [{
@@ -299,7 +319,7 @@ Also include:
 Prioritize by impact, feasibility, and cost-effectiveness.`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAIClient().chat.completions.create({
         model: "gpt-4o",
         messages: [{ role: "user", content: roadmapPrompt }],
         response_format: { type: "json_object" },

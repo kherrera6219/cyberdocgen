@@ -4,7 +4,12 @@ import { generateDocument as generateWithOpenAI, generateComplianceDocuments as 
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
 import { logger } from "../utils/logger";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAIClient(): OpenAI {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY environment variable is not set");
+  }
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 export type AIModel = 'gpt-4o' | 'claude-sonnet-4' | 'auto';
 
@@ -186,7 +191,8 @@ export class AIOrchestrator {
     const { prompt, model = 'gpt-4o', temperature = 0.4, maxTokens = 1500 } = request;
 
     try {
-      const response = await openai.responses.create({
+      const client = getOpenAIClient();
+      const response = await client.responses.create({
         model,
         input: prompt,
         temperature,

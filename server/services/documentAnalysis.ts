@@ -3,8 +3,28 @@ import Anthropic from '@anthropic-ai/sdk';
 import { type CompanyProfile } from "@shared/schema";
 import { logger } from "../utils/logger";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let openaiClient: OpenAI | null = null;
+let anthropicClient: Anthropic | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY environment variable is not set");
+    }
+    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openaiClient;
+}
+
+function getAnthropicClient(): Anthropic {
+  if (!anthropicClient) {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+    }
+    anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return anthropicClient;
+}
 
 export interface DocumentAnalysisResult {
   summary: string;
@@ -65,7 +85,7 @@ Provide analysis in JSON format with:
 Focus on cybersecurity, data protection, and compliance aspects.`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await getAnthropicClient().messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 2000,
         messages: [{
@@ -110,7 +130,7 @@ Return JSON with these fields (only include if explicitly mentioned):
 Only include fields with actual values found in the document.`;
 
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAIClient().chat.completions.create({
         model: "gpt-4o",
         messages: [{ role: "user", content: extractionPrompt }],
         response_format: { type: "json_object" },
@@ -129,7 +149,7 @@ Only include fields with actual values found in the document.`;
    */
   async generateEmbeddings(content: string): Promise<number[]> {
     try {
-      const response = await openai.embeddings.create({
+      const response = await getOpenAIClient().embeddings.create({
         model: "text-embedding-3-small",
         input: content,
       });
@@ -193,7 +213,7 @@ Provide a comprehensive answer that:
 Keep the response focused and actionable.`;
 
     try {
-      const response = await anthropic.messages.create({
+      const response = await getAnthropicClient().messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1500,
         messages: [{

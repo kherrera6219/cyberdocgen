@@ -9,8 +9,28 @@ import { AgentConfig, AgentRequest, AgentResponse, ToolCall, ToolContext } from 
 import { toolRegistry } from './toolRegistry';
 import { logger } from '../utils/logger';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let openaiClient: OpenAI | null = null;
+let anthropicClient: Anthropic | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY environment variable is not set");
+    }
+    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openaiClient;
+}
+
+function getAnthropicClient(): Anthropic {
+  if (!anthropicClient) {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+    }
+    anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  }
+  return anthropicClient;
+}
 
 export class AgentClient {
   private agentConfigs: Map<string, AgentConfig> = new Map();
@@ -88,7 +108,7 @@ export class AgentClient {
       while (iteration < maxIterations) {
         iteration++;
 
-        const response = await openai.chat.completions.create({
+        const response = await getOpenAIClient().chat.completions.create({
           model: 'gpt-4o',
           messages,
           tools: tools.length > 0 ? tools : undefined,
@@ -199,7 +219,7 @@ export class AgentClient {
       while (iteration < maxIterations) {
         iteration++;
 
-        const response = await anthropic.messages.create({
+        const response = await getAnthropicClient().messages.create({
           model: 'claude-sonnet-4-20250514',
           max_tokens: agent.maxTokens || 4000,
           system: agent.systemPrompt,
