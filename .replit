@@ -15,7 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 39399
+localPort = 38563
 externalPort = 3000
 
 [env]
@@ -44,6 +44,7 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_object_storage:1.0.0", "javascript_openai:1.0.0", "javascript_gemini:1.0.0", "javascript_database:1.0.0", "javascript_websocket:1.0.0", "javascript_mem_db:1.0.0", "javascript_anthropic:1.0.0", "javascript_log_in_with_replit:1.0.0"]
+expertMode = true
 
 [objectStorage]
 defaultBucketID = "replit-objstore-93b7b08f-8123-4e08-8e29-d4b898b4785d"
