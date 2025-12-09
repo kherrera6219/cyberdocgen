@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import NotFound from "./pages/not-found";
 import Dashboard from "./pages/dashboard";
 import CompanyProfile from "./pages/company-profile";
@@ -198,11 +199,13 @@ function AppContent() {
     return <PublicRouter />;
   }
 
-  // Authenticated - show routes with layout
+  // Authenticated - show routes with layout and organization context
   return (
-    <Layout>
-      <AuthenticatedRouter />
-    </Layout>
+    <OrganizationProvider>
+      <Layout>
+        <AuthenticatedRouter />
+      </Layout>
+    </OrganizationProvider>
   );
 }
 

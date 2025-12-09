@@ -11,6 +11,7 @@ import { DashboardSkeleton } from "@/components/loading/loading-skeleton";
 import { DocumentPreview } from "@/components/templates/document-preview";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorCard } from "@/components/ui/loading-error-states";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 const AIInsightsDashboard = lazy(() => import("@/components/ai/AIInsightsDashboard").then(m => ({ default: m.AIInsightsDashboard })));
 const RiskHeatmap = lazy(() => import("@/components/ai/RiskHeatmap").then(m => ({ default: m.RiskHeatmap })));
@@ -30,7 +31,7 @@ import {
   Eye,
   Zap
 } from "lucide-react";
-import type { CompanyProfile, Document, GenerationJob } from "@shared/schema";
+import type { Document, GenerationJob } from "@shared/schema";
 
 const GENERATION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
 
@@ -65,15 +66,13 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Get company profiles
+  // Get company profile from shared context
   const { 
-    data: profiles = [], 
+    profile, 
     isLoading: profilesLoading,
     isError: profilesError,
     refetch: refetchProfiles
-  } = useQuery<CompanyProfile[]>({
-    queryKey: ["/api/company-profiles"],
-  });
+  } = useOrganization();
 
   // Get documents
   const { 
@@ -116,9 +115,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  // Get the first profile (for demo purposes)
-  const profile = profiles?.[0];
 
   // Calculate stats with guards for undefined data
   const completedDocs = documents?.filter(doc => doc.status === 'complete').length ?? 0;

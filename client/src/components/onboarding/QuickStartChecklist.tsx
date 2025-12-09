@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, ArrowRight, Building, FileText, Zap } from "lucide-react";
-import type { CompanyProfile, Document } from "@shared/schema";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import type { Document } from "@shared/schema";
 
 interface ChecklistItem {
   id: string;
