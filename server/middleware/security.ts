@@ -153,7 +153,15 @@ export const generationLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Input sanitization middleware
+/**
+ * @deprecated This middleware is deprecated in favor of route-specific Zod validation.
+ * Use validateBody() and validateQuery() from './routeValidation' with schemas from
+ * 'server/validation/schemas.ts' instead. This provides type-safe validation with
+ * better error messages and automatic data transformation.
+ * 
+ * This middleware will be removed in a future version.
+ * Migration: Replace sanitizeInput with validateBody(yourSchema) in route definitions.
+ */
 export function sanitizeInput(req: Request, res: Response, next: NextFunction) {
   // Basic input sanitization
   const sanitize = (obj: any): any => {

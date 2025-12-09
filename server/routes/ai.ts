@@ -11,6 +11,22 @@ import { auditService } from '../services/auditService';
 import { metricsCollector } from '../monitoring/metrics';
 import { generationLimiter } from '../middleware/security';
 import { frameworkTemplates } from '../services/openai';
+import { validateBody } from '../middleware/routeValidation';
+import {
+  analyzeQualitySchema,
+  generateInsightsSchema,
+  generateComplianceDocsSchema,
+  chatMessageSchema,
+  analyzeDocumentSchema,
+  extractProfileSchema,
+  riskAssessmentSchema,
+  threatAnalysisSchema,
+  qualityScoreSchema,
+  frameworkAlignmentSchema,
+  fineTuneSchema,
+  generateOptimizedSchema,
+  assessRisksSchema
+} from '../validation/schemas';
 
 export function registerAIRoutes(router: Router) {
   router.get("/models", isAuthenticated, async (req: any, res) => {
@@ -22,13 +38,9 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/analyze-quality", isAuthenticated, async (req: any, res) => {
+  router.post("/analyze-quality", isAuthenticated, validateBody(analyzeQualitySchema), async (req: any, res) => {
     try {
       const { content, framework } = req.body;
-      
-      if (!content || !framework) {
-        return res.status(400).json({ message: "Content and framework are required" });
-      }
 
       const analysis = await aiOrchestrator.analyzeQuality(content, framework);
       metricsCollector.trackAIOperation('analysis', true);
@@ -40,14 +52,10 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/generate-insights", isAuthenticated, async (req: any, res) => {
+  router.post("/generate-insights", isAuthenticated, validateBody(generateInsightsSchema), async (req: any, res) => {
     try {
       const { companyProfileId, framework } = req.body;
       const userId = req.user.claims.sub;
-      
-      if (!companyProfileId || !framework) {
-        return res.status(400).json({ message: "Company profile ID and framework are required" });
-      }
 
       const companyProfile = await storage.getCompanyProfile(companyProfileId);
       if (!companyProfile) {
@@ -75,14 +83,10 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post('/generate-compliance-docs', isAuthenticated, generationLimiter, async (req: any, res) => {
+  router.post('/generate-compliance-docs', isAuthenticated, generationLimiter, validateBody(generateComplianceDocsSchema), async (req: any, res) => {
     try {
       const { companyInfo, frameworks, soc2Options, fedrampOptions } = req.body;
       const userId = req.user.claims.sub;
-      
-      if (!companyInfo?.companyName || !frameworks?.length) {
-        return res.status(400).json({ message: 'Company name and at least one framework required' });
-      }
       
       const userOrgs = await storage.getUserOrganizations(userId);
       let organizationId = userOrgs[0]?.organizationId;
@@ -216,13 +220,9 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/analyze-document", isAuthenticated, async (req: any, res) => {
+  router.post("/analyze-document", isAuthenticated, validateBody(analyzeDocumentSchema), async (req: any, res) => {
     try {
       const { content, filename, framework } = req.body;
-      
-      if (!content || !filename) {
-        return res.status(400).json({ message: "Content and filename are required" });
-      }
 
       const analysis = await documentAnalysisService.analyzeDocument(content, filename, framework);
       
@@ -243,13 +243,9 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/extract-profile", isAuthenticated, async (req: any, res) => {
+  router.post("/extract-profile", isAuthenticated, validateBody(extractProfileSchema), async (req: any, res) => {
     try {
       const { content } = req.body;
-      
-      if (!content) {
-        return res.status(400).json({ message: "Content is required" });
-      }
 
       const extractedProfile = await documentAnalysisService.extractCompanyProfile(content);
       
@@ -271,13 +267,9 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/chat", isAuthenticated, async (req: any, res) => {
+  router.post("/chat", isAuthenticated, validateBody(chatMessageSchema), async (req: any, res) => {
     try {
       const { message, framework, sessionId } = req.body;
-      
-      if (!message) {
-        return res.status(400).json({ message: "Message is required" });
-      }
 
       const response = await complianceChatbot.processMessage(
         message,
@@ -316,14 +308,10 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/risk-assessment", isAuthenticated, async (req: any, res) => {
+  router.post("/risk-assessment", isAuthenticated, validateBody(riskAssessmentSchema), async (req: any, res) => {
     try {
       const { frameworks, includeDocuments } = req.body;
       const userId = req.user.claims.sub;
-      
-      if (!frameworks || !Array.isArray(frameworks) || frameworks.length === 0) {
-        return res.status(400).json({ message: "At least one framework is required" });
-      }
 
       const companyProfile = await storage.getCompanyProfile(userId);
       if (!companyProfile) {
@@ -360,13 +348,9 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/threat-analysis", isAuthenticated, async (req: any, res) => {
+  router.post("/threat-analysis", isAuthenticated, validateBody(threatAnalysisSchema), async (req: any, res) => {
     try {
       const { industry, companySize, frameworks } = req.body;
-      
-      if (!industry || !companySize || !frameworks) {
-        return res.status(400).json({ message: "Industry, company size, and frameworks are required" });
-      }
 
       const threatAnalysis = await riskAssessmentService.analyzeThreatLandscape(
         industry,
@@ -391,13 +375,9 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/quality-score", isAuthenticated, async (req: any, res) => {
+  router.post("/quality-score", isAuthenticated, validateBody(qualityScoreSchema), async (req: any, res) => {
     try {
       const { content, title, framework, documentType } = req.body;
-      
-      if (!content || !title || !framework || !documentType) {
-        return res.status(400).json({ message: "Content, title, framework, and document type are required" });
-      }
 
       const qualityScore = await qualityScoringService.analyzeDocumentQuality(
         content,
@@ -424,13 +404,9 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/framework-alignment", isAuthenticated, async (req: any, res) => {
+  router.post("/framework-alignment", isAuthenticated, validateBody(frameworkAlignmentSchema), async (req: any, res) => {
     try {
       const { content, framework, documentType } = req.body;
-      
-      if (!content || !framework || !documentType) {
-        return res.status(400).json({ message: "Content, framework, and document type are required" });
-      }
 
       const alignment = await qualityScoringService.checkFrameworkAlignment(
         content,
@@ -475,17 +451,10 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/fine-tune", isAuthenticated, async (req: any, res) => {
+  router.post("/fine-tune", isAuthenticated, validateBody(fineTuneSchema), async (req: any, res) => {
     try {
       const { industryId, requirements, customInstructions, priority } = req.body;
       const userId = req.user?.claims?.sub;
-
-      if (!industryId || !requirements) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Industry ID and requirements are required" 
-        });
-      }
 
       const { AIFineTuningService } = await import('../services/aiFineTuningService');
       const service = new AIFineTuningService();
@@ -513,17 +482,10 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/generate-optimized", isAuthenticated, async (req: any, res) => {
+  router.post("/generate-optimized", isAuthenticated, validateBody(generateOptimizedSchema), async (req: any, res) => {
     try {
       const { configId, documentType, context } = req.body;
       const userId = req.user?.claims?.sub;
-
-      if (!documentType || !context) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Document type and context are required" 
-        });
-      }
 
       const { AIFineTuningService } = await import('../services/aiFineTuningService');
       const service = new AIFineTuningService();
@@ -549,17 +511,10 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/assess-risks", isAuthenticated, async (req: any, res) => {
+  router.post("/assess-risks", isAuthenticated, validateBody(assessRisksSchema), async (req: any, res) => {
     try {
       const { industryId, organizationContext } = req.body;
       const userId = req.user?.claims?.sub;
-
-      if (!industryId || !organizationContext) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Industry ID and organization context are required" 
-        });
-      }
 
       const { AIFineTuningService } = await import('../services/aiFineTuningService');
       const service = new AIFineTuningService();

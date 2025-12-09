@@ -7,6 +7,8 @@ import { insertDocumentSchema } from '@shared/schema';
 import { versionService } from '../services/versionService';
 import { auditService } from '../services/auditService';
 import type { AIModel } from '../services/aiOrchestrator';
+import { validateBody } from '../middleware/routeValidation';
+import { generateDocumentSchema, generateSingleDocumentSchema, createDocumentVersionSchema } from '../validation/schemas';
 
 export async function registerDocumentsRoutes(router: Router) {
   const { requireMFA, enforceMFATimeout } = await import('../middleware/mfa');

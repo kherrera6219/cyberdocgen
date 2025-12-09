@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { storage } from '../storage';
 import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
+import { validateBody } from '../middleware/routeValidation';
+import { createOrganizationSchema } from '../validation/schemas';
 
 export function registerOrganizationsRoutes(router: Router) {
   router.get("/", isAuthenticated, async (req: any, res) => {
@@ -25,7 +27,7 @@ export function registerOrganizationsRoutes(router: Router) {
     }
   });
 
-  router.post("/", isAuthenticated, async (req: any, res) => {
+  router.post("/", isAuthenticated, validateBody(createOrganizationSchema), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const organizationData = req.body;

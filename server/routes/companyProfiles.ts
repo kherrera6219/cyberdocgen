@@ -5,6 +5,8 @@ import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { insertCompanyProfileSchema } from '@shared/schema';
 import { companyDataExtractionService } from '../services/companyDataExtractionService';
+import { validateBody } from '../middleware/routeValidation';
+import { extractFromDocumentSchema, extractFromWebsiteSchema } from '../validation/schemas';
 
 export async function registerCompanyProfilesRoutes(router: Router) {
   const { requireMFA, enforceMFATimeout } = await import('../middleware/mfa');

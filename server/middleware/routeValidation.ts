@@ -1,6 +1,41 @@
 
 import { Request, Response, NextFunction } from 'express';
+import { z, ZodSchema } from 'zod';
 import { logger } from '../utils/logger';
+
+export function validateBody<T extends ZodSchema>(schema: T) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: result.error.errors.map(e => ({
+          field: e.path.join('.'),
+          message: e.message
+        }))
+      });
+    }
+    req.body = result.data;
+    next();
+  };
+}
+
+export function validateQuery<T extends ZodSchema>(schema: T) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.query);
+    if (!result.success) {
+      return res.status(400).json({
+        message: 'Invalid query parameters',
+        errors: result.error.errors.map(e => ({
+          field: e.path.join('.'),
+          message: e.message
+        }))
+      });
+    }
+    req.query = result.data;
+    next();
+  };
+}
 
 export interface RouteInfo {
   path: string;

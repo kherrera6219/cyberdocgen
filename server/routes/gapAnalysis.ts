@@ -3,6 +3,8 @@ import { storage } from '../storage';
 import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { type RemediationRecommendation } from '@shared/schema';
+import { validateBody } from '../middleware/routeValidation';
+import { gapAnalysisGenerateSchema, updateRecommendationSchema } from '../validation/schemas';
 
 export function registerGapAnalysisRoutes(router: Router) {
   router.get("/reports", isAuthenticated, async (req: any, res) => {
