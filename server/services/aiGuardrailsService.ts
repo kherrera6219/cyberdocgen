@@ -8,16 +8,6 @@ import { aiGuardrailsLogs } from "../../shared/schema";
 import { logger } from "../utils/logger";
 import crypto from "crypto";
 
-// PII Detection Patterns
-const PII_PATTERNS = {
-  email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
-  ssn: /\b\d{3}-\d{2}-\d{4}\b/g,
-  creditCard: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,
-  phone: /\b(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
-  ipAddress: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,
-  // Add more PII patterns as needed
-};
-
 // Prompt Risk Keywords (potential injection attempts, harmful content)
 const HIGH_RISK_KEYWORDS = [
   "ignore previous instructions",
@@ -130,7 +120,7 @@ class AIGuardrailsService {
       // 7. Mock moderation flags (in production, use OpenAI Moderation API)
       const moderationFlags = this.getModerationFlags(prompt, response);
 
-      // 8. Log to database
+      // 8. Log to database (ONLY store sanitized data to prevent PII leakage)
       const logId = await this.logGuardrailCheck({
         organizationId: context.organizationId,
         userId: context.userId,
@@ -138,13 +128,13 @@ class AIGuardrailsService {
         guardrailType: "comprehensive",
         action,
         severity,
-        originalPrompt: prompt,
+        originalPrompt: piiResult.sanitized, // Store sanitized version only
         sanitizedPrompt: piiResult.sanitized,
         promptRiskScore,
         piiDetected: piiResult.detected,
         piiTypes: piiResult.types,
         piiRedacted: piiResult.detected,
-        originalResponse: response,
+        originalResponse: sanitizedResponse, // Store sanitized version only
         sanitizedResponse,
         responseRiskScore,
         contentCategories,
@@ -224,6 +214,7 @@ class AIGuardrailsService {
 
   /**
    * PII Detection and Redaction
+   * Creates fresh RegExp instances to avoid lastIndex state bugs with global patterns
    */
   private detectAndRedactPII(text: string): {
     detected: boolean;
@@ -233,12 +224,24 @@ class AIGuardrailsService {
     const detectedTypes: string[] = [];
     let sanitized = text;
 
-    // Detect and redact each PII type
-    for (const [type, pattern] of Object.entries(PII_PATTERNS)) {
-      if (pattern.test(text)) {
+    // PII pattern source strings (without flags) for fresh instantiation
+    const piiPatternSources: Record<string, string> = {
+      email: '\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b',
+      ssn: '\\b\\d{3}-\\d{2}-\\d{4}\\b',
+      creditCard: '\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b',
+      phone: '\\b(\\+\\d{1,2}\\s?)?(\\(\\d{3}\\)|\\d{3})[\\s.-]?\\d{3}[\\s.-]?\\d{4}\\b',
+      ipAddress: '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b',
+    };
+
+    // Detect and redact each PII type with fresh regex instances
+    for (const [type, patternSource] of Object.entries(piiPatternSources)) {
+      // Create fresh regex for detection
+      const detectPattern = new RegExp(patternSource, 'g');
+      if (detectPattern.test(text)) {
         detectedTypes.push(type);
-        // Redact with type indicator
-        sanitized = sanitized.replace(pattern, `[REDACTED_${type.toUpperCase()}]`);
+        // Create fresh regex for replacement
+        const replacePattern = new RegExp(patternSource, 'g');
+        sanitized = sanitized.replace(replacePattern, `[REDACTED_${type.toUpperCase()}]`);
       }
     }
 
@@ -352,7 +355,7 @@ class AIGuardrailsService {
       violence: combined.includes("violen") || combined.includes("kill") ? 0.6 : 0.1,
       sexual: combined.includes("sexual") || combined.includes("explicit") ? 0.5 : 0.1,
       selfHarm: combined.includes("suicide") || combined.includes("self-harm") ? 0.9 : 0.1,
-      pii: PII_PATTERNS.email.test(combined) ? 0.8 : 0.1,
+      pii: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(combined) ? 0.8 : 0.1,
     };
   }
 

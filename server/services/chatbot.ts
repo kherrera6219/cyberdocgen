@@ -1,9 +1,11 @@
 import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
+import crypto from "crypto";
 import { documentAnalysisService, type RAGContext } from "./documentAnalysis";
 import { storage } from "../storage";
 import { type CompanyProfile } from "@shared/schema";
 import { logger } from "../utils/logger";
+import { aiGuardrailsService } from "./aiGuardrailsService";
 
 let openaiClient: OpenAI | null = null;
 let anthropicClient: Anthropic | null = null;
@@ -66,6 +68,7 @@ export class ComplianceChatbot {
   
   /**
    * Process user message and generate intelligent response
+   * Includes AI guardrails for prompt shields and output moderation
    */
   async processMessage(
     message: string,
@@ -73,7 +76,36 @@ export class ComplianceChatbot {
     sessionId?: string,
     framework?: string
   ): Promise<ChatResponse> {
+    const requestId = crypto.randomUUID();
+    
     try {
+      // Pre-check guardrails on user input
+      const inputCheck = await aiGuardrailsService.checkGuardrails(message, null, {
+        requestId,
+        modelProvider: 'multi-model',
+        modelName: 'chat-assistant',
+        userId,
+        ipAddress: undefined,
+      });
+
+      if (!inputCheck.allowed) {
+        logger.warn('Guardrails blocked chat message', { 
+          requestId, 
+          action: inputCheck.action,
+          severity: inputCheck.severity 
+        });
+        return {
+          content: "I'm unable to process this request. Please rephrase your question to focus on compliance-related topics.",
+          confidence: 0,
+          sources: [],
+          suggestions: ["Ask about compliance frameworks", "Request document guidance", "Inquire about security controls"],
+          followUpQuestions: [],
+        };
+      }
+
+      // Use sanitized message if PII was redacted
+      const sanitizedMessage = inputCheck.sanitizedPrompt || message;
+
       // Get user's documents for RAG context
       const userDocs = await this.getUserDocumentContext(userId);
       
@@ -82,18 +114,41 @@ export class ComplianceChatbot {
       
       // Search for relevant document content
       const relevantDocs = await documentAnalysisService.searchSimilarContent(
-        message,
+        sanitizedMessage,
         userDocs,
         3
       );
 
       // Generate response using multi-model approach
       const response = await this.generateIntelligentResponse(
-        message,
+        sanitizedMessage,
         chatHistory,
         relevantDocs,
         framework
       );
+
+      // Post-check guardrails on AI output
+      const outputCheck = await aiGuardrailsService.checkGuardrails(sanitizedMessage, response.content, {
+        requestId,
+        modelProvider: 'multi-model',
+        modelName: 'chat-assistant',
+        userId,
+      });
+
+      // Use sanitized response if needed
+      if (outputCheck.sanitizedResponse) {
+        response.content = outputCheck.sanitizedResponse;
+      }
+
+      if (!outputCheck.allowed && outputCheck.action === 'blocked') {
+        return {
+          content: "I apologize, but I cannot provide that specific information. Please ask a different question.",
+          confidence: 0,
+          sources: [],
+          suggestions: ["Ask about compliance frameworks", "Request document guidance"],
+          followUpQuestions: [],
+        };
+      }
 
       return response;
     } catch (error) {

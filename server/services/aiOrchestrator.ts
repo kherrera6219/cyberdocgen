@@ -2,7 +2,9 @@ import OpenAI from "openai";
 import { type CompanyProfile } from "@shared/schema";
 import { generateDocument as generateWithOpenAI, generateComplianceDocuments as generateBatchWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
+import { aiGuardrailsService, type GuardrailCheckResult } from "./aiGuardrailsService";
 import { logger } from "../utils/logger";
+import crypto from "crypto";
 
 function getOpenAIClient(): OpenAI {
   if (!process.env.OPENAI_API_KEY) {
@@ -17,6 +19,12 @@ export interface GenerationOptions {
   model?: AIModel;
   includeQualityAnalysis?: boolean;
   enableCrossValidation?: boolean;
+  enableGuardrails?: boolean;
+  guardrailContext?: {
+    userId?: string;
+    organizationId?: string;
+    ipAddress?: string;
+  };
 }
 
 export interface DocumentGenerationResult {
@@ -40,6 +48,19 @@ export interface ContentGenerationRequest {
   model?: AIModel;
   temperature?: number;
   maxTokens?: number;
+  enableGuardrails?: boolean;
+  guardrailContext?: {
+    userId?: string;
+    organizationId?: string;
+    ipAddress?: string;
+  };
+}
+
+export interface GuardrailedResult<T> {
+  result: T;
+  guardrails?: GuardrailCheckResult;
+  blocked?: boolean;
+  blockedReason?: string;
 }
 
 /**
@@ -51,6 +72,7 @@ export class AIOrchestrator {
   
   /**
    * Generate a single document using specified or optimal AI model
+   * Includes AI guardrails for input validation and output moderation
    */
   async generateDocument(
     template: DocumentTemplate,
@@ -58,16 +80,44 @@ export class AIOrchestrator {
     framework: string,
     options: GenerationOptions = {}
   ): Promise<DocumentGenerationResult> {
-    const { model = 'auto', includeQualityAnalysis = false } = options;
+    const { model = 'auto', includeQualityAnalysis = false, enableGuardrails = true, guardrailContext } = options;
     
     let selectedModel: AIModel;
     let content: string;
+    const requestId = crypto.randomUUID();
     
     // Model selection logic
     if (model === 'auto') {
       selectedModel = this.selectOptimalModel(template, framework);
     } else {
       selectedModel = model;
+    }
+
+    // Build a prompt representation for guardrails check
+    const promptRepresentation = `Generate ${template.title} for ${companyProfile.companyName} following ${framework} framework. Industry: ${companyProfile.industry}`;
+    
+    // Pre-generation guardrails check
+    if (enableGuardrails) {
+      try {
+        const inputCheck = await aiGuardrailsService.checkGuardrails(promptRepresentation, null, {
+          requestId,
+          modelProvider: selectedModel === 'claude-sonnet-4' ? 'anthropic' : 'openai',
+          modelName: selectedModel,
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          ipAddress: guardrailContext?.ipAddress,
+        });
+
+        if (!inputCheck.allowed) {
+          logger.warn('Guardrails blocked document generation', { requestId, action: inputCheck.action });
+          return {
+            content: `Document generation blocked: ${inputCheck.action}`,
+            model: 'blocked',
+          };
+        }
+      } catch (error) {
+        logger.error('Guardrails pre-check failed for document generation', { error, requestId });
+      }
     }
     
     // Generate document with selected model
@@ -87,6 +137,34 @@ export class AIOrchestrator {
       } else {
         content = await generateDocumentWithClaude(template, companyProfile, framework);
         selectedModel = 'claude-sonnet-4';
+      }
+    }
+
+    // Post-generation guardrails check (output moderation)
+    if (enableGuardrails && content) {
+      try {
+        const outputCheck = await aiGuardrailsService.checkGuardrails(promptRepresentation, content, {
+          requestId,
+          modelProvider: selectedModel === 'claude-sonnet-4' ? 'anthropic' : 'openai',
+          modelName: selectedModel,
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          ipAddress: guardrailContext?.ipAddress,
+        });
+
+        // Use sanitized output if PII was detected
+        if (outputCheck.sanitizedResponse) {
+          content = outputCheck.sanitizedResponse;
+        }
+
+        if (!outputCheck.allowed && outputCheck.action === 'blocked') {
+          return {
+            content: 'Document content blocked by guardrails',
+            model: 'blocked',
+          };
+        }
+      } catch (error) {
+        logger.error('Guardrails output check failed for document generation', { error, requestId });
       }
     }
     
@@ -186,26 +264,164 @@ export class AIOrchestrator {
 
   /**
    * Lightweight content generation for remediation guidance and free-form prompts
+   * Now includes guardrails for input validation and output moderation
    */
-  async generateContent(request: ContentGenerationRequest): Promise<{ content: string; model: string }> {
-    const { prompt, model = 'gpt-4o', temperature = 0.4, maxTokens = 1500 } = request;
+  async generateContent(request: ContentGenerationRequest): Promise<GuardrailedResult<{ content: string; model: string }>> {
+    const { 
+      prompt, 
+      model = 'gpt-4o', 
+      temperature = 0.4, 
+      maxTokens = 1500,
+      enableGuardrails = true,
+      guardrailContext
+    } = request;
+
+    const requestId = crypto.randomUUID();
+    let guardrailResult: GuardrailCheckResult | undefined;
+    let sanitizedPrompt = prompt;
+
+    // Pre-generation guardrails check
+    if (enableGuardrails) {
+      try {
+        guardrailResult = await aiGuardrailsService.checkGuardrails(prompt, null, {
+          requestId,
+          modelProvider: 'openai',
+          modelName: model,
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          ipAddress: guardrailContext?.ipAddress,
+        });
+
+        if (!guardrailResult.allowed) {
+          logger.warn('Guardrails blocked content generation', { 
+            requestId, 
+            action: guardrailResult.action,
+            severity: guardrailResult.severity 
+          });
+          return {
+            result: { content: '', model },
+            guardrails: guardrailResult,
+            blocked: true,
+            blockedReason: `Content blocked: ${guardrailResult.action} (severity: ${guardrailResult.severity})`,
+          };
+        }
+
+        // Use sanitized prompt if PII was redacted
+        if (guardrailResult.sanitizedPrompt) {
+          sanitizedPrompt = guardrailResult.sanitizedPrompt;
+        }
+      } catch (error) {
+        logger.error('Guardrails pre-check failed, proceeding with caution', { error, requestId });
+      }
+    }
 
     try {
       const client = getOpenAIClient();
       const response = await client.responses.create({
         model,
-        input: prompt,
+        input: sanitizedPrompt,
         temperature,
         max_output_tokens: maxTokens,
       });
 
+      let content = response.output_text ?? '';
+
+      // Post-generation output moderation
+      if (enableGuardrails && content) {
+        try {
+          const outputCheck = await aiGuardrailsService.checkGuardrails(sanitizedPrompt, content, {
+            requestId,
+            modelProvider: 'openai',
+            modelName: model,
+            userId: guardrailContext?.userId,
+            organizationId: guardrailContext?.organizationId,
+            ipAddress: guardrailContext?.ipAddress,
+          });
+
+          guardrailResult = outputCheck;
+
+          // Use sanitized response if needed
+          if (outputCheck.sanitizedResponse) {
+            content = outputCheck.sanitizedResponse;
+          }
+
+          if (!outputCheck.allowed && outputCheck.action === 'blocked') {
+            return {
+              result: { content: '', model },
+              guardrails: outputCheck,
+              blocked: true,
+              blockedReason: `Output blocked: ${outputCheck.action} (severity: ${outputCheck.severity})`,
+            };
+          }
+        } catch (error) {
+          logger.error('Guardrails output check failed', { error, requestId });
+        }
+      }
+
       return {
-        content: response.output_text ?? '',
-        model,
+        result: { content, model },
+        guardrails: guardrailResult,
+        blocked: false,
       };
     } catch (error) {
       logger.error('Content generation failed:', error);
-      return { content: '', model };
+      
+      // Fallback to Anthropic if OpenAI fails
+      try {
+        logger.info('Attempting fallback to Anthropic for content generation', { requestId });
+        const Anthropic = await import('@anthropic-ai/sdk');
+        const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await client.messages.create({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: maxTokens,
+          messages: [{ role: "user", content: sanitizedPrompt }]
+        });
+
+        let fallbackContent = response.content[0].type === 'text' ? response.content[0].text : '';
+        
+        // Run output guardrails on fallback response too
+        if (enableGuardrails && fallbackContent) {
+          try {
+            const fallbackOutputCheck = await aiGuardrailsService.checkGuardrails(sanitizedPrompt, fallbackContent, {
+              requestId,
+              modelProvider: 'anthropic',
+              modelName: 'claude-sonnet-4',
+              userId: guardrailContext?.userId,
+              organizationId: guardrailContext?.organizationId,
+              ipAddress: guardrailContext?.ipAddress,
+            });
+
+            guardrailResult = fallbackOutputCheck;
+
+            if (fallbackOutputCheck.sanitizedResponse) {
+              fallbackContent = fallbackOutputCheck.sanitizedResponse;
+            }
+
+            if (!fallbackOutputCheck.allowed && fallbackOutputCheck.action === 'blocked') {
+              return {
+                result: { content: '', model: 'claude-sonnet-4' },
+                guardrails: fallbackOutputCheck,
+                blocked: true,
+                blockedReason: `Fallback output blocked: ${fallbackOutputCheck.action}`,
+              };
+            }
+          } catch (guardError) {
+            logger.error('Fallback guardrails check failed', { guardError, requestId });
+          }
+        }
+        
+        return {
+          result: { content: fallbackContent, model: 'claude-sonnet-4' },
+          guardrails: guardrailResult,
+          blocked: false,
+        };
+      } catch (fallbackError) {
+        logger.error('Fallback to Anthropic also failed:', fallbackError);
+        return {
+          result: { content: '', model },
+          blocked: false,
+        };
+      }
     }
   }
   
