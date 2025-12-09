@@ -48,6 +48,7 @@ const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const CloudIntegrations = lazy(() => import("@/pages/cloud-integrations"));
 const AIAssistant = lazy(() => import("@/pages/ai-assistant"));
 const MCPTools = lazy(() => import("@/pages/mcp-tools"));
+const AIDocGenerator = lazy(() => import("@/pages/ai-doc-generator"));
 
 // Placeholder for AuditTrailComplete and UserProfileNew components
 const AuditTrailComplete = lazy(() => import("./pages/audit-trail-complete"));
@@ -102,6 +103,11 @@ function AuthenticatedRouter() {
       <Route path="/mcp-tools">
         <Suspense fallback={<div>Loading...</div>}>
           <MCPTools />
+        </Suspense>
+      </Route>
+      <Route path="/ai-doc-generator">
+        <Suspense fallback={<div>Loading...</div>}>
+          <AIDocGenerator />
         </Suspense>
       </Route>
       <Route component={NotFound} />

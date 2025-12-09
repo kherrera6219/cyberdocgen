@@ -18,7 +18,8 @@ import {
   History,
   Settings,
   Cloud,
-  User
+  User,
+  Sparkles
 } from "lucide-react";
 
 interface NavItem {
@@ -50,6 +51,7 @@ const documentNavItems: NavItem[] = [
 
 const aiToolsNavItems: NavItem[] = [
   { href: "/ai-assistant", icon: Bot, label: "AI Assistant" },
+  { href: "/ai-doc-generator", icon: Sparkles, label: "AI Doc Generator" },
   { href: "/mcp-tools", icon: Wrench, label: "MCP Tools" },
 ];
 
