@@ -1,7 +1,157 @@
 import { useEffect } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, FileText, CheckCircle, Users, ArrowRight, Zap, Globe, Lock } from "lucide-react";
+import { 
+  Shield, FileText, CheckCircle, Users, ArrowRight, Zap, Globe, Lock, 
+  BarChart3, Clock, Award, Building2, Star, ChevronRight, Menu, X
+} from "lucide-react";
+import { useState } from "react";
+
+function Header() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                ComplianceAI
+              </span>
+            </div>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/features">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">Features</span>
+            </Link>
+            <Link href="/pricing">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">Pricing</span>
+            </Link>
+            <Link href="/about">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">About</span>
+            </Link>
+            <Link href="/contact">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">Contact</span>
+            </Link>
+          </nav>
+
+          <div className="hidden md:flex items-center gap-3">
+            <Link href="/login">
+              <Button 
+                variant="ghost" 
+                data-testid="header-login-button"
+              >
+                Sign In
+              </Button>
+            </Link>
+            <Button 
+              onClick={() => window.location.href = '/api/login'}
+              data-testid="header-get-started-button"
+            >
+              Get Started
+            </Button>
+          </div>
+
+          <button 
+            className="md:hidden p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            data-testid="mobile-menu-toggle"
+          >
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-800">
+            <nav className="flex flex-col gap-3">
+              <Link href="/features">
+                <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Features</span>
+              </Link>
+              <Link href="/pricing">
+                <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Pricing</span>
+              </Link>
+              <Link href="/about">
+                <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">About</span>
+              </Link>
+              <Link href="/contact">
+                <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Contact</span>
+              </Link>
+              <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
+                <Link href="/login"><Button variant="outline">Sign In</Button></Link>
+                <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+              </div>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-gray-900 dark:bg-gray-950 text-white py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <Shield className="h-8 w-8 text-blue-400" />
+              <span className="text-xl font-bold">ComplianceAI</span>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">
+              Enterprise-grade compliance automation powered by AI. Streamline your security documentation journey.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-4">Product</h3>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link href="/features"><span className="hover:text-white cursor-pointer transition-colors">Features</span></Link></li>
+              <li><Link href="/pricing"><span className="hover:text-white cursor-pointer transition-colors">Pricing</span></Link></li>
+              <li><span className="hover:text-white cursor-pointer transition-colors">Integrations</span></li>
+              <li><span className="hover:text-white cursor-pointer transition-colors">API</span></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-4">Company</h3>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link href="/about"><span className="hover:text-white cursor-pointer transition-colors">About</span></Link></li>
+              <li><Link href="/contact"><span className="hover:text-white cursor-pointer transition-colors">Contact</span></Link></li>
+              <li><span className="hover:text-white cursor-pointer transition-colors">Careers</span></li>
+              <li><span className="hover:text-white cursor-pointer transition-colors">Blog</span></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-4">Legal</h3>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li><Link href="/privacy"><span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span></Link></li>
+              <li><Link href="/terms"><span className="hover:text-white cursor-pointer transition-colors">Terms of Service</span></Link></li>
+              <li><span className="hover:text-white cursor-pointer transition-colors">Security</span></li>
+              <li><span className="hover:text-white cursor-pointer transition-colors">Compliance</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-gray-400 text-sm">
+            2024 ComplianceAI. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4 text-gray-400">
+            <span className="text-sm">SOC 2 Certified</span>
+            <span className="text-sm">ISO 27001 Certified</span>
+            <span className="text-sm">GDPR Compliant</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
 
 export function Landing() {
   useEffect(() => {
@@ -16,154 +166,168 @@ export function Landing() {
     }
   }, []);
 
+  const stats = [
+    { value: "500+", label: "Enterprise Customers" },
+    { value: "10M+", label: "Documents Generated" },
+    { value: "99.9%", label: "Uptime SLA" },
+    { value: "4.9/5", label: "Customer Rating" },
+  ];
+
+  const testimonials = [
+    {
+      quote: "ComplianceAI reduced our SOC 2 preparation time from 6 months to just 6 weeks. The AI-generated documentation was comprehensive and audit-ready.",
+      author: "Sarah Chen",
+      role: "CISO",
+      company: "TechScale Inc.",
+    },
+    {
+      quote: "The multi-framework support allowed us to tackle ISO 27001 and SOC 2 simultaneously. A game-changer for our compliance team.",
+      author: "Michael Rodriguez",
+      role: "VP of Security",
+      company: "CloudFirst Solutions",
+    },
+    {
+      quote: "Finally, a compliance tool that understands the nuances of FedRAMP. Our authorization process has never been smoother.",
+      author: "Jennifer Walsh",
+      role: "Compliance Director",
+      company: "GovTech Partners",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <Header />
+      
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden pt-24">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-12 sm:pb-16">
           <div className="text-center">
-            <div className="flex justify-center mb-6 sm:mb-8">
-              <div className="relative">
-                <div className="absolute -inset-3 sm:-inset-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-xl opacity-20 animate-pulse"></div>
-                <div className="relative bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-full shadow-xl">
-                  <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                </div>
-              </div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
+              <Zap className="h-4 w-4" />
+              <span>Now with GPT-4 powered document generation</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight px-2">
-              ComplianceAI
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight px-2">
+              Compliance Documentation
+              <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                Powered by AI
+              </span>
             </h1>
 
-            <p className="text-base sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed px-4">
-              Generate comprehensive compliance documentation for ISO 27001, SOC 2, FedRAMP, and NIST frameworks with AI-powered automation
+            <p className="text-base sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed px-4">
+              Generate audit-ready documentation for ISO 27001, SOC 2, FedRAMP, and NIST frameworks in minutes, not months. Trusted by 500+ enterprises worldwide.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-12 px-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 px-4">
               <Button 
                 size="lg" 
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
                 onClick={() => window.location.href = '/api/login'}
                 data-testid="button-get-started"
               >
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
 
               <Button 
                 variant="outline" 
                 size="lg"
-                className="w-full sm:w-auto border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 px-6 sm:px-8 py-3 sm:py-4 rounded-full transition-all duration-300"
-                onClick={() => window.location.href = '/login'}
-                data-testid="button-enterprise-login"
+                className="w-full sm:w-auto px-8 py-4 rounded-md transition-all duration-300"
+                onClick={() => window.location.href = '/features'}
+                data-testid="button-see-features"
               >
-                Enterprise Login
-              </Button>
-
-              <Button 
-                variant="ghost" 
-                size="lg"
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-full transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                onClick={() => window.location.href = '/enterprise-signup'}
-                data-testid="button-create-account"
-              >
-                Create Account
+                See How It Works
+                <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-6 lg:space-x-8 text-xs sm:text-sm text-gray-500 dark:text-gray-400 px-4">
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-8 text-sm text-gray-500 dark:text-gray-400 px-4">
               <div className="flex items-center space-x-2">
-                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" aria-hidden="true" />
-                <span>No credit card required</span>
+                <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <span>14-day free trial</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" aria-hidden="true" />
-                <span>Enterprise security</span>
+                <Lock className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <span>SOC 2 Type II certified</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" aria-hidden="true" />
-                <span>Fast generation</span>
+                <Users className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <span>Unlimited team members</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Stats Section */}
+      <div className="py-16 bg-white dark:bg-gray-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Features Section */}
-      <div className="py-20 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+      <div className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Streamline Your Compliance Journey
+              Everything You Need for Compliance Success
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Transform complex regulatory requirements into actionable documentation with our AI-powered platform
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
-              <CardHeader className="text-center pb-4">
-                <div className="mx-auto mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full w-fit group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
-                  <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Multi-Framework Support</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center text-gray-600 dark:text-gray-300">
-                  Complete coverage for ISO 27001, SOC 2 Type 2, FedRAMP, and NIST Cybersecurity Framework
-                </CardDescription>
-              </CardContent>
-            </Card>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { icon: Shield, title: "Multi-Framework Support", description: "Complete coverage for ISO 27001, SOC 2, FedRAMP, NIST, and more. One platform for all your compliance needs.", color: "blue" },
+              { icon: FileText, title: "AI Document Generation", description: "Generate policies, procedures, and assessments automatically tailored to your organization's context.", color: "purple" },
+              { icon: Users, title: "Team Collaboration", description: "Work together with role-based access, approval workflows, and real-time commenting.", color: "green" },
+              { icon: BarChart3, title: "Gap Analysis", description: "Identify compliance gaps instantly with AI-powered assessment and prioritized remediation plans.", color: "orange" },
+              { icon: Clock, title: "Audit Preparation", description: "Dedicated auditor workspace with evidence packages and read-only access for seamless audits.", color: "red" },
+              { icon: Award, title: "Continuous Monitoring", description: "Stay compliant with automated control monitoring and real-time compliance dashboards.", color: "indigo" },
+            ].map((feature, index) => (
+              <Card key={index} className="group border-0 bg-white dark:bg-gray-800/80 shadow-sm hover:shadow-lg transition-all duration-300">
+                <CardHeader className="pb-4">
+                  <div className={`mb-4 p-3 bg-${feature.color}-100 dark:bg-${feature.color}-900/30 rounded-lg w-fit`}>
+                    <feature.icon className={`h-6 w-6 text-${feature.color}-600 dark:text-${feature.color}-400`} />
+                  </div>
+                  <CardTitle className="text-xl text-gray-900 dark:text-white">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-gray-600 dark:text-gray-300">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
-              <CardHeader className="text-center pb-4">
-                <div className="mx-auto mb-4 p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full w-fit group-hover:bg-purple-200 dark:group-hover:bg-purple-800/50 transition-colors">
-                  <FileText className="h-8 w-8 text-purple-600 dark:text-purple-400" aria-hidden="true" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">AI-Generated Documentation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center text-gray-600 dark:text-gray-300">
-                  Automatically generate policies, procedures, and assessments tailored to your organization
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
-              <CardHeader className="text-center pb-4">
-                <div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900/30 rounded-full w-fit group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
-                  <Users className="h-8 w-8 text-green-600 dark:text-green-400" aria-hidden="true" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Team Collaboration</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center text-gray-600 dark:text-gray-300">
-                  Work together with your team to review, approve, and maintain compliance documents
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
-              <CardHeader className="text-center pb-4">
-                <div className="mx-auto mb-4 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full w-fit group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-colors">
-                  <Globe className="h-8 w-8 text-orange-600 dark:text-orange-400" aria-hidden="true" />
-                </div>
-                <CardTitle className="text-xl text-gray-900 dark:text-white">Cloud-Native Platform</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-center text-gray-600 dark:text-gray-300">
-                  Secure, scalable, and accessible from anywhere with enterprise-grade infrastructure
-                </CardDescription>
-              </CardContent>
-            </Card>
+          <div className="text-center mt-12">
+            <Link href="/features">
+              <Button variant="outline" size="lg" data-testid="button-view-all-features">
+                View All Features
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
 
       {/* Frameworks Section */}
-      <div className="py-20">
+      <div className="py-20 bg-gray-50 dark:bg-gray-800/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -176,18 +340,61 @@ export function Landing() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { name: "ISO 27001", description: "Information Security Management", documents: "45+ documents" },
-              { name: "SOC 2 Type 2", description: "Service Organization Control", documents: "35+ documents" },
-              { name: "FedRAMP", description: "Federal Risk Authorization", documents: "50+ documents" },
-              { name: "NIST CSF", description: "Cybersecurity Framework", documents: "40+ documents" }
+              { name: "ISO 27001", description: "Information Security Management", documents: "45+ templates", icon: Shield },
+              { name: "SOC 2 Type II", description: "Service Organization Control", documents: "35+ templates", icon: Lock },
+              { name: "FedRAMP", description: "Federal Risk Authorization", documents: "50+ templates", icon: Building2 },
+              { name: "NIST CSF", description: "Cybersecurity Framework", documents: "40+ templates", icon: Globe }
             ].map((framework) => (
-              <Card key={framework.name} className="text-center hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+              <Card key={framework.name} className="text-center border-0 bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg transition-all duration-300">
                 <CardHeader>
+                  <div className="mx-auto mb-4 p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                    <framework.icon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">{framework.name}</CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-300">{framework.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm font-medium text-blue-600 dark:text-blue-400">{framework.documents}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Testimonials Section */}
+      <div className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Trusted by Security Leaders
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              See what compliance professionals are saying about ComplianceAI
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="border-0 bg-white dark:bg-gray-800 shadow-sm">
+                <CardContent className="pt-6">
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6 italic">
+                    "{testimonial.quote}"
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                      {testimonial.author.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-white">{testimonial.author}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{testimonial.role}, {testimonial.company}</div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -202,19 +409,33 @@ export function Landing() {
             Ready to Automate Your Compliance?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join leading organizations who trust ComplianceAI to streamline their security documentation and accelerate their compliance journey.
+            Join 500+ organizations who trust ComplianceAI to streamline their security documentation and accelerate their compliance journey.
           </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            onClick={() => window.location.href = '/api/login'}
-            data-testid="button-start-free-trial"
-          >
-            Start Free Trial
-            <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              size="lg" 
+              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-md shadow-lg transition-all duration-300"
+              onClick={() => window.location.href = '/api/login'}
+              data-testid="button-start-free-trial"
+            >
+              Start Free Trial
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Link href="/contact">
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="border-white text-white hover:bg-white/10 px-8 py-4 rounded-md"
+                data-testid="button-contact-sales"
+              >
+                Contact Sales
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

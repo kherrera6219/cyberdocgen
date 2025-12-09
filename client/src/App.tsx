@@ -61,6 +61,14 @@ const EvidenceIngestion = lazy(() => import("./pages/evidence-ingestion"));
 const ControlApprovals = lazy(() => import("./pages/control-approvals"));
 const AuditorWorkspace = lazy(() => import("./pages/auditor-workspace"));
 
+// Public pages
+const About = lazy(() => import("./pages/about"));
+const Features = lazy(() => import("./pages/features"));
+const Pricing = lazy(() => import("./pages/pricing"));
+const Contact = lazy(() => import("./pages/contact"));
+const Privacy = lazy(() => import("./pages/privacy"));
+const Terms = lazy(() => import("./pages/terms"));
+
 function AuthenticatedRouter() {
   return (
     <Switch>
@@ -171,6 +179,36 @@ function PublicRouter() {
       <Route path="/mfa-setup">
         <Suspense fallback={<div>Loading...</div>}>
           <MfaSetup />
+        </Suspense>
+      </Route>
+      <Route path="/about">
+        <Suspense fallback={<div>Loading...</div>}>
+          <About />
+        </Suspense>
+      </Route>
+      <Route path="/features">
+        <Suspense fallback={<div>Loading...</div>}>
+          <Features />
+        </Suspense>
+      </Route>
+      <Route path="/pricing">
+        <Suspense fallback={<div>Loading...</div>}>
+          <Pricing />
+        </Suspense>
+      </Route>
+      <Route path="/contact">
+        <Suspense fallback={<div>Loading...</div>}>
+          <Contact />
+        </Suspense>
+      </Route>
+      <Route path="/privacy">
+        <Suspense fallback={<div>Loading...</div>}>
+          <Privacy />
+        </Suspense>
+      </Route>
+      <Route path="/terms">
+        <Suspense fallback={<div>Loading...</div>}>
+          <Terms />
         </Suspense>
       </Route>
       <Route>
