@@ -33,6 +33,7 @@ export function Landing() {
                 size="lg" 
                 className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 onClick={() => window.location.href = '/api/login'}
+                data-testid="button-get-started"
               >
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -42,8 +43,10 @@ export function Landing() {
                 variant="outline" 
                 size="lg"
                 className="w-full sm:w-auto border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 px-6 sm:px-8 py-3 sm:py-4 rounded-full transition-all duration-300"
+                onClick={() => window.location.href = '/login'}
+                data-testid="button-enterprise-login"
               >
-                Learn More
+                Enterprise Login
               </Button>
             </div>
 

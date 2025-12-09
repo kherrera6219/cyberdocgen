@@ -204,10 +204,21 @@ export default function EnterpriseLogin() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Security Features
+                  Or continue with
                 </span>
               </div>
             </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => window.location.href = '/api/login'}
+              data-testid="button-replit-login"
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Sign in with Replit
+            </Button>
 
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">

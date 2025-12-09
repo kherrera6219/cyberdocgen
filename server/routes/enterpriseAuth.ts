@@ -288,15 +288,16 @@ router.post('/verify-google-authenticator', async (req, res) => {
     const ipAddress = req.ip || req.socket.remoteAddress;
     
     // Get the user's TOTP secret for verification
-    const mfaSetting = await mfaService.getMFASettings(userId, 'totp');
-    if (!mfaSetting || !mfaSetting.secretEncrypted) {
+    const mfaSettings = await mfaService.getAllMFASettings(userId);
+    const totpSetting = mfaSettings?.find((s: any) => s.type === 'totp');
+    if (!totpSetting || !totpSetting.secretEncrypted) {
       return res.status(400).json({
         success: false,
         message: 'Google Authenticator not set up for this user',
       });
     }
 
-    const verified = await mfaService.verifyTOTP(userId, token, mfaSetting.secretEncrypted);
+    const verified = await mfaService.verifyTOTP(userId, token, totpSetting.secretEncrypted);
     
     if (!verified) {
       return res.status(400).json({
@@ -305,8 +306,7 @@ router.post('/verify-google-authenticator', async (req, res) => {
       });
     }
 
-    // Enable MFA for the user
-    await mfaService.enableMFA(userId, 'totp');
+    // MFA is now verified - the TOTP setup is already stored
 
     // Audit log
     await auditService.logAuditEvent({
