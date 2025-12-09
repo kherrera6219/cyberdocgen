@@ -33,6 +33,9 @@ import { IndustrySpecialization } from "./components/ai/IndustrySpecialization";
 import GapAnalysis from "./pages/gap-analysis";
 import ExportCenter from "./pages/export-center";
 import ISO27001Framework from "./pages/iso27001-framework";
+import SOC2Framework from "./pages/soc2-framework";
+import FedRAMPFramework from "./pages/fedramp-framework";
+import NISTFramework from "./pages/nist-framework";
 import Layout from "./components/layout";
 
 // Lazy load components
@@ -61,6 +64,9 @@ function AuthenticatedRouter() {
       <Route path="/documents" component={Documents} />
       <Route path="/gap-analysis" component={GapAnalysis} />
       <Route path="/iso27001-framework" component={ISO27001Framework} />
+      <Route path="/soc2-framework" component={SOC2Framework} />
+      <Route path="/fedramp-framework" component={FedRAMPFramework} />
+      <Route path="/nist-framework" component={NISTFramework} />
       <Route path="/audit-trail" component={AuditTrail} />
       <Route path="/document-versions/:id" component={DocumentVersionsWrapper} />
       <Route path="/user-profile" component={UserProfile} />

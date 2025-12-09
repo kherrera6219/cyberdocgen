@@ -37,10 +37,10 @@ const mainNavItems: NavItem[] = [
 ];
 
 const frameworkNavItems: NavItem[] = [
-  { href: "/documents?framework=ISO27001", icon: Tag, label: "ISO 27001", badge: "12/14", badgeColor: "bg-accent" },
-  { href: "/documents?framework=SOC2", icon: Shield, label: "SOC 2 Type 2", badge: "8/12", badgeColor: "bg-warning" },
-  { href: "/documents?framework=FedRAMP", icon: Flag, label: "FedRAMP", badge: "0/18", badgeColor: "bg-gray-400" },
-  { href: "/documents?framework=NIST", icon: Lock, label: "NIST CSF", badge: "0/23", badgeColor: "bg-gray-400" },
+  { href: "/iso27001-framework", icon: Tag, label: "ISO 27001", badge: "12/14", badgeColor: "bg-accent" },
+  { href: "/soc2-framework", icon: Shield, label: "SOC 2 Type 2", badge: "8/12", badgeColor: "bg-warning" },
+  { href: "/fedramp-framework", icon: Flag, label: "FedRAMP", badge: "0/18", badgeColor: "bg-gray-400" },
+  { href: "/nist-framework", icon: Lock, label: "NIST CSF", badge: "0/23", badgeColor: "bg-gray-400" },
 ];
 
 const documentNavItems: NavItem[] = [
