@@ -1,12 +1,23 @@
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 import path from 'path';
 
+const sharedConfig = {
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './client/src'),
+      '@shared': path.resolve(__dirname, './shared'),
+      '@server': path.resolve(__dirname, './server')
+    }
+  }
+};
+
 export default defineConfig({
+  plugins: [react()],
+  ...sharedConfig,
   test: {
     globals: true,
-    environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -17,13 +28,29 @@ export default defineConfig({
         'client/',
         '**/*.d.ts'
       ]
-    }
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './client/src'),
-      '@shared': path.resolve(__dirname, './shared'),
-      '@server': path.resolve(__dirname, './server')
-    }
+    },
+    projects: [
+      {
+        ...sharedConfig,
+        test: {
+          name: 'unit',
+          environment: 'node',
+          include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
+          setupFiles: ['./tests/setup.ts'],
+          globals: true
+        }
+      },
+      {
+        plugins: [react()],
+        ...sharedConfig,
+        test: {
+          name: 'components',
+          environment: 'jsdom',
+          include: ['tests/components/**/*.test.tsx'],
+          setupFiles: ['./tests/setup.ts'],
+          globals: true
+        }
+      }
+    ]
   }
 });

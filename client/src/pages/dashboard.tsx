@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -12,6 +11,8 @@ import { DocumentPreview } from "@/components/templates/document-preview";
 import { AIInsightsDashboard } from "@/components/ai/AIInsightsDashboard";
 import { RiskHeatmap } from "@/components/ai/RiskHeatmap";
 import { ControlPrioritizer } from "@/components/ai/ControlPrioritizer";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
+import { ErrorCard } from "@/components/ui/loading-error-states";
 import {
   TrendingUp,
   FileText,
@@ -29,6 +30,8 @@ import {
 } from "lucide-react";
 import type { CompanyProfile, Document, GenerationJob } from "@shared/schema";
 
+const GENERATION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
+
 export default function Dashboard() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -39,13 +42,44 @@ export default function Dashboard() {
   const [showCustomizer, setShowCustomizer] = useState(false);
   const [selectedFramework, setSelectedFramework] = useState("");
 
+  // Ref for tracking component mount state and polling cleanup
+  const isMountedRef = useRef(true);
+  const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const generationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+        pollingTimeoutRef.current = null;
+      }
+      if (generationTimeoutRef.current) {
+        clearTimeout(generationTimeoutRef.current);
+        generationTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   // Get company profiles
-  const { data: profiles = [], isLoading: profilesLoading } = useQuery<CompanyProfile[]>({
+  const { 
+    data: profiles = [], 
+    isLoading: profilesLoading,
+    isError: profilesError,
+    refetch: refetchProfiles
+  } = useQuery<CompanyProfile[]>({
     queryKey: ["/api/company-profiles"],
   });
 
   // Get documents
-  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
+  const { 
+    data: documents = [], 
+    isLoading: documentsLoading,
+    isError: documentsError,
+    refetch: refetchDocuments
+  } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
 
@@ -54,22 +88,63 @@ export default function Dashboard() {
     return <DashboardSkeleton />;
   }
 
+  // Show error state if queries failed
+  if (profilesError || documentsError) {
+    return (
+      <div className="space-y-6 sm:space-y-8">
+        <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
+              <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Compliance Dashboard</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Automate your compliance documentation with AI-powered generation</p>
+            </div>
+          </div>
+        </div>
+        <ErrorCard
+          title="Failed to load dashboard data"
+          message="We couldn't load your company profiles or documents. Please check your connection and try again."
+          onRetry={() => {
+            refetchProfiles();
+            refetchDocuments();
+          }}
+        />
+      </div>
+    );
+  }
+
   // Get the first profile (for demo purposes)
-  const profile = profiles[0];
+  const profile = profiles?.[0];
 
-  // Calculate stats
-  const completedDocs = documents.filter(doc => doc.status === 'complete').length;
-  const totalFrameworks = ['ISO27001', 'SOC2', 'FedRAMP', 'NIST'];
-  const activeFrameworks = Array.from(new Set(documents.map(doc => doc.framework))).length;
+  // Calculate stats with guards for undefined data
+  const completedDocs = documents?.filter(doc => doc.status === 'complete').length ?? 0;
+  const activeFrameworks = documents?.length > 0 
+    ? Array.from(new Set(documents.map(doc => doc.framework))).length 
+    : 0;
 
-  // Framework stats
-  const iso27001Docs = documents.filter(doc => doc.framework === 'ISO27001' && doc.status === 'complete').length;
-  const soc2Docs = documents.filter(doc => doc.framework === 'SOC2' && doc.status === 'complete').length;
-  const fedrampDocs = documents.filter(doc => doc.framework === 'FedRAMP' && doc.status === 'complete').length;
-  const nistDocs = documents.filter(doc => doc.framework === 'NIST' && doc.status === 'complete').length;
+  // Framework stats with guards
+  const iso27001Docs = documents?.filter(doc => doc.framework === 'ISO27001' && doc.status === 'complete').length ?? 0;
+  const soc2Docs = documents?.filter(doc => doc.framework === 'SOC2' && doc.status === 'complete').length ?? 0;
 
   const iso27001Progress = Math.round((iso27001Docs / 14) * 100);
   const soc2Progress = Math.round((soc2Docs / 12) * 100);
+
+  // Cleanup function for generation
+  const cleanupGeneration = () => {
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current);
+      pollingTimeoutRef.current = null;
+    }
+    if (generationTimeoutRef.current) {
+      clearTimeout(generationTimeoutRef.current);
+      generationTimeoutRef.current = null;
+    }
+    setIsGenerating(false);
+    setGenerationProgress(0);
+    setCurrentFramework("");
+  };
 
   // Document generation mutation
   const generateDocsMutation = useMutation({
@@ -85,46 +160,69 @@ export default function Dashboard() {
       });
     },
     onSuccess: (data) => {
-      setCurrentFramework("");
       const jobId = data.jobId;
+
+      // Set generation timeout
+      generationTimeoutRef.current = setTimeout(() => {
+        if (!isMountedRef.current) return;
+        cleanupGeneration();
+        toast({
+          title: "Generation Timeout",
+          description: "Document generation took too long. Please try again.",
+          variant: "destructive",
+        });
+      }, GENERATION_TIMEOUT_MS);
 
       // Poll for job status
       const pollJob = async () => {
+        if (!isMountedRef.current) return;
+
         try {
           const jobResponse = await fetch(`/api/generation-jobs/${jobId}`);
+          
+          if (!jobResponse.ok) {
+            throw new Error(`Failed to fetch job status: ${jobResponse.status}`);
+          }
+
           const job: GenerationJob = await jobResponse.json();
+
+          if (!isMountedRef.current) return;
 
           setGenerationProgress(job.progress);
 
           if (job.status === 'completed') {
-            setIsGenerating(false);
-            setGenerationProgress(0);
+            cleanupGeneration();
             queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
             toast({
               title: "Documents Generated",
               description: "All compliance documents have been generated successfully.",
             });
           } else if (job.status === 'failed') {
-            setIsGenerating(false);
-            setGenerationProgress(0);
+            cleanupGeneration();
             toast({
               title: "Generation Failed",
               description: "There was an error generating documents. Please try again.",
               variant: "destructive",
             });
           } else {
-            setTimeout(pollJob, 2000);
+            pollingTimeoutRef.current = setTimeout(pollJob, 2000);
           }
         } catch (error) {
           console.error("Error polling job:", error);
+          if (!isMountedRef.current) return;
+          cleanupGeneration();
+          toast({
+            title: "Polling Error",
+            description: "Failed to check generation status. The generation may still be in progress.",
+            variant: "destructive",
+          });
         }
       };
 
-      setTimeout(pollJob, 1000);
+      pollingTimeoutRef.current = setTimeout(pollJob, 1000);
     },
     onError: (error) => {
-      setIsGenerating(false);
-      setCurrentFramework("");
+      cleanupGeneration();
       toast({
         title: "Generation Failed",
         description: "Failed to start document generation. Please try again.",
@@ -153,8 +251,8 @@ export default function Dashboard() {
   };
 
   const recentDocuments = documents
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 3);
+    ?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 3) ?? [];
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -232,21 +330,48 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* AI Insights Dashboard */}
-      <AIInsightsDashboard 
-        companyProfile={profile ? { industry: profile.industry, companySize: profile.companySize } : undefined}
-        documentsCount={completedDocs}
-        frameworksActive={activeFrameworks}
-        onViewDetails={() => window.location.href = '/gap-analysis'}
-      />
+      {/* AI Insights Dashboard wrapped with ErrorBoundary */}
+      <ErrorBoundary
+        fallback={
+          <ErrorCard
+            title="AI Insights Unavailable"
+            message="The AI insights component encountered an error. Please try refreshing the page."
+          />
+        }
+      >
+        <AIInsightsDashboard 
+          companyProfile={profile ? { industry: profile.industry, companySize: profile.companySize } : undefined}
+          documentsCount={completedDocs}
+          frameworksActive={activeFrameworks}
+          onViewDetails={() => window.location.href = '/gap-analysis'}
+        />
+      </ErrorBoundary>
 
-      {/* Risk Heatmap and Control Prioritizer */}
+      {/* Risk Heatmap and Control Prioritizer wrapped with ErrorBoundary */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-        <RiskHeatmap />
-        <ControlPrioritizer onImplementControl={(id) => console.log('Implementing control:', id)} />
+        <ErrorBoundary
+          fallback={
+            <ErrorCard
+              title="Risk Heatmap Unavailable"
+              message="The risk heatmap component encountered an error."
+            />
+          }
+        >
+          <RiskHeatmap />
+        </ErrorBoundary>
+        <ErrorBoundary
+          fallback={
+            <ErrorCard
+              title="Control Prioritizer Unavailable"
+              message="The control prioritizer component encountered an error."
+            />
+          }
+        >
+          <ControlPrioritizer onImplementControl={(id) => console.log('Implementing control:', id)} />
+        </ErrorBoundary>
       </div>
 
-      {/* Company Profile Section */}
+      {/* Company Profile Section - with guard for undefined profile */}
       {profile && (
         <Card className="mb-6 sm:mb-8">
           <CardHeader className="border-b border-gray-200 dark:border-gray-700">
@@ -274,9 +399,9 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Technical Environment</h3>
                 <div className="space-y-2">
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Cloud:</span> {profile.cloudInfrastructure.join(', ')}</p>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Data Classification:</span> {profile.dataClassification}</p>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Applications:</span> {profile.businessApplications}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Cloud:</span> {profile.cloudInfrastructure?.join(', ') ?? 'Not specified'}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Data Classification:</span> {profile.dataClassification ?? 'Not specified'}</p>
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Applications:</span> {profile.businessApplications ?? 'Not specified'}</p>
                 </div>
               </div>
             </div>
@@ -316,6 +441,7 @@ export default function Dashboard() {
                     className="w-full bg-accent hover:bg-accent/90"
                     onClick={() => handleGenerateDocuments("ISO27001")}
                     disabled={!profile || isGenerating}
+                    data-testid="button-generate-iso27001"
                   >
                     <Wand2 className="w-4 h-4 mr-2" />
                     Generate Documents
@@ -327,6 +453,7 @@ export default function Dashboard() {
                       setPreviewFramework("ISO27001");
                       setShowPreview(true);
                     }}
+                    data-testid="button-preview-iso27001"
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Preview Templates
@@ -358,6 +485,7 @@ export default function Dashboard() {
                     className="w-full"
                     onClick={() => handleGenerateDocuments("SOC2")}
                     disabled={!profile || isGenerating}
+                    data-testid="button-generate-soc2"
                   >
                     <Wand2 className="w-4 h-4 mr-2" />
                     Generate Documents
@@ -369,6 +497,7 @@ export default function Dashboard() {
                       setPreviewFramework("SOC2");
                       setShowPreview(true);
                     }}
+                    data-testid="button-preview-soc2"
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Preview Templates
@@ -400,6 +529,7 @@ export default function Dashboard() {
                   className="w-full"
                   onClick={() => handleGenerateDocuments("FedRAMP")}
                   disabled={!profile || isGenerating}
+                  data-testid="button-generate-fedramp"
                 >
                   <Wand2 className="w-4 h-4 mr-2" />
                   Generate Documents
@@ -427,6 +557,7 @@ export default function Dashboard() {
                   className="w-full"
                   onClick={() => handleGenerateDocuments("NIST")}
                   disabled={!profile || isGenerating}
+                  data-testid="button-generate-nist"
                 >
                   <Wand2 className="w-4 h-4 mr-2" />
                   Generate Documents
@@ -447,12 +578,12 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="space-y-4">
               {recentDocuments.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div key={doc.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg" data-testid={`document-item-${doc.id}`}>
                   <div className="flex items-center space-x-3">
                     <FileText className="w-5 h-5 text-gray-400" />
                     <div>
                       <h4 className="font-medium text-gray-900">{doc.title}</h4>
-                      <p className="text-sm text-gray-500">{doc.framework} • {doc.category}</p>
+                      <p className="text-sm text-gray-500">{doc.framework} - {doc.category}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -467,7 +598,11 @@ export default function Dashboard() {
       )}
 
       {/* Generation Progress Dialog */}
-      <Dialog open={isGenerating} onOpenChange={setIsGenerating}>
+      <Dialog open={isGenerating} onOpenChange={(open) => {
+        if (!open) {
+          cleanupGeneration();
+        }
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
@@ -488,13 +623,20 @@ export default function Dashboard() {
               <Progress value={generationProgress} className="w-full" />
             </div>
 
-
-
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-xs text-blue-700">
                 Tip: You can continue using other features while generation is in progress.
               </p>
             </div>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={cleanupGeneration}
+              data-testid="button-cancel-generation"
+            >
+              Cancel Generation
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

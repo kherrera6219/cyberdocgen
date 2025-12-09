@@ -14,7 +14,7 @@ import {
   Lightbulb,
   Zap
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 
 interface AIRecommendation {
   id: string;
@@ -44,6 +44,7 @@ export function AIInsightsDashboard({
   const [complianceScore, setComplianceScore] = useState(0);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [riskLevel, setRiskLevel] = useState<"low" | "medium" | "high">("medium");
+  const uniqueId = useId();
 
   const recommendations: AIRecommendation[] = [
     {
@@ -86,22 +87,30 @@ export function AIInsightsDashboard({
   }, [documentsCount, frameworksActive, companyProfile]);
 
   useEffect(() => {
+    const mountedRef = { current: true };
     const duration = 1500;
     const steps = 60;
     const increment = complianceScore / steps;
     let current = 0;
+    let timerId: ReturnType<typeof setTimeout> | null = null;
     
-    const timer = setInterval(() => {
+    const animate = () => {
+      if (!mountedRef.current) return;
       current += increment;
       if (current >= complianceScore) {
         setAnimatedScore(complianceScore);
-        clearInterval(timer);
       } else {
         setAnimatedScore(Math.round(current));
+        timerId = setTimeout(animate, duration / steps);
       }
-    }, duration / steps);
+    };
+    
+    timerId = setTimeout(animate, duration / steps);
 
-    return () => clearInterval(timer);
+    return () => {
+      mountedRef.current = false;
+      if (timerId) clearTimeout(timerId);
+    };
   }, [complianceScore]);
 
   const getRiskColor = () => {
@@ -129,52 +138,89 @@ export function AIInsightsDashboard({
     }
   };
 
+  const getRiskDescription = () => {
+    switch (riskLevel) {
+      case "low": return "Low risk - Your compliance posture is strong";
+      case "medium": return "Medium risk - Some improvements recommended";
+      case "high": return "High risk - Immediate attention required";
+    }
+  };
+
   return (
-    <Card className="border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-gray-900 shadow-lg">
+    <Card 
+      className="border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-gray-900 shadow-lg"
+      role="region"
+      aria-label="AI Compliance Insights Dashboard"
+    >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg shadow-md">
+            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg shadow-md" aria-hidden="true">
               <Brain className="h-6 w-6 text-white" />
             </div>
             <div>
-              <CardTitle className="text-xl text-gray-900 dark:text-white">AI Compliance Insights</CardTitle>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Real-time analysis and recommendations</p>
+              <CardTitle className="text-xl text-gray-900 dark:text-white" id={`${uniqueId}-title`}>
+                AI Compliance Insights
+              </CardTitle>
+              <p className="text-sm text-gray-500 dark:text-gray-400" id={`${uniqueId}-subtitle`}>
+                Real-time analysis and recommendations
+              </p>
             </div>
           </div>
-          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
-            <Sparkles className="h-3 w-3 mr-1" />
+          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0" aria-label="AI Powered feature">
+            <Sparkles className="h-3 w-3 mr-1" aria-hidden="true" />
             AI Powered
           </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4" role="group" aria-label="Compliance metrics overview">
+          <section 
+            className="p-4 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700"
+            aria-labelledby={`${uniqueId}-compliance-heading`}
+          >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Compliance Score</span>
-              <TrendingUp className="h-4 w-4 text-green-500" />
+              <h2 id={`${uniqueId}-compliance-heading`} className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Compliance Score
+              </h2>
+              <TrendingUp className="h-4 w-4 text-green-500" aria-hidden="true" />
             </div>
-            <div className="relative">
+            <div className="relative" aria-live="polite" aria-atomic="true">
               <div className="flex items-end gap-1">
-                <span className="text-4xl font-bold text-gray-900 dark:text-white">{animatedScore}</span>
-                <span className="text-lg text-gray-500 dark:text-gray-400 mb-1">/ 100</span>
+                <span 
+                  className="text-4xl font-bold text-gray-900 dark:text-white"
+                  aria-label={`Compliance score: ${animatedScore} out of 100`}
+                >
+                  {animatedScore}
+                </span>
+                <span className="text-lg text-gray-500 dark:text-gray-400 mb-1" aria-hidden="true">/ 100</span>
               </div>
               <Progress 
                 value={animatedScore} 
                 className="mt-3 h-2"
+                aria-label={`Compliance progress: ${animatedScore}%`}
               />
             </div>
-          </div>
+          </section>
 
-          <div className="p-4 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+          <section 
+            className="p-4 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700"
+            aria-labelledby={`${uniqueId}-risk-heading`}
+          >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Risk Level</span>
-              <Shield className="h-4 w-4 text-blue-500" />
+              <h2 id={`${uniqueId}-risk-heading`} className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Risk Level
+              </h2>
+              <Shield className="h-4 w-4 text-blue-500" aria-hidden="true" />
             </div>
-            <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-lg ${getRiskBgColor()}`}>
+            <div 
+              className="flex items-center gap-3"
+              role="status"
+              aria-live="polite"
+              aria-label={getRiskDescription()}
+            >
+              <div className={`p-3 rounded-lg ${getRiskBgColor()}`} aria-hidden="true">
                 <AlertTriangle className={`h-6 w-6 ${getRiskColor()}`} />
               </div>
               <div>
@@ -184,21 +230,27 @@ export function AIInsightsDashboard({
                 <p className="text-xs text-gray-500 dark:text-gray-400">Overall risk assessment</p>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="p-4 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+          <section 
+            className="p-4 rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700"
+            aria-labelledby={`${uniqueId}-actions-heading`}
+          >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Quick Actions</span>
-              <Zap className="h-4 w-4 text-yellow-500" />
+              <h2 id={`${uniqueId}-actions-heading`} className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Quick Actions
+              </h2>
+              <Zap className="h-4 w-4 text-yellow-500" aria-hidden="true" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2" role="group" aria-label="Quick action buttons">
               <Button 
                 size="sm" 
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white"
                 onClick={() => window.location.href = '/ai-doc-generator'}
                 data-testid="button-generate-docs"
+                aria-label="Generate compliance documents using AI"
               >
-                <Sparkles className="h-4 w-4 mr-2" />
+                <Sparkles className="h-4 w-4 mr-2" aria-hidden="true" />
                 Generate Documents
               </Button>
               <Button 
@@ -207,59 +259,93 @@ export function AIInsightsDashboard({
                 className="w-full"
                 onClick={() => window.location.href = '/ai-assistant'}
                 data-testid="button-ask-ai"
+                aria-label="Open AI Assistant for compliance questions"
               >
-                <Brain className="h-4 w-4 mr-2" />
+                <Brain className="h-4 w-4 mr-2" aria-hidden="true" />
                 Ask AI Assistant
               </Button>
             </div>
-          </div>
+          </section>
         </div>
 
-        <div>
+        <section aria-labelledby={`${uniqueId}-recommendations-heading`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-yellow-500" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">AI Recommendations</h3>
+              <Lightbulb className="h-5 w-5 text-yellow-500" aria-hidden="true" />
+              <h2 id={`${uniqueId}-recommendations-heading`} className="font-semibold text-gray-900 dark:text-white">
+                AI Recommendations
+              </h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={onViewDetails} data-testid="button-view-all">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onViewDetails} 
+              data-testid="button-view-all"
+              aria-label="View all AI recommendations"
+            >
               View All
-              <ArrowRight className="h-4 w-4 ml-1" />
+              <ArrowRight className="h-4 w-4 ml-1" aria-hidden="true" />
             </Button>
           </div>
 
-          <div className="space-y-3">
-            {recommendations.map((rec) => (
-              <div 
-                key={rec.id} 
-                className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 transition-all duration-200"
-                data-testid={`recommendation-${rec.id}`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h4 className="font-medium text-gray-900 dark:text-white">{rec.title}</h4>
-                      <Badge variant={getPriorityColor(rec.priority) as "destructive" | "secondary" | "outline"} className="text-xs">
-                        {rec.priority}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {rec.framework}
-                      </Badge>
+          <div className="space-y-3" role="list" aria-label="Compliance recommendations">
+            {recommendations.map((rec) => {
+              const descriptionId = `${uniqueId}-rec-desc-${rec.id}`;
+              const impactId = `${uniqueId}-rec-impact-${rec.id}`;
+              
+              return (
+                <article 
+                  key={rec.id} 
+                  className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 transition-all duration-200"
+                  data-testid={`recommendation-${rec.id}`}
+                  role="listitem"
+                  aria-labelledby={`${uniqueId}-rec-title-${rec.id}`}
+                  aria-describedby={`${descriptionId} ${impactId}`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 
+                          id={`${uniqueId}-rec-title-${rec.id}`}
+                          className="font-medium text-gray-900 dark:text-white"
+                        >
+                          {rec.title}
+                        </h3>
+                        <Badge 
+                          variant={getPriorityColor(rec.priority) as "destructive" | "secondary" | "outline"} 
+                          className="text-xs"
+                          aria-label={`Priority: ${rec.priority}`}
+                        >
+                          {rec.priority}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs" aria-label={`Framework: ${rec.framework}`}>
+                          {rec.framework}
+                        </Badge>
+                      </div>
+                      <p id={descriptionId} className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        {rec.description}
+                      </p>
+                      <div id={impactId} className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                        <Target className="h-3 w-3" aria-hidden="true" />
+                        <span aria-label={`Expected impact: ${rec.impact}`}>{rec.impact}</span>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{rec.description}</p>
-                    <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                      <Target className="h-3 w-3" />
-                      {rec.impact}
-                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      data-testid={`button-fix-${rec.id}`}
+                      aria-label={`Fix issue: ${rec.title}`}
+                      aria-describedby={descriptionId}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" aria-hidden="true" />
+                      Fix
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline" data-testid={`button-fix-${rec.id}`}>
-                    <CheckCircle2 className="h-4 w-4 mr-1" />
-                    Fix
-                  </Button>
-                </div>
-              </div>
-            ))}
+                </article>
+              );
+            })}
           </div>
-        </div>
+        </section>
       </CardContent>
     </Card>
   );

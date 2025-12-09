@@ -154,19 +154,21 @@ export function ControlPrioritizer({ className, onImplementControl }: ControlPri
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4" aria-live="polite" aria-atomic="true">
           <div className="flex items-center justify-between text-sm mb-2">
             <span className="text-gray-600 dark:text-gray-400">Implementation Progress</span>
             <span className="font-medium text-gray-900 dark:text-white">{Math.round(overallProgress)}%</span>
           </div>
-          <Progress value={overallProgress} className="h-2" />
+          <Progress value={overallProgress} className="h-2" aria-label={`Implementation progress: ${Math.round(overallProgress)}% complete`} />
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4" role="list" aria-label="Prioritized security controls">
         {prioritizedControls.map((control, index) => (
           <div 
             key={control.id}
+            role="listitem"
+            aria-label={`Priority ${control.priority}: ${control.name}, Status: ${control.status.replace('_', ' ')}`}
             className={`p-4 rounded-lg border transition-all duration-200 ${
               control.status === "completed" 
                 ? "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800" 
@@ -191,7 +193,7 @@ export function ControlPrioritizer({ className, onImplementControl }: ControlPri
                   <Badge variant="outline" className="text-xs">{control.category}</Badge>
                 </div>
                 
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{control.reason}</p>
+                <p id={`control-desc-${control.id}`} className="text-sm text-gray-600 dark:text-gray-400 mb-3">{control.reason}</p>
                 
                 <div className="flex items-center gap-4 text-sm flex-wrap">
                   <div className="flex items-center gap-1">
@@ -215,16 +217,30 @@ export function ControlPrioritizer({ className, onImplementControl }: ControlPri
                 </div>
               </div>
               
-              <Button 
-                size="sm"
-                variant={control.status === "completed" ? "outline" : "default"}
-                onClick={() => onImplementControl?.(control.id)}
-                disabled={control.status === "completed"}
-                data-testid={`button-implement-${control.id}`}
-              >
-                {control.status === "completed" ? "Done" : "Implement"}
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+              {control.status === "completed" ? (
+                <span 
+                  className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  role="status"
+                  aria-label={`${control.name} is already completed`}
+                  data-testid={`button-implement-${control.id}`}
+                >
+                  Done
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </span>
+              ) : (
+                <Button 
+                  size="sm"
+                  variant="default"
+                  onClick={() => onImplementControl?.(control.id)}
+                  aria-label={`Implement ${control.name}`}
+                  aria-describedby={`control-desc-${control.id}`}
+                  data-testid={`button-implement-${control.id}`}
+                  className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                >
+                  Implement
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              )}
             </div>
           </div>
         ))}

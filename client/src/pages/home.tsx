@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { WelcomeTutorial } from "@/components/onboarding/WelcomeTutorial";
 import { QuickStartChecklist } from "@/components/onboarding/QuickStartChecklist";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { 
   User, 
   LogOut, 
@@ -22,7 +23,8 @@ import {
   Shield,
   Zap,
   Target,
-  TrendingUp
+  TrendingUp,
+  AlertCircle
 } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
 
@@ -32,13 +34,19 @@ export function Home() {
   const [animatedScore, setAnimatedScore] = useState(0);
 
   useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-    if (!hasSeenTutorial) {
-      setShowTutorial(true);
+    try {
+      const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+      if (!hasSeenTutorial) {
+        setShowTutorial(true);
+      }
+    } catch (error) {
+      console.error('Error accessing localStorage for tutorial state:', error);
+      setShowTutorial(false);
     }
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     const targetScore = 72;
     const duration = 1500;
     const steps = 60;
@@ -46,6 +54,10 @@ export function Home() {
     let current = 0;
     
     const timer = setInterval(() => {
+      if (!isMounted) {
+        clearInterval(timer);
+        return;
+      }
       current += increment;
       if (current >= targetScore) {
         setAnimatedScore(targetScore);
@@ -55,13 +67,38 @@ export function Home() {
       }
     }, duration / steps);
 
-    return () => clearInterval(timer);
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
   }, []);
 
   const handleTutorialComplete = () => {
-    localStorage.setItem('hasSeenTutorial', 'true');
+    try {
+      localStorage.setItem('hasSeenTutorial', 'true');
+    } catch (error) {
+      console.error('Error saving tutorial state to localStorage:', error);
+    }
     setShowTutorial(false);
   };
+
+  const [aiErrorKey, setAiErrorKey] = useState(0);
+  
+  const AIFeaturesFallback = () => (
+    <div className="p-6 text-center">
+      <div className="flex items-center justify-center gap-2 text-muted-foreground mb-4">
+        <AlertCircle className="h-5 w-5" />
+        <span>Unable to load AI features</span>
+      </div>
+      <Button 
+        variant="outline" 
+        onClick={() => setAiErrorKey(prev => prev + 1)}
+        data-testid="button-reload-features"
+      >
+        Try Again
+      </Button>
+    </div>
+  );
 
   const aiFeatures = [
     {
@@ -214,58 +251,60 @@ export function Home() {
           </CardContent>
         </Card>
 
-        <div className="mb-8 sm:mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
-              <Sparkles className="h-5 w-5 text-white" />
+        <ErrorBoundary key={aiErrorKey} fallback={<AIFeaturesFallback />}>
+          <div className="mb-8 sm:mb-12">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">AI-Powered Features</h2>
+              <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
+                <Zap className="h-3 w-3 mr-1" />
+                AI
+              </Badge>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">AI-Powered Features</h2>
-            <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
-              <Zap className="h-3 w-3 mr-1" />
-              AI
-            </Badge>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {aiFeatures.map((feature) => (
-              <Card 
-                key={feature.title}
-                className="group cursor-pointer border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md transition-all duration-300"
-                onClick={() => window.location.href = feature.href}
-                data-testid={`card-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <CardContent className="p-5 sm:p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 ${feature.bgColor} rounded-xl transition-transform duration-300 group-hover:scale-110`}>
-                      <feature.icon className={`h-6 w-6 bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`} style={{ stroke: 'url(#gradient)' }} />
-                      <svg width="0" height="0">
-                        <defs>
-                          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#3b82f6" />
-                            <stop offset="100%" stopColor="#8b5cf6" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                      <feature.icon className={`h-6 w-6 text-blue-600 dark:text-blue-400`} />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {aiFeatures.map((feature) => (
+                <Card 
+                  key={feature.title}
+                  className="group cursor-pointer border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md transition-all duration-300"
+                  onClick={() => window.location.href = feature.href}
+                  data-testid={`card-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  <CardContent className="p-5 sm:p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`p-3 ${feature.bgColor} rounded-xl transition-transform duration-300 group-hover:scale-110`}>
+                        <feature.icon className={`h-6 w-6 bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`} style={{ stroke: 'url(#gradient)' }} />
+                        <svg width="0" height="0">
+                          <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#3b82f6" />
+                              <stop offset="100%" stopColor="#8b5cf6" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        <feature.icon className={`h-6 w-6 text-blue-600 dark:text-blue-400`} />
+                      </div>
+                      {feature.badge && (
+                        <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 text-xs">
+                          {feature.badge}
+                        </Badge>
+                      )}
                     </div>
-                    {feature.badge && (
-                      <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 text-xs">
-                        {feature.badge}
-                      </Badge>
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{feature.description}</p>
-                  <div className="flex items-center text-sm text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all">
-                    <span>Explore</span>
-                    <ArrowRight className="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{feature.description}</p>
+                    <div className="flex items-center text-sm text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all">
+                      <span>Explore</span>
+                      <ArrowRight className="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
+        </ErrorBoundary>
 
         <div className="mb-8 sm:mb-12">
           <div className="flex items-center gap-3 mb-6">
@@ -319,24 +358,24 @@ export function Home() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</label>
-                  <p className="text-lg text-gray-900 dark:text-white" data-testid="text-user-email">{user.email}</p>
+                  <p className="text-lg text-gray-900 dark:text-white" data-testid="text-user-email">{user?.email ?? 'Not provided'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Role</label>
-                  <p className="text-lg text-gray-900 dark:text-white capitalize" data-testid="text-user-role">{user.role}</p>
+                  <p className="text-lg text-gray-900 dark:text-white capitalize" data-testid="text-user-role">{user?.role ?? 'Unknown'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
                   <p className="text-lg text-gray-900 dark:text-white">
                     <span 
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        user.isActive 
+                        user?.isActive 
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                           : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                       }`}
                       data-testid="status-user-active"
                     >
-                      {user.isActive ? 'Active' : 'Inactive'}
+                      {user?.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </p>
                 </div>
