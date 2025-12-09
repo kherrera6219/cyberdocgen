@@ -209,30 +209,32 @@ export default function GapAnalysis() {
   });
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Target className="h-6 w-6" />
+          <Target className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
           <div>
-            <h1 className="text-2xl font-bold">Compliance Gap Analysis</h1>
-            <p className="text-gray-600">Comprehensive assessment of platform readiness</p>
+            <h1 className="text-xl sm:text-2xl font-bold">Compliance Gap Analysis</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Comprehensive assessment of platform readiness</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export Report
+            <span className="hidden sm:inline">Export Report</span>
+            <span className="sm:hidden">Export</span>
           </Button>
           <Button size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
-            Run New Analysis
+            <span className="hidden sm:inline">Run New Analysis</span>
+            <span className="sm:hidden">Analyze</span>
           </Button>
         </div>
       </div>
 
       {/* Executive Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Overall Score</CardTitle>
@@ -285,8 +287,8 @@ export default function GapAnalysis() {
             Analysis Filters
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="space-y-4 p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Category" />
@@ -314,7 +316,7 @@ export default function GapAnalysis() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full sm:col-span-2 lg:col-span-1">
               <Search className="h-4 w-4 mr-2" />
               Search Gaps
             </Button>
@@ -323,11 +325,20 @@ export default function GapAnalysis() {
       </Card>
 
       <Tabs defaultValue="gaps" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="gaps">Gap Analysis</TabsTrigger>
-          <TabsTrigger value="frameworks">Framework Coverage</TabsTrigger>
-          <TabsTrigger value="roadmap">Implementation Roadmap</TabsTrigger>
-          <TabsTrigger value="recommendations">Priority Actions</TabsTrigger>
+        <TabsList className="flex flex-wrap h-auto gap-1 p-1 w-full">
+          <TabsTrigger value="gaps" className="flex-1 min-w-[100px] text-xs sm:text-sm">Gap Analysis</TabsTrigger>
+          <TabsTrigger value="frameworks" className="flex-1 min-w-[100px] text-xs sm:text-sm">
+            <span className="hidden sm:inline">Framework Coverage</span>
+            <span className="sm:hidden">Frameworks</span>
+          </TabsTrigger>
+          <TabsTrigger value="roadmap" className="flex-1 min-w-[100px] text-xs sm:text-sm">
+            <span className="hidden sm:inline">Implementation Roadmap</span>
+            <span className="sm:hidden">Roadmap</span>
+          </TabsTrigger>
+          <TabsTrigger value="recommendations" className="flex-1 min-w-[100px] text-xs sm:text-sm">
+            <span className="hidden sm:inline">Priority Actions</span>
+            <span className="sm:hidden">Priorities</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="gaps" className="space-y-4">

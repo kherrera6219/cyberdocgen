@@ -38,17 +38,24 @@ const oauthConfigSchema = z.object({
 });
 
 const pdfSecurityDefaultsSchema = z.object({
-  defaultEncryptionLevel: z.enum(['RC4_40', 'RC4_128', 'AES128', 'AES256']).default('AES256'),
-  defaultAllowPrinting: z.boolean().default(false),
-  defaultAllowCopying: z.boolean().default(false),
-  defaultAllowModifying: z.boolean().default(false),
-  defaultAllowAnnotations: z.boolean().default(false),
-  defaultWatermarkText: z.string().default('CONFIDENTIAL'),
-  defaultWatermarkOpacity: z.number().min(0).max(1).default(0.3),
+  defaultEncryptionLevel: z.enum(['RC4_40', 'RC4_128', 'AES128', 'AES256']),
+  defaultAllowPrinting: z.boolean(),
+  defaultAllowCopying: z.boolean(),
+  defaultAllowModifying: z.boolean(),
+  defaultAllowAnnotations: z.boolean(),
+  defaultWatermarkText: z.string(),
+  defaultWatermarkOpacity: z.number().min(0).max(1),
 });
 
 type OAuthConfigForm = z.infer<typeof oauthConfigSchema>;
 type PDFSecurityDefaultsForm = z.infer<typeof pdfSecurityDefaultsSchema>;
+
+interface OAuthSettings {
+  googleConfigured?: boolean;
+  microsoftConfigured?: boolean;
+  googleClientId?: string;
+  microsoftClientId?: string;
+}
 
 interface CloudIntegration {
   id: string;
@@ -105,7 +112,7 @@ export default function AdminSettings() {
   });
 
   // Get current OAuth settings
-  const { data: oauthSettings } = useQuery({
+  const { data: oauthSettings } = useQuery<OAuthSettings>({
     queryKey: ['/api/admin/oauth-settings'],
   });
 
@@ -208,29 +215,32 @@ export default function AdminSettings() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container max-w-6xl mx-auto py-8 px-4">
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Settings className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            <h1 className="text-3xl font-bold">Admin Settings</h1>
+            <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Admin Settings</h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Configure system-wide settings for cloud integrations and security defaults
           </p>
         </div>
 
         <Tabs defaultValue="oauth" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="oauth" className="flex items-center gap-2">
+          <TabsList className="flex flex-wrap h-auto gap-1 p-1 w-full">
+            <TabsTrigger value="oauth" className="flex-1 min-w-[120px] flex items-center justify-center gap-2 text-xs sm:text-sm">
               <Key className="h-4 w-4" />
-              OAuth Settings
+              <span className="hidden sm:inline">OAuth Settings</span>
+              <span className="sm:hidden">OAuth</span>
             </TabsTrigger>
-            <TabsTrigger value="pdf" className="flex items-center gap-2">
+            <TabsTrigger value="pdf" className="flex-1 min-w-[120px] flex items-center justify-center gap-2 text-xs sm:text-sm">
               <Shield className="h-4 w-4" />
-              PDF Security
+              <span className="hidden sm:inline">PDF Security</span>
+              <span className="sm:hidden">PDF</span>
             </TabsTrigger>
-            <TabsTrigger value="integrations" className="flex items-center gap-2">
+            <TabsTrigger value="integrations" className="flex-1 min-w-[120px] flex items-center justify-center gap-2 text-xs sm:text-sm">
               <Cloud className="h-4 w-4" />
-              Active Integrations
+              <span className="hidden sm:inline">Active Integrations</span>
+              <span className="sm:hidden">Integrations</span>
             </TabsTrigger>
           </TabsList>
 

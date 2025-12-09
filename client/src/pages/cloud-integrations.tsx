@@ -188,13 +188,13 @@ export default function CloudIntegrations() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container max-w-7xl mx-auto py-8 px-4">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Cloud className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              <Cloud className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400 flex-shrink-0" />
               <div>
-                <h1 className="text-3xl font-bold">Cloud Integrations</h1>
-                <p className="text-gray-600 dark:text-gray-300">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Cloud Integrations</h1>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                   Connect and manage your cloud storage accounts
                 </p>
               </div>
@@ -203,11 +203,13 @@ export default function CloudIntegrations() {
             {user.role === 'admin' && (
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => window.location.href = '/admin'}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 self-start sm:self-auto"
               >
                 <Settings className="h-4 w-4" />
-                Admin Settings
+                <span className="hidden sm:inline">Admin Settings</span>
+                <span className="sm:hidden">Admin</span>
               </Button>
             )}
           </div>

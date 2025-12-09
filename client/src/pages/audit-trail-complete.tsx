@@ -49,6 +49,13 @@ interface AuditResponse {
   };
 }
 
+interface AuditStats {
+  totalActions: number;
+  activeUsers: number;
+  actionsByType: Record<string, number>;
+  recentActivity: Array<{ count: number }>;
+}
+
 export default function AuditTrail() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,7 +79,7 @@ export default function AuditTrail() {
   });
 
   // Fetch audit statistics
-  const { data: auditStats } = useQuery({
+  const { data: auditStats } = useQuery<AuditStats>({
     queryKey: ["/api/audit-trail/stats"],
     queryFn: () => fetch('/api/audit-trail/stats').then(res => res.json()),
   });
@@ -150,21 +157,19 @@ export default function AuditTrail() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <History className="h-6 w-6" />
-          <div>
-            <h1 className="text-2xl font-bold">Audit Trail</h1>
-            <p className="text-gray-600">Track all system activities and user actions</p>
-          </div>
+      <div className="flex items-center gap-3">
+        <History className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">Audit Trail</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Track all system activities and user actions</p>
         </div>
       </div>
 
       {/* Statistics Cards */}
       {auditStats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Total Actions</CardTitle>
@@ -213,12 +218,12 @@ export default function AuditTrail() {
             Filters & Search
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
+        <CardContent className="space-y-4 p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="relative sm:col-span-2 lg:col-span-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search actions, users, entities..."
+                placeholder="Search actions, users..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -322,33 +327,33 @@ export default function AuditTrail() {
                             {entry.userName || entry.userEmail}
                           </p>
                           
-                          {entry.metadata && Object.keys(entry.metadata).length > 0 && (
+                          {entry.metadata && typeof entry.metadata === 'object' && Object.keys(entry.metadata as Record<string, unknown>).length > 0 ? (
                             <div className="text-sm text-gray-600">
-                              <strong>Details:</strong> {JSON.stringify(entry.metadata, null, 2)}
+                              <strong>Details:</strong> {JSON.stringify(entry.metadata)}
                             </div>
-                          )}
+                          ) : null}
                           
-                          {(entry.oldValues || entry.newValues) && (
+                          {(entry.oldValues || entry.newValues) ? (
                             <details className="text-sm">
                               <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
                                 View Changes
                               </summary>
                               <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
-                                {entry.oldValues && (
+                                {entry.oldValues ? (
                                   <div className="mb-2">
                                     <strong>Before:</strong>
-                                    <pre className="mt-1">{JSON.stringify(entry.oldValues, null, 2)}</pre>
+                                    <pre className="mt-1">{JSON.stringify(entry.oldValues)}</pre>
                                   </div>
-                                )}
-                                {entry.newValues && (
+                                ) : null}
+                                {entry.newValues ? (
                                   <div>
                                     <strong>After:</strong>
-                                    <pre className="mt-1">{JSON.stringify(entry.newValues, null, 2)}</pre>
+                                    <pre className="mt-1">{JSON.stringify(entry.newValues)}</pre>
                                   </div>
-                                )}
+                                ) : null}
                               </div>
                             </details>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>
