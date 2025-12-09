@@ -84,51 +84,6 @@ export default function Dashboard() {
     queryKey: ["/api/documents"],
   });
 
-  // Show loading skeleton if data is loading
-  if (profilesLoading || documentsLoading) {
-    return <DashboardSkeleton />;
-  }
-
-  // Show error state if queries failed
-  if (profilesError || documentsError) {
-    return (
-      <div className="space-y-6 sm:space-y-8">
-        <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
-              <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Compliance Dashboard</h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Automate your compliance documentation with AI-powered generation</p>
-            </div>
-          </div>
-        </div>
-        <ErrorCard
-          title="Failed to load dashboard data"
-          message="We couldn't load your company profiles or documents. Please check your connection and try again."
-          onRetry={() => {
-            refetchProfiles();
-            refetchDocuments();
-          }}
-        />
-      </div>
-    );
-  }
-
-  // Calculate stats with guards for undefined data
-  const completedDocs = documents?.filter(doc => doc.status === 'complete').length ?? 0;
-  const activeFrameworks = documents?.length > 0 
-    ? Array.from(new Set(documents.map(doc => doc.framework))).length 
-    : 0;
-
-  // Framework stats with guards
-  const iso27001Docs = documents?.filter(doc => doc.framework === 'ISO27001' && doc.status === 'complete').length ?? 0;
-  const soc2Docs = documents?.filter(doc => doc.framework === 'SOC2' && doc.status === 'complete').length ?? 0;
-
-  const iso27001Progress = Math.round((iso27001Docs / 14) * 100);
-  const soc2Progress = Math.round((soc2Docs / 12) * 100);
-
   // Cleanup function for generation
   const cleanupGeneration = () => {
     if (pollingTimeoutRef.current) {
@@ -144,7 +99,7 @@ export default function Dashboard() {
     setCurrentFramework("");
   };
 
-  // Document generation mutation
+  // Document generation mutation - must be called before any conditional returns
   const generateDocsMutation = useMutation({
     mutationFn: async ({ framework }: { framework: string }) => {
       if (!profile) throw new Error("No company profile found");
@@ -228,6 +183,51 @@ export default function Dashboard() {
       });
     },
   });
+
+  // Show loading skeleton if data is loading
+  if (profilesLoading || documentsLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  // Show error state if queries failed
+  if (profilesError || documentsError) {
+    return (
+      <div className="space-y-6 sm:space-y-8">
+        <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
+              <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Compliance Dashboard</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Automate your compliance documentation with AI-powered generation</p>
+            </div>
+          </div>
+        </div>
+        <ErrorCard
+          title="Failed to load dashboard data"
+          message="We couldn't load your company profiles or documents. Please check your connection and try again."
+          onRetry={() => {
+            refetchProfiles();
+            refetchDocuments();
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Calculate stats with guards for undefined data
+  const completedDocs = documents?.filter(doc => doc.status === 'complete').length ?? 0;
+  const activeFrameworks = documents?.length > 0 
+    ? Array.from(new Set(documents.map(doc => doc.framework))).length 
+    : 0;
+
+  // Framework stats with guards
+  const iso27001Docs = documents?.filter(doc => doc.framework === 'ISO27001' && doc.status === 'complete').length ?? 0;
+  const soc2Docs = documents?.filter(doc => doc.framework === 'SOC2' && doc.status === 'complete').length ?? 0;
+
+  const iso27001Progress = Math.round((iso27001Docs / 14) * 100);
+  const soc2Progress = Math.round((soc2Docs / 12) * 100);
 
   const handleGenerateDocuments = (framework: string) => {
     if (!profile) {
