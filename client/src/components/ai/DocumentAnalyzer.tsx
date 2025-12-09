@@ -46,7 +46,7 @@ interface AnalyzerProps {
 
 export function DocumentAnalyzer({ className }: AnalyzerProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [framework, setFramework] = useState<string>("");
+  const [framework, setFramework] = useState<string>("any");
   const [textInput, setTextInput] = useState<string>("");
   const [analysisMode, setAnalysisMode] = useState<"file" | "text">("file");
   const { toast } = useToast();
@@ -147,7 +147,7 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
       return;
     }
 
-    analysisMutation.mutate({ content, filename, framework });
+    analysisMutation.mutate({ content, filename, framework: framework === "any" ? undefined : framework });
   };
 
   const handleExtractProfile = () => {
@@ -249,7 +249,7 @@ export function DocumentAnalyzer({ className }: AnalyzerProps) {
                   <SelectValue placeholder="Select framework" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any Framework</SelectItem>
+                  <SelectItem value="any">Any Framework</SelectItem>
                   <SelectItem value="iso27001">ISO 27001</SelectItem>
                   <SelectItem value="soc2">SOC 2</SelectItem>
                   <SelectItem value="fedramp">FedRAMP</SelectItem>

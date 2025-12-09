@@ -56,7 +56,7 @@ interface ChatbotProps {
 export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
-  const [selectedFramework, setSelectedFramework] = useState(defaultFramework || "");
+  const [selectedFramework, setSelectedFramework] = useState(defaultFramework || "general");
   const [sessionId, setSessionId] = useState<string>();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -191,7 +191,7 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                   <SelectValue placeholder="Select framework for context" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">General Compliance</SelectItem>
+                  <SelectItem value="general">General Compliance</SelectItem>
                   <SelectItem value="iso27001">ISO 27001</SelectItem>
                   <SelectItem value="soc2">SOC 2</SelectItem>
                   <SelectItem value="fedramp">FedRAMP</SelectItem>

@@ -28,7 +28,7 @@ export default function Documents() {
   const frameworkFilter = searchParams.get('framework') || '';
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Get documents
   const { data: documents = [], isLoading } = useQuery<Document[]>({
@@ -40,7 +40,7 @@ export default function Documents() {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFramework = !frameworkFilter || doc.framework === frameworkFilter;
-    const matchesStatus = !statusFilter || doc.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || doc.status === statusFilter;
 
     return matchesSearch && matchesFramework && matchesStatus;
   });
@@ -129,7 +129,7 @@ export default function Documents() {
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="complete">Complete</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="draft">Draft</SelectItem>
