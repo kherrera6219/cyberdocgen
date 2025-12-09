@@ -237,6 +237,7 @@ export default function EnterpriseSignup() {
               <Input
                 id="password"
                 type="password"
+                autoComplete="new-password"
                 {...form.register('password')}
                 className={form.formState.errors.password ? 'border-red-500' : ''}
               />
@@ -250,6 +251,7 @@ export default function EnterpriseSignup() {
               <Input
                 id="confirmPassword"
                 type="password"
+                autoComplete="new-password"
                 {...form.register('confirmPassword')}
                 className={form.formState.errors.confirmPassword ? 'border-red-500' : ''}
               />

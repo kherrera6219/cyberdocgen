@@ -173,10 +173,8 @@ export default function EnterpriseLogin() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password">
-                  <a className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                <Link href="/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                     Forgot password?
-                  </a>
                 </Link>
               </div>
               <div className="relative">
@@ -245,10 +243,8 @@ export default function EnterpriseLogin() {
 
             <div className="text-center text-sm">
               <span className="text-gray-600 dark:text-gray-400">Don't have an account? </span>
-              <Link href="/enterprise-signup">
-                <a className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              <Link href="/enterprise-signup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
                   Create enterprise account
-                </a>
               </Link>
             </div>
           </form>
