@@ -1,6 +1,5 @@
 import { WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import React from "react";
 
 interface OfflineIndicatorProps {
   className?: string;

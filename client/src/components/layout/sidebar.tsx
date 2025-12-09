@@ -1,4 +1,4 @@
-import React from "react";
+import type { ComponentType } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +16,7 @@ import {
 
 interface NavItem {
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   badge?: string;
   badgeColor?: string;

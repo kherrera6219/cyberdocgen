@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,13 +25,13 @@ interface SearchResult {
   description: string;
   type: 'document' | 'profile' | 'page' | 'action';
   url: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   tags?: string[];
   lastAccessed?: Date;
 }
 
 interface GlobalSearchProps {
-  trigger?: React.ReactNode;
+  trigger?: ReactNode;
 }
 
 export function GlobalSearch({ trigger }: GlobalSearchProps) {
