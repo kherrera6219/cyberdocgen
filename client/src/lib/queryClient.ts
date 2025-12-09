@@ -1,4 +1,130 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, QueryKey, UseQueryOptions } from "@tanstack/react-query";
+
+// Cache time constants (in milliseconds)
+export const CACHE_TIMES = {
+  // User session data - rarely changes, long TTL
+  USER: {
+    staleTime: 5 * 60 * 1000,     // 5 minutes
+    gcTime: 30 * 60 * 1000,       // 30 minutes (garbage collection)
+  },
+  // Organization data - changes infrequently
+  ORGANIZATION: {
+    staleTime: 5 * 60 * 1000,     // 5 minutes
+    gcTime: 30 * 60 * 1000,       // 30 minutes
+  },
+  // Documents - may change moderately
+  DOCUMENTS: {
+    staleTime: 2 * 60 * 1000,     // 2 minutes
+    gcTime: 15 * 60 * 1000,       // 15 minutes
+  },
+  // Analytics and metrics - changes frequently
+  ANALYTICS: {
+    staleTime: 30 * 1000,         // 30 seconds
+    gcTime: 5 * 60 * 1000,        // 5 minutes
+  },
+  // AI-generated content - rarely refetched
+  AI_CONTENT: {
+    staleTime: 10 * 60 * 1000,    // 10 minutes
+    gcTime: 60 * 60 * 1000,       // 1 hour
+  },
+  // Templates and static configuration - very stable
+  TEMPLATES: {
+    staleTime: 15 * 60 * 1000,    // 15 minutes
+    gcTime: 60 * 60 * 1000,       // 1 hour
+  },
+  // Real-time data - always fresh
+  REALTIME: {
+    staleTime: 0,                 // Always stale
+    gcTime: 60 * 1000,            // 1 minute
+  },
+  // Default for unspecified queries
+  DEFAULT: {
+    staleTime: 60 * 1000,         // 1 minute
+    gcTime: 10 * 60 * 1000,       // 10 minutes
+  },
+} as const;
+
+// Helper to get cache config based on query key patterns
+export function getCacheConfig(queryKey: QueryKey): { staleTime: number; gcTime: number } {
+  const keyString = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+  
+  if (typeof keyString !== 'string') {
+    return CACHE_TIMES.DEFAULT;
+  }
+
+  // Match query key patterns to cache configurations
+  if (keyString.includes('/api/user') || keyString.includes('/api/auth')) {
+    return CACHE_TIMES.USER;
+  }
+  if (keyString.includes('/api/organization')) {
+    return CACHE_TIMES.ORGANIZATION;
+  }
+  if (keyString.includes('/api/documents') || keyString.includes('/api/document')) {
+    return CACHE_TIMES.DOCUMENTS;
+  }
+  if (keyString.includes('/api/analytics') || keyString.includes('/api/metrics') || keyString.includes('/api/dashboard')) {
+    return CACHE_TIMES.ANALYTICS;
+  }
+  if (keyString.includes('/api/ai') || keyString.includes('/api/generate')) {
+    return CACHE_TIMES.AI_CONTENT;
+  }
+  if (keyString.includes('/api/templates') || keyString.includes('/api/frameworks')) {
+    return CACHE_TIMES.TEMPLATES;
+  }
+  if (keyString.includes('/api/notifications') || keyString.includes('/api/activity')) {
+    return CACHE_TIMES.REALTIME;
+  }
+
+  return CACHE_TIMES.DEFAULT;
+}
+
+// Custom error class that preserves HTTP status codes
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+
+  get isClientError(): boolean {
+    return this.status >= 400 && this.status < 500;
+  }
+
+  get isServerError(): boolean {
+    return this.status >= 500;
+  }
+}
+
+// Type for cache configuration options
+export interface CacheOptions {
+  cacheType?: keyof typeof CACHE_TIMES;
+  enabled?: boolean;
+  refetchOnMount?: boolean | 'always';
+  refetchOnWindowFocus?: boolean | 'always';
+}
+
+// Query options factory for consistent cache configuration
+export function createQueryOptions<TData = unknown, TError = ApiError>(
+  queryKey: QueryKey,
+  options?: CacheOptions
+): Pick<UseQueryOptions<TData, TError, TData, QueryKey>, 
+  'queryKey' | 'staleTime' | 'gcTime' | 'enabled' | 'refetchOnMount' | 'refetchOnWindowFocus'
+> {
+  const cacheConfig = options?.cacheType 
+    ? CACHE_TIMES[options.cacheType] 
+    : getCacheConfig(queryKey);
+
+  return {
+    queryKey,
+    staleTime: cacheConfig.staleTime,
+    gcTime: cacheConfig.gcTime,
+    enabled: options?.enabled,
+    refetchOnMount: options?.refetchOnMount ?? true,
+    refetchOnWindowFocus: options?.refetchOnWindowFocus ?? false,
+  };
+}
 
 const CSRF_COOKIE_NAME = 'csrf-token';
 const CSRF_HEADER_NAME = 'X-CSRF-Token';
@@ -33,7 +159,7 @@ async function ensureCsrfToken(): Promise<string | null> {
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    throw new ApiError(res.status, text);
   }
 }
 
@@ -102,8 +228,21 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      staleTime: CACHE_TIMES.DEFAULT.staleTime,
+      gcTime: CACHE_TIMES.DEFAULT.gcTime,
+      retry: (failureCount, error) => {
+        // Don't retry on client errors (4xx) - these won't succeed on retry
+        if (error instanceof ApiError && error.isClientError) {
+          return false;
+        }
+        // Don't retry on network errors that are permanent
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          return failureCount < 1; // Try once more for network glitches
+        }
+        // Retry server errors (5xx) up to 2 times with backoff
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
       retry: false,
