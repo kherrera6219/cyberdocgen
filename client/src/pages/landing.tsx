@@ -1,9 +1,21 @@
-import React from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, FileText, CheckCircle, Users, ArrowRight, Zap, Globe, Lock } from "lucide-react";
 
 export function Landing() {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (!savedTheme) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Hero Section */}
@@ -47,6 +59,16 @@ export function Landing() {
                 data-testid="button-enterprise-login"
               >
                 Enterprise Login
+              </Button>
+
+              <Button 
+                variant="ghost" 
+                size="lg"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-full transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                onClick={() => window.location.href = '/enterprise-signup'}
+                data-testid="button-create-account"
+              >
+                Create Account
               </Button>
             </div>
 

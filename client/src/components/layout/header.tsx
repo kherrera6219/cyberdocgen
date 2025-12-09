@@ -9,7 +9,7 @@ import { GlobalSearch } from "@/components/navigation/GlobalSearch";
 import MobileSidebar from "./mobile-sidebar";
 
 export default function Header() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
@@ -20,7 +20,12 @@ export default function Header() {
       setTheme(savedTheme);
       if (savedTheme === "dark") {
         document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
       }
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     }
   }, []);
 
