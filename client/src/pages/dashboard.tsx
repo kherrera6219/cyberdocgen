@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { DashboardSkeleton } from "@/components/loading/loading-skeleton";
 import { DocumentPreview } from "@/components/templates/document-preview";
-import { GenerationCustomizer } from "@/components/generation/GenerationCustomizer";
-import { HelpTooltip } from "@/components/help/ContextualHelp";
+import { AIInsightsDashboard } from "@/components/ai/AIInsightsDashboard";
+import { RiskHeatmap } from "@/components/ai/RiskHeatmap";
+import { ControlPrioritizer } from "@/components/ai/ControlPrioritizer";
 import {
   TrendingUp,
   FileText,
@@ -229,6 +230,20 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* AI Insights Dashboard */}
+      <AIInsightsDashboard 
+        companyProfile={profile ? { industry: profile.industry, companySize: profile.companySize } : undefined}
+        documentsCount={completedDocs}
+        frameworksActive={activeFrameworks}
+        onViewDetails={() => window.location.href = '/gap-analysis'}
+      />
+
+      {/* Risk Heatmap and Control Prioritizer */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+        <RiskHeatmap />
+        <ControlPrioritizer onImplementControl={(id) => console.log('Implementing control:', id)} />
       </div>
 
       {/* Company Profile Section */}
