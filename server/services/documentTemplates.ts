@@ -1,4 +1,16 @@
 import { logger } from '../utils/logger';
+import { z } from 'zod';
+import {
+  createDynamicVariableSchema,
+  generateFromTemplateSchema,
+  templateListQuerySchema,
+  extractTemplateVariables,
+  validateTemplateStructure,
+  type GenerateFromTemplateInput,
+  type TemplateListQuery,
+  type TemplateGenerationResult,
+  type SimpleTemplateVariableConfig
+} from '../validation/templateSchemas';
 
 // Complete 2025 Document Template Library
 // Based on latest ISO 27001:2022, SOC 2 Type 2, FedRAMP Rev 5, and NIST 800-53 Rev 5.1.1
@@ -2524,5 +2536,203 @@ export class DocumentTemplateService {
       userId,
       timestamp: new Date().toISOString()
     });
+  }
+
+  // Zod-based deterministic document generation with full schema validation
+  static generateDeterministicDocument(input: unknown): TemplateGenerationResult {
+    // Step 1: Validate input structure with Zod
+    const inputValidation = generateFromTemplateSchema.safeParse(input);
+    if (!inputValidation.success) {
+      return {
+        success: false,
+        templateId: (input as any)?.templateId || 'unknown',
+        errors: inputValidation.error.issues.map(issue => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+          code: issue.code
+        }))
+      };
+    }
+
+    const { templateId, variables, outputFormat, includeToc, includeMetadata, version } = inputValidation.data;
+
+    // Step 2: Find template
+    const template = this.getTemplateById(templateId);
+    if (!template) {
+      return {
+        success: false,
+        templateId,
+        errors: [{ field: 'templateId', message: `Template '${templateId}' not found` }]
+      };
+    }
+
+    // Step 3: Create dynamic schema for template variables and validate
+    const variableSchema = createDynamicVariableSchema(
+      template.templateVariables as Record<string, SimpleTemplateVariableConfig>
+    );
+    const variableValidation = variableSchema.safeParse(variables);
+
+    if (!variableValidation.success) {
+      return {
+        success: false,
+        templateId,
+        errors: variableValidation.error.issues.map(issue => ({
+          field: `variables.${issue.path.join('.')}`,
+          message: issue.message,
+          code: issue.code
+        }))
+      };
+    }
+
+    // Step 4: Generate deterministic content
+    let content = template.templateContent;
+    const validatedVars = variableValidation.data as Record<string, unknown>;
+
+    // Replace all variables with validated values
+    for (const [key, value] of Object.entries(validatedVars)) {
+      if (value !== undefined && value !== null) {
+        const placeholder = new RegExp(`{{${key}}}`, 'g');
+        content = content.replace(placeholder, String(value));
+      }
+    }
+
+    // Check for any remaining unfilled variables
+    const warnings: string[] = [];
+    const remainingVars = extractTemplateVariables(content);
+    if (remainingVars.length > 0) {
+      for (const remainingVar of remainingVars) {
+        const config = template.templateVariables[remainingVar];
+        if (config && !config.required) {
+          warnings.push(`Optional variable '${remainingVar}' was not provided`);
+          content = content.replace(new RegExp(`{{${remainingVar}}}`, 'g'), '[Not Specified]');
+        } else {
+          content = content.replace(new RegExp(`{{${remainingVar}}}`, 'g'), '[TO BE COMPLETED]');
+        }
+      }
+    }
+
+    // Step 5: Add metadata if requested
+    if (includeMetadata) {
+      const wordCount = content.split(/\s+/).filter(w => w.length > 0).length;
+      const sectionCount = (content.match(/^##?\s/gm) || []).length;
+
+      // Step 6: Add table of contents if requested
+      if (includeToc) {
+        const headings = content.match(/^#{1,3}\s.+$/gm) || [];
+        if (headings.length > 0) {
+          const toc = headings.map(h => {
+            const level = (h.match(/^#+/) || [''])[0].length;
+            const text = h.replace(/^#+\s*/, '');
+            const indent = '  '.repeat(level - 1);
+            const anchor = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            return `${indent}- [${text}](#${anchor})`;
+          }).join('\n');
+          content = `## Table of Contents\n\n${toc}\n\n---\n\n${content}`;
+        }
+      }
+
+      this.logTemplateUsage(templateId, template.framework);
+
+      return {
+        success: true,
+        templateId,
+        content,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          version,
+          framework: template.framework,
+          documentType: template.documentType,
+          wordCount,
+          sectionCount
+        },
+        warnings: warnings.length > 0 ? warnings : undefined
+      };
+    }
+
+    this.logTemplateUsage(templateId, template.framework);
+
+    return {
+      success: true,
+      templateId,
+      content,
+      warnings: warnings.length > 0 ? warnings : undefined
+    };
+  }
+
+  // Query templates with Zod-validated filters
+  static queryTemplates(query: unknown): DocumentTemplate[] {
+    const queryValidation = templateListQuerySchema.safeParse(query);
+    if (!queryValidation.success) {
+      logger.warn('Invalid template query', { errors: queryValidation.error.issues });
+      return [];
+    }
+
+    const { framework, category, documentType, requiredOnly, sortBy, sortOrder } = queryValidation.data;
+
+    let templates: DocumentTemplate[] = [];
+
+    if (framework) {
+      templates = this.getTemplatesByFramework(framework);
+    } else {
+      templates = this.getAllTemplates();
+    }
+
+    // Apply filters
+    if (category) {
+      templates = templates.filter(t => t.category === category);
+    }
+    if (documentType) {
+      templates = templates.filter(t => t.documentType === documentType);
+    }
+    if (requiredOnly) {
+      templates = templates.filter(t => t.required);
+    }
+
+    // Sort results
+    templates.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'title':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'category':
+          comparison = a.category.localeCompare(b.category);
+          break;
+        case 'priority':
+        default:
+          comparison = a.priority - b.priority;
+      }
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
+
+    return templates;
+  }
+
+  // Validate a template structure (for custom templates)
+  static validateTemplate(template: unknown): {
+    valid: boolean;
+    errors: Array<{ path: string; message: string }>;
+  } {
+    return validateTemplateStructure(template);
+  }
+
+  // Get variable schema for a template (for frontend form generation)
+  static getTemplateVariableSchema(templateId: string): {
+    schema: z.ZodObject<any> | null;
+    variables: Record<string, SimpleTemplateVariableConfig>;
+  } {
+    const template = this.getTemplateById(templateId);
+    if (!template) {
+      return { schema: null, variables: {} };
+    }
+
+    const schema = createDynamicVariableSchema(
+      template.templateVariables as Record<string, SimpleTemplateVariableConfig>
+    );
+
+    return {
+      schema,
+      variables: template.templateVariables as Record<string, SimpleTemplateVariableConfig>
+    };
   }
 }
