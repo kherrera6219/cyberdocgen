@@ -1,0 +1,140 @@
+import { Router } from 'express';
+import Anthropic from '@anthropic-ai/sdk';
+import { logger } from '../utils/logger';
+import { isAuthenticated } from '../replitAuth';
+
+export function registerAnalyticsRoutes(router: Router) {
+  router.post('/risk-assessment', isAuthenticated, async (req: any, res) => {
+    try {
+      const { companyProfile } = req.body;
+      
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      
+      const systemPrompt = `You are a cybersecurity risk analyst. Analyze the company profile and provide a comprehensive risk assessment with specific recommendations.`;
+      
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 2000,
+        messages: [{
+          role: "user", 
+          content: `Analyze cybersecurity risks for: Company: ${companyProfile.name}, Industry: ${companyProfile.industry}, Assets: ${companyProfile.assets?.join(', ')}, Threats: ${companyProfile.threats?.join(', ')}`
+        }],
+      });
+
+      const content = response.content[0];
+      const analysisText = content.type === 'text' ? content.text : 'Risk analysis completed';
+
+      res.json({
+        success: true,
+        riskAssessment: analysisText,
+        model: "claude-sonnet-4-20250514",
+        usage: response.usage
+      });
+    } catch (error: any) {
+      logger.error("Risk assessment failed", { error: error.message });
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  router.post('/compliance-analysis', isAuthenticated, async (req: any, res) => {
+    try {
+      const { framework, currentControls, requirements } = req.body;
+      
+      const prompt = `Analyze compliance gaps for ${framework}. Current controls: ${currentControls.join(', ')}. Requirements: ${requirements.join(', ')}. Provide detailed gap analysis and recommendations.`;
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 2000 }
+        })
+      });
+
+      const data = await response.json();
+      const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Compliance analysis completed';
+
+      res.json({
+        success: true,
+        gapAnalysis: analysisText,
+        model: "gemini-2.5-pro"
+      });
+    } catch (error: any) {
+      logger.error("Compliance analysis failed", { error: error.message });
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  router.post('/analyze-document-quality', isAuthenticated, async (req: any, res) => {
+    try {
+      const { content, framework, documentType } = req.body;
+      
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1500,
+        messages: [{
+          role: "user",
+          content: `Analyze the quality and completeness of this ${documentType} for ${framework} compliance. Score it 1-100 and provide specific improvement suggestions.\n\nDocument:\n${content.substring(0, 4000)}`
+        }],
+      });
+
+      const analysisContent = response.content[0];
+      const qualityText = analysisContent.type === 'text' ? analysisContent.text : 'Quality analysis completed';
+
+      res.json({
+        success: true,
+        qualityAnalysis: qualityText,
+        model: "claude-sonnet-4-20250514"
+      });
+    } catch (error: any) {
+      logger.error("Quality analysis failed", { error: error.message });
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  router.post('/compliance-chat', isAuthenticated, async (req: any, res) => {
+    try {
+      const { message, context, framework } = req.body;
+      
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      
+      const systemPrompt = `You are an expert ${framework} compliance advisor. Answer questions clearly and provide actionable guidance. Context: ${context || 'General compliance inquiry'}`;
+      
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{
+          role: "user",
+          content: message
+        }],
+      });
+
+      const responseContent = response.content[0];
+      const replyText = responseContent.type === 'text' ? responseContent.text : 'I can help you with compliance questions.';
+
+      res.json({
+        success: true,
+        reply: replyText,
+        model: "claude-sonnet-4-20250514"
+      });
+    } catch (error: any) {
+      logger.error("Compliance chat failed", { error: error.message });
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+}
