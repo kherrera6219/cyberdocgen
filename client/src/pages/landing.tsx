@@ -27,7 +27,7 @@ export function Landing() {
               <div className="relative">
                 <div className="absolute -inset-3 sm:-inset-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-xl opacity-20 animate-pulse"></div>
                 <div className="relative bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-full shadow-xl">
-                  <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400" />
+                  <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                 </div>
               </div>
             </div>
@@ -48,7 +48,7 @@ export function Landing() {
                 data-testid="button-get-started"
               >
                 Get Started
-                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
               </Button>
 
               <Button 
@@ -74,15 +74,15 @@ export function Landing() {
 
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-6 lg:space-x-8 text-xs sm:text-sm text-gray-500 dark:text-gray-400 px-4">
               <div className="flex items-center space-x-2">
-                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" aria-hidden="true" />
                 <span>No credit card required</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" aria-hidden="true" />
                 <span>Enterprise security</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" aria-hidden="true" />
                 <span>Fast generation</span>
               </div>
             </div>
@@ -106,7 +106,7 @@ export function Landing() {
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full w-fit group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
-                  <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                 </div>
                 <CardTitle className="text-xl text-gray-900 dark:text-white">Multi-Framework Support</CardTitle>
               </CardHeader>
@@ -120,7 +120,7 @@ export function Landing() {
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full w-fit group-hover:bg-purple-200 dark:group-hover:bg-purple-800/50 transition-colors">
-                  <FileText className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                  <FileText className="h-8 w-8 text-purple-600 dark:text-purple-400" aria-hidden="true" />
                 </div>
                 <CardTitle className="text-xl text-gray-900 dark:text-white">AI-Generated Documentation</CardTitle>
               </CardHeader>
@@ -134,7 +134,7 @@ export function Landing() {
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900/30 rounded-full w-fit group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
-                  <Users className="h-8 w-8 text-green-600 dark:text-green-400" />
+                  <Users className="h-8 w-8 text-green-600 dark:text-green-400" aria-hidden="true" />
                 </div>
                 <CardTitle className="text-xl text-gray-900 dark:text-white">Team Collaboration</CardTitle>
               </CardHeader>
@@ -148,7 +148,7 @@ export function Landing() {
             <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:scale-105">
               <CardHeader className="text-center pb-4">
                 <div className="mx-auto mb-4 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full w-fit group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-colors">
-                  <Globe className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                  <Globe className="h-8 w-8 text-orange-600 dark:text-orange-400" aria-hidden="true" />
                 </div>
                 <CardTitle className="text-xl text-gray-900 dark:text-white">Cloud-Native Platform</CardTitle>
               </CardHeader>
@@ -208,9 +208,10 @@ export function Landing() {
             size="lg" 
             className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             onClick={() => window.location.href = '/api/login'}
+            data-testid="button-start-free-trial"
           >
             Start Free Trial
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
       </div>

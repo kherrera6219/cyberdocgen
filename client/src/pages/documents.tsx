@@ -88,7 +88,8 @@ export default function Documents() {
 
   if (isLoading) {
     return (
-      <div className="p-3 sm:p-6">
+      <div className="p-3 sm:p-6" role="status" aria-live="polite" aria-busy="true">
+        <span className="sr-only">Loading documents...</span>
         <div className="animate-pulse space-y-4">
           <div className="h-6 sm:h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 sm:w-1/4"></div>
           <div className="h-48 sm:h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
@@ -113,19 +114,21 @@ export default function Documents() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" aria-hidden="true" />
                 <Input
                   placeholder="Search documents..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
+                  aria-label="Search documents"
+                  data-testid="input-search-documents"
                 />
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-40">
+                <SelectTrigger className="w-full sm:w-40" aria-label="Filter by status" data-testid="select-status-filter">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -138,8 +141,8 @@ export default function Documents() {
 
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto">
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button className="w-full sm:w-auto" data-testid="button-new-document">
+                    <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
                     <span className="hidden sm:inline">New Document</span>
                     <span className="sm:hidden">New</span>
                   </Button>
@@ -167,8 +170,8 @@ export default function Documents() {
             <CardTitle className="text-base sm:text-lg">
               Documents ({filteredDocuments.length})
             </CardTitle>
-            <Button variant="outline" size="sm" className="self-start sm:self-auto">
-              <Download className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="sm" className="self-start sm:self-auto" aria-label="Export all documents" data-testid="button-export-all">
+              <Download className="w-4 h-4 mr-2" aria-hidden="true" />
               <span className="hidden sm:inline">Export All</span>
               <span className="sm:hidden">Export</span>
             </Button>
@@ -200,11 +203,11 @@ export default function Documents() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Edit className="w-4 h-4" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit ${doc.title}`} data-testid={`button-edit-${doc.id}`}>
+                          <Edit className="w-4 h-4" aria-hidden="true" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Download className="w-4 h-4" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Download ${doc.title}`} data-testid={`button-download-${doc.id}`}>
+                          <Download className="w-4 h-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </div>
@@ -227,16 +230,16 @@ export default function Documents() {
               </div>
 
               {/* Desktop Table View */}
-              <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full">
+              <div className="hidden lg:block overflow-x-auto" role="region" aria-label="Documents table">
+                <table className="w-full" aria-label="Documents list">
                   <thead className="bg-gray-50 dark:bg-gray-800">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Document</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Framework</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Modified</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Document</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Framework</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Modified</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
@@ -274,14 +277,14 @@ export default function Documents() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="icon">
-                              <Edit className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" aria-label={`Edit ${doc.title}`} data-testid={`button-edit-desktop-${doc.id}`}>
+                              <Edit className="w-4 h-4" aria-hidden="true" />
                             </Button>
-                            <Button variant="ghost" size="icon">
-                              <Download className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" aria-label={`Download ${doc.title}`} data-testid={`button-download-desktop-${doc.id}`}>
+                              <Download className="w-4 h-4" aria-hidden="true" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600">
-                              <Trash2 className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600" aria-label={`Delete ${doc.title}`} data-testid={`button-delete-${doc.id}`}>
+                              <Trash2 className="w-4 h-4" aria-hidden="true" />
                             </Button>
                           </div>
                         </td>
