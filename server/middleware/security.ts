@@ -111,7 +111,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     "script-src 'self' 'unsafe-inline' https://apis.google.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
-    "connect-src 'self' https://api.openai.com https://api.anthropic.com",
+    "connect-src 'self' ws: wss: https://api.openai.com https://api.anthropic.com",
     "font-src 'self' https://fonts.gstatic.com",
     "frame-ancestors 'none'",
     "form-action 'self'",

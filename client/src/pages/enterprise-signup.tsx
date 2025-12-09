@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertCircle, Lock, Mail, Phone, Shield } from 'lucide-react';
+import { CheckCircle, AlertCircle, Lock, Mail, Phone, Shield, Zap, Smartphone } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 
@@ -127,19 +127,19 @@ export default function EnterpriseSignup() {
               </h3>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
-                  <Badge variant="secondary">✓</Badge>
+                  <Badge variant="secondary"><CheckCircle className="w-3 h-3" /></Badge>
                   Enterprise-grade security
                 </li>
                 <li className="flex items-center gap-2">
-                  <Badge variant="secondary">⚡</Badge>
+                  <Badge variant="secondary"><Zap className="w-3 h-3" /></Badge>
                   Multi-factor authentication support
                 </li>
                 <li className="flex items-center gap-2">
-                  <Badge variant="secondary">🔐</Badge>
+                  <Badge variant="secondary"><Lock className="w-3 h-3" /></Badge>
                   Passkey authentication
                 </li>
                 <li className="flex items-center gap-2">
-                  <Badge variant="secondary">📱</Badge>
+                  <Badge variant="secondary"><Smartphone className="w-3 h-3" /></Badge>
                   Google Authenticator integration
                 </li>
               </ul>

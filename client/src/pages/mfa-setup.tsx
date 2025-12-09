@@ -285,8 +285,8 @@ export default function MFASetupPage() {
                   )}
                 </Button>
               ) : (
-                <div className="text-sm text-green-600">
-                  ✓ Authenticator app is configured and active
+                <div className="text-sm text-green-600 flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4" /> Authenticator app is configured and active
                 </div>
               )}
             </CardContent>
@@ -339,8 +339,8 @@ export default function MFASetupPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="text-sm text-green-600">
-                  ✓ SMS verification is configured and active
+                <div className="text-sm text-green-600 flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4" /> SMS verification is configured and active
                 </div>
               )}
             </CardContent>

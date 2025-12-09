@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, Brain, CheckCircle, Zap } from "lucide-react";
+import { AlertCircle, Brain, CheckCircle, XCircle, Zap } from "lucide-react";
 
 interface ModelSelectorProps {
   value: string;
@@ -123,8 +123,9 @@ export function ModelSelector({
               <AlertCircle className="h-4 w-4" />
               <span>AI services experiencing issues</span>
             </div>
-            <div className="mt-1 text-xs text-red-600 dark:text-red-400">
-              OpenAI: {health.openai ? "✓" : "✗"} | Anthropic: {health.anthropic ? "✓" : "✗"}
+            <div className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+              <span className="flex items-center gap-1">OpenAI: {health.openai ? <CheckCircle className="w-3 h-3 text-green-500" /> : <XCircle className="w-3 h-3" />}</span>
+              <span className="flex items-center gap-1">Anthropic: {health.anthropic ? <CheckCircle className="w-3 h-3 text-green-500" /> : <XCircle className="w-3 h-3" />}</span>
             </div>
           </div>
         )}

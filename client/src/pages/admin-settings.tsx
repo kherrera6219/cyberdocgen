@@ -21,7 +21,9 @@ import {
   CheckCircle,
   Copy,
   ExternalLink,
-  Trash2
+  Trash2,
+  Folder,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
@@ -526,7 +528,7 @@ export default function AdminSettings() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                              {integration.provider === 'google_drive' ? '📁' : '📄'}
+                              {integration.provider === 'google_drive' ? <Folder className="h-5 w-5 text-yellow-500" /> : <FileText className="h-5 w-5 text-blue-500" />}
                             </div>
                             <div>
                               <h3 className="font-semibold">{integration.displayName}</h3>

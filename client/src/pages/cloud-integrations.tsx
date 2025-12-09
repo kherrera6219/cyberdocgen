@@ -15,7 +15,9 @@ import {
   Trash2,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Folder,
+  FileSpreadsheet
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
@@ -135,11 +137,11 @@ export default function CloudIntegrations() {
   const getProviderIcon = (provider: string) => {
     switch (provider) {
       case 'google_drive':
-        return '📁';
+        return <Folder className="w-4 h-4" />;
       case 'onedrive':
-        return '📄';
+        return <FileText className="w-4 h-4" />;
       default:
-        return '☁️';
+        return <Cloud className="w-4 h-4" />;
     }
   };
 
@@ -217,7 +219,7 @@ export default function CloudIntegrations() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  📁 Google Drive
+                  <Folder className="h-5 w-5" /> Google Drive
                 </CardTitle>
                 <CardDescription>
                   Access and secure your Google Drive documents
@@ -290,7 +292,7 @@ export default function CloudIntegrations() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  📄 Microsoft OneDrive
+                  <FileText className="h-5 w-5" /> Microsoft OneDrive
                 </CardTitle>
                 <CardDescription>
                   Access and secure your OneDrive documents
@@ -411,9 +413,9 @@ export default function CloudIntegrations() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                            {file.fileType === 'pdf' ? '📄' : 
-                             file.fileType === 'docx' ? '📝' : 
-                             file.fileType === 'xlsx' ? '📊' : '📁'}
+                            {file.fileType === 'pdf' ? <FileText className="h-5 w-5 text-red-500" /> : 
+                             file.fileType === 'docx' ? <FileText className="h-5 w-5 text-blue-500" /> : 
+                             file.fileType === 'xlsx' ? <FileSpreadsheet className="h-5 w-5 text-green-500" /> : <Folder className="h-5 w-5 text-yellow-500" />}
                           </div>
                           <div>
                             <h3 className="font-semibold">{file.fileName}</h3>
@@ -491,10 +493,10 @@ export default function CloudIntegrations() {
                 </p>
                 <div className="flex justify-center gap-4">
                   <Button onClick={handleConnectGoogle} className="flex items-center gap-2">
-                    📁 Connect Google Drive
+                    <Folder className="h-4 w-4" /> Connect Google Drive
                   </Button>
                   <Button onClick={handleConnectMicrosoft} variant="outline" className="flex items-center gap-2">
-                    📄 Connect OneDrive
+                    <FileText className="h-4 w-4" /> Connect OneDrive
                   </Button>
                 </div>
               </CardContent>
