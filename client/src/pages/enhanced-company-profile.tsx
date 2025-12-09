@@ -15,7 +15,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Users, Shield, FileText, Settings, Upload, Building2 } from "lucide-react";
+import { Users, Shield, FileText, Settings, Upload, Building2, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { insertCompanyProfileSchema, type InsertCompanyProfile } from "@shared/schema";
 import { z } from "zod";
 
@@ -89,6 +90,12 @@ export default function EnhancedCompanyProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("basic");
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const form = useForm<FormData>({
     resolver: zodResolver(enhancedCompanyProfileSchema) as any,
@@ -172,16 +179,36 @@ export default function EnhancedCompanyProfile() {
     createProfileMutation.mutate(data);
   };
 
+  if (isInitialLoading) {
+    return (
+      <div className="space-y-6 sm:space-y-8" data-testid="loading-skeleton">
+        <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
         <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
-            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Enhanced Company Profile</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white" data-testid="text-page-title">Enhanced Company Profile</h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">Create a comprehensive company profile with key personnel and compliance framework configurations</p>
           </div>
         </div>
@@ -190,29 +217,29 @@ export default function EnhancedCompanyProfile() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
-                <TabsTrigger value="basic" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1" aria-label="Company profile sections">
+                <TabsTrigger value="basic" data-testid="tab-basic" aria-label="Basic company information" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Building2 className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Basic Info</span>
                   <span className="sm:hidden">Basic</span>
                 </TabsTrigger>
-                <TabsTrigger value="personnel" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                <TabsTrigger value="personnel" data-testid="tab-personnel" aria-label="Key personnel information" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Key Personnel</span>
                   <span className="sm:hidden">Personnel</span>
                 </TabsTrigger>
-                <TabsTrigger value="frameworks" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+                <TabsTrigger value="frameworks" data-testid="tab-frameworks" aria-label="Compliance frameworks selection" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Shield className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                   <span className="hidden lg:inline">Frameworks</span>
                   <span className="lg:hidden">Frameworks</span>
                 </TabsTrigger>
-                <TabsTrigger value="fedramp" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                <TabsTrigger value="fedramp" data-testid="tab-fedramp" aria-label="FedRAMP configuration" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                   <span className="hidden lg:inline">FedRAMP</span>
                   <span className="lg:hidden">FedRAMP</span>
                 </TabsTrigger>
-                <TabsTrigger value="controls" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+                <TabsTrigger value="controls" data-testid="tab-controls" aria-label="Control families configuration" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Settings className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                   <span className="hidden lg:inline">Controls</span>
                   <span className="lg:hidden">Controls</span>
                 </TabsTrigger>
@@ -235,7 +262,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Company Name *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Acme Corporation" {...field} />
+                              <Input data-testid="input-companyName" aria-label="Company name" placeholder="Acme Corporation" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -250,7 +277,7 @@ export default function EnhancedCompanyProfile() {
                             <FormLabel>Industry *</FormLabel>
                             <FormControl>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <SelectTrigger>
+                                <SelectTrigger data-testid="select-industry" aria-label="Select industry">
                                   <SelectValue placeholder="Select industry" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -280,7 +307,7 @@ export default function EnhancedCompanyProfile() {
                             <FormLabel>Company Size *</FormLabel>
                             <FormControl>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <SelectTrigger>
+                                <SelectTrigger data-testid="select-companySize" aria-label="Select company size">
                                   <SelectValue placeholder="Select company size" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -304,7 +331,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Headquarters *</FormLabel>
                             <FormControl>
-                              <Input placeholder="San Francisco, CA, USA" {...field} />
+                              <Input data-testid="input-headquarters" aria-label="Headquarters location" placeholder="San Francisco, CA, USA" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -320,7 +347,7 @@ export default function EnhancedCompanyProfile() {
                           <FormLabel>Data Classification *</FormLabel>
                           <FormControl>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <SelectTrigger>
+                              <SelectTrigger data-testid="select-dataClassification" aria-label="Select data classification level">
                                 <SelectValue placeholder="Select data classification level" />
                               </SelectTrigger>
                               <SelectContent>
@@ -345,6 +372,8 @@ export default function EnhancedCompanyProfile() {
                           <FormLabel>Business Applications *</FormLabel>
                           <FormControl>
                             <Textarea
+                              data-testid="input-businessApplications"
+                              aria-label="Business applications description"
                               placeholder="Describe your primary business applications and systems..."
                               className="min-h-[100px]"
                               {...field}
@@ -378,7 +407,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Chief Executive Officer (CEO)</FormLabel>
                             <FormControl>
-                              <Input placeholder="John Smith" {...field} />
+                              <Input data-testid="input-ceoName" aria-label="CEO name" placeholder="John Smith" {...field} />
                             </FormControl>
                             <FormDescription>
                               Required for executive oversight responsibilities
@@ -395,7 +424,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Chief Information Security Officer (CISO)</FormLabel>
                             <FormControl>
-                              <Input placeholder="Jane Doe" {...field} />
+                              <Input data-testid="input-cisoName" aria-label="CISO name" placeholder="Jane Doe" {...field} />
                             </FormControl>
                             <FormDescription>
                               Primary security responsibility owner
@@ -413,7 +442,7 @@ export default function EnhancedCompanyProfile() {
                         <FormItem>
                           <FormLabel>CISO Email</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="ciso@company.com" {...field} />
+                            <Input data-testid="input-cisoEmail" aria-label="CISO email" type="email" placeholder="ciso@company.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -430,7 +459,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Information Security Officer</FormLabel>
                             <FormControl>
-                              <Input placeholder="Bob Johnson" {...field} />
+                              <Input data-testid="input-securityOfficerName" aria-label="Security officer name" placeholder="Bob Johnson" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -444,7 +473,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Security Officer Email</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="security@company.com" {...field} />
+                              <Input data-testid="input-securityOfficerEmail" aria-label="Security officer email" type="email" placeholder="security@company.com" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -460,7 +489,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Compliance Officer</FormLabel>
                             <FormControl>
-                              <Input placeholder="Alice Brown" {...field} />
+                              <Input data-testid="input-complianceOfficerName" aria-label="Compliance officer name" placeholder="Alice Brown" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -474,7 +503,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Compliance Officer Email</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="compliance@company.com" {...field} />
+                              <Input data-testid="input-complianceOfficerEmail" aria-label="Compliance officer email" type="email" placeholder="compliance@company.com" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -490,7 +519,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>IT Manager</FormLabel>
                             <FormControl>
-                              <Input placeholder="Charlie Wilson" {...field} />
+                              <Input data-testid="input-itManagerName" aria-label="IT manager name" placeholder="Charlie Wilson" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -504,7 +533,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>IT Manager Email</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="it@company.com" {...field} />
+                              <Input data-testid="input-itManagerEmail" aria-label="IT manager email" type="email" placeholder="it@company.com" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -520,7 +549,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Legal Counsel</FormLabel>
                             <FormControl>
-                              <Input placeholder="Diana Clark" {...field} />
+                              <Input data-testid="input-legalCounselName" aria-label="Legal counsel name" placeholder="Diana Clark" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -534,7 +563,7 @@ export default function EnhancedCompanyProfile() {
                           <FormItem>
                             <FormLabel>Legal Counsel Email</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="legal@company.com" {...field} />
+                              <Input data-testid="input-legalCounselEmail" aria-label="Legal counsel email" type="email" placeholder="legal@company.com" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -573,6 +602,8 @@ export default function EnhancedCompanyProfile() {
                                     >
                                       <FormControl>
                                         <Checkbox
+                                          data-testid={`checkbox-framework-${framework.id}`}
+                                          aria-label={`Select ${framework.name} framework`}
                                           checked={field.value?.includes(framework.id)}
                                           onCheckedChange={(checked) => {
                                             return checked
@@ -624,7 +655,7 @@ export default function EnhancedCompanyProfile() {
                           <FormLabel>FedRAMP Impact Level</FormLabel>
                           <FormControl>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <SelectTrigger>
+                              <SelectTrigger data-testid="select-fedRampLevel" aria-label="Select FedRAMP impact level">
                                 <SelectValue placeholder="Select FedRAMP level" />
                               </SelectTrigger>
                               <SelectContent>
@@ -719,6 +750,8 @@ export default function EnhancedCompanyProfile() {
                                       >
                                         <FormControl>
                                           <Checkbox
+                                            data-testid={`checkbox-nist-${family.id}`}
+                                            aria-label={`Select ${family.name} control family`}
                                             checked={field.value?.includes(family.id)}
                                             onCheckedChange={(checked) => {
                                               return checked
@@ -779,6 +812,8 @@ export default function EnhancedCompanyProfile() {
                                       >
                                         <FormControl>
                                           <Checkbox
+                                            data-testid={`checkbox-soc2-${service.id}`}
+                                            aria-label={`Select ${service.name} trust service`}
                                             checked={field.value?.includes(service.id)}
                                             onCheckedChange={(checked) => {
                                               return checked
@@ -819,6 +854,8 @@ export default function EnhancedCompanyProfile() {
               <Button
                 type="button"
                 variant="outline"
+                data-testid="button-previous"
+                aria-label="Go to previous tab"
                 onClick={() => {
                   const tabs = ["basic", "personnel", "frameworks", "fedramp", "controls"];
                   const currentIndex = tabs.indexOf(activeTab);
@@ -835,6 +872,8 @@ export default function EnhancedCompanyProfile() {
                 <Button
                   type="button"
                   variant="outline"
+                  data-testid="button-next"
+                  aria-label="Go to next tab"
                   onClick={() => {
                     const tabs = ["basic", "personnel", "frameworks", "fedramp", "controls"];
                     const currentIndex = tabs.indexOf(activeTab);
@@ -849,10 +888,19 @@ export default function EnhancedCompanyProfile() {
 
                 <Button
                   type="submit"
+                  data-testid="button-submit"
+                  aria-label="Create company profile"
                   disabled={createProfileMutation.isPending}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {createProfileMutation.isPending ? "Creating..." : "Create Profile"}
+                  {createProfileMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Profile"
+                  )}
                 </Button>
               </div>
             </div>
