@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -37,32 +37,52 @@ const CloudIntegrations = lazy(() => import("@/pages/cloud-integrations"));
 const AuditTrailComplete = lazy(() => import("./pages/audit-trail-complete"));
 const UserProfileNew = lazy(() => import("./pages/user-profile-new"));
 
-function Router() {
-  const { isAuthenticated } = useAuth();
-
+function AuthenticatedRouter() {
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/profile" component={CompanyProfile} />
-          <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
-          <Route path="/workspace" component={() => <DocumentWorkspace organizationId="default" />} />
-          <Route path="/documents" component={Documents} />
-          <Route path="/gap-analysis" component={GapAnalysis} />
-          <Route path="/audit-trail" component={AuditTrail} />
-          <Route path="/document-versions/:id" component={(props: any) => <DocumentVersions documentId={props.params.id} documentTitle="Document" />} />
-          <Route path="/user-profile" component={UserProfile} />
-          <Route path="/organizations" component={OrganizationSetup} />
-          <Route path="/storage" component={ObjectStorageManager} />
-          <Route path="/ai-specialization" component={IndustrySpecialization} />
-          <Route path="/export" component={ExportCenter} />
-        </>
-      )}
-      {/* Enterprise Authentication Routes */}
+      <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/profile" component={CompanyProfile} />
+      <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
+      <Route path="/workspace" component={() => <DocumentWorkspace organizationId="default" />} />
+      <Route path="/documents" component={Documents} />
+      <Route path="/gap-analysis" component={GapAnalysis} />
+      <Route path="/audit-trail" component={AuditTrail} />
+      <Route path="/document-versions/:id" component={(props: any) => <DocumentVersions documentId={props.params.id} documentTitle="Document" />} />
+      <Route path="/user-profile" component={UserProfile} />
+      <Route path="/organizations" component={OrganizationSetup} />
+      <Route path="/storage" component={ObjectStorageManager} />
+      <Route path="/ai-specialization" component={IndustrySpecialization} />
+      <Route path="/export" component={ExportCenter} />
+      <Route path="/admin">
+        <Suspense fallback={<div>Loading...</div>}>
+          <AdminSettings />
+        </Suspense>
+      </Route>
+      <Route path="/cloud-integrations">
+        <Suspense fallback={<div>Loading...</div>}>
+          <CloudIntegrations />
+        </Suspense>
+      </Route>
+      <Route path="/audit-trail/complete">
+        <Suspense fallback={<div>Loading...</div>}>
+          <AuditTrailComplete />
+        </Suspense>
+      </Route>
+      <Route path="/profile/settings">
+        <Suspense fallback={<div>Loading...</div>}>
+          <UserProfileNew />
+        </Suspense>
+      </Route>
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function PublicRouter() {
+  return (
+    <Switch>
+      <Route path="/" component={Landing} />
       <Route path="/login">
         <Suspense fallback={<div>Loading...</div>}>
           <EnterpriseLogin />
@@ -88,33 +108,6 @@ function Router() {
           <MfaSetup />
         </Suspense>
       </Route>
-
-      {/* Admin Routes */}
-      <Route path="/admin">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AdminSettings />
-        </Suspense>
-      </Route>
-
-      {/* Cloud Integration Routes */}
-      <Route path="/cloud-integrations">
-        <Suspense fallback={<div>Loading...</div>}>
-          <CloudIntegrations />
-        </Suspense>
-      </Route>
-
-      {/* Corrected and new routes */}
-      <Route path="/audit-trail/complete">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AuditTrailComplete />
-        </Suspense>
-      </Route>
-      <Route path="/profile/settings">
-        <Suspense fallback={<div>Loading...</div>}>
-          <UserProfileNew />
-        </Suspense>
-      </Route>
-
       <Route component={NotFound} />
     </Switch>
   );
@@ -135,10 +128,10 @@ function App() {
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
-  const [showLoading, setShowLoading] = React.useState(true);
+  const [showLoading, setShowLoading] = useState(true);
 
   // Timeout the loading state after 2 seconds to prevent infinite loading
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setShowLoading(false);
     }, 2000);
@@ -146,7 +139,7 @@ function AppContent() {
   }, []);
 
   // Also stop showing loading when auth check completes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isLoading) {
       setShowLoading(false);
     }
@@ -166,13 +159,13 @@ function AppContent() {
 
   // Not authenticated - show public routes without layout
   if (!isAuthenticated) {
-    return <Router />;
+    return <PublicRouter />;
   }
 
   // Authenticated - show routes with layout
   return (
     <Layout>
-      <Router />
+      <AuthenticatedRouter />
     </Layout>
   );
 }

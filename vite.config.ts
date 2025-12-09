@@ -21,7 +21,10 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      "react": path.resolve(import.meta.dirname, "node_modules/react"),
+      "react-dom": path.resolve(import.meta.dirname, "node_modules/react-dom"),
     },
+    dedupe: ['react', 'react-dom'],
   },
   root: path.resolve(import.meta.dirname, "client"),
   build: {
@@ -33,5 +36,8 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', '@radix-ui/react-tooltip', '@radix-ui/react-toast', '@tanstack/react-query'],
   },
 });
