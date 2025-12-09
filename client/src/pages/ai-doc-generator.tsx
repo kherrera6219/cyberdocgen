@@ -169,9 +169,9 @@ export default function AIDocGenerator() {
   const { data: jobStatus, refetch: refetchJob } = useQuery<GenerationJob>({
     queryKey: ["/api/ai/generation-jobs", jobId],
     enabled: !!jobId && currentStep === 5,
-    refetchInterval: (data) => {
-      if (!data) return 2000;
-      return data.status === "running" ? 2000 : false;
+    refetchInterval: (query) => {
+      if (!query.state.data) return 2000;
+      return query.state.data.status === "running" ? 2000 : false;
     },
   });
 
@@ -707,7 +707,7 @@ export default function AIDocGenerator() {
                   <span className="text-muted-foreground">Cloud Providers</span>
                   <div className="flex flex-wrap gap-1 justify-end" data-testid="review-cloud-providers">
                     {values.cloudProviders?.map((p) => (
-                      <Badge key={p} variant="secondary" size="sm">
+                      <Badge key={p} variant="secondary">
                         {CLOUD_PROVIDERS.find((cp) => cp.id === p)?.label || p}
                       </Badge>
                     ))}
@@ -735,10 +735,10 @@ export default function AIDocGenerator() {
                 </Badge>
               ))}
             </div>
-            {values.frameworks?.includes("soc2") && values.soc2TrustPrinciples?.length > 0 && (
+            {values.frameworks?.includes("soc2") && (values.soc2TrustPrinciples?.length ?? 0) > 0 && (
               <div className="text-sm text-muted-foreground">
                 SOC 2 Principles:{" "}
-                {values.soc2TrustPrinciples
+                {(values.soc2TrustPrinciples ?? [])
                   .map((p) => SOC2_TRUST_PRINCIPLES.find((tp) => tp.id === p)?.label)
                   .join(", ")}
               </div>
@@ -862,17 +862,16 @@ export default function AIDocGenerator() {
                         <div>
                           <p className="font-medium">{doc.title}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" size="sm">
+                            <Badge variant="outline">
                               {doc.framework}
                             </Badge>
                             <Badge
                               variant={doc.status === "draft" ? "secondary" : "default"}
-                              size="sm"
                             >
                               {doc.status}
                             </Badge>
                             {doc.aiGenerated && (
-                              <Badge variant="secondary" size="sm">
+                              <Badge variant="secondary">
                                 AI Generated
                               </Badge>
                             )}
