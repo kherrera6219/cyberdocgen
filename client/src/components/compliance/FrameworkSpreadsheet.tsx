@@ -18,8 +18,16 @@ import {
   Edit2, 
   X,
   Loader2,
-  FileText
+  FileText,
+  Download,
+  FileSpreadsheet
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface SpreadsheetField {
   id: string;
@@ -216,6 +224,84 @@ export function FrameworkSpreadsheet({ framework, companyProfileId }: FrameworkS
     return localUpdates[field.id] ?? field.currentValue;
   };
 
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const escapeCSVValue = (value: string): string => {
+    if (!value) return '';
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
+  };
+
+  const exportTemplateToCSV = (template: SpreadsheetTemplate) => {
+    const headers = ['Field Name', 'Variable Key', 'Value', 'Status', 'Required'];
+    const rows = template.fields.map(field => {
+      const value = getFieldValue(field);
+      const hasLocalUpdate = field.id in localUpdates;
+      const status = hasLocalUpdate ? 'Modified' : field.status;
+      return [
+        escapeCSVValue(field.label),
+        escapeCSVValue(field.variableKey),
+        escapeCSVValue(value),
+        escapeCSVValue(status),
+        field.required ? 'Yes' : 'No'
+      ].join(',');
+    });
+    
+    const csv = [headers.join(','), ...rows].join('\n');
+    const filename = `${template.templateTitle.replace(/[^a-z0-9]/gi, '_')}_${framework}.csv`;
+    downloadFile(csv, filename, 'text/csv;charset=utf-8;');
+    
+    toast({
+      title: "Export Complete",
+      description: `Downloaded ${filename}`,
+    });
+  };
+
+  const exportAllToCSV = () => {
+    if (!templates || templates.length === 0) return;
+    
+    const headers = ['Template', 'Category', 'Field Name', 'Variable Key', 'Value', 'Status', 'Required'];
+    const rows: string[] = [];
+    
+    templates.forEach(template => {
+      template.fields.forEach(field => {
+        const value = getFieldValue(field);
+        const hasLocalUpdate = field.id in localUpdates;
+        const status = hasLocalUpdate ? 'Modified' : field.status;
+        rows.push([
+          escapeCSVValue(template.templateTitle),
+          escapeCSVValue(template.category),
+          escapeCSVValue(field.label),
+          escapeCSVValue(field.variableKey),
+          escapeCSVValue(value),
+          escapeCSVValue(status),
+          field.required ? 'Yes' : 'No'
+        ].join(','));
+      });
+    });
+    
+    const csv = [headers.join(','), ...rows].join('\n');
+    const filename = `${framework}_all_templates.csv`;
+    downloadFile(csv, filename, 'text/csv;charset=utf-8;');
+    
+    toast({
+      title: "Export Complete",
+      description: `Downloaded ${filename}`,
+    });
+  };
+
   const hasChanges = Object.keys(localUpdates).length > 0;
 
   if (isLoading) {
@@ -264,18 +350,37 @@ export function FrameworkSpreadsheet({ framework, companyProfileId }: FrameworkS
             Fill in template fields with company data or use AI autofill
           </p>
         </div>
-        <Button
-          onClick={handleSaveAll}
-          disabled={!hasChanges || saveMutation.isPending || !companyProfileId}
-          data-testid="button-save-all-changes"
-        >
-          {saveMutation.isPending ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4 mr-2" />
-          )}
-          Save All Changes
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" data-testid="button-export-dropdown">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={exportAllToCSV}
+                data-testid="button-export-all-csv"
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export All to CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            onClick={handleSaveAll}
+            disabled={!hasChanges || saveMutation.isPending || !companyProfileId}
+            data-testid="button-save-all-changes"
+          >
+            {saveMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Save All Changes
+          </Button>
+        </div>
       </div>
 
       {!companyProfileId && (
@@ -315,7 +420,16 @@ export function FrameworkSpreadsheet({ framework, companyProfileId }: FrameworkS
               </AccordionTrigger>
               <AccordionContent className="pb-4">
                 <div className="space-y-4">
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportTemplateToCSV(template)}
+                      data-testid={`button-export-${template.templateId}`}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export CSV
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
