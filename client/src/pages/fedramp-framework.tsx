@@ -40,6 +40,11 @@ import {
   Link
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
+import { Table as TableIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { CompanyProfile } from "@shared/schema";
 
 type ControlStatus = "not_started" | "in_progress" | "implemented" | "not_applicable";
 type EvidenceStatus = "none" | "partial" | "complete";
@@ -321,6 +326,12 @@ export default function FedRAMPFramework() {
   const [familyFilter, setFamilyFilter] = useState<string>("all");
   const [baselineFilter, setBaselineFilter] = useState<string>("all");
   const [expandedFamilies, setExpandedFamilies] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState("controls");
+  const [selectedCompanyProfileId, setSelectedCompanyProfileId] = useState<string | null>(null);
+
+  const { data: companyProfiles } = useQuery<CompanyProfile[]>({
+    queryKey: ['/api/company-profiles'],
+  });
 
   const allControls = useMemo(() => {
     return controlFamilies.flatMap(family => 
@@ -475,14 +486,57 @@ export default function FedRAMPFramework() {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ChevronRight className="h-5 w-5" />
-            Overall Compliance Progress
-          </CardTitle>
-          <CardDescription>
-            Track your organization's FedRAMP implementation status
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <TabsList data-testid="tabs-framework-sections">
+            <TabsTrigger value="controls" data-testid="tab-controls">
+              <Shield className="h-4 w-4 mr-2" />
+              Controls
+            </TabsTrigger>
+            <TabsTrigger value="templates" data-testid="tab-templates">
+              <TableIcon className="h-4 w-4 mr-2" />
+              Template Data
+            </TabsTrigger>
+          </TabsList>
+
+          {activeTab === "templates" && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Company Profile:</span>
+              <Select 
+                value={selectedCompanyProfileId || ""} 
+                onValueChange={(v) => setSelectedCompanyProfileId(v || null)}
+              >
+                <SelectTrigger className="w-[200px]" data-testid="select-company-profile">
+                  <SelectValue placeholder="Select profile..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {companyProfiles?.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.companyName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        <TabsContent value="templates" className="space-y-4">
+          <FrameworkSpreadsheet 
+            framework="FedRAMP" 
+            companyProfileId={selectedCompanyProfileId} 
+          />
+        </TabsContent>
+
+        <TabsContent value="controls" className="space-y-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ChevronRight className="h-5 w-5" />
+                Overall Compliance Progress
+              </CardTitle>
+              <CardDescription>
+                Track your organization's FedRAMP implementation status
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -772,6 +826,8 @@ export default function FedRAMPFramework() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -25,6 +25,11 @@ import {
   Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
+import { Table as TableIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { CompanyProfile } from "@shared/schema";
 
 type ControlStatus = "not_started" | "in_progress" | "implemented" | "not_applicable";
 type EvidenceStatus = "none" | "partial" | "complete";
@@ -157,6 +162,12 @@ export default function SOC2Framework() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [principleFilter, setPrincipleFilter] = useState<string>("all");
   const [expandedPrinciples, setExpandedPrinciples] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState("controls");
+  const [selectedCompanyProfileId, setSelectedCompanyProfileId] = useState<string | null>(null);
+
+  const { data: companyProfiles } = useQuery<CompanyProfile[]>({
+    queryKey: ['/api/company-profiles'],
+  });
 
   const allControls = useMemo(() => {
     return trustPrinciples.flatMap(principle => 
@@ -295,11 +306,54 @@ export default function SOC2Framework() {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ChevronRight className="h-5 w-5" />
-            Overall Compliance Progress
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <TabsList data-testid="tabs-framework-sections">
+            <TabsTrigger value="controls" data-testid="tab-controls">
+              <Eye className="h-4 w-4 mr-2" />
+              Controls
+            </TabsTrigger>
+            <TabsTrigger value="templates" data-testid="tab-templates">
+              <TableIcon className="h-4 w-4 mr-2" />
+              Template Data
+            </TabsTrigger>
+          </TabsList>
+
+          {activeTab === "templates" && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Company Profile:</span>
+              <Select 
+                value={selectedCompanyProfileId || ""} 
+                onValueChange={(v) => setSelectedCompanyProfileId(v || null)}
+              >
+                <SelectTrigger className="w-[200px]" data-testid="select-company-profile">
+                  <SelectValue placeholder="Select profile..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {companyProfiles?.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.companyName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        <TabsContent value="templates" className="space-y-4">
+          <FrameworkSpreadsheet 
+            framework="SOC2" 
+            companyProfileId={selectedCompanyProfileId} 
+          />
+        </TabsContent>
+
+        <TabsContent value="controls" className="space-y-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ChevronRight className="h-5 w-5" />
+                Overall Compliance Progress
           </CardTitle>
           <CardDescription>
             Track your organization's SOC 2 Trust Services Criteria implementation status
@@ -532,31 +586,33 @@ export default function SOC2Framework() {
             </AccordionItem>
           );
         })}
-      </Accordion>
+        </Accordion>
 
-      {filteredControls.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="font-semibold mb-2">No Controls Found</h3>
-            <p className="text-muted-foreground text-sm">
-              No controls match your current filter criteria. Try adjusting your search or filters.
-            </p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setPrincipleFilter("all");
-              }}
-              data-testid="button-clear-filters"
-            >
-              Clear Filters
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+          {filteredControls.length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="font-semibold mb-2">No Controls Found</h3>
+                <p className="text-muted-foreground text-sm">
+                  No controls match your current filter criteria. Try adjusting your search or filters.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setStatusFilter("all");
+                    setPrincipleFilter("all");
+                  }}
+                  data-testid="button-clear-filters"
+                >
+                  Clear Filters
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
