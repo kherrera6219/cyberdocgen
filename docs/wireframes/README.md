@@ -3,7 +3,7 @@
 **Status:** Phase 2 - In Progress
 **Format:** ASCII Wireframes (to be converted to Figma/Sketch)
 **Total Screens:** 28
-**Completed:** 5 core screens
+**Completed:** 11 screens
 
 ---
 
@@ -11,8 +11,8 @@
 
 ### Authentication & Onboarding (5 screens)
 1. [Login Page](./01-login.md) ✅
-2. MFA Setup 📋
-3. Registration/Signup 📋
+2. [MFA Setup](./06-mfa-setup.md) ✅
+3. [Registration/Signup](./07-signup.md) ✅
 4. Password Recovery 📋
 5. Account Verification 📋
 
@@ -24,8 +24,8 @@
 5. [Gap Analysis](./05-gap-analysis.md) ✅
 6. Compliance Frameworks 📋
 7. Risk Assessment 📋
-8. Audit Trail 📋
-9. Cloud Integrations 📋
+8. [Audit Trail](./08-audit-trail.md) ✅
+9. [Cloud Integrations](./09-cloud-integrations.md) ✅
 10. Reports 📋
 
 ### Administrative Pages (6 screens)
@@ -37,15 +37,15 @@
 6. Industry Specialization 📋
 
 ### AI Features (4 screens)
-1. Compliance Chatbot 📋
+1. [AI Assistant / Chatbot](./10-ai-assistant.md) ✅
 2. Document Analyzer 📋
 3. AI Dashboard 📋
 4. Document Generation 📋
 
 ### User Account (3 screens)
-1. User Profile 📋
-2. Account Security 📋
-3. Notification Settings 📋
+1. [User Profile](./11-user-profile.md) ✅
+2. Account Security (included in User Profile) ✅
+3. Notification Settings (included in User Profile) ✅
 
 ---
 
@@ -128,5 +128,6 @@ Each wireframe includes:
 ---
 
 **Created:** November 25, 2025
+**Last Updated:** December 9, 2025
 **Team:** CyberDocGen Development
 **Status:** In Progress
