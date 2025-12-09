@@ -11,7 +11,14 @@ import {
   Flag,
   Lock,
   Folder,
-  FolderOutput
+  FolderOutput,
+  Bot,
+  Wrench,
+  Search,
+  History,
+  Settings,
+  Cloud,
+  User
 } from "lucide-react";
 
 interface NavItem {
@@ -39,6 +46,22 @@ const frameworkNavItems: NavItem[] = [
 const documentNavItems: NavItem[] = [
   { href: "/documents", icon: Folder, label: "All Documents" },
   { href: "/export", icon: FolderOutput, label: "Export Center" },
+];
+
+const aiToolsNavItems: NavItem[] = [
+  { href: "/ai-assistant", icon: Bot, label: "AI Assistant" },
+  { href: "/mcp-tools", icon: Wrench, label: "MCP Tools" },
+];
+
+const complianceNavItems: NavItem[] = [
+  { href: "/gap-analysis", icon: Search, label: "Gap Analysis" },
+  { href: "/audit-trail", icon: History, label: "Audit Trail" },
+];
+
+const settingsNavItems: NavItem[] = [
+  { href: "/cloud-integrations", icon: Cloud, label: "Cloud Integrations" },
+  { href: "/admin", icon: Settings, label: "Admin Settings" },
+  { href: "/profile/settings", icon: User, label: "User Settings" },
 ];
 
 export default function Sidebar() {
@@ -94,9 +117,60 @@ export default function Sidebar() {
           ))}
         </div>
 
-        <div>
+        <div className="mb-6">
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Documents</h2>
           {documentNavItems.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <div className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
+                isActive(item.href)
+                  ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+              )}>
+                <item.icon className="w-5 h-5 mr-3" />
+                {item.label}
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">AI & Tools</h2>
+          {aiToolsNavItems.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <div className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
+                isActive(item.href)
+                  ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+              )}>
+                <item.icon className="w-5 h-5 mr-3" />
+                {item.label}
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Compliance</h2>
+          {complianceNavItems.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <div className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
+                isActive(item.href)
+                  ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+              )}>
+                <item.icon className="w-5 h-5 mr-3" />
+                {item.label}
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div>
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Settings</h2>
+          {settingsNavItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <div className={cn(
                 "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",

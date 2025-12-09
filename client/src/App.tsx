@@ -42,6 +42,8 @@ const ResetPassword = lazy(() => import("@/pages/reset-password"));
 const MfaSetup = lazy(() => import("@/pages/mfa-setup"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const CloudIntegrations = lazy(() => import("@/pages/cloud-integrations"));
+const AIAssistant = lazy(() => import("@/pages/ai-assistant"));
+const MCPTools = lazy(() => import("@/pages/mcp-tools"));
 
 // Placeholder for AuditTrailComplete and UserProfileNew components
 const AuditTrailComplete = lazy(() => import("./pages/audit-trail-complete"));
@@ -82,6 +84,16 @@ function AuthenticatedRouter() {
       <Route path="/profile/settings">
         <Suspense fallback={<div>Loading...</div>}>
           <UserProfileNew />
+        </Suspense>
+      </Route>
+      <Route path="/ai-assistant">
+        <Suspense fallback={<div>Loading...</div>}>
+          <AIAssistant />
+        </Suspense>
+      </Route>
+      <Route path="/mcp-tools">
+        <Suspense fallback={<div>Loading...</div>}>
+          <MCPTools />
         </Suspense>
       </Route>
       <Route component={NotFound} />
