@@ -19,6 +19,7 @@ import { generationLimiter } from "./middleware/security";
 import { z } from "zod";
 import { metricsCollector } from "./monitoring/metrics";
 import { objectStorageService } from "./services/objectStorageService";
+import { frameworkSpreadsheetService } from "./services/frameworkSpreadsheetService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
@@ -2659,6 +2660,86 @@ Format with clear headings, numbered sections, and actionable guidance.`;
         success: false,
         error: error.message
       });
+    }
+  });
+
+  // Framework Spreadsheet Template Routes
+  app.get("/api/frameworks/:framework/spreadsheet-templates", isAuthenticated, async (req: any, res) => {
+    try {
+      const { framework } = req.params;
+      const { companyProfileId } = req.query;
+      
+      let companyProfile = null;
+      if (companyProfileId) {
+        companyProfile = await storage.getCompanyProfile(companyProfileId as string);
+      }
+      
+      const templates = await frameworkSpreadsheetService.getSpreadsheetTemplates(framework, companyProfile);
+      const savedData = companyProfileId 
+        ? await frameworkSpreadsheetService.getSavedTemplateData(framework, companyProfileId as string)
+        : {};
+      
+      for (const template of templates) {
+        for (const field of template.fields) {
+          if (savedData[field.id]) {
+            field.currentValue = savedData[field.id];
+            field.status = 'manual';
+          }
+        }
+      }
+      
+      res.json(templates);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Failed to get spreadsheet templates", { error: errorMessage });
+      res.status(500).json({ message: "Failed to get spreadsheet templates" });
+    }
+  });
+
+  app.post("/api/frameworks/:framework/autofill", isAuthenticated, async (req: any, res) => {
+    try {
+      const { framework } = req.params;
+      const { templateId, emptyFields, companyProfileId } = req.body;
+      
+      if (!companyProfileId) {
+        return res.status(400).json({ message: "Company profile ID is required" });
+      }
+      
+      const companyProfile = await storage.getCompanyProfile(companyProfileId);
+      if (!companyProfile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+      
+      const results = await frameworkSpreadsheetService.autofillTemplateFields(
+        framework,
+        templateId,
+        emptyFields,
+        companyProfile
+      );
+      
+      res.json(results);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("AI autofill failed", { error: errorMessage });
+      res.status(500).json({ message: "AI autofill failed" });
+    }
+  });
+
+  app.patch("/api/frameworks/:framework/template-data", isAuthenticated, async (req: any, res) => {
+    try {
+      const { framework } = req.params;
+      const { companyProfileId, fieldUpdates } = req.body;
+      
+      if (!companyProfileId || !fieldUpdates) {
+        return res.status(400).json({ message: "Company profile ID and field updates required" });
+      }
+      
+      await frameworkSpreadsheetService.saveTemplateData(framework, companyProfileId, fieldUpdates);
+      res.json({ success: true });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Failed to save template data", { error: errorMessage });
+      res.status(500).json({ message: "Failed to save template data" });
     }
   });
 

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Shield,
   Search,
@@ -22,9 +24,12 @@ import {
   ChevronRight,
   Filter,
   FileCheck,
-  Calendar
+  Calendar,
+  Table as TableIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
+import type { CompanyProfile } from "@shared/schema";
 
 type ControlStatus = "not_started" | "in_progress" | "implemented" | "not_applicable";
 type EvidenceStatus = "none" | "partial" | "complete";
@@ -181,6 +186,12 @@ export default function ISO27001Framework() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [domainFilter, setDomainFilter] = useState<string>("all");
   const [expandedDomains, setExpandedDomains] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState("controls");
+  const [selectedCompanyProfileId, setSelectedCompanyProfileId] = useState<string | null>(null);
+
+  const { data: companyProfiles } = useQuery<CompanyProfile[]>({
+    queryKey: ['/api/company-profiles'],
+  });
 
   const allControls = useMemo(() => {
     return controlDomains.flatMap(domain => 
@@ -320,6 +331,50 @@ export default function ISO27001Framework() {
         </Button>
       </div>
 
+      {/* Tabs for Controls and Template Data */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <TabsList data-testid="tabs-framework-sections">
+            <TabsTrigger value="controls" data-testid="tab-controls">
+              <Shield className="h-4 w-4 mr-2" />
+              Controls
+            </TabsTrigger>
+            <TabsTrigger value="templates" data-testid="tab-templates">
+              <TableIcon className="h-4 w-4 mr-2" />
+              Template Data
+            </TabsTrigger>
+          </TabsList>
+
+          {activeTab === "templates" && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Company Profile:</span>
+              <Select 
+                value={selectedCompanyProfileId || ""} 
+                onValueChange={(v) => setSelectedCompanyProfileId(v || null)}
+              >
+                <SelectTrigger className="w-[200px]" data-testid="select-company-profile">
+                  <SelectValue placeholder="Select profile..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {companyProfiles?.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.companyName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        <TabsContent value="templates" className="space-y-4">
+          <FrameworkSpreadsheet 
+            framework="ISO27001" 
+            companyProfileId={selectedCompanyProfileId} 
+          />
+        </TabsContent>
+
+        <TabsContent value="controls" className="space-y-4">
       {/* Overall Progress Card */}
       <Card>
         <CardHeader className="pb-2">
@@ -593,6 +648,8 @@ export default function ISO27001Framework() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
