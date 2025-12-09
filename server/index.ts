@@ -14,7 +14,6 @@ declare global {
 }
 import {
   generalLimiter,
-  sanitizeInput,
   validateRequest,
   securityHeaders,
   errorHandler,
@@ -82,7 +81,6 @@ app.use('/api', generalLimiter);
 app.use('/api', requireMFAForHighRisk);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-app.use('/api', sanitizeInput);
 app.use('/api', validateRequest);
 
 app.use((req, res, next) => {
