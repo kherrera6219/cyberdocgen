@@ -135,9 +135,25 @@ function App() {
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [showLoading, setShowLoading] = React.useState(true);
 
-  // Show a proper loading state to prevent routing flicker
-  if (isLoading) {
+  // Timeout the loading state after 2 seconds to prevent infinite loading
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Also stop showing loading when auth check completes
+  React.useEffect(() => {
+    if (!isLoading) {
+      setShowLoading(false);
+    }
+  }, [isLoading]);
+
+  // Show a proper loading state to prevent routing flicker (with timeout)
+  if (isLoading && showLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center space-y-4">
