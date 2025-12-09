@@ -1335,6 +1335,27 @@ export const aiUsageDisclosures = pgTable("ai_usage_disclosures", {
   index("idx_disclosure_created").on(table.createdAt),
 ]);
 
+// Contact Messages table for storing form submissions
+export const contactMessages = pgTable("contact_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  firstName: varchar("first_name").notNull(),
+  lastName: varchar("last_name").notNull(),
+  email: varchar("email").notNull(),
+  company: varchar("company").notNull(),
+  subject: varchar("subject").notNull(),
+  message: text("message").notNull(),
+  status: varchar("status").notNull().default("new"), // new, read, replied, archived
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertContactMessageSchema = createInsertSchema(contactMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
+export type ContactMessage = typeof contactMessages.$inferSelect;
+
 // Relations for Phase 3 tables
 export const dataResidencyPoliciesRelations = relations(dataResidencyPolicies, ({ one }) => ({
   organization: one(organizations, {

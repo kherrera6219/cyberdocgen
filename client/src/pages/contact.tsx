@@ -86,6 +86,7 @@ export default function Contact() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [subject, setSubject] = useState("");
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -100,14 +101,41 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      email: formData.get("email") as string,
+      company: formData.get("company") as string,
+      subject: subject,
+      message: formData.get("message") as string,
+    };
     
-    setIsSubmitting(false);
-    setSubmitted(true);
-    toast({
-      title: "Message sent",
-      description: "We'll get back to you within 24 hours.",
-    });
+    try {
+      const response = await fetch("/api/contact-messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to submit form");
+      }
+      
+      setSubmitted(true);
+      toast({
+        title: "Message sent",
+        description: "We'll get back to you within 24 hours.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -207,28 +235,28 @@ export default function Contact() {
                       <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="firstName">First Name</Label>
-                          <Input id="firstName" required placeholder="John" data-testid="input-first-name" />
+                          <Input id="firstName" name="firstName" required placeholder="John" data-testid="input-first-name" />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="lastName">Last Name</Label>
-                          <Input id="lastName" required placeholder="Doe" data-testid="input-last-name" />
+                          <Input id="lastName" name="lastName" required placeholder="Doe" data-testid="input-last-name" />
                         </div>
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="email">Work Email</Label>
-                          <Input id="email" type="email" required placeholder="john@company.com" data-testid="input-email" />
+                          <Input id="email" name="email" type="email" required placeholder="john@company.com" data-testid="input-email" />
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="company">Company</Label>
-                          <Input id="company" required placeholder="Acme Inc." data-testid="input-company" />
+                          <Input id="company" name="company" required placeholder="Acme Inc." data-testid="input-company" />
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="subject">How can we help?</Label>
-                        <Select required>
+                        <Select required value={subject} onValueChange={setSubject}>
                           <SelectTrigger id="subject" data-testid="select-subject">
                             <SelectValue placeholder="Select a topic" />
                           </SelectTrigger>
@@ -245,7 +273,8 @@ export default function Contact() {
                       <div className="space-y-2">
                         <Label htmlFor="message">Message</Label>
                         <Textarea 
-                          id="message" 
+                          id="message"
+                          name="message"
                           required 
                           placeholder="Tell us more about your compliance needs..."
                           className="min-h-[150px]"

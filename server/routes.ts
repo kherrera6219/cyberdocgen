@@ -8,6 +8,7 @@ import { logger } from "./utils/logger";
 import { metricsCollector } from "./monitoring/metrics";
 import { aiOrchestrator } from "./services/aiOrchestrator";
 
+import { insertContactMessageSchema } from "@shared/schema";
 import { registerOrganizationsRoutes } from "./routes/organizations";
 import { registerCompanyProfilesRoutes } from "./routes/companyProfiles";
 import { registerDocumentsRoutes } from "./routes/documents";
@@ -104,6 +105,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).end();
     }
     next();
+  });
+
+  // Public contact form endpoint (no auth required)
+  app.post('/api/contact-messages', async (req: any, res) => {
+    try {
+      const validated = insertContactMessageSchema.parse(req.body);
+      const message = await storage.createContactMessage(validated);
+      logger.info("Contact message received", { email: validated.email, subject: validated.subject });
+      res.status(201).json({ success: true, id: message.id });
+    } catch (error: any) {
+      logger.error("Contact form submission failed", { error: error.message });
+      res.status(400).json({ message: "Failed to submit contact form", error: error.message });
+    }
   });
 
   // Auth routes

@@ -10,6 +10,7 @@ import {
   remediationRecommendations,
   complianceMaturityAssessments,
   auditTrail,
+  contactMessages,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -32,7 +33,9 @@ import {
   type ComplianceMaturityAssessment,
   type InsertComplianceMaturityAssessment,
   type InsertAuditTrail,
-  type AuditTrail
+  type AuditTrail,
+  type ContactMessage,
+  type InsertContactMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -100,6 +103,9 @@ export interface IStorage {
 
   // Audit trail
   createAuditEntry(entry: InsertAuditTrail): Promise<AuditTrail>;
+
+  // Contact messages
+  createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
 }
 
 export class MemStorage implements IStorage {
@@ -578,12 +584,25 @@ export class MemStorage implements IStorage {
     return newEntry;
   }
 
+  async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
+    const id = randomUUID();
+    const newMessage: ContactMessage = {
+      ...message,
+      id,
+      status: message.status ?? "new",
+      createdAt: new Date(),
+    };
+    this.contactMessagesStore.set(id, newMessage);
+    return newMessage;
+  }
+
   // Private storage
   private gapAnalysisReports = new Map<string, GapAnalysisReport>();
   private gapAnalysisFindings = new Map<string, GapAnalysisFinding>();
   private remediationRecommendations = new Map<string, RemediationRecommendation>();
   private complianceMaturityAssessments = new Map<string, ComplianceMaturityAssessment>();
   private auditEntries = new Map<string, AuditTrail>();
+  private contactMessagesStore = new Map<string, ContactMessage>();
 }
 
 export class DatabaseStorage implements IStorage {
@@ -988,6 +1007,14 @@ export class DatabaseStorage implements IStorage {
       .values(preparedEntry)
       .returning();
     return newEntry;
+  }
+
+  async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
+    const [newMessage] = await db
+      .insert(contactMessages)
+      .values(message)
+      .returning();
+    return newMessage;
   }
 }
 
