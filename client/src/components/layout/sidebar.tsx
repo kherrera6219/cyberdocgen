@@ -19,7 +19,11 @@ import {
   Settings,
   Cloud,
   User,
-  Sparkles
+  Sparkles,
+  Zap,
+  Upload,
+  CheckSquare,
+  Eye
 } from "lucide-react";
 
 interface NavItem {
@@ -46,10 +50,12 @@ const frameworkNavItems: NavItem[] = [
 
 const documentNavItems: NavItem[] = [
   { href: "/documents", icon: Folder, label: "All Documents" },
+  { href: "/evidence-ingestion", icon: Upload, label: "Evidence Upload" },
   { href: "/export", icon: FolderOutput, label: "Export Center" },
 ];
 
 const aiToolsNavItems: NavItem[] = [
+  { href: "/ai-hub", icon: Zap, label: "AI Hub" },
   { href: "/ai-assistant", icon: Bot, label: "AI Assistant" },
   { href: "/ai-doc-generator", icon: Sparkles, label: "AI Doc Generator" },
   { href: "/mcp-tools", icon: Wrench, label: "MCP Tools" },
@@ -57,6 +63,8 @@ const aiToolsNavItems: NavItem[] = [
 
 const complianceNavItems: NavItem[] = [
   { href: "/gap-analysis", icon: Search, label: "Gap Analysis" },
+  { href: "/control-approvals", icon: CheckSquare, label: "Control Approvals" },
+  { href: "/auditor-workspace", icon: Eye, label: "Auditor Workspace" },
   { href: "/audit-trail", icon: History, label: "Audit Trail" },
 ];
 

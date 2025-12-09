@@ -55,6 +55,12 @@ const AIDocGenerator = lazy(() => import("@/pages/ai-doc-generator"));
 const AuditTrailComplete = lazy(() => import("./pages/audit-trail-complete"));
 const UserProfileNew = lazy(() => import("./pages/user-profile-new"));
 
+// Phase 3 pages
+const AIHub = lazy(() => import("./pages/ai-hub"));
+const EvidenceIngestion = lazy(() => import("./pages/evidence-ingestion"));
+const ControlApprovals = lazy(() => import("./pages/control-approvals"));
+const AuditorWorkspace = lazy(() => import("./pages/auditor-workspace"));
+
 function AuthenticatedRouter() {
   return (
     <Switch>
@@ -109,6 +115,26 @@ function AuthenticatedRouter() {
       <Route path="/ai-doc-generator">
         <Suspense fallback={<div>Loading...</div>}>
           <AIDocGenerator />
+        </Suspense>
+      </Route>
+      <Route path="/ai-hub">
+        <Suspense fallback={<div>Loading...</div>}>
+          <AIHub />
+        </Suspense>
+      </Route>
+      <Route path="/evidence-ingestion">
+        <Suspense fallback={<div>Loading...</div>}>
+          <EvidenceIngestion />
+        </Suspense>
+      </Route>
+      <Route path="/control-approvals">
+        <Suspense fallback={<div>Loading...</div>}>
+          <ControlApprovals />
+        </Suspense>
+      </Route>
+      <Route path="/auditor-workspace">
+        <Suspense fallback={<div>Loading...</div>}>
+          <AuditorWorkspace />
         </Suspense>
       </Route>
       <Route>
