@@ -1,8 +1,118 @@
 import { Request, Response, NextFunction } from "express";
 import { rateLimit } from "express-rate-limit";
+import crypto from "crypto";
 import { logger } from "../utils/logger";
 import { performanceService } from '../services/performanceService';
 import { threatDetectionService } from '../services/threatDetectionService';
+
+const CSRF_COOKIE_NAME = 'csrf-token';
+const CSRF_HEADER_NAME = 'x-csrf-token';
+
+const CSRF_EXEMPT_PATHS = [
+  '/health',
+  '/ready',
+  '/live',
+  '/api/csrf-token',
+  '/api/auth/callback',
+  '/api/login',
+  '/api/logout',
+  '/api/__replit'
+];
+
+// Generate cryptographically secure CSRF token
+export function generateCsrfToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// Session-bound CSRF token management
+export function getOrCreateSessionCsrfToken(req: Request): string {
+  const session = (req as any).session;
+  if (session && session.csrfToken) {
+    return session.csrfToken;
+  }
+  const token = generateCsrfToken();
+  if (session) {
+    session.csrfToken = token;
+  }
+  return token;
+}
+
+export function csrfProtection(req: Request, res: Response, next: NextFunction) {
+  // Skip CSRF for exempt paths
+  if (CSRF_EXEMPT_PATHS.some(path => req.path === path || req.path.startsWith(path + '/'))) {
+    return next();
+  }
+
+  // Skip for static assets and Vite dev server
+  if (req.path.startsWith('/@') || req.path.includes('.')) {
+    return next();
+  }
+
+  // For GET requests, ensure CSRF cookie is set with session-bound token
+  if (req.method === 'GET') {
+    const session = (req as any).session;
+    if (session) {
+      const token = getOrCreateSessionCsrfToken(req);
+      res.cookie(CSRF_COOKIE_NAME, token, {
+        httpOnly: false,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      });
+    }
+    return next();
+  }
+
+  // Validate CSRF for ALL state-changing requests (POST, PUT, PATCH, DELETE)
+  // This applies regardless of authentication state to prevent attacks
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    const session = (req as any).session;
+    const sessionToken = session?.csrfToken;
+    const cookieToken = req.cookies?.[CSRF_COOKIE_NAME];
+    const headerToken = req.get(CSRF_HEADER_NAME);
+
+    // Require all three tokens for validation
+    if (!sessionToken || !cookieToken || !headerToken) {
+      logger.warn('CSRF token missing', {
+        path: req.path,
+        method: req.method,
+        hasSession: !!sessionToken,
+        hasCookie: !!cookieToken,
+        hasHeader: !!headerToken,
+        ip: req.ip
+      });
+      return res.status(403).json({
+        message: 'CSRF token missing',
+        code: 'CSRF_TOKEN_MISSING'
+      });
+    }
+
+    // Validate using timing-safe comparison to prevent timing attacks
+    const sessionTokenBuffer = Buffer.from(sessionToken, 'utf8');
+    const headerTokenBuffer = Buffer.from(headerToken, 'utf8');
+    const cookieTokenBuffer = Buffer.from(cookieToken, 'utf8');
+
+    const headerMatchesSession = sessionTokenBuffer.length === headerTokenBuffer.length &&
+      crypto.timingSafeEqual(sessionTokenBuffer, headerTokenBuffer);
+    const cookieMatchesSession = sessionTokenBuffer.length === cookieTokenBuffer.length &&
+      crypto.timingSafeEqual(sessionTokenBuffer, cookieTokenBuffer);
+
+    if (!headerMatchesSession || !cookieMatchesSession) {
+      logger.warn('CSRF token mismatch', {
+        path: req.path,
+        method: req.method,
+        ip: req.ip
+      });
+      return res.status(403).json({
+        message: 'CSRF token invalid',
+        code: 'CSRF_TOKEN_INVALID'
+      });
+    }
+  }
+
+  next();
+}
 
 // Audit logging middleware
 export const auditLogger = (req: Request, res: Response, next: NextFunction) => {

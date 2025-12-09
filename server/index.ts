@@ -1,7 +1,17 @@
 import express, { type Request, Response, NextFunction } from "express";
+import crypto from "crypto";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
+
+declare global {
+  namespace Express {
+    interface Request {
+      requestId?: string;
+    }
+  }
+}
 import {
   generalLimiter,
   sanitizeInput,
@@ -11,7 +21,8 @@ import {
   threatDetection,
   auditLogger,
   requireMFA,
-  requireMFAForHighRisk
+  requireMFAForHighRisk,
+  csrfProtection
 } from "./middleware/security";
 import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
 import { validateEnvironment } from "./utils/validation";
@@ -47,6 +58,14 @@ const corsOptions = {
 // Security middleware - only apply to API routes
 app.use(securityHeaders);
 app.use(cors(corsOptions));
+app.use(cookieParser());
+
+// CSRF token endpoint - returns session-bound token
+// Note: This must come after session middleware is initialized in registerRoutes
+// For now, provide a temporary endpoint that will be overridden after auth setup
+
+// CSRF protection middleware
+app.use(csrfProtection);
 
 // Security and performance monitoring
 app.use(threatDetection);
@@ -67,29 +86,21 @@ app.use('/api', sanitizeInput);
 app.use('/api', validateRequest);
 
 app.use((req, res, next) => {
+  const requestId = crypto.randomUUID();
+  req.requestId = requestId;
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      logger.info(logLine);
+      logger.info(`${req.method} ${path} ${res.statusCode} ${duration}ms`, {
+        requestId,
+        method: req.method,
+        path,
+        statusCode: res.statusCode,
+        durationMs: duration
+      });
     }
   });
 

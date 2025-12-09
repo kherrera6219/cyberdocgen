@@ -74,10 +74,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - IMPORTANT: This must come before any authenticated routes
   await setupAuth(app);
 
+  // CSRF token endpoint - session-bound, must come after auth setup
+  app.get('/api/csrf-token', (req: any, res) => {
+    const session = req.session;
+    if (!session) {
+      return res.status(500).json({ message: 'Session not available' });
+    }
+    
+    // Import the session-bound token function
+    const crypto = require('crypto');
+    if (!session.csrfToken) {
+      session.csrfToken = crypto.randomBytes(32).toString('hex');
+    }
+    
+    res.cookie('csrf-token', session.csrfToken, {
+      httpOnly: false,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+    
+    res.json({ csrfToken: session.csrfToken });
+  });
+
   // Ensure all API routes have proper CORS and validation
   app.use('/api', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL || 'https://your-domain.com' : '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     if (req.method === 'OPTIONS') {
       return res.status(200).end();

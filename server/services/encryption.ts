@@ -17,13 +17,14 @@ export interface EncryptedData {
 }
 
 export class EncryptionService {
-  private readonly algorithm = 'aes-256-cbc';
+  private readonly algorithm = 'aes-256-gcm';
+  private readonly legacyAlgorithm = 'aes-256-cbc';
   private readonly keyLength = 32; // 256 bits
-  private readonly ivLength = 16;
+  private readonly ivLength = 12; // GCM uses 12-byte IV/nonce
+  private readonly legacyIvLength = 16; // CBC used 16-byte IV
   private readonly tagLength = 16;
-  private readonly encryptionVersion = 1;
+  private readonly encryptionVersion = 2;
 
-  // In production, this should come from a secure key management service
   private getEncryptionKey(): Buffer {
     const key = process.env.ENCRYPTION_KEY;
     if (!key) {
@@ -33,18 +34,18 @@ export class EncryptionService {
   }
 
   /**
-   * Encrypts sensitive data using AES-256-CBC
+   * Encrypts sensitive data using AES-256-GCM (Authenticated Encryption)
    */
   async encryptSensitiveField(data: string, classification: DataClassification): Promise<EncryptedData> {
     try {
       const key = this.getEncryptionKey();
       const iv = crypto.randomBytes(this.ivLength);
-      const cipher = crypto.createCipheriv(this.algorithm, key, iv);
+      const cipher = crypto.createCipheriv(this.algorithm, key, iv) as crypto.CipherGCM;
 
       let encrypted = cipher.update(data, 'utf8', 'hex');
       encrypted += cipher.final('hex');
 
-      const authTag = crypto.createHash('sha256').update(encrypted + classification).digest();
+      const authTag = cipher.getAuthTag();
 
       const encryptedData: EncryptedData = {
         encryptedValue: encrypted,
@@ -54,7 +55,7 @@ export class EncryptionService {
         encryptedAt: new Date().toISOString()
       };
 
-      logger.info('Data encrypted successfully', { 
+      logger.info('Data encrypted successfully with AES-256-GCM', { 
         classification, 
         encryptionVersion: this.encryptionVersion 
       });
@@ -67,18 +68,26 @@ export class EncryptionService {
   }
 
   /**
-   * Decrypts sensitive data using AES-256-CBC
+   * Decrypts sensitive data using AES-256-GCM with authentication verification
    */
   async decryptSensitiveField(encryptedData: EncryptedData, classification: DataClassification): Promise<string> {
     try {
       const key = this.getEncryptionKey();
+      
+      if (encryptedData.encryptionVersion === 1) {
+        return this.decryptLegacyV1(encryptedData, classification);
+      }
+
       const iv = Buffer.from(encryptedData.iv, 'hex');
-      const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
+      const authTag = Buffer.from(encryptedData.authTag, 'hex');
+      
+      const decipher = crypto.createDecipheriv(this.algorithm, key, iv) as crypto.DecipherGCM;
+      decipher.setAuthTag(authTag);
 
       let decrypted = decipher.update(encryptedData.encryptedValue, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
 
-      logger.info('Data decrypted successfully', { 
+      logger.info('Data decrypted successfully with AES-256-GCM', { 
         encryptionVersion: encryptedData.encryptionVersion 
       });
 
@@ -88,8 +97,61 @@ export class EncryptionService {
         error: error.message, 
         encryptionVersion: encryptedData.encryptionVersion 
       });
-      throw new Error('Failed to decrypt sensitive data');
+      throw new Error('Failed to decrypt sensitive data: authentication failed or data corrupted');
     }
+  }
+
+  /**
+   * Decrypts legacy v1 data encrypted with AES-256-CBC
+   */
+  private async decryptLegacyV1(encryptedData: EncryptedData, classification: DataClassification): Promise<string> {
+    try {
+      const key = this.getEncryptionKey();
+      const iv = Buffer.from(encryptedData.iv, 'hex');
+      const decipher = crypto.createDecipheriv(this.legacyAlgorithm, key, iv);
+
+      let decrypted = decipher.update(encryptedData.encryptedValue, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+
+      logger.info('Legacy v1 data decrypted successfully (AES-256-CBC)', { 
+        encryptionVersion: encryptedData.encryptionVersion 
+      });
+
+      return decrypted;
+    } catch (error: any) {
+      logger.error('Legacy v1 decryption failed', { 
+        error: error.message, 
+        encryptionVersion: encryptedData.encryptionVersion 
+      });
+      throw new Error('Failed to decrypt legacy v1 data');
+    }
+  }
+
+  /**
+   * Migrates v1 encrypted data to v2 (AES-256-GCM)
+   */
+  async migrateToV2(encryptedData: EncryptedData, classification: DataClassification): Promise<EncryptedData> {
+    if (encryptedData.encryptionVersion >= 2) {
+      logger.info('Data already using v2 encryption, no migration needed');
+      return encryptedData;
+    }
+
+    const decrypted = await this.decryptLegacyV1(encryptedData, classification);
+    const reEncrypted = await this.encryptSensitiveField(decrypted, classification);
+
+    logger.info('Successfully migrated data from v1 to v2 encryption', {
+      fromVersion: encryptedData.encryptionVersion,
+      toVersion: reEncrypted.encryptionVersion
+    });
+
+    return reEncrypted;
+  }
+
+  /**
+   * Checks if encrypted data needs migration to v2
+   */
+  needsMigration(encryptedData: EncryptedData): boolean {
+    return encryptedData.encryptionVersion < 2;
   }
 
   /**
@@ -126,7 +188,6 @@ export class EncryptionService {
 
 export const encryptionService = new EncryptionService();
 
-// Helper functions for data at rest encryption
 async function encrypt(data: string): Promise<EncryptedData> {
   const service = new EncryptionService();
   return service.encryptSensitiveField(data, DataClassification.RESTRICTED);
@@ -135,26 +196,18 @@ async function encrypt(data: string): Promise<EncryptedData> {
 async function decrypt(encryptedData: string | EncryptedData): Promise<string> {
   const service = new EncryptionService();
   if (typeof encryptedData === 'string') {
-    // Assume it's the encrypted value and IV is not provided separately,
-    // which might happen if encryption was not done using EncryptedData interface
     try {
       const parsedData = JSON.parse(encryptedData);
       if (parsedData.encryptedValue && parsedData.iv) {
         return service.decryptSensitiveField(parsedData, DataClassification.RESTRICTED);
       }
     } catch (e) {
-      // If parsing fails, it might be a simple string or an old format
     }
-    // Fallback for cases where only the encrypted string is present
-    // This requires a default IV or a different decryption mechanism if the format is unknown
-    // For simplicity, we'll assume the EncryptedData interface is used or the format is consistent.
-    // If a simple string is passed, and it's not parsable into EncryptedData, decryption will fail here.
   } else {
     return service.decryptSensitiveField(encryptedData, DataClassification.RESTRICTED);
   }
   throw new Error('Invalid encrypted data format for decryption');
 }
-
 
 /**
  * Encrypt sensitive company profile data
@@ -190,7 +243,6 @@ export async function encryptDataAtRest(data: any, dataType: string): Promise<an
     keyVersion: process.env.ENCRYPTION_KEY_VERSION || '1'
   };
 
-  // For objects, encrypt sensitive string fields
   if (typeof data === 'object' && !Array.isArray(data)) {
     const encrypted = { ...data };
 
@@ -203,7 +255,6 @@ export async function encryptDataAtRest(data: any, dataType: string): Promise<an
     return { ...encrypted, _encryption: encryptionMetadata };
   }
 
-  // For primitive sensitive data
   if (typeof data === 'string') {
     return {
       encryptedValue: await encrypt(data),
@@ -223,18 +274,15 @@ export async function decryptDataAtRest(data: any): Promise<any> {
   const decrypted = { ...data };
   delete decrypted._encryption;
 
-  // Handle encrypted value wrapper
   if (data.encryptedValue) {
     return await decrypt(data.encryptedValue);
   }
 
-  // Handle object with encrypted fields
   for (const [key, value] of Object.entries(decrypted)) {
     if (typeof value === 'string' && key !== '_encryption') {
       try {
         decrypted[key] = await decrypt(value);
       } catch {
-        // If decryption fails, assume it's not encrypted
         decrypted[key] = value;
       }
     }
