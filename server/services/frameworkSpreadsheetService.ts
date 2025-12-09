@@ -41,12 +41,19 @@ const FRAMEWORK_TEMPLATES: Record<string, DocumentTemplate[]> = {
  */
 function mapCompanyProfileToVariables(companyProfile: CompanyProfile): Record<string, string> {
   const keyPersonnel = companyProfile.keyPersonnel as {
-    ceo?: { name: string; email?: string };
-    ciso?: { name: string; email?: string };
-    securityOfficer?: { name: string; email?: string };
-    complianceOfficer?: { name: string; email?: string };
-    itManager?: { name: string; email?: string };
-    legalCounsel?: { name: string; email?: string };
+    ceo?: { name: string; email?: string; phone?: string };
+    cfo?: { name: string; email?: string; phone?: string };
+    coo?: { name: string; email?: string; phone?: string };
+    cto?: { name: string; email?: string; phone?: string };
+    cio?: { name: string; email?: string; phone?: string };
+    ciso?: { name: string; email?: string; phone?: string };
+    dpo?: { name: string; email?: string; phone?: string };
+    cpo?: { name: string; email?: string; phone?: string };
+    securityOfficer?: { name: string; email?: string; phone?: string };
+    complianceOfficer?: { name: string; email?: string; phone?: string };
+    itManager?: { name: string; email?: string; phone?: string };
+    hrDirector?: { name: string; email?: string; phone?: string };
+    legalCounsel?: { name: string; email?: string; phone?: string };
   } | null;
 
   const contactInfo = companyProfile.contactInfo as {
@@ -54,6 +61,57 @@ function mapCompanyProfileToVariables(companyProfile: CompanyProfile): Record<st
     email?: string;
     phone?: string;
     address?: string;
+  } | null;
+
+  const orgStructure = (companyProfile as any).organizationStructure as {
+    legalEntityType?: string;
+    totalEmployees?: number;
+    departments?: { name: string; head?: string; }[];
+  } | null;
+
+  const geoOps = (companyProfile as any).geographicOperations as {
+    countriesOfOperation?: string[];
+    dataCenterLocations?: { location: string; type: string; }[];
+    regulatoryJurisdictions?: string[];
+  } | null;
+
+  const securityInfra = (companyProfile as any).securityInfrastructure as {
+    networkArchitectureSummary?: string;
+    firewallVendor?: string;
+    idsIpsVendor?: string;
+    siemSolution?: string;
+    endpointProtection?: string;
+    encryptionStandards?: { type: string; algorithm: string; keyLength?: number; }[];
+    backupSolutions?: { type: string; frequency: string; retention?: string; }[];
+    disasterRecoverySites?: { location: string; type: string; rtoHours?: number; }[];
+    vpnSolution?: string;
+    mfaProvider?: string;
+    identityProvider?: string;
+  } | null;
+
+  const businessContinuity = (companyProfile as any).businessContinuity as {
+    rtoHours?: number;
+    rpoHours?: number;
+    bcdrPlanExists?: boolean;
+    lastDrTestDate?: string;
+    criticalSystems?: { system: string; rtoHours: number; rpoHours: number; }[];
+    backupFrequency?: string;
+    incidentResponsePlanExists?: boolean;
+    lastIncidentResponseTest?: string;
+  } | null;
+
+  const productsServices = (companyProfile as any).productsAndServices as {
+    primaryProducts?: { name: string; description?: string; }[];
+    primaryServices?: { name: string; description?: string; }[];
+    customerSegments?: string[];
+    slaCommitments?: { service: string; availability: string; responseTime?: string; }[];
+    serviceAvailabilityRequirements?: string;
+  } | null;
+
+  const vendorMgmt = (companyProfile as any).vendorManagement as {
+    criticalVendors?: { name: string; service: string; securityAssessmentStatus?: string; lastAssessmentDate?: string; }[];
+    thirdPartyIntegrations?: { name: string; type: string; dataShared?: string[]; }[];
+    vendorRiskAssessmentFrequency?: string;
   } | null;
 
   return {
@@ -73,14 +131,77 @@ function mapCompanyProfileToVariables(companyProfile: CompanyProfile): Record<st
     contact_email: contactInfo?.email || '',
     contact_phone: contactInfo?.phone || '',
     contact_address: contactInfo?.address || '',
+    
+    // Enhanced Key Personnel
     ceo_name: keyPersonnel?.ceo?.name || '',
+    ceo_email: keyPersonnel?.ceo?.email || '',
+    cfo_name: keyPersonnel?.cfo?.name || '',
+    coo_name: keyPersonnel?.coo?.name || '',
+    cto_name: keyPersonnel?.cto?.name || '',
+    cio_name: keyPersonnel?.cio?.name || '',
     ciso_name: keyPersonnel?.ciso?.name || '',
+    ciso_email: keyPersonnel?.ciso?.email || '',
+    dpo_name: keyPersonnel?.dpo?.name || '',
+    cpo_name: keyPersonnel?.cpo?.name || '',
     security_officer: keyPersonnel?.securityOfficer?.name || '',
     compliance_officer: keyPersonnel?.complianceOfficer?.name || '',
     it_manager: keyPersonnel?.itManager?.name || '',
+    hr_director: keyPersonnel?.hrDirector?.name || '',
     legal_counsel: keyPersonnel?.legalCounsel?.name || '',
     approved_by: keyPersonnel?.ciso?.name || keyPersonnel?.ceo?.name || '',
     document_owner: keyPersonnel?.complianceOfficer?.name || keyPersonnel?.ciso?.name || '',
+    
+    // Organization Structure
+    legal_entity_type: orgStructure?.legalEntityType || '',
+    total_employees: orgStructure?.totalEmployees?.toString() || '',
+    departments: orgStructure?.departments?.map(d => d.name).join(', ') || '',
+    
+    // Geographic Operations
+    countries_of_operation: geoOps?.countriesOfOperation?.join(', ') || '',
+    data_center_locations: geoOps?.dataCenterLocations?.map(dc => dc.location).join(', ') || '',
+    regulatory_jurisdictions: geoOps?.regulatoryJurisdictions?.join(', ') || '',
+    
+    // Security Infrastructure
+    network_architecture: securityInfra?.networkArchitectureSummary || '',
+    firewall_vendor: securityInfra?.firewallVendor || '',
+    siem_solution: securityInfra?.siemSolution || '',
+    endpoint_protection: securityInfra?.endpointProtection || '',
+    vpn_solution: securityInfra?.vpnSolution || '',
+    mfa_provider: securityInfra?.mfaProvider || '',
+    identity_provider: securityInfra?.identityProvider || '',
+    
+    // Business Continuity
+    rto_hours: businessContinuity?.rtoHours?.toString() || '',
+    rpo_hours: businessContinuity?.rpoHours?.toString() || '',
+    bcdr_plan_exists: businessContinuity?.bcdrPlanExists ? 'Yes' : 'No',
+    last_dr_test_date: businessContinuity?.lastDrTestDate || '',
+    
+    // Products & Services
+    primary_products: productsServices?.primaryProducts?.map(p => p.name).join(', ') || '',
+    primary_services: productsServices?.primaryServices?.map(s => s.name).join(', ') || '',
+    customer_segments: productsServices?.customerSegments?.join(', ') || '',
+    sla_commitments: productsServices?.slaCommitments?.map(s => `${s.service}: ${s.availability}`).join('; ') || '',
+    service_availability_requirements: productsServices?.serviceAvailabilityRequirements || '',
+    
+    // Enhanced Security Infrastructure
+    ids_ips_vendor: securityInfra?.idsIpsVendor || '',
+    encryption_standards: securityInfra?.encryptionStandards?.map(e => `${e.type}: ${e.algorithm}`).join(', ') || '',
+    backup_solutions: securityInfra?.backupSolutions?.map(b => `${b.type} (${b.frequency})`).join(', ') || '',
+    disaster_recovery_sites: securityInfra?.disasterRecoverySites?.map(d => d.location).join(', ') || '',
+    
+    // Enhanced Business Continuity
+    critical_systems: businessContinuity?.criticalSystems?.map(s => s.system).join(', ') || '',
+    backup_frequency: businessContinuity?.backupFrequency || '',
+    incident_response_plan_exists: businessContinuity?.incidentResponsePlanExists ? 'Yes' : 'No',
+    last_incident_response_test: businessContinuity?.lastIncidentResponseTest || '',
+    
+    // Vendor Management
+    critical_vendors: vendorMgmt?.criticalVendors?.map(v => v.name).join(', ') || '',
+    third_party_integrations: vendorMgmt?.thirdPartyIntegrations?.map(t => t.name).join(', ') || '',
+    vendor_risk_assessment_frequency: vendorMgmt?.vendorRiskAssessmentFrequency || '',
+    
+    // Website URL
+    website_url: (companyProfile as any).websiteUrl || '',
   };
 }
 

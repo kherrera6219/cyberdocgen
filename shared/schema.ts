@@ -85,16 +85,91 @@ export const companyProfiles = pgTable("company_profiles", {
     address?: string;
   }>(),
   
-  // Key Personnel for Compliance Documentation
+  // Website URL for AI-powered data extraction
+  websiteUrl: text("website_url"),
+  
+  // Organization Structure
+  organizationStructure: jsonb("organization_structure").$type<{
+    legalEntityType?: string; // LLC, Corporation, Partnership, etc.
+    parentCompany?: { name: string; relationship?: string; };
+    subsidiaries?: { name: string; location?: string; }[];
+    departments?: { name: string; head?: string; employeeCount?: number; responsibilities?: string; }[];
+    totalEmployees?: number;
+    employeesByDepartment?: { department: string; count: number; }[];
+  }>(),
+  
+  // Enhanced Key Personnel for Compliance Documentation
   keyPersonnel: jsonb("key_personnel").$type<{
-    ceo?: { name: string; email?: string; };
-    ciso?: { name: string; email?: string; };
-    securityOfficer?: { name: string; email?: string; };
-    complianceOfficer?: { name: string; email?: string; };
-    itManager?: { name: string; email?: string; };
-    legalCounsel?: { name: string; email?: string; };
+    ceo?: { name: string; email?: string; phone?: string; };
+    cfo?: { name: string; email?: string; phone?: string; };
+    coo?: { name: string; email?: string; phone?: string; };
+    cto?: { name: string; email?: string; phone?: string; };
+    cio?: { name: string; email?: string; phone?: string; };
+    ciso?: { name: string; email?: string; phone?: string; };
+    dpo?: { name: string; email?: string; phone?: string; }; // Data Protection Officer
+    cpo?: { name: string; email?: string; phone?: string; }; // Chief Privacy Officer
+    securityOfficer?: { name: string; email?: string; phone?: string; };
+    complianceOfficer?: { name: string; email?: string; phone?: string; };
+    itManager?: { name: string; email?: string; phone?: string; };
+    hrDirector?: { name: string; email?: string; phone?: string; };
+    legalCounsel?: { name: string; email?: string; phone?: string; };
     boardMembers?: { name: string; role: string; email?: string; }[];
+    securityTeam?: { name: string; role: string; email?: string; }[];
+    complianceTeam?: { name: string; role: string; email?: string; }[];
+    itTeamLeads?: { name: string; area: string; email?: string; }[];
     keyStakeholders?: { name: string; role: string; department: string; email?: string; }[];
+  }>(),
+  
+  // Products & Services
+  productsAndServices: jsonb("products_and_services").$type<{
+    primaryProducts?: { name: string; description?: string; }[];
+    primaryServices?: { name: string; description?: string; }[];
+    customerSegments?: ('B2B' | 'B2C' | 'Government' | 'Enterprise' | 'SMB')[];
+    slaCommitments?: { service: string; availability: string; responseTime?: string; }[];
+    serviceAvailabilityRequirements?: string;
+  }>(),
+  
+  // Geographic Operations
+  geographicOperations: jsonb("geographic_operations").$type<{
+    countriesOfOperation?: string[];
+    officeLocations?: { address: string; type: 'headquarters' | 'regional' | 'satellite' | 'remote'; employeeCount?: number; }[];
+    dataCenterLocations?: { location: string; type: 'primary' | 'disaster_recovery' | 'backup'; provider?: string; }[];
+    customerRegionsServed?: string[];
+    regulatoryJurisdictions?: string[];
+  }>(),
+  
+  // Security Infrastructure
+  securityInfrastructure: jsonb("security_infrastructure").$type<{
+    networkArchitectureSummary?: string;
+    firewallVendor?: string;
+    idsIpsVendor?: string;
+    siemSolution?: string;
+    endpointProtection?: string;
+    encryptionStandards?: { type: string; algorithm: string; keyLength?: number; }[];
+    backupSolutions?: { type: string; frequency: string; retention?: string; }[];
+    disasterRecoverySites?: { location: string; type: string; rtoHours?: number; }[];
+    vpnSolution?: string;
+    mfaProvider?: string;
+    identityProvider?: string;
+  }>(),
+  
+  // Business Continuity
+  businessContinuity: jsonb("business_continuity").$type<{
+    rtoHours?: number; // Recovery Time Objective
+    rpoHours?: number; // Recovery Point Objective
+    bcdrPlanExists?: boolean;
+    lastDrTestDate?: string;
+    criticalSystems?: { system: string; rtoHours: number; rpoHours: number; }[];
+    backupFrequency?: string;
+    incidentResponsePlanExists?: boolean;
+    lastIncidentResponseTest?: string;
+  }>(),
+  
+  // Vendor & Supply Chain
+  vendorManagement: jsonb("vendor_management").$type<{
+    criticalVendors?: { name: string; service: string; securityAssessmentStatus?: 'pending' | 'approved' | 'requires_review'; lastAssessmentDate?: string; }[];
+    thirdPartyIntegrations?: { name: string; type: string; dataShared?: string[]; }[];
+    vendorRiskAssessmentFrequency?: string;
   }>(),
   
   // Framework-Specific Configurations
@@ -128,7 +203,18 @@ export const companyProfiles = pgTable("company_profiles", {
     incorporationDocs?: { filename: string; url: string; extractedData?: any; }[];
     registrationDocs?: { filename: string; url: string; extractedData?: any; }[];
     profileDocs?: { filename: string; url: string; extractedData?: any; }[];
+    orgCharts?: { filename: string; url: string; extractedData?: any; }[];
+    policyDocs?: { filename: string; url: string; extractedData?: any; }[];
   }>(),
+  
+  // AI Research Data
+  aiResearchData: jsonb("ai_research_data").$type<{
+    lastResearchDate?: string;
+    sources?: { url: string; type: string; extractedAt: string; }[];
+    confidence?: number;
+    extractedInfo?: Record<string, any>;
+  }>(),
+  
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -551,10 +637,147 @@ export const insertUserOrganizationSchema = createInsertSchema(userOrganizations
   joinedAt: true,
 });
 
+// Zod schemas for company profile nested JSON structures
+export const contactInfoSchema = z.object({
+  primaryContact: z.string(),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+}).optional();
+
+export const organizationStructureSchema = z.object({
+  legalEntityType: z.string().optional(),
+  parentCompany: z.object({ name: z.string(), relationship: z.string().optional() }).optional(),
+  subsidiaries: z.array(z.object({ name: z.string(), location: z.string().optional() })).optional(),
+  departments: z.array(z.object({ name: z.string(), head: z.string().optional(), employeeCount: z.number().optional(), responsibilities: z.string().optional() })).optional(),
+  totalEmployees: z.number().optional(),
+  employeesByDepartment: z.array(z.object({ department: z.string(), count: z.number() })).optional(),
+}).optional();
+
+export const keyPersonnelSchema = z.object({
+  ceo: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  cfo: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  coo: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  cto: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  cio: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  ciso: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  dpo: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  cpo: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  securityOfficer: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  complianceOfficer: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  itManager: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  hrDirector: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  legalCounsel: z.object({ name: z.string(), email: z.string().optional(), phone: z.string().optional() }).optional(),
+  boardMembers: z.array(z.object({ name: z.string(), role: z.string(), email: z.string().optional() })).optional(),
+  securityTeam: z.array(z.object({ name: z.string(), role: z.string(), email: z.string().optional() })).optional(),
+  complianceTeam: z.array(z.object({ name: z.string(), role: z.string(), email: z.string().optional() })).optional(),
+  itTeamLeads: z.array(z.object({ name: z.string(), area: z.string(), email: z.string().optional() })).optional(),
+  keyStakeholders: z.array(z.object({ name: z.string(), role: z.string(), department: z.string(), email: z.string().optional() })).optional(),
+}).optional();
+
+export const productsAndServicesSchema = z.object({
+  primaryProducts: z.array(z.object({ name: z.string(), description: z.string().optional() })).optional(),
+  primaryServices: z.array(z.object({ name: z.string(), description: z.string().optional() })).optional(),
+  customerSegments: z.array(z.enum(['B2B', 'B2C', 'Government', 'Enterprise', 'SMB'])).optional(),
+  slaCommitments: z.array(z.object({ service: z.string(), availability: z.string(), responseTime: z.string().optional() })).optional(),
+  serviceAvailabilityRequirements: z.string().optional(),
+}).optional();
+
+export const geographicOperationsSchema = z.object({
+  countriesOfOperation: z.array(z.string()).optional(),
+  officeLocations: z.array(z.object({ address: z.string(), type: z.enum(['headquarters', 'regional', 'satellite', 'remote']), employeeCount: z.number().optional() })).optional(),
+  dataCenterLocations: z.array(z.object({ location: z.string(), type: z.enum(['primary', 'disaster_recovery', 'backup']), provider: z.string().optional() })).optional(),
+  customerRegionsServed: z.array(z.string()).optional(),
+  regulatoryJurisdictions: z.array(z.string()).optional(),
+}).optional();
+
+export const securityInfrastructureSchema = z.object({
+  networkArchitectureSummary: z.string().optional(),
+  firewallVendor: z.string().optional(),
+  idsIpsVendor: z.string().optional(),
+  siemSolution: z.string().optional(),
+  endpointProtection: z.string().optional(),
+  encryptionStandards: z.array(z.object({ type: z.string(), algorithm: z.string(), keyLength: z.number().optional() })).optional(),
+  backupSolutions: z.array(z.object({ type: z.string(), frequency: z.string(), retention: z.string().optional() })).optional(),
+  disasterRecoverySites: z.array(z.object({ location: z.string(), type: z.string(), rtoHours: z.number().optional() })).optional(),
+  vpnSolution: z.string().optional(),
+  mfaProvider: z.string().optional(),
+  identityProvider: z.string().optional(),
+}).optional();
+
+export const businessContinuitySchema = z.object({
+  rtoHours: z.number().optional(),
+  rpoHours: z.number().optional(),
+  bcdrPlanExists: z.boolean().optional(),
+  lastDrTestDate: z.string().optional(),
+  criticalSystems: z.array(z.object({ system: z.string(), rtoHours: z.number(), rpoHours: z.number() })).optional(),
+  backupFrequency: z.string().optional(),
+  incidentResponsePlanExists: z.boolean().optional(),
+  lastIncidentResponseTest: z.string().optional(),
+}).optional();
+
+export const vendorManagementSchema = z.object({
+  criticalVendors: z.array(z.object({ name: z.string(), service: z.string(), securityAssessmentStatus: z.enum(['pending', 'approved', 'requires_review']).optional(), lastAssessmentDate: z.string().optional() })).optional(),
+  thirdPartyIntegrations: z.array(z.object({ name: z.string(), type: z.string(), dataShared: z.array(z.string()).optional() })).optional(),
+  vendorRiskAssessmentFrequency: z.string().optional(),
+}).optional();
+
+export const frameworkConfigsSchema = z.object({
+  fedramp: z.object({
+    level: z.enum(['low', 'moderate', 'high']),
+    impactLevel: z.object({
+      confidentiality: z.enum(['low', 'moderate', 'high']),
+      integrity: z.enum(['low', 'moderate', 'high']),
+      availability: z.enum(['low', 'moderate', 'high']),
+    }),
+    selectedControls: z.array(z.string()),
+  }).optional(),
+  nist80053: z.object({
+    version: z.literal('revision-5'),
+    selectedControlFamilies: z.array(z.string()),
+  }).optional(),
+  iso27001: z.object({
+    version: z.literal('2022'),
+    scope: z.string(),
+    selectedControls: z.array(z.string()),
+  }).optional(),
+  soc2: z.object({
+    trustServices: z.array(z.enum(['security', 'availability', 'processing', 'confidentiality', 'privacy'])),
+    reportType: z.enum(['type1', 'type2']),
+  }).optional(),
+}).optional();
+
+export const uploadedDocsSchema = z.object({
+  incorporationDocs: z.array(z.object({ filename: z.string(), url: z.string(), extractedData: z.any().optional() })).optional(),
+  registrationDocs: z.array(z.object({ filename: z.string(), url: z.string(), extractedData: z.any().optional() })).optional(),
+  profileDocs: z.array(z.object({ filename: z.string(), url: z.string(), extractedData: z.any().optional() })).optional(),
+  orgCharts: z.array(z.object({ filename: z.string(), url: z.string(), extractedData: z.any().optional() })).optional(),
+  policyDocs: z.array(z.object({ filename: z.string(), url: z.string(), extractedData: z.any().optional() })).optional(),
+}).optional();
+
+export const aiResearchDataSchema = z.object({
+  lastResearchDate: z.string().optional(),
+  sources: z.array(z.object({ url: z.string(), type: z.string(), extractedAt: z.string() })).optional(),
+  confidence: z.number().optional(),
+  extractedInfo: z.record(z.any()).optional(),
+}).optional();
+
 export const insertCompanyProfileSchema = createInsertSchema(companyProfiles).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  contactInfo: contactInfoSchema,
+  organizationStructure: organizationStructureSchema,
+  keyPersonnel: keyPersonnelSchema,
+  productsAndServices: productsAndServicesSchema,
+  geographicOperations: geographicOperationsSchema,
+  securityInfrastructure: securityInfrastructureSchema,
+  businessContinuity: businessContinuitySchema,
+  vendorManagement: vendorManagementSchema,
+  frameworkConfigs: frameworkConfigsSchema,
+  uploadedDocs: uploadedDocsSchema,
+  aiResearchData: aiResearchDataSchema,
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({

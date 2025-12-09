@@ -20,6 +20,7 @@ import { z } from "zod";
 import { metricsCollector } from "./monitoring/metrics";
 import { objectStorageService } from "./services/objectStorageService";
 import { frameworkSpreadsheetService } from "./services/frameworkSpreadsheetService";
+import { companyDataExtractionService } from "./services/companyDataExtractionService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
@@ -205,6 +206,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update company profile" });
+    }
+  });
+
+  // Company profile data extraction routes
+  app.post("/api/company-profiles/:id/extract-from-document", requireMFA, enforceMFATimeout, async (req, res) => {
+    try {
+      const { documentContent, documentType, filename } = req.body;
+      
+      if (!documentContent || !documentType || !filename) {
+        return res.status(400).json({ message: "Document content, type, and filename are required" });
+      }
+
+      const extracted = await companyDataExtractionService.extractFromDocument({
+        documentContent,
+        documentType,
+        filename,
+      });
+
+      res.json(extracted);
+    } catch (error) {
+      logger.error("Document extraction failed:", error);
+      res.status(500).json({ message: "Failed to extract data from document" });
+    }
+  });
+
+  app.post("/api/company-profiles/:id/extract-from-website", requireMFA, enforceMFATimeout, async (req, res) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({ message: "Website URL is required" });
+      }
+
+      const extracted = await companyDataExtractionService.extractFromWebsite({ url });
+      res.json(extracted);
+    } catch (error) {
+      logger.error("Website extraction failed:", error);
+      res.status(500).json({ message: "Failed to extract data from website" });
+    }
+  });
+
+  app.post("/api/company-profiles/:id/research", requireMFA, enforceMFATimeout, async (req, res) => {
+    try {
+      const profile = await storage.getCompanyProfile(req.params.id);
+      if (!profile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+
+      const extracted = await companyDataExtractionService.researchCompany({
+        companyName: profile.companyName,
+        industry: profile.industry,
+        headquarters: profile.headquarters,
+      });
+
+      res.json(extracted);
+    } catch (error) {
+      logger.error("Company research failed:", error);
+      res.status(500).json({ message: "Failed to research company" });
     }
   });
 
