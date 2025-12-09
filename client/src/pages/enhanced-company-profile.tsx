@@ -91,8 +91,10 @@ export default function EnhancedCompanyProfile() {
   const [activeTab, setActiveTab] = useState("basic");
 
   const form = useForm<FormData>({
-    resolver: zodResolver(enhancedCompanyProfileSchema),
+    resolver: zodResolver(enhancedCompanyProfileSchema) as any,
     defaultValues: {
+      organizationId: "",
+      createdBy: "",
       companyName: "",
       industry: "",
       companySize: "",

@@ -126,8 +126,11 @@ export class AgentClient {
         if (message.tool_calls && message.tool_calls.length > 0) {
           // Execute tool calls
           for (const toolCall of message.tool_calls) {
-            const toolName = toolCall.function.name;
-            const toolParams = JSON.parse(toolCall.function.arguments);
+            // Handle both standard and custom tool call types
+            const toolFunction = 'function' in toolCall ? toolCall.function : null;
+            if (!toolFunction) continue;
+            const toolName = toolFunction.name;
+            const toolParams = JSON.parse(toolFunction.arguments);
 
             logger.info('Executing tool', { toolName, agentId: agent.id });
 

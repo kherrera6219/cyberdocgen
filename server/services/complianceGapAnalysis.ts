@@ -147,7 +147,7 @@ class ComplianceGapAnalysisService {
       
       const aiResponse = await aiOrchestrator.generateContent({
         prompt: analysisPrompt,
-        model: 'claude-4-sonnet', // Use Claude for complex analysis
+        model: 'claude-sonnet-4', // Use Claude for complex analysis
         temperature: 0.3, // Lower temperature for consistent analysis
         maxTokens: 4000
       });
@@ -231,11 +231,11 @@ You are a senior compliance auditor conducting a comprehensive gap analysis for 
 Company Profile:
 - Name: ${companyProfile.companyName}
 - Industry: ${companyProfile.industry}
-- Size: ${companyProfile.employeeCount} employees
-- Technology Stack: ${companyProfile.technologyStack?.join(', ') || 'Not specified'}
-- Cloud Services: ${companyProfile.cloudServices?.join(', ') || 'Not specified'}
-- Data Types: ${companyProfile.dataTypes?.join(', ') || 'Not specified'}
-- Compliance Requirements: ${companyProfile.complianceRequirements?.join(', ') || 'Not specified'}
+- Size: ${companyProfile.companySize || 'Not specified'}
+- Technology Stack: ${(companyProfile as any).technologyStack?.join(', ') || 'Not specified'}
+- Cloud Services: ${(companyProfile as any).cloudServices?.join(', ') || 'Not specified'}
+- Data Types: ${(companyProfile as any).dataTypes?.join(', ') || 'Not specified'}
+- Compliance Requirements: ${(companyProfile as any).complianceRequirements?.join(', ') || 'Not specified'}
 
 Framework: ${framework.name} (${framework.version})
 
@@ -339,8 +339,8 @@ Gap Description: ${finding.gapDescription}
 
 Company Context:
 - Industry: ${companyProfile.industry}
-- Size: ${companyProfile.employeeCount} employees
-- Technology: ${companyProfile.technologyStack?.join(', ') || 'Not specified'}
+- Size: ${companyProfile.companySize || 'Not specified'}
+- Technology: ${(companyProfile as any).technologyStack?.join(', ') || 'Not specified'}
 
 Provide 2-3 specific remediation recommendations in JSON format:
 {

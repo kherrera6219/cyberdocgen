@@ -40,7 +40,7 @@ export function OrganizationSetup() {
     },
   });
 
-  const { data: organizations = [], isLoading } = useQuery({
+  const { data: organizations = [], isLoading } = useQuery<(Organization & { role: string })[]>({
     queryKey: ["/api/organizations"],
   });
 
@@ -252,6 +252,7 @@ export function OrganizationSetup() {
                                 placeholder="Brief description of your organization"
                                 rows={3}
                                 {...field}
+                                value={field.value ?? ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -266,7 +267,7 @@ export function OrganizationSetup() {
                           <FormItem>
                             <FormLabel>Website (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://example.com" {...field} />
+                              <Input placeholder="https://example.com" {...field} value={field.value ?? ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -280,7 +281,7 @@ export function OrganizationSetup() {
                           <FormItem>
                             <FormLabel>Contact Email (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="contact@example.com" {...field} />
+                              <Input placeholder="contact@example.com" {...field} value={field.value ?? ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

@@ -8,7 +8,7 @@ import { auditService, AuditAction } from "./services/auditService";
 import { versionService } from "./services/versionService";
 import { logger } from "./utils/logger";
 import { validateRequest, commonSchemas } from "./utils/validation";
-import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema } from "@shared/schema";
+import { insertCompanyProfileSchema, insertDocumentSchema, insertGenerationJobSchema, type RemediationRecommendation } from "@shared/schema";
 import { generateComplianceDocuments, frameworkTemplates } from "./services/openai";
 import { aiOrchestrator, type AIModel, type GenerationOptions } from "./services/aiOrchestrator";
 import { documentAnalysisService } from "./services/documentAnalysis";
@@ -1356,8 +1356,9 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "document",
         entityId: path,
-        action: "download",
+        action: AuditAction.DATA_EXPORT,
         userId,
+        ipAddress: req.ip || '',
         metadata: { 
           action: "file_download",
           storageProvider: "replit",
@@ -1398,8 +1399,9 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "document",
         entityId: folder || "root",
-        action: "view",
+        action: AuditAction.READ,
         userId,
+        ipAddress: req.ip || '',
         metadata: { 
           action: "storage_list",
           storageProvider: "replit",
@@ -1432,8 +1434,9 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "document",
         entityId: path,
-        action: "delete",
+        action: AuditAction.DELETE,
         userId,
+        ipAddress: req.ip || '',
         metadata: { 
           action: "storage_delete",
           storageProvider: "replit",
@@ -1464,8 +1467,9 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "organization",
         entityId: "storage-stats",
-        action: "view",
+        action: AuditAction.READ,
         userId,
+        ipAddress: req.ip || '',
         metadata: { 
           action: "storage_stats",
           storageProvider: "replit",
@@ -1498,8 +1502,9 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "organization",
         entityId: backupId,
-        action: "create",
+        action: AuditAction.CREATE,
         userId,
+        ipAddress: req.ip || '',
         metadata: { 
           action: "backup_upload",
           storageProvider: "replit",
@@ -1532,8 +1537,9 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "organization",
         entityId: backupId,
-        action: "download",
+        action: AuditAction.DATA_EXPORT,
         userId,
+        ipAddress: req.ip || '',
         metadata: { 
           action: "backup_download",
           storageProvider: "replit"
@@ -1565,8 +1571,9 @@ Category: ${category}`;
       await auditService.logAudit({
         entityType: "organization",
         entityId: logId,
-        action: "create",
+        action: AuditAction.CREATE,
         userId,
+        ipAddress: req.ip || '',
         metadata: { 
           action: "audit_log_upload",
           storageProvider: "replit",
@@ -1635,7 +1642,7 @@ Category: ${category}`;
     }
   });
 
-  app.post("/api/ai/fine-tune", isAuthenticated, async (req, res) => {
+  app.post("/api/ai/fine-tune", isAuthenticated, async (req: any, res) => {
     try {
       const { industryId, requirements, customInstructions, priority } = req.body;
       const userId = req.user?.claims?.sub;
@@ -1664,8 +1671,7 @@ Category: ${category}`;
         action: "ai_fine_tuning_created",
         entityType: "ai_configuration",
         entityId: result.configId,
-        details: { industryId, accuracy: result.accuracy },
-        metadata: { requirements, customInstructions, priority }
+        metadata: { industryId, accuracy: result.accuracy, requirements, customInstructions, priority }
       });
 
       res.json({ success: true, result });
@@ -1675,7 +1681,7 @@ Category: ${category}`;
     }
   });
 
-  app.post("/api/ai/generate-optimized", isAuthenticated, async (req, res) => {
+  app.post("/api/ai/generate-optimized", isAuthenticated, async (req: any, res) => {
     try {
       const { configId, documentType, context } = req.body;
       const userId = req.user?.claims?.sub;
@@ -1702,8 +1708,7 @@ Category: ${category}`;
         action: "ai_optimized_generation",
         entityType: "document",
         entityId: `opt-${Date.now()}`,
-        details: { documentType, industry: context.industry },
-        metadata: { configId, context }
+        metadata: { documentType, industry: context.industry, configId, context }
       });
 
       res.json({ success: true, content: generatedContent });
@@ -1713,7 +1718,7 @@ Category: ${category}`;
     }
   });
 
-  app.post("/api/ai/assess-risks", isAuthenticated, async (req, res) => {
+  app.post("/api/ai/assess-risks", isAuthenticated, async (req: any, res) => {
     try {
       const { industryId, organizationContext } = req.body;
       const userId = req.user?.claims?.sub;
@@ -1736,8 +1741,7 @@ Category: ${category}`;
         action: "ai_risk_assessment",
         entityType: "risk_assessment",
         entityId: `risk-${Date.now()}`,
-        details: { industryId, riskScore: riskAssessment.riskScore },
-        metadata: { organizationContext, identifiedRisks: riskAssessment.identifiedRisks.length }
+        metadata: { industryId, riskScore: riskAssessment.riskScore, organizationContext, identifiedRisks: riskAssessment.identifiedRisks.length }
       });
 
       res.json({ success: true, assessment: riskAssessment });
@@ -1947,8 +1951,7 @@ Category: ${category}`;
                 implementationBreakdown: {
                   notImplemented: mockFindings.filter(f => f.currentStatus === 'not_implemented').length,
                   partiallyImplemented: mockFindings.filter(f => f.currentStatus === 'partially_implemented').length,
-                  implemented: mockFindings.filter(f => f.currentStatus === 'implemented').length,
-                  fullyCompliant: mockFindings.filter(f => f.currentStatus === 'fully_compliant').length
+                  implemented: mockFindings.filter(f => f.currentStatus === 'implemented').length
                 }
               },
               recommendations: {
@@ -2190,10 +2193,13 @@ Category: ${category}`;
         
         // Create a default system profile for standalone documents
         const systemProfile = await storage.createCompanyProfile({
-          name: 'System Generated',
+          organizationId: 'system-org',
+          companyName: 'System Generated',
           industry: 'General',
-          size: 'Small',
-          description: 'Auto-generated profile for standalone documents',
+          companySize: 'Small',
+          headquarters: 'N/A',
+          dataClassification: 'internal',
+          businessApplications: 'Auto-generated profile for standalone documents',
           createdBy: systemUserId
         });
         finalCompanyProfileId = systemProfile.id;

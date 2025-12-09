@@ -2505,6 +2505,11 @@ export class DocumentTemplateService {
     return Object.values(AllDocumentTemplates).flat();
   }
 
+  // Get all templates across all frameworks
+  static getAllTemplates(): DocumentTemplate[] {
+    return Object.values(AllDocumentTemplates).flat();
+  }
+
   // Get templates by category across all frameworks
   static getAllTemplatesByCategory(category: string): DocumentTemplate[] {
     const allTemplates = Object.values(AllDocumentTemplates).flat();

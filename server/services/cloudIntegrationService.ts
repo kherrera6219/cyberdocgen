@@ -170,7 +170,10 @@ export class CloudIntegrationService {
       }
 
       // Decrypt access token
-      const accessToken = await encryptionService.decryptSensitiveField(integration.accessTokenEncrypted);
+      const encryptedData = typeof integration.accessTokenEncrypted === 'string' 
+        ? JSON.parse(integration.accessTokenEncrypted)
+        : integration.accessTokenEncrypted;
+      const accessToken = await encryptionService.decryptSensitiveField(encryptedData, DataClassification.RESTRICTED);
 
       let files: FileMetadata[] = [];
 
@@ -270,7 +273,7 @@ export class CloudIntegrationService {
         q: "trashed=false and (mimeType='application/pdf' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document' or mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')",
       });
 
-      return response.data.files?.map(file => ({
+      return response.data.files?.map((file: { id?: string; name?: string; mimeType?: string; size?: string; modifiedTime?: string; webViewLink?: string; webContentLink?: string; thumbnailLink?: string; parents?: string[] }) => ({
         id: file.id!,
         name: file.name!,
         mimeType: file.mimeType!,
@@ -447,18 +450,18 @@ export class CloudIntegrationService {
     fileType?: string;
     securityLevel?: string;
   }) {
-    let whereCondition = eq(cloudFiles.organizationId, organizationId);
+    const conditions = [eq(cloudFiles.organizationId, organizationId)];
 
     if (filters?.fileType) {
-      whereCondition = and(whereCondition, eq(cloudFiles.fileType, filters.fileType));
+      conditions.push(eq(cloudFiles.fileType, filters.fileType));
     }
 
     if (filters?.securityLevel) {
-      whereCondition = and(whereCondition, eq(cloudFiles.securityLevel, filters.securityLevel));
+      conditions.push(eq(cloudFiles.securityLevel, filters.securityLevel));
     }
 
     return db.query.cloudFiles.findMany({
-      where: whereCondition,
+      where: and(...conditions),
       with: {
         integration: true,
       },

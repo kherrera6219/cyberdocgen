@@ -45,8 +45,8 @@ export const getDocumentTemplatesTool: Tool = {
       if (params.framework) {
         templates = DocumentTemplateService.getTemplatesByFramework(params.framework);
       } else {
-        const allTemplates = DocumentTemplateService.getTemplateStats();
-        templates = allTemplates.allTemplates;
+        // Get all templates from all frameworks
+        templates = DocumentTemplateService.getAllTemplates();
       }
 
       if (params.category) {
@@ -613,6 +613,20 @@ export const calculateComplianceScoreTool: Tool = {
       // Overall compliance score (weighted average)
       const complianceScore = Math.round((coverage * 0.6) + (avgQuality * 0.4));
 
+      const recommendations: string[] = [];
+
+      // Add recommendations based on score
+      if (complianceScore < 60) {
+        recommendations.push('Priority: Generate missing required documents');
+        recommendations.push('Conduct comprehensive gap analysis');
+      }
+      if (avgQuality < 75) {
+        recommendations.push('Improve document quality through review and updates');
+      }
+      if (coverage < 80) {
+        recommendations.push(`Missing ${Math.max(0, totalRequired - documentTypes.size)} required document types`);
+      }
+
       const result = {
         overallScore: complianceScore,
         breakdown: {
@@ -625,20 +639,8 @@ export const calculateComplianceScoreTool: Tool = {
         riskLevel: complianceScore >= 80 ? 'low' :
                    complianceScore >= 60 ? 'medium' :
                    complianceScore >= 40 ? 'high' : 'critical',
-        recommendations: []
+        recommendations
       };
-
-      // Add recommendations based on score
-      if (complianceScore < 60) {
-        result.recommendations.push('Priority: Generate missing required documents');
-        result.recommendations.push('Conduct comprehensive gap analysis');
-      }
-      if (avgQuality < 75) {
-        result.recommendations.push('Improve document quality through review and updates');
-      }
-      if (coverage < 80) {
-        result.recommendations.push(`Missing ${result.breakdown.missingDocuments} required document types`);
-      }
 
       return {
         success: true,

@@ -366,10 +366,14 @@ export const performGapAnalysisTool: Tool = {
   },
   handler: async (params, context: ToolContext): Promise<ToolResult> => {
     try {
-      const analysis = await complianceGapAnalysisService.analyzeGaps(
-        params.framework,
+      const analysis = await complianceGapAnalysisService.analyzeComplianceGaps(
+        params.companyProfile.organizationId || 'default',
         params.companyProfile,
-        params.existingControls || []
+        {
+          framework: params.framework,
+          includeMaturityAssessment: true,
+          focusAreas: params.existingControls || []
+        }
       );
 
       return {
