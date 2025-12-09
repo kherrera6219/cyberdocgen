@@ -18,6 +18,16 @@ import EnhancedCompanyProfile from "./pages/enhanced-company-profile";
 import DocumentWorkspace from "./pages/document-workspace";
 import AuditTrail from "./pages/audit-trail";
 import DocumentVersions from "./pages/document-versions";
+import { useParams } from "wouter";
+
+function WorkspaceWrapper() {
+  return <DocumentWorkspace organizationId="default" />;
+}
+
+function DocumentVersionsWrapper() {
+  const params = useParams<{ id: string }>();
+  return <DocumentVersions documentId={params.id || ""} documentTitle="Document" />;
+}
 import { ObjectStorageManager } from "./components/ObjectStorageManager";
 import { IndustrySpecialization } from "./components/ai/IndustrySpecialization";
 import GapAnalysis from "./pages/gap-analysis";
@@ -44,11 +54,11 @@ function AuthenticatedRouter() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/profile" component={CompanyProfile} />
       <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
-      <Route path="/workspace" component={() => <DocumentWorkspace organizationId="default" />} />
+      <Route path="/workspace" component={WorkspaceWrapper} />
       <Route path="/documents" component={Documents} />
       <Route path="/gap-analysis" component={GapAnalysis} />
       <Route path="/audit-trail" component={AuditTrail} />
-      <Route path="/document-versions/:id" component={(props: any) => <DocumentVersions documentId={props.params.id} documentTitle="Document" />} />
+      <Route path="/document-versions/:id" component={DocumentVersionsWrapper} />
       <Route path="/user-profile" component={UserProfile} />
       <Route path="/organizations" component={OrganizationSetup} />
       <Route path="/storage" component={ObjectStorageManager} />
