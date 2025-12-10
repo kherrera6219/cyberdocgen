@@ -16,7 +16,7 @@ export const AI_MODELS = {
 
   // Anthropic - Claude Opus 4.1 (Released August 5, 2025) 
   ANTHROPIC: {
-    primary: "claude-opus-4-1",
+    primary: "claude-opus-4-5",
     fallback: "claude-sonnet-4",
     description: "World's best coding model with hybrid reasoning capabilities",
     capabilities: ["hybrid reasoning", "advanced coding", "7-hour autonomous tasks", "extended thinking"],
@@ -26,7 +26,7 @@ export const AI_MODELS = {
 
   // Google - Gemini 2.0 Flash (Latest multimodal model)
   GOOGLE: {
-    primary: "gemini-3-pro",
+    primary: "gemini-3.0-pro",
     fallback: "gemini-1.5-pro",
     description: "Latest Gemini 2.0 with native multimodal output, 2x faster than 1.5 Pro",
     capabilities: ["multimodal input/output", "native tool use", "1M token context", "image generation"],
