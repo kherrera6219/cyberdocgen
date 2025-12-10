@@ -22,7 +22,7 @@ The backend is an enterprise-grade Node.js server built with Express and TypeScr
 ### Key Features
 
 - **RESTful API** - Comprehensive API endpoints for all features
-- **AI Integration** - OpenAI GPT-4o and Anthropic Claude integration
+- **AI Integration** - OpenAI GPT-5.1, Anthropic Claude Opus 4.5, and Google Gemini 3.0 Pro integration
 - **Enterprise Authentication** - Multi-factor authentication and session management
 - **Database Management** - PostgreSQL with Drizzle ORM
 - **Security** - Rate limiting, encryption, audit logging, threat detection
@@ -71,7 +71,7 @@ server/
 │
 ├── services/                 # Business logic (23 services)
 │   ├── aiOrchestrator.ts            # Multi-model AI orchestration
-│   ├── openai.ts                    # OpenAI GPT-4o integration
+│   ├── openai.ts                    # OpenAI GPT-5.1 integration
 │   ├── anthropic.ts                 # Anthropic Claude integration
 │   ├── documentGeneration.ts        # Document generation
 │   ├── documentAnalysis.ts          # Document analysis
@@ -302,7 +302,7 @@ const result = await generateWithAI({
 
 ### OpenAI Service (`openai.ts`)
 
-OpenAI GPT-4o integration:
+OpenAI GPT-5.1 integration:
 
 ```typescript
 import { generateDocument } from './services/openai';
@@ -316,7 +316,7 @@ const document = await generateDocument({
 
 ### Anthropic Service (`anthropic.ts`)
 
-Anthropic Claude integration for complex reasoning:
+Anthropic Claude Opus 4.5 integration for complex reasoning:
 
 ```typescript
 import { analyzeCompliance } from './services/anthropic';

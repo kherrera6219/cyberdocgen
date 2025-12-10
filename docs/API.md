@@ -54,8 +54,9 @@ GET /api/ai/health
 {
   "status": "healthy",
   "models": {
-    "openai": { "status": "available", "model": "gpt-4o" },
-    "anthropic": { "status": "available", "model": "claude-4.0-sonnet" }
+    "openai": { "status": "available", "model": "gpt-5.1" },
+    "anthropic": { "status": "available", "model": "claude-opus-4-5" },
+    "google": { "status": "available", "model": "gemini-3.0-pro" }
   },
   "orchestrator": "operational"
 }
@@ -328,7 +329,7 @@ Content-Type: application/json
   "companyProfileId": "profile_123",
   "framework": "SOC2",
   "templates": ["policy", "procedure", "guideline"],
-  "model": "gpt-4o"
+  "model": "gpt-5.1"
 }
 ```
 

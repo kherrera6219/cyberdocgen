@@ -127,16 +127,20 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 #### AI Service Keys
 
 ```bash
-# OpenAI API key for GPT-4o
+# OpenAI API key for GPT-5.1
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Anthropic API key for Claude
+# Anthropic API key for Claude Opus 4.5
 ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Google AI API key for Gemini 3.0 Pro
+GOOGLE_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 **Get API Keys:**
 - OpenAI: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 - Anthropic: [console.anthropic.com](https://console.anthropic.com/)
+- Google AI: [ai.google.dev](https://ai.google.dev/)
 
 ### Optional Variables
 
@@ -199,6 +203,7 @@ ENCRYPTION_KEY=your-generated-encryption-key-here
 # AI Services
 OPENAI_API_KEY=sk-proj-your-key-here
 ANTHROPIC_API_KEY=sk-ant-your-key-here
+GOOGLE_API_KEY=AIza-your-key-here
 
 # Application
 NODE_ENV=development

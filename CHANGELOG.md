@@ -7,19 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-12-10
+
 ### Added
-- Comprehensive project documentation
-- Contributing guidelines
-- Code of conduct
-- Environment setup guide
-- Testing documentation
-- Troubleshooting guide
+- Google Gemini 3.0 Pro AI model integration for multimodal analysis
+- Three-provider AI orchestration with intelligent model selection
+
+### Changed
+- Updated OpenAI integration to GPT-5.1 (latest flagship model, Nov 2025)
+- Updated Anthropic integration to Claude Opus 4.5 (latest model, Nov 2025)
+- Updated Google AI integration to Gemini 3.0 Pro (latest model, Dec 2025)
+- Updated all npm dependencies to latest compatible versions
+- Enhanced AI fallback system with three-provider support
+
+### Documentation
+- Updated all documentation files with latest AI model information
+- Updated README.md with current model versions
+- Updated replit.md with latest architecture details
+- Updated API documentation with new model references
+- Updated environment setup guide with Google AI configuration
 
 ## [1.0.0] - 2024-11-25
 
 ### Added
 - Enterprise-grade compliance management system
-- AI-powered document generation with multiple model support (OpenAI GPT-4o, Anthropic Claude)
+- AI-powered document generation with multiple model support (OpenAI GPT-5.1, Anthropic Claude Opus 4.5, Google Gemini 3.0 Pro)
 - Multi-framework compliance support:
   - ISO 27001:2022
   - SOC 2 Type I & II

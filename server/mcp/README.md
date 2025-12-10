@@ -41,7 +41,7 @@ The MCP system provides a robust framework for:
 Manages AI agents with multi-model support and tool calling capabilities.
 
 **Features:**
-- Multiple AI model support (GPT-4o, Claude Sonnet 4, Gemini)
+- Multiple AI model support (GPT-5.1, Claude Opus 4.5, Gemini 3.0 Pro)
 - Automatic tool calling and execution
 - Conversation history management
 - Iterative reasoning with max iterations control
@@ -87,31 +87,31 @@ Tools that interact with external services:
 ### 5. Predefined Agents
 
 #### Compliance Assistant
-- **Model**: GPT-4o
+- **Model**: GPT-5.1
 - **Purpose**: General compliance guidance and analysis
 - **Tools**: 7 tools including gap analysis, document search, web search
 - **Best for**: Compliance questions, gap analysis, quality assessment
 
 #### Document Generator
-- **Model**: Claude Sonnet 4
+- **Model**: Claude Opus 4.5
 - **Purpose**: Generate high-quality compliance documents
 - **Tools**: 5 tools including document generation, quality analysis
 - **Best for**: Creating policies, procedures, and compliance documentation
 
 #### Risk Assessment Specialist
-- **Model**: GPT-4o
+- **Model**: GPT-5.1
 - **Purpose**: Organizational risk assessment and threat analysis
 - **Tools**: 6 tools including risk assessment, threat intelligence
 - **Best for**: Risk analysis, threat modeling, control assessment
 
 #### Data Extraction Agent
-- **Model**: Claude Sonnet 4
+- **Model**: Claude Opus 4.5
 - **Purpose**: Extract structured data from documents
 - **Tools**: 4 tools including document search, URL fetching
 - **Best for**: Data parsing, information extraction, content analysis
 
 #### Compliance Chatbot
-- **Model**: GPT-4o
+- **Model**: GPT-5.1
 - **Purpose**: Interactive chat for compliance questions
 - **Tools**: 6 tools including search, documentation, updates
 - **Best for**: Quick answers, guidance, regulatory updates

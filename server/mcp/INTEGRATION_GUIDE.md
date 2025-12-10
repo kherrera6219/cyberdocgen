@@ -144,7 +144,7 @@ const response = await mcpChatbot.processMessage(
 ## Agent Capabilities
 
 ### 1. Compliance Assistant
-**Model:** GPT-4o
+**Model:** GPT-5.1
 **Tools:** 10 tools
 **Best for:**
 - Answering compliance questions
@@ -162,7 +162,7 @@ const response = await agentClient.execute({
 ```
 
 ### 2. Document Generator
-**Model:** Claude Sonnet 4
+**Model:** Claude Opus 4.5
 **Tools:** 9 tools
 **Best for:**
 - Creating policies and procedures

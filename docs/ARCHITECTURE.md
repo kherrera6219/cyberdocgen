@@ -19,7 +19,7 @@ ComplianceAI is a sophisticated cybersecurity documentation platform that levera
 - **Language**: TypeScript for type safety
 - **Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: Replit OpenID Connect integration
-- **AI Integration**: Multi-model orchestration (OpenAI GPT-4o, Anthropic Claude 4.0)
+- **AI Integration**: Multi-model orchestration (OpenAI GPT-5.1, Anthropic Claude Opus 4.5, Google Gemini 3.0 Pro)
 - **Storage**: Cloud object storage for document assets
 
 ### Database Design
@@ -34,8 +34,9 @@ ComplianceAI is a sophisticated cybersecurity documentation platform that levera
 ### Multi-Model Orchestration
 The system implements intelligent model selection based on task requirements:
 
-- **OpenAI GPT-4o**: Document generation, content analysis
-- **Anthropic Claude 4.0**: Complex reasoning, risk assessment
+- **OpenAI GPT-5.1**: Document generation, content analysis (latest flagship model, Nov 2025)
+- **Anthropic Claude Opus 4.5**: Complex reasoning, risk assessment (latest model, Nov 2025)
+- **Google Gemini 3.0 Pro**: Multimodal analysis, compliance review (latest model, Dec 2025)
 - **Automatic Fallback**: Graceful degradation when models are unavailable
 
 ### AI Service Endpoints
