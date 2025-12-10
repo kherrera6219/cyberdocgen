@@ -389,7 +389,7 @@ const customAgent: AgentConfig = {
   id: 'my-custom-agent',
   name: 'Custom Compliance Agent',
   description: 'Specialized agent for industry-specific compliance',
-  model: 'gpt-4o',
+  model: 'gpt-4.1',
   tools: [
     'get_company_profile',
     'get_documents',

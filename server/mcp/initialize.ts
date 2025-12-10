@@ -51,7 +51,7 @@ function registerPredefinedAgents(): void {
     id: 'compliance-assistant',
     name: 'Compliance Assistant',
     description: 'Expert assistant for compliance documentation, gap analysis, and framework implementation',
-    model: 'gpt-4o',
+    model: 'gpt-4.1',
     tools: [
       'get_company_profile',
       'get_documents',
@@ -135,7 +135,7 @@ Always:
     id: 'risk-assessment',
     name: 'Risk Assessment Specialist',
     description: 'Expert in organizational risk assessment and threat analysis',
-    model: 'gpt-4o',
+    model: 'gpt-4.1',
     tools: [
       'get_company_profile',
       'perform_risk_assessment',
@@ -222,7 +222,7 @@ Always:
     id: 'compliance-chat',
     name: 'Compliance Chatbot',
     description: 'Interactive chatbot for answering compliance questions and providing guidance',
-    model: 'gpt-4o',
+    model: 'gpt-4.1',
     tools: [
       'get_documents',
       'search_documents',

@@ -13,7 +13,7 @@ function getOpenAIClient(): OpenAI {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
-export type AIModel = 'gpt-4o' | 'claude-sonnet-4' | 'auto';
+export type AIModel = 'gpt-4.1' | 'claude-sonnet-4' | 'auto';
 
 export interface GenerationOptions {
   model?: AIModel;
@@ -126,14 +126,14 @@ export class AIOrchestrator {
         content = await generateDocumentWithClaude(template, companyProfile, framework);
       } else {
         content = await generateWithOpenAI(template, companyProfile, framework);
-        selectedModel = 'gpt-4o';
+        selectedModel = 'gpt-4.1';
       }
     } catch (error) {
       logger.error(`Error with ${selectedModel}, falling back to alternative:`, error);
       // Fallback to alternative model
       if (selectedModel === 'claude-sonnet-4') {
         content = await generateWithOpenAI(template, companyProfile, framework);
-        selectedModel = 'gpt-4o';
+        selectedModel = 'gpt-4.1';
       } else {
         content = await generateDocumentWithClaude(template, companyProfile, framework);
         selectedModel = 'claude-sonnet-4';
@@ -231,7 +231,7 @@ export class AIOrchestrator {
         if (enableCrossValidation && result.qualityScore && result.qualityScore < 80) {
           logger.info(`Low quality score (${result.qualityScore}) for ${template.title}, attempting cross-validation`);
           
-          const alternativeModel: AIModel = result.model === 'gpt-4o' ? 'claude-sonnet-4' : 'gpt-4o';
+          const alternativeModel: AIModel = result.model === 'gpt-4.1' ? 'claude-sonnet-4' : 'gpt-4.1';
           const alternativeResult = await this.generateDocument(template, companyProfile, framework, {
             model: alternativeModel,
             includeQualityAnalysis: true
@@ -269,7 +269,7 @@ export class AIOrchestrator {
   async generateContent(request: ContentGenerationRequest): Promise<GuardrailedResult<{ content: string; model: string }>> {
     const { 
       prompt, 
-      model = 'gpt-4o', 
+      model = 'gpt-4.1', 
       temperature = 0.4, 
       maxTokens = 1500,
       enableGuardrails = true,
@@ -466,7 +466,7 @@ export class AIOrchestrator {
     if (template.category.includes('Procedure') || 
         template.category.includes('Plan') ||
         template.category.includes('Response')) {
-      return 'gpt-4o';
+      return 'gpt-4.1';
     }
     
     // Default to Claude for ISO 27001 and SOC 2 (more analytical)
@@ -475,14 +475,14 @@ export class AIOrchestrator {
     }
     
     // Default to GPT-4o for FedRAMP and NIST (more procedural)
-    return 'gpt-4o';
+    return 'gpt-4.1';
   }
   
   /**
    * Get available AI models
    */
   getAvailableModels(): AIModel[] {
-    return ['gpt-4o', 'claude-sonnet-4', 'auto'];
+    return ['gpt-4.1', 'claude-sonnet-4', 'auto'];
   }
   
   /**
@@ -504,7 +504,7 @@ export class AIOrchestrator {
       const openai = await import('openai');
       const client = new openai.default({ apiKey: process.env.OPENAI_API_KEY });
       await client.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: "Test" }],
         max_tokens: 5
       });

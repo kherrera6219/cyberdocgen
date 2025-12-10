@@ -67,7 +67,7 @@ export function registerAnalyticsRoutes(router: Router) {
       res.json({
         success: true,
         gapAnalysis: analysisText,
-        model: "gemini-2.5-pro"
+        model: "gemini-2.0-flash"
       });
     } catch (error: any) {
       logger.error("Compliance analysis failed", { error: error.message });

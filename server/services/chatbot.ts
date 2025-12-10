@@ -263,7 +263,7 @@ Provide a helpful, actionable response.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1000
       });
@@ -336,7 +336,7 @@ Provide a helpful, actionable response.`;
   async generateConversationTitle(firstMessage: string): Promise<string> {
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4.1",
         messages: [{
           role: "user",
           content: `Generate a concise title (3-6 words) for a compliance conversation that starts with: "${firstMessage}"`

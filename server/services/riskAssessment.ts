@@ -195,7 +195,7 @@ Include:
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: threatPrompt }],
         response_format: { type: "json_object" },
         max_tokens: 2000
@@ -320,7 +320,7 @@ Prioritize by impact, feasibility, and cost-effectiveness.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: roadmapPrompt }],
         response_format: { type: "json_object" },
         max_tokens: 2000

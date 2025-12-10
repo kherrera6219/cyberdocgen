@@ -418,7 +418,7 @@ Generate a comprehensive ${documentType} that addresses the specific requirement
     settings: any
   ): Promise<string> {
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-4.1',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: settings.maxTokens,
       temperature: settings.temperature

@@ -351,7 +351,7 @@ class ModelTransparencyService {
     const defaultCards: CreateModelCardInput[] = [
       {
         modelProvider: "openai",
-        modelName: "gpt-4o",
+        modelName: "gpt-4.1",
         modelVersion: "2024-08-06",
         description: "GPT-4o is OpenAI's most advanced multimodal model, capable of processing text and images.",
         intendedUse: "Enterprise compliance document generation, analysis, and risk assessment.",

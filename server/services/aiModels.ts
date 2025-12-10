@@ -1,17 +1,17 @@
 /**
  * Latest AI Model Configurations
- * Updated to use the most advanced available models as of January 2025
+ * Updated to use the most advanced available models as of December 2024
  */
 
 export const AI_MODELS = {
-  // OpenAI - GPT-4o (Latest stable model)
+  // OpenAI - GPT-4.1 (Latest coding-focused model with 1M token context)
   OPENAI: {
-    primary: "gpt-4o",
-    fallback: "gpt-4o-mini",
-    description: "Latest GPT-4o with advanced reasoning and multi-modal capabilities",
-    capabilities: ["advanced reasoning", "coding", "document generation", "multi-modal"],
-    maxTokens: 128000,
-    released: "2024-05-13",
+    primary: "gpt-4.1",
+    fallback: "gpt-4.1-mini",
+    description: "Latest GPT-4.1 with 1M token context, 54.6% on SWE-bench, optimized for coding",
+    capabilities: ["advanced reasoning", "coding", "document generation", "1M token context"],
+    maxTokens: 1000000,
+    released: "2024-04-14",
   },
 
   // Anthropic - Claude Opus 4.1 (Released August 5, 2025) 
@@ -24,14 +24,14 @@ export const AI_MODELS = {
     released: "2025-08-05",
   },
 
-  // Google - Gemini 2.5 Pro (Available now with thinking)
+  // Google - Gemini 2.0 Flash (Latest multimodal model)
   GOOGLE: {
-    primary: "gemini-2.5-pro",
-    fallback: "gemini-2.5-pro-preview-06-05",
-    description: "Latest Gemini with built-in thinking capabilities and 1M token context",
-    capabilities: ["thinking model", "multimodal", "1M token context", "adaptive reasoning"],
+    primary: "gemini-2.0-flash",
+    fallback: "gemini-1.5-pro",
+    description: "Latest Gemini 2.0 with native multimodal output, 2x faster than 1.5 Pro",
+    capabilities: ["multimodal input/output", "native tool use", "1M token context", "image generation"],
     maxTokens: 1000000,
-    released: "2025-03-01",
+    released: "2024-12-11",
   },
 } as const;
 
@@ -40,7 +40,7 @@ export const MODEL_SELECTION_STRATEGY = {
   COMPLIANCE_GENERATION: {
     primary: AI_MODELS.OPENAI.primary,
     secondary: AI_MODELS.ANTHROPIC.primary,
-    rationale: "GPT-4o for quality generation, Claude for analytical backup"
+    rationale: "GPT-4.1 for quality generation with 1M context, Claude for analytical backup"
   },
 
   // For risk analysis and reasoning
@@ -54,7 +54,7 @@ export const MODEL_SELECTION_STRATEGY = {
   LARGE_CONTEXT: {
     primary: AI_MODELS.GOOGLE.primary,
     secondary: AI_MODELS.GOOGLE.fallback,
-    rationale: "Gemini handles massive context windows best"
+    rationale: "Gemini 2.0 Flash handles massive context with multimodal capabilities"
   },
 } as const;
 

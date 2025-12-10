@@ -152,7 +152,7 @@ Return JSON with numeric scores for each dimension.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: structurePrompt }],
         response_format: { type: "json_object" },
         max_tokens: 500
@@ -262,7 +262,7 @@ Focus on high-impact, practical improvements.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4.1",
         messages: [{ role: "user", content: improvementPrompt }],
         response_format: { type: "json_object" },
         max_tokens: 1500

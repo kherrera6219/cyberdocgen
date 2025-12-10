@@ -308,7 +308,7 @@ Respond ONLY with the JSON array, no additional text.`;
     try {
       const response = await aiOrchestrator.generateContent({
         prompt,
-        model: 'gpt-4o',
+        model: 'gpt-4.1',
         temperature: 0.3,
         maxTokens: 2000,
       });

@@ -114,7 +114,7 @@ export const generateSingleDocumentSchema = z.object({
     description: z.string().optional(),
     category: z.string().min(1)
   }).passthrough(),
-  model: z.enum(['gpt-4o', 'claude-sonnet', 'auto']).optional(),
+  model: z.enum(['gpt-4.1', 'claude-sonnet', 'auto']).optional(),
   includeQualityAnalysis: z.boolean().optional()
 });
 
