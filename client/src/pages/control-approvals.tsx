@@ -50,6 +50,14 @@ export default function ControlApprovals() {
 
   const { data: approvals = [], isLoading, error } = useQuery<EnrichedApproval[]>({
     queryKey: ["/api/approvals", selectedStatus],
+    queryFn: async () => {
+      const url = selectedStatus === "all" 
+        ? "/api/approvals" 
+        : `/api/approvals?status=${selectedStatus}`;
+      const response = await fetch(url, { credentials: "include" });
+      if (!response.ok) throw new Error("Failed to fetch approvals");
+      return response.json();
+    },
   });
 
   const pendingCount = approvals.filter(a => a.status === "pending").length;

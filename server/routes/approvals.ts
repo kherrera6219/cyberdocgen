@@ -2,7 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { logger } from "../utils/logger";
-import { documents, type DocumentApproval } from "@shared/schema";
+import { z } from "zod";
+
+const approvalActionSchema = z.object({
+  comment: z.string().optional().default(""),
+});
 
 export function registerApprovalsRoutes(router: Router) {
   router.get("/", isAuthenticated, async (req: any, res) => {
@@ -53,21 +57,25 @@ export function registerApprovalsRoutes(router: Router) {
   router.post("/:id/approve", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const { comment } = req.body;
+      const validated = approvalActionSchema.parse(req.body);
+      
+      const existing = await storage.getDocumentApproval(id);
+      if (!existing) {
+        return res.status(404).json({ message: "Approval not found" });
+      }
       
       const approval = await storage.updateDocumentApproval(id, {
         status: "approved",
-        comments: comment,
+        comments: validated.comment || existing.comments,
         approvedAt: new Date(),
       });
-      
-      if (!approval) {
-        return res.status(404).json({ message: "Approval not found" });
-      }
       
       logger.info("Approval approved", { id, userId: req.user?.claims?.sub });
       res.json(approval);
     } catch (error: any) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ message: "Invalid request body", errors: error.errors });
+      }
       logger.error("Failed to approve", { error: error.message, id: req.params.id });
       res.status(500).json({ message: "Failed to approve" });
     }
@@ -76,21 +84,25 @@ export function registerApprovalsRoutes(router: Router) {
   router.post("/:id/reject", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const { comment } = req.body;
+      const validated = approvalActionSchema.parse(req.body);
+      
+      const existing = await storage.getDocumentApproval(id);
+      if (!existing) {
+        return res.status(404).json({ message: "Approval not found" });
+      }
       
       const approval = await storage.updateDocumentApproval(id, {
         status: "rejected",
-        comments: comment,
+        comments: validated.comment || existing.comments,
         rejectedAt: new Date(),
       });
-      
-      if (!approval) {
-        return res.status(404).json({ message: "Approval not found" });
-      }
       
       logger.info("Approval rejected", { id, userId: req.user?.claims?.sub });
       res.json(approval);
     } catch (error: any) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ message: "Invalid request body", errors: error.errors });
+      }
       logger.error("Failed to reject", { error: error.message, id: req.params.id });
       res.status(500).json({ message: "Failed to reject" });
     }
