@@ -65,7 +65,7 @@ export class AgentClient {
     const tools = this.prepareTools(agent.tools);
 
     // Execute based on model type
-    if (agent.model === 'gpt-4.1') {
+    if (agent.model === 'gpt-5.1') {
       return this.executeOpenAI(agent, request, context, tools);
     } else if (agent.model === 'claude-sonnet-4') {
       return this.executeAnthropic(agent, request, context, tools);
@@ -109,7 +109,7 @@ export class AgentClient {
         iteration++;
 
         const response = await getOpenAIClient().chat.completions.create({
-          model: 'gpt-4.1',
+          model: 'gpt-5.1',
           messages,
           tools: tools.length > 0 ? tools : undefined,
           tool_choice: tools.length > 0 ? 'auto' : undefined,
@@ -162,7 +162,7 @@ export class AgentClient {
             content: message.content || '',
             toolCalls,
             metadata: {
-              model: 'gpt-4.1',
+              model: 'gpt-5.1',
               iterations: iteration,
               tokensUsed: response.usage?.total_tokens
             }
@@ -177,7 +177,7 @@ export class AgentClient {
         content: 'Maximum iterations reached. Task may be incomplete.',
         toolCalls,
         metadata: {
-          model: 'gpt-4.1',
+          model: 'gpt-5.1',
           iterations: iteration,
           maxIterationsReached: true
         }

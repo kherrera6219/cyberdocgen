@@ -290,7 +290,7 @@ import { generateWithAI } from './services/aiOrchestrator';
 const result = await generateWithAI({
   prompt: 'Generate ISO 27001 policy',
   framework: 'ISO27001',
-  preferredModel: 'gpt-4.1'
+  preferredModel: 'gpt-5.1'
 });
 ```
 
@@ -402,7 +402,7 @@ import { trackPerformance } from './services/performanceService';
 
 await trackPerformance('document_generation', duration, {
   framework: 'ISO27001',
-  model: 'gpt-4.1'
+  model: 'gpt-5.1'
 });
 ```
 

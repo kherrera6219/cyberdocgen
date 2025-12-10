@@ -365,7 +365,7 @@ Provide 2-3 specific remediation recommendations in JSON format:
       try {
         const aiResponse = await aiOrchestrator.generateContent({
           prompt: remediationPrompt,
-          model: 'gpt-4.1',
+          model: 'gpt-5.1',
           temperature: 0.4,
           maxTokens: 1500
         });

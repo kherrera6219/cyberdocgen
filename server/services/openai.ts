@@ -153,7 +153,7 @@ Make the document practical and implementable, with specific controls, procedure
 
   try {
     const response = await getOpenAIClient().chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-5.1",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }

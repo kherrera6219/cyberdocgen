@@ -131,7 +131,7 @@ Only include fields with actual values found in the document.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-4.1",
+        model: "gpt-5.1",
         messages: [{ role: "user", content: extractionPrompt }],
         response_format: { type: "json_object" },
         max_tokens: 1000

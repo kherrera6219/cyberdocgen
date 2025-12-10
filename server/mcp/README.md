@@ -213,7 +213,7 @@ GET /api/mcp/agents
       "id": "compliance-assistant",
       "name": "Compliance Assistant",
       "description": "Expert assistant for...",
-      "model": "gpt-4.1",
+      "model": "gpt-5.1",
       "capabilities": ["compliance_analysis", "gap_analysis"],
       "availableTools": ["get_company_profile", ...]
     }
@@ -261,7 +261,7 @@ Content-Type: application/json
       }
     ],
     "metadata": {
-      "model": "gpt-4.1",
+      "model": "gpt-5.1",
       "iterations": 2,
       "tokensUsed": 1250
     }
@@ -486,7 +486,7 @@ const myAgent: AgentConfig = {
   id: 'my-agent',
   name: 'My Custom Agent',
   description: 'Agent description',
-  model: 'gpt-4.1',
+  model: 'gpt-5.1',
   tools: ['tool1', 'tool2'],
   systemPrompt: 'You are an expert in...',
   temperature: 0.7,

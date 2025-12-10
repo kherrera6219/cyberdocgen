@@ -6,7 +6,7 @@
 export const AI_MODELS = {
   // OpenAI - GPT-4.1 (Latest coding-focused model with 1M token context)
   OPENAI: {
-    primary: "gpt-4.1",
+    primary: "gpt-5.1",
     fallback: "gpt-4.1-mini",
     description: "Latest GPT-4.1 with 1M token context, 54.6% on SWE-bench, optimized for coding",
     capabilities: ["advanced reasoning", "coding", "document generation", "1M token context"],
@@ -26,7 +26,7 @@ export const AI_MODELS = {
 
   // Google - Gemini 2.0 Flash (Latest multimodal model)
   GOOGLE: {
-    primary: "gemini-2.0-flash",
+    primary: "gemini-3-pro",
     fallback: "gemini-1.5-pro",
     description: "Latest Gemini 2.0 with native multimodal output, 2x faster than 1.5 Pro",
     capabilities: ["multimodal input/output", "native tool use", "1M token context", "image generation"],
