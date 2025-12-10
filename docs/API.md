@@ -2,7 +2,7 @@
 
 ## API Overview
 
-The ComplianceAI API provides comprehensive endpoints for managing compliance documentation, company profiles, AI-powered analysis, and organizational data. All endpoints require authentication unless otherwise specified.
+The CyberDocGen API provides comprehensive endpoints for managing compliance documentation, company profiles, AI-powered analysis, and organizational data. All endpoints require authentication unless otherwise specified. The API supports ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev 5 compliance frameworks.
 
 ## Authentication
 
@@ -54,12 +54,66 @@ GET /api/ai/health
 {
   "status": "healthy",
   "models": {
-    "openai": { "status": "available", "model": "gpt-5.1" },
-    "anthropic": { "status": "available", "model": "claude-opus-4-5" },
-    "google": { "status": "available", "model": "gemini-3.0-pro" }
+    "openai": {
+      "status": "available",
+      "model": "gpt-5.1",
+      "lastCheck": "2025-12-10T00:00:00.000Z"
+    },
+    "anthropic": {
+      "status": "available",
+      "model": "claude-opus-4-5",
+      "lastCheck": "2025-12-10T00:00:00.000Z"
+    },
+    "google": {
+      "status": "available",
+      "model": "gemini-3.0-pro",
+      "lastCheck": "2025-12-10T00:00:00.000Z"
+    }
   },
-  "orchestrator": "operational"
+  "orchestrator": "operational",
+  "fallbackEnabled": true
 }
+```
+
+### Readiness Probe
+```http
+GET /ready
+```
+
+**Response:**
+```json
+{
+  "status": "ready",
+  "checks": {
+    "database": "ok",
+    "ai_services": "ok"
+  }
+}
+```
+
+### Liveness Probe
+```http
+GET /live
+```
+
+**Response:**
+```json
+{
+  "status": "alive",
+  "uptime": 3600
+}
+```
+
+### Metrics
+```http
+GET /metrics
+```
+
+**Response:** Prometheus-style metrics
+```
+# HELP http_requests_total Total HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",status="200"} 1000
 ```
 
 ## User Management
@@ -381,6 +435,318 @@ Content-Type: application/json
 POST /api/documents/:id/versions/:versionId/restore
 ```
 
+## Multi-Factor Authentication
+
+### Setup MFA
+```http
+POST /api/mfa/setup
+```
+
+**Response:**
+```json
+{
+  "secret": "JBSWY3DPEHPK3PXP",
+  "qrCode": "data:image/png;base64,...",
+  "backupCodes": ["12345678", "87654321", ...]
+}
+```
+
+### Verify MFA Token
+```http
+POST /api/mfa/verify
+Content-Type: application/json
+
+{
+  "token": "123456"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "MFA enabled successfully"
+}
+```
+
+### Verify Backup Code
+```http
+POST /api/mfa/verify-backup-code
+Content-Type: application/json
+
+{
+  "code": "12345678"
+}
+```
+
+### Disable MFA
+```http
+POST /api/mfa/disable
+Content-Type: application/json
+
+{
+  "token": "123456"
+}
+```
+
+## Gap Analysis
+
+### Analyze Compliance Framework
+```http
+POST /api/gap-analysis/analyze
+Content-Type: application/json
+
+{
+  "companyProfileId": "profile_123",
+  "framework": "ISO27001"
+}
+```
+
+**Response:**
+```json
+{
+  "reportId": "report_123",
+  "framework": "ISO27001",
+  "overallScore": 75,
+  "findings": [
+    {
+      "controlId": "A.5.1",
+      "controlName": "Policies for information security",
+      "status": "partial",
+      "gap": "Missing documentation review schedule",
+      "riskLevel": "medium"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "description": "Implement quarterly policy review process"
+    }
+  ],
+  "maturityLevel": "managed"
+}
+```
+
+### Get Gap Analysis Report
+```http
+GET /api/gap-analysis/reports/:id
+```
+
+### List Gap Analysis Reports
+```http
+GET /api/gap-analysis/reports
+```
+
+**Query Parameters:**
+- `framework`: Filter by framework
+- `companyProfileId`: Filter by company profile
+- `minScore`: Minimum compliance score
+
+## Cloud Integration
+
+### Get Integration Status
+```http
+GET /api/cloud-integration/status
+```
+
+**Response:**
+```json
+{
+  "googleDrive": {
+    "connected": true,
+    "lastSync": "2025-12-10T00:00:00.000Z"
+  },
+  "oneDrive": {
+    "connected": false
+  }
+}
+```
+
+### Authorize Cloud Service
+```http
+POST /api/cloud-integration/authorize
+Content-Type: application/json
+
+{
+  "service": "googleDrive",
+  "authCode": "authorization_code_here"
+}
+```
+
+### Sync Documents
+```http
+POST /api/cloud-integration/sync
+Content-Type: application/json
+
+{
+  "service": "googleDrive",
+  "direction": "push"
+}
+```
+
+## Storage
+
+### Upload File
+```http
+POST /api/storage/upload
+Content-Type: multipart/form-data
+
+file: <binary data>
+```
+
+**Response:**
+```json
+{
+  "fileId": "file_123",
+  "fileName": "document.pdf",
+  "size": 1024000,
+  "url": "https://storage.example.com/file_123"
+}
+```
+
+### List Files
+```http
+GET /api/storage/files
+```
+
+### Download File
+```http
+GET /api/storage/files/:id
+```
+
+### Delete File
+```http
+DELETE /api/storage/files/:id
+```
+
+## Export
+
+### Export as PDF
+```http
+POST /api/export/pdf
+Content-Type: application/json
+
+{
+  "documentId": "doc_123",
+  "options": {
+    "watermark": true,
+    "includeMetadata": true
+  }
+}
+```
+
+### Export as Word
+```http
+POST /api/export/word
+Content-Type: application/json
+
+{
+  "documentId": "doc_123"
+}
+```
+
+### Export as Excel
+```http
+POST /api/export/excel
+Content-Type: application/json
+
+{
+  "frameworkId": "ISO27001",
+  "includeGapAnalysis": true
+}
+```
+
+## Analytics
+
+### Get Dashboard Metrics
+```http
+GET /api/analytics/dashboard
+```
+
+**Response:**
+```json
+{
+  "documents": {
+    "total": 150,
+    "byFramework": {
+      "ISO27001": 50,
+      "SOC2": 40,
+      "FedRAMP": 30,
+      "NIST": 30
+    }
+  },
+  "compliance": {
+    "averageScore": 82,
+    "gapsIdentified": 25
+  },
+  "aiUsage": {
+    "documentsGenerated": 100,
+    "analysesPerformed": 200
+  }
+}
+```
+
+### Get Compliance Status
+```http
+GET /api/analytics/compliance-status
+```
+
+**Query Parameters:**
+- `framework`: Specific framework
+- `companyProfileId`: Specific company profile
+
+## Admin Endpoints
+
+### List All Users
+```http
+GET /api/admin/users
+```
+
+**Requires:** Admin role
+
+### Create User
+```http
+POST /api/admin/users
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "role": "user",
+  "organizationId": "org_123"
+}
+```
+
+### Update User
+```http
+PUT /api/admin/users/:id
+Content-Type: application/json
+
+{
+  "role": "admin"
+}
+```
+
+### Delete User
+```http
+DELETE /api/admin/users/:id
+```
+
+### Get System Metrics
+```http
+GET /api/admin/metrics
+```
+
+**Response:**
+```json
+{
+  "systemHealth": "healthy",
+  "activeUsers": 50,
+  "documentsGenerated": 1000,
+  "storageUsed": "5GB",
+  "aiRequestsToday": 200
+}
+```
+
 ## Error Handling
 
 ### Standard Error Response
@@ -410,16 +776,18 @@ POST /api/documents/:id/versions/:versionId/restore
 ## Rate Limits
 
 ### Endpoint-Specific Limits
-- **General API**: 100 requests per 15 minutes
+- **General API**: 1000 requests per 15 minutes
 - **AI Generation**: 10 requests per hour
 - **Authentication**: 5 attempts per 15 minutes
 - **File Upload**: 5 uploads per hour
+- **MFA Operations**: 10 attempts per hour
 
 ### Rate Limit Headers
 ```http
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 995
 X-RateLimit-Reset: 1628875200
+Retry-After: 900
 ```
 
 ## Pagination

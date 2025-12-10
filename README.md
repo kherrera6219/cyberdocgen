@@ -55,20 +55,25 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ### AI-Powered Capabilities
 
-- **Intelligent Document Generation** - Automated creation of compliance documents using GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro
-- **Document Analysis** - AI-powered review and quality scoring
-- **Compliance Gap Analysis** - Identify missing controls and compliance gaps
-- **Risk Assessment** - Automated risk analysis and recommendations
-- **Compliance Chatbot** - Interactive AI assistant for compliance questions
+- **Multi-Model AI Orchestration** - Intelligent routing between GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro with automatic fallback
+- **Intelligent Document Generation** - Automated creation of compliance documents with industry-specific customization
+- **Document Analysis** - AI-powered review and quality scoring with detailed feedback
+- **Compliance Gap Analysis** - Identify missing controls and compliance gaps across all frameworks
+- **Risk Assessment** - Automated risk analysis with maturity scoring and remediation recommendations
+- **Compliance Chatbot** - Interactive AI assistant for compliance questions with context awareness
+- **AI Guardrails** - Prompt injection detection, PII redaction, and output moderation
+- **Model Fine-Tuning** - Custom model training for organization-specific compliance needs
 
 ### Enterprise Features
 
-- **Multi-Factor Authentication** - TOTP-based MFA with backup codes
-- **Organization Management** - Multi-tenant architecture with role-based access
-- **User Management** - Comprehensive user administration and permissions
-- **Cloud Integrations** - Google Drive and Microsoft OneDrive synchronization
-- **Audit Trails** - Immutable audit logs for all system activities
-- **Version Control** - Complete document version history and rollback
+- **Multi-Factor Authentication** - TOTP-based MFA with backup codes and recovery flows
+- **Organization Management** - Multi-tenant architecture with role-based access control (RBAC)
+- **User Management** - Comprehensive user administration and granular permissions
+- **Cloud Integrations** - Google Drive and Microsoft OneDrive synchronization with automated workflows
+- **Audit Trails** - Immutable audit logs with tamper detection for all system activities
+- **Version Control** - Complete document version history, rollback, and approval workflows
+- **Model Context Protocol (MCP)** - Claude Code and agent integration for programmatic access
+- **Session Risk Scoring** - Real-time session security assessment and adaptive authentication
 
 ### Compliance Management
 
@@ -80,12 +85,14 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ### Security & Monitoring
 
-- **Data Encryption** - AES-256 encryption at rest and TLS in transit
-- **Threat Detection** - Real-time anomaly detection and alerting
-- **Rate Limiting** - DDoS protection and request throttling
-- **Security Headers** - Comprehensive security header configuration
-- **Health Checks** - System, database, and AI service health monitoring
-- **Metrics Collection** - Prometheus-style metrics for observability
+- **Data Encryption** - AES-256 encryption at rest and TLS 1.3 in transit with key rotation
+- **Threat Detection** - Real-time anomaly detection, pattern recognition, and automated alerting
+- **Rate Limiting** - DDoS protection with tiered rate limiting (1000 requests/15 min)
+- **Security Headers** - Comprehensive security header configuration with CSP and HSTS
+- **Health Checks** - Kubernetes-compatible health, readiness, and liveness probes
+- **Metrics Collection** - Prometheus-style metrics for observability and performance tracking
+- **CSRF Protection** - Session-bound CSRF tokens for all state-changing operations
+- **Input Validation** - Comprehensive Zod schema validation for all API endpoints
 
 ## 🛠 Tech Stack
 
@@ -189,6 +196,7 @@ For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_
 
 - [Frontend Documentation](client/README.md) - React frontend architecture
 - [Backend Documentation](server/README.md) - Node.js backend architecture
+- [MCP Integration Guide](server/mcp/README.md) - Model Context Protocol integration
 - [Scripts Documentation](scripts/README.md) - Utility scripts reference
 
 ## 📁 Project Structure
@@ -197,18 +205,22 @@ For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_
 cyberdocgen/
 ├── client/                 # React frontend
 │   ├── src/
-│   │   ├── pages/         # Page components (21 pages)
+│   │   ├── pages/         # Page components (40+ pages)
 │   │   ├── components/    # Reusable components (80+)
-│   │   ├── hooks/         # Custom React hooks
+│   │   ├── hooks/         # Custom React hooks (5 hooks)
+│   │   ├── contexts/      # Context API providers
 │   │   └── lib/           # Utility libraries
 │   └── README.md          # Frontend documentation
 │
 ├── server/                 # Node.js backend
 │   ├── index.ts           # Server entry point
 │   ├── routes.ts          # API routes
-│   ├── services/          # Business logic (23 services)
-│   ├── middleware/        # Express middleware
+│   ├── routes/            # Route modules (16 modules)
+│   ├── services/          # Business logic (33 services)
+│   ├── middleware/        # Express middleware (4 files)
+│   ├── mcp/               # Model Context Protocol integration
 │   ├── monitoring/        # Metrics and monitoring
+│   ├── utils/             # Utilities (logging, validation)
 │   └── README.md          # Backend documentation
 │
 ├── shared/                 # Shared code

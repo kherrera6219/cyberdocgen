@@ -2,34 +2,51 @@
 
 ## Overview
 
-ComplianceAI is designed for deployment on Replit's cloud platform with automatic scaling, health monitoring, and zero-downtime updates. This guide covers deployment configuration, environment setup, and operational procedures.
+CyberDocGen is designed for deployment on Replit's cloud platform with automatic scaling, health monitoring, and zero-downtime updates. This guide covers deployment configuration, environment setup, and operational procedures for production environments.
 
 ## Prerequisites
 
 ### Required Services
 - **Replit Account**: Pro or higher for production deployments
 - **Database**: Neon PostgreSQL (configured automatically)
-- **Object Storage**: Replit Object Storage (configured automatically)
-- **AI Services**: OpenAI API and Anthropic API keys
+- **Object Storage**: Replit Object Storage or Google Cloud Storage
+- **AI Services**: OpenAI, Anthropic, and Google AI API keys
 
 ### Environment Variables
-Set these secrets in your Repl:
+Set these secrets in your Repl or environment:
 
 ```bash
-# Required
-OPENAI_API_KEY=sk-...
+# Required - AI Services
+OPENAI_API_KEY=sk-proj-...
 ANTHROPIC_API_KEY=sk-ant-...
-DATABASE_URL=postgresql://... (auto-configured)
-SESSION_SECRET=... (auto-generated)
+GOOGLE_API_KEY=AIza...
 
-# Object Storage (auto-configured)
+# Required - Database
+DATABASE_URL=postgresql://... (auto-configured on Replit)
+
+# Required - Security
+SESSION_SECRET=... (minimum 32 characters, auto-generated recommended)
+ENCRYPTION_KEY=... (32-byte hex key for AES-256)
+
+# Object Storage (auto-configured on Replit)
 DEFAULT_OBJECT_STORAGE_BUCKET_ID=...
 PUBLIC_OBJECT_SEARCH_PATHS=...
 PRIVATE_OBJECT_DIR=...
 
-# Optional
+# Optional - Application Configuration
 NODE_ENV=production
+PORT=5000
 LOG_LEVEL=info
+
+# Optional - Rate Limiting
+RATE_LIMIT_MAX=1000
+RATE_LIMIT_WINDOW_MS=900000
+
+# Optional - Cloud Integrations
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+MICROSOFT_CLIENT_ID=...
+MICROSOFT_CLIENT_SECRET=...
 ```
 
 ## Deployment Process
@@ -115,24 +132,45 @@ GET /api/health/database
 ## Security Configuration
 
 ### Production Security
-- **HTTPS Only**: Force SSL/TLS encryption
-- **Security Headers**: Complete security header configuration
-- **Rate Limiting**: Production-tuned rate limits
-- **CORS**: Strict origin validation
+- **HTTPS Only**: Force TLS 1.3 encryption
+- **Security Headers**: CSP, HSTS, XSS protection, frame options
+- **Rate Limiting**: Production-tuned (1000 req/15min general, 10/hour AI)
+- **CORS**: Strict origin validation and credential handling
+- **CSRF Protection**: Session-bound tokens for all state-changing operations
+- **Threat Detection**: Real-time pattern detection and automated blocking
+- **MFA Enforcement**: Required for high-risk operations
 
-### API Security
+### Security Middleware Stack
+The following middleware is applied in order:
+
+1. **Security Headers** - CORS, CSP, XSS protection
+2. **Cookie Parser** - Secure cookie handling
+3. **CSRF Protection** - Token validation
+4. **Threat Detection** - Pattern-based threat identification
+5. **Audit Logger** - Immutable activity logging
+6. **Route Access Validation** - Access control checks
+7. **Performance Logging** - Request/response metrics
+8. **Rate Limiting** - Request throttling
+9. **MFA Enforcement** - Multi-factor authentication checks
+10. **Request Validation** - Zod schema validation
+
+### API Security Configuration
 ```typescript
-// Production security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
-}));
+// Production security configuration
+securityHeaders: {
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Content-Security-Policy': "default-src 'self'",
+  'Referrer-Policy': 'strict-origin-when-cross-origin'
+}
+
+rateLimits: {
+  general: { max: 1000, windowMs: 900000 },
+  ai: { max: 10, windowMs: 3600000 },
+  auth: { max: 5, windowMs: 900000 }
+}
 ```
 
 ## Performance Optimization
