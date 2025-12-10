@@ -310,6 +310,13 @@ export class MemStorage implements IStorage {
       cloudInfrastructure: Array.isArray(insertProfile.cloudInfrastructure) ? insertProfile.cloudInfrastructure : [],
       complianceFrameworks: insertProfile.complianceFrameworks ?? [],
       contactInfo: insertProfile.contactInfo ?? null,
+      organizationStructure: insertProfile.organizationStructure ?? null,
+      productsAndServices: insertProfile.productsAndServices ?? null,
+      geographicOperations: insertProfile.geographicOperations ?? null,
+      securityInfrastructure: insertProfile.securityInfrastructure ?? null,
+      businessContinuity: insertProfile.businessContinuity ?? null,
+      vendorManagement: insertProfile.vendorManagement ?? null,
+      aiResearchData: insertProfile.aiResearchData ?? null,
       isActive: insertProfile.isActive ?? true,
       keyPersonnel: insertProfile.keyPersonnel || null,
       frameworkConfigs: insertProfile.frameworkConfigs || null,
@@ -626,6 +633,7 @@ export class MemStorage implements IStorage {
     const newApproval: DocumentApproval = {
       ...approval,
       id,
+      versionId: approval.versionId ?? null,
       status: approval.status ?? "pending",
       priority: approval.priority ?? "medium",
       assignedTo: approval.assignedTo ?? null,
@@ -1081,7 +1089,7 @@ export class DatabaseStorage implements IStorage {
       return await db
         .select()
         .from(documentApprovals)
-        .where(eq(documentApprovals.status, status as DocumentApproval["status"]))
+        .where(eq(documentApprovals.status, status as "pending" | "approved" | "rejected" | "withdrawn"))
         .orderBy(desc(documentApprovals.createdAt));
     }
     return await db

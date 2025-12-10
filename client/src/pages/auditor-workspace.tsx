@@ -92,7 +92,7 @@ export default function AuditorWorkspace() {
     return matchesSearch && matchesFramework;
   });
 
-  const uniqueFrameworks = [...new Set(documents.map(d => d.framework))];
+  const uniqueFrameworks = Array.from(new Set(documents.map(d => d.framework)));
 
   const formatDate = (dateString: string | Date | null | undefined) => {
     if (!dateString) return "N/A";

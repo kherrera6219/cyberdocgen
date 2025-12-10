@@ -6,6 +6,7 @@
 import { db } from "../db";
 import { aiGuardrailsLogs } from "../../shared/schema";
 import { logger } from "../utils/logger";
+import { eq, and, desc } from "drizzle-orm";
 import crypto from "crypto";
 
 // Prompt Risk Keywords (potential injection attempts, harmful content)
@@ -428,10 +429,44 @@ class AIGuardrailsService {
     limit?: number;
     offset?: number;
   }) {
-    // Implementation would use drizzle queries
     logger.info("Fetching guardrail logs", { organizationId, options });
-    // TODO: Implement actual query
-    return [];
+
+    try {
+      // Build where conditions
+      const conditions = [eq(aiGuardrailsLogs.organizationId, organizationId)];
+
+      if (options?.severity) {
+        conditions.push(eq(aiGuardrailsLogs.severity, options.severity as "low" | "medium" | "high" | "critical"));
+      }
+
+      if (options?.requiresReview !== undefined) {
+        conditions.push(eq(aiGuardrailsLogs.requiresHumanReview, options.requiresReview));
+      }
+
+      // Execute query with filters and build the complete query
+      let queryBuilder = db
+        .select()
+        .from(aiGuardrailsLogs)
+        .where(and(...conditions))
+        .orderBy(desc(aiGuardrailsLogs.createdAt))
+        .$dynamic();
+
+      // Apply limit and offset if provided
+      if (options?.limit) {
+        queryBuilder = queryBuilder.limit(options.limit);
+      }
+
+      if (options?.offset) {
+        queryBuilder = queryBuilder.offset(options.offset);
+      }
+
+      const logs = await queryBuilder;
+      logger.info("Fetched guardrail logs", { organizationId, count: logs.length });
+      return logs;
+    } catch (error: any) {
+      logger.error("Failed to fetch guardrail logs", { organizationId, error: error.message });
+      throw error;
+    }
   }
 
   /**
@@ -444,10 +479,26 @@ class AIGuardrailsService {
     notes?: string
   ) {
     try {
-      // Update the log with human review decision
       logger.info("Submitting human review", { logId, decision, reviewedBy });
-      // TODO: Implement actual update
-      return { success: true };
+
+      // Update the log with human review decision
+      const updated = await db
+        .update(aiGuardrailsLogs)
+        .set({
+          humanReviewedAt: new Date(),
+          humanReviewedBy: reviewedBy,
+          humanReviewDecision: decision,
+          humanReviewNotes: notes || null,
+        })
+        .where(eq(aiGuardrailsLogs.id, logId))
+        .returning();
+
+      if (updated.length === 0) {
+        throw new Error(`Guardrail log with ID ${logId} not found`);
+      }
+
+      logger.info("Human review submitted successfully", { logId, decision });
+      return { success: true, log: updated[0] };
     } catch (error: any) {
       logger.error("Failed to submit human review", { error: error.message });
       throw error;
