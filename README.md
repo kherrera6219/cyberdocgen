@@ -44,7 +44,7 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ### Key Highlights
 
-- 🤖 **AI-Powered** - Multiple AI models (GPT-4o, Claude) for intelligent document generation
+- 🤖 **AI-Powered** - Latest AI models (GPT-5.1, Claude Opus 4.5, Gemini 3.0 Pro) for intelligent document generation
 - 🏢 **Enterprise-Ready** - Multi-tenancy, RBAC, audit logging, and SOC 2 compliance
 - 🔒 **Security-First** - MFA, encryption, threat detection, and comprehensive security measures
 - ☁️ **Cloud-Integrated** - Google Drive and Microsoft OneDrive connectivity
@@ -55,7 +55,7 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ### AI-Powered Capabilities
 
-- **Intelligent Document Generation** - Automated creation of compliance documents using GPT-4o and Claude
+- **Intelligent Document Generation** - Automated creation of compliance documents using GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro
 - **Document Analysis** - AI-powered review and quality scoring
 - **Compliance Gap Analysis** - Identify missing controls and compliance gaps
 - **Risk Assessment** - Automated risk analysis and recommendations
@@ -108,8 +108,9 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 - **PostgreSQL 16** - Relational database
 - **Drizzle ORM 0.39** - Type-safe ORM
 - **Passport.js** - Authentication middleware
-- **OpenAI API** - GPT-4o integration
-- **Anthropic API** - Claude integration
+- **OpenAI API** - GPT-5.1 integration (latest flagship model)
+- **Anthropic API** - Claude Opus 4.5 integration (latest reasoning model)
+- **Google AI API** - Gemini 3.0 Pro integration (latest multimodal model)
 
 ### Infrastructure
 
@@ -373,11 +374,12 @@ This application has:
 
 See [Modernization Roadmap](docs/modernization-roadmap.md) and [Phased Plan](docs/modernization-phased-plan.md) for 2025 enhancements.
 
-### Recent Updates (November 2024)
+### Recent Updates (December 2025)
 
+- ✅ **Latest AI Models** - Updated to GPT-5.1 (OpenAI), Claude Opus 4.5 (Anthropic), and Gemini 3.0 Pro (Google)
+- ✅ **Multi-Model AI Orchestration** - Intelligent model selection with automatic fallback between providers
 - ✅ **Enhanced Documentation** - Complete documentation suite with setup guides, testing guides, and troubleshooting
-- ✅ **Server/Client Cleanup** - Improved type safety and code organization
-- ✅ **Dependency Updates** - Modernized dependency stack for better security and performance
+- ✅ **Dependency Updates** - All npm packages updated to latest compatible versions
 - ✅ **Enhanced Audit Service** - Improved audit logging with tamper detection and immutability
 - ✅ **Cloud Integration Improvements** - Better error handling and retry logic for external services
 - ✅ **MFA Enhancements** - Strengthened multi-factor authentication flows and recovery
@@ -411,7 +413,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with [React](https://reactjs.org/) and [Node.js](https://nodejs.org/)
 - UI components from [Radix UI](https://www.radix-ui.com/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
-- AI powered by [OpenAI](https://openai.com/) and [Anthropic](https://www.anthropic.com/)
+- AI powered by [OpenAI](https://openai.com/), [Anthropic](https://www.anthropic.com/), and [Google AI](https://ai.google.dev/)
 
 ---
 

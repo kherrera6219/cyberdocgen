@@ -39,7 +39,8 @@ Preferred communication style: Simple, everyday language.
 - **Security Headers**: Full OWASP compliance (CSP, X-Frame-Options, HSTS)
 
 ### AI Integration
-- **Multi-Model Support**: OpenAI GPT-4o and Anthropic Claude with automatic fallback
+- **Multi-Model Support**: OpenAI GPT-5.1, Anthropic Claude Opus 4.5, and Google Gemini 3.0 Pro with automatic fallback
+- **Model Selection**: Intelligent routing based on task complexity and provider availability
 - **Services**: Document generation, compliance analysis, gap analysis, risk assessment, quality scoring
 - **AI Guardrails**: Prompt shields, PII redaction, output classifiers
 
@@ -53,8 +54,9 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### AI Services
-- **OpenAI API** (`OPENAI_API_KEY`) - GPT-4o for document generation and analysis
-- **Anthropic API** (`ANTHROPIC_API_KEY`) - Claude for complex reasoning and risk assessment
+- **OpenAI API** (`OPENAI_API_KEY`) - GPT-5.1 for document generation and analysis (latest flagship model, Nov 2025)
+- **Anthropic API** (`ANTHROPIC_API_KEY`) - Claude Opus 4.5 for complex reasoning and risk assessment (latest model, Nov 2025)
+- **Google AI API** (`GOOGLE_API_KEY`) - Gemini 3.0 Pro for multimodal analysis (latest model, Dec 2025)
 
 ### Database
 - **Neon PostgreSQL** (`DATABASE_URL`) - Serverless PostgreSQL database
@@ -72,5 +74,6 @@ Preferred communication style: Simple, everyday language.
 - `DATABASE_URL` - PostgreSQL connection string
 - `SESSION_SECRET` - Session encryption key (minimum 32 characters)
 - `ENCRYPTION_KEY` - 32-byte hex key for data encryption
-- `OPENAI_API_KEY` - OpenAI API access
-- `ANTHROPIC_API_KEY` - Anthropic API access
+- `OPENAI_API_KEY` - OpenAI API access (GPT-5.1)
+- `ANTHROPIC_API_KEY` - Anthropic API access (Claude Opus 4.5)
+- `GOOGLE_API_KEY` - Google AI API access (Gemini 3.0 Pro)
