@@ -38,11 +38,41 @@ import {
   type ContactMessage,
   type InsertContactMessage,
   type DocumentApproval,
-  type InsertDocumentApproval
+  type InsertDocumentApproval,
+  type UserInvitation,
+  type InsertUserInvitation,
+  type UserSession,
+  type InsertUserSession,
+  userInvitations,
+  userSessions
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte } from "drizzle-orm";
 import { randomUUID } from "crypto";
+
+// Types for filtered queries
+export interface UserFilters {
+  search?: string;
+  role?: string;
+  status?: string;
+  organizationId?: string;
+  isActive?: boolean;
+}
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 export interface IStorage {
   // User operations
@@ -51,6 +81,32 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  
+  // Extended user management operations
+  getAllUsers(filters?: UserFilters, pagination?: PaginationParams): Promise<PaginatedResult<User>>;
+  deleteUser(id: string): Promise<boolean>;
+  suspendUser(id: string, reason?: string): Promise<User | undefined>;
+  reactivateUser(id: string): Promise<User | undefined>;
+  bulkUpdateUsers(ids: string[], updates: Partial<InsertUser>): Promise<number>;
+  
+  // User invitation operations
+  createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation>;
+  getInvitation(id: string): Promise<UserInvitation | undefined>;
+  getInvitationByToken(token: string): Promise<UserInvitation | undefined>;
+  getInvitationsByOrganization(organizationId: string): Promise<UserInvitation[]>;
+  getPendingInvitations(): Promise<UserInvitation[]>;
+  updateInvitation(id: string, updates: Partial<InsertUserInvitation>): Promise<UserInvitation | undefined>;
+  revokeInvitation(id: string): Promise<boolean>;
+  acceptInvitation(token: string, userId: string): Promise<UserInvitation | undefined>;
+  
+  // User session operations
+  createUserSession(session: InsertUserSession): Promise<UserSession>;
+  getUserSessions(userId: string): Promise<UserSession[]>;
+  getActiveUserSessions(userId: string): Promise<UserSession[]>;
+  terminateSession(sessionId: string): Promise<boolean>;
+  terminateAllUserSessions(userId: string): Promise<number>;
+  updateSessionActivity(sessionId: string): Promise<UserSession | undefined>;
+  cleanupExpiredSessions(): Promise<number>;
   
   // Organization operations
   getOrganizations(): Promise<Organization[]>;
@@ -705,6 +761,225 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  // Extended user management operations
+  async getAllUsers(filters?: UserFilters, pagination?: PaginationParams): Promise<PaginatedResult<User>> {
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 20;
+    const offset = (page - 1) * limit;
+
+    let conditions = [];
+    
+    if (filters?.search) {
+      conditions.push(
+        or(
+          ilike(users.email, `%${filters.search}%`),
+          ilike(users.firstName, `%${filters.search}%`),
+          ilike(users.lastName, `%${filters.search}%`)
+        )
+      );
+    }
+    
+    if (filters?.role) {
+      conditions.push(eq(users.role, filters.role));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(users.accountStatus, filters.status));
+    }
+    
+    if (filters?.isActive !== undefined) {
+      conditions.push(eq(users.isActive, filters.isActive));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(users)
+      .where(whereClause);
+    
+    const total = totalResult?.count || 0;
+    
+    let query = db.select().from(users).where(whereClause).limit(limit).offset(offset);
+    
+    if (pagination?.sortBy === 'createdAt') {
+      query = pagination.sortOrder === 'asc' 
+        ? query.orderBy(asc(users.createdAt))
+        : query.orderBy(desc(users.createdAt));
+    } else if (pagination?.sortBy === 'email') {
+      query = pagination.sortOrder === 'asc'
+        ? query.orderBy(asc(users.email))
+        : query.orderBy(desc(users.email));
+    } else {
+      query = query.orderBy(desc(users.createdAt));
+    }
+    
+    const data = await query;
+    
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async suspendUser(id: string, _reason?: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        accountStatus: 'suspended', 
+        isActive: false,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async reactivateUser(id: string): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        accountStatus: 'active', 
+        isActive: true,
+        failedLoginAttempts: 0,
+        accountLockedUntil: null,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async bulkUpdateUsers(ids: string[], updates: Partial<InsertUser>): Promise<number> {
+    if (ids.length === 0) return 0;
+    
+    let updated = 0;
+    for (const id of ids) {
+      const result = await db
+        .update(users)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(users.id, id));
+      if ((result.rowCount ?? 0) > 0) updated++;
+    }
+    return updated;
+  }
+
+  // User invitation operations
+  async createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation> {
+    const [inv] = await db.insert(userInvitations).values(invitation).returning();
+    return inv;
+  }
+
+  async getInvitation(id: string): Promise<UserInvitation | undefined> {
+    const [inv] = await db.select().from(userInvitations).where(eq(userInvitations.id, id));
+    return inv || undefined;
+  }
+
+  async getInvitationByToken(token: string): Promise<UserInvitation | undefined> {
+    const [inv] = await db.select().from(userInvitations).where(eq(userInvitations.token, token));
+    return inv || undefined;
+  }
+
+  async getInvitationsByOrganization(organizationId: string): Promise<UserInvitation[]> {
+    return await db.select().from(userInvitations)
+      .where(eq(userInvitations.organizationId, organizationId))
+      .orderBy(desc(userInvitations.createdAt));
+  }
+
+  async getPendingInvitations(): Promise<UserInvitation[]> {
+    return await db.select().from(userInvitations)
+      .where(eq(userInvitations.status, 'pending'))
+      .orderBy(desc(userInvitations.createdAt));
+  }
+
+  async updateInvitation(id: string, updates: Partial<InsertUserInvitation>): Promise<UserInvitation | undefined> {
+    const [inv] = await db.update(userInvitations).set(updates).where(eq(userInvitations.id, id)).returning();
+    return inv || undefined;
+  }
+
+  async revokeInvitation(id: string): Promise<boolean> {
+    const result = await db.update(userInvitations)
+      .set({ status: 'revoked' })
+      .where(eq(userInvitations.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async acceptInvitation(token: string, userId: string): Promise<UserInvitation | undefined> {
+    const invitation = await this.getInvitationByToken(token);
+    if (!invitation || invitation.status !== 'pending') return undefined;
+    
+    const now = new Date();
+    if (invitation.expiresAt < now) {
+      await db.update(userInvitations).set({ status: 'expired' }).where(eq(userInvitations.id, invitation.id));
+      return undefined;
+    }
+    
+    const [inv] = await db.update(userInvitations)
+      .set({ status: 'accepted', acceptedAt: now })
+      .where(eq(userInvitations.id, invitation.id))
+      .returning();
+    return inv || undefined;
+  }
+
+  // User session operations
+  async createUserSession(session: InsertUserSession): Promise<UserSession> {
+    const [sess] = await db.insert(userSessions).values(session).returning();
+    return sess;
+  }
+
+  async getUserSessions(userId: string): Promise<UserSession[]> {
+    return await db.select().from(userSessions)
+      .where(eq(userSessions.userId, userId))
+      .orderBy(desc(userSessions.createdAt));
+  }
+
+  async getActiveUserSessions(userId: string): Promise<UserSession[]> {
+    const now = new Date();
+    return await db.select().from(userSessions)
+      .where(and(
+        eq(userSessions.userId, userId),
+        eq(userSessions.isActive, true),
+        gte(userSessions.expiresAt, now)
+      ))
+      .orderBy(desc(userSessions.lastActivityAt));
+  }
+
+  async terminateSession(sessionId: string): Promise<boolean> {
+    const result = await db.update(userSessions)
+      .set({ isActive: false })
+      .where(eq(userSessions.id, sessionId));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async terminateAllUserSessions(userId: string): Promise<number> {
+    const result = await db.update(userSessions)
+      .set({ isActive: false })
+      .where(eq(userSessions.userId, userId));
+    return result.rowCount ?? 0;
+  }
+
+  async updateSessionActivity(sessionId: string): Promise<UserSession | undefined> {
+    const [sess] = await db.update(userSessions)
+      .set({ lastActivityAt: new Date() })
+      .where(eq(userSessions.id, sessionId))
+      .returning();
+    return sess || undefined;
+  }
+
+  async cleanupExpiredSessions(): Promise<number> {
+    const now = new Date();
+    const result = await db.delete(userSessions).where(lt(userSessions.expiresAt, now));
+    return result.rowCount ?? 0;
   }
 
   // Organization operations

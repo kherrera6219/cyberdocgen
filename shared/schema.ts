@@ -66,6 +66,45 @@ export const userOrganizations = pgTable("user_organizations", {
   unique().on(table.userId, table.organizationId)
 ]);
 
+// User Invitations for enterprise user management
+export const userInvitations = pgTable("user_invitations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id),
+  role: varchar("role").notNull().default("user"), // user, admin, org_admin
+  organizationRole: varchar("organization_role").default("member"), // member, admin, owner
+  invitedBy: varchar("invited_by").references(() => users.id).notNull(),
+  token: varchar("token").unique().notNull(),
+  status: varchar("status", { enum: ["pending", "accepted", "expired", "revoked"] }).default("pending"),
+  expiresAt: timestamp("expires_at").notNull(),
+  acceptedAt: timestamp("accepted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User Sessions for session management
+export const userSessions = pgTable("user_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  sessionToken: varchar("session_token").unique().notNull(),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  deviceInfo: jsonb("device_info").$type<{
+    browser?: string;
+    os?: string;
+    device?: string;
+    isMobile?: boolean;
+  }>(),
+  location: jsonb("location").$type<{
+    country?: string;
+    city?: string;
+    timezone?: string;
+  }>(),
+  isActive: boolean("is_active").default(true),
+  lastActivityAt: timestamp("last_activity_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
 export const companyProfiles = pgTable("company_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
@@ -637,6 +676,17 @@ export const insertUserOrganizationSchema = createInsertSchema(userOrganizations
   joinedAt: true,
 });
 
+export const insertUserInvitationSchema = createInsertSchema(userInvitations).omit({
+  id: true,
+  createdAt: true,
+  acceptedAt: true,
+});
+
+export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Zod schemas for company profile nested JSON structures
 export const contactInfoSchema = z.object({
   primaryContact: z.string(),
@@ -965,6 +1015,12 @@ export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 
 export type UserOrganization = typeof userOrganizations.$inferSelect;
 export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
+
+export type UserInvitation = typeof userInvitations.$inferSelect;
+export type InsertUserInvitation = z.infer<typeof insertUserInvitationSchema>;
+
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
 export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
