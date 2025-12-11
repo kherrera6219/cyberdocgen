@@ -98,6 +98,24 @@ export const assessRisksSchema = z.object({
   organizationContext: z.object({}).passthrough()
 });
 
+export const analyzeImageSchema = z.object({
+  imageData: z.string().min(1),
+  prompt: z.string().optional(),
+  framework: z.string().optional(),
+  analysisType: z.enum(['compliance', 'diagram', 'document', 'general']).optional()
+});
+
+export const multimodalChatSchema = z.object({
+  message: z.string().min(1).max(10000),
+  framework: z.string().optional(),
+  sessionId: z.string().optional(),
+  attachments: z.array(z.object({
+    name: z.string(),
+    type: z.string(),
+    content: z.string().optional()
+  })).optional()
+});
+
 export const generateDocumentSchema = z.object({
   framework: z.string().min(1),
   category: z.string().min(1),

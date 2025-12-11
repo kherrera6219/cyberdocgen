@@ -25,8 +25,11 @@ import {
   frameworkAlignmentSchema,
   fineTuneSchema,
   generateOptimizedSchema,
-  assessRisksSchema
+  assessRisksSchema,
+  analyzeImageSchema,
+  multimodalChatSchema
 } from '../validation/schemas';
+import { analyzeImage, analyzeMultipleImages } from '../services/geminiVision';
 
 export function registerAIRoutes(router: Router) {
   router.get("/models", isAuthenticated, async (req: any, res) => {
@@ -533,6 +536,208 @@ export function registerAIRoutes(router: Router) {
     } catch (error) {
       logger.error("Error assessing industry risks:", error);
       res.status(500).json({ success: false, error: "Failed to assess risks" });
+    }
+  });
+
+  router.post("/analyze-image", isAuthenticated, validateBody(analyzeImageSchema), async (req: any, res) => {
+    const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+    
+    try {
+      const { imageData, prompt, framework, analysisType } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      // Validate image data format and extract MIME type
+      let mimeType = 'image/png';
+      if (imageData.startsWith('data:')) {
+        const matches = imageData.match(/^data:([^;]+);base64,/);
+        if (matches) {
+          mimeType = matches[1];
+        }
+      }
+      
+      // Validate MIME type
+      if (!SUPPORTED_IMAGE_TYPES.includes(mimeType)) {
+        return res.status(400).json({
+          success: false,
+          message: `Unsupported image format: ${mimeType}. Supported formats: PNG, JPEG, GIF, WebP`
+        });
+      }
+      
+      // Validate data size (rough check for base64)
+      const base64Length = imageData.includes(',') 
+        ? imageData.split(',')[1].length 
+        : imageData.length;
+      const estimatedSize = base64Length * 0.75;
+      
+      if (estimatedSize > 20 * 1024 * 1024) { // 20MB limit
+        return res.status(400).json({
+          success: false,
+          message: "Image file is too large. Maximum size is 20MB."
+        });
+      }
+
+      const result = await analyzeImage(imageData, {
+        prompt,
+        framework,
+        analysisType
+      });
+
+      metricsCollector.trackAIOperation('vision_analysis', true);
+      await auditService.logAction({
+        action: "analyze_image",
+        entityType: "image",
+        entityId: `img_${Date.now()}`,
+        userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { analysisType, framework, mimeType, hasComplianceRelevance: !!result.complianceRelevance }
+      });
+
+      res.json({ success: true, ...result });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error("Image analysis failed", { error: errorMessage, userId: req.user?.claims?.sub });
+      
+      metricsCollector.trackAIOperation('vision_analysis', false);
+      
+      if (errorMessage.includes('GOOGLE_API_KEY')) {
+        res.status(503).json({ 
+          success: false, 
+          message: "Image analysis service is temporarily unavailable. Please try again later." 
+        });
+      } else if (errorMessage.includes('Invalid') || errorMessage.includes('format')) {
+        res.status(400).json({ 
+          success: false, 
+          message: "Invalid image format. Please upload a valid image file." 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to analyze image. Please try again." 
+        });
+      }
+    }
+  });
+
+  router.post("/multimodal-chat", isAuthenticated, validateBody(multimodalChatSchema), async (req: any, res) => {
+    const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+    const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB
+    
+    try {
+      const { message, framework, sessionId, attachments } = req.body;
+      const userId = req.user?.claims?.sub;
+
+      let imageAnalysisResults: any[] = [];
+      const unsupportedFiles: string[] = [];
+      const documentContents: string[] = [];
+      
+      if (attachments && attachments.length > 0) {
+        for (const attachment of attachments) {
+          const { type, content, name } = attachment;
+          
+          if (!content) continue;
+          
+          // Check size (base64 is ~1.37x the original size)
+          const estimatedSize = (content.length * 0.75);
+          if (estimatedSize > MAX_ATTACHMENT_SIZE) {
+            unsupportedFiles.push(`${name} (file too large)`);
+            continue;
+          }
+          
+          if (SUPPORTED_IMAGE_TYPES.includes(type)) {
+            // Process as image
+            try {
+              const result = await analyzeImage(content, {
+                framework,
+                analysisType: 'compliance',
+                prompt: `Analyze this image in the context of the user's message: "${message}"`
+              });
+              imageAnalysisResults.push({
+                fileName: name,
+                ...result
+              });
+            } catch (imgError) {
+              logger.warn('Failed to analyze image attachment', { name, error: imgError });
+              unsupportedFiles.push(`${name} (analysis failed)`);
+            }
+          } else if (type === 'application/pdf' || type?.includes('document')) {
+            // For documents, note them but don't process through vision API
+            documentContents.push(`[Document attached: ${name}]`);
+          } else {
+            unsupportedFiles.push(`${name} (unsupported type: ${type})`);
+          }
+        }
+      }
+
+      // Build enhanced message with context from attachments
+      let enhancedMessage = message;
+      
+      if (imageAnalysisResults.length > 0) {
+        enhancedMessage += '\n\n[Image Analysis Results]:\n';
+        imageAnalysisResults.forEach((result, i) => {
+          const truncatedAnalysis = result.analysis.length > 1000 
+            ? result.analysis.substring(0, 1000) + '...' 
+            : result.analysis;
+          enhancedMessage += `\nImage "${result.fileName}": ${truncatedAnalysis}`;
+          
+          if (result.complianceRelevance) {
+            const { controls, risks, recommendations } = result.complianceRelevance;
+            if (controls?.length) enhancedMessage += `\n  Controls: ${controls.join(', ')}`;
+            if (risks?.length) enhancedMessage += `\n  Risks: ${risks.slice(0, 3).join('; ')}`;
+            if (recommendations?.length) enhancedMessage += `\n  Recommendations: ${recommendations.slice(0, 3).join('; ')}`;
+          }
+        });
+      }
+      
+      if (documentContents.length > 0) {
+        enhancedMessage += '\n\n' + documentContents.join('\n');
+      }
+
+      const response = await complianceChatbot.processMessage(
+        enhancedMessage,
+        userId,
+        sessionId,
+        framework
+      );
+
+      metricsCollector.trackAIOperation('multimodal_chat', true);
+      await auditService.logAction({
+        action: "multimodal_chat",
+        entityType: "ai_conversation",
+        entityId: sessionId || `chat_${Date.now()}`,
+        userId,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { 
+          framework, 
+          messageLength: message.length,
+          attachmentCount: attachments?.length || 0,
+          imageAnalysisCount: imageAnalysisResults.length,
+          unsupportedFiles: unsupportedFiles.length
+        }
+      });
+
+      res.json({
+        ...response,
+        imageAnalysis: imageAnalysisResults.length > 0 ? imageAnalysisResults : undefined,
+        unsupportedFiles: unsupportedFiles.length > 0 ? unsupportedFiles : undefined
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Multimodal chat processing failed", { error: errorMessage, userId: req.user?.claims?.sub });
+      
+      // Return user-safe error message
+      if (errorMessage.includes('GOOGLE_API_KEY')) {
+        res.status(503).json({ 
+          success: false,
+          message: "Image analysis service temporarily unavailable. Your message was received but attachments could not be analyzed."
+        });
+      } else {
+        res.status(500).json({ 
+          success: false,
+          message: "Failed to process your message. Please try again." 
+        });
+      }
     }
   });
 }
