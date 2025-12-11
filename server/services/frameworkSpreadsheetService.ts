@@ -1,5 +1,14 @@
 import { type CompanyProfile } from "@shared/schema";
-import { ISO27001Templates, AdditionalISO27001Templates, type DocumentTemplate } from "./documentTemplates";
+import {
+  ISO27001Templates,
+  AdditionalISO27001Templates,
+  SOC2Templates,
+  FedRAMPLowTemplates,
+  FedRAMPModerateTemplates,
+  FedRAMPHighTemplates,
+  NIST80053Templates,
+  type DocumentTemplate
+} from "./documentTemplates";
 import { aiOrchestrator } from "./aiOrchestrator";
 import { logger } from "../utils/logger";
 
@@ -34,6 +43,13 @@ export interface AutofillResult {
 
 const FRAMEWORK_TEMPLATES: Record<string, DocumentTemplate[]> = {
   'ISO27001': [...ISO27001Templates, ...AdditionalISO27001Templates],
+  'SOC2': SOC2Templates,
+  'FedRAMP': FedRAMPLowTemplates, // Default to Low baseline for FedRAMP
+  'FedRAMP-Low': FedRAMPLowTemplates,
+  'FedRAMP-Moderate': FedRAMPModerateTemplates,
+  'FedRAMP-High': FedRAMPHighTemplates,
+  'NIST': NIST80053Templates,
+  'NIST-800-53': NIST80053Templates,
 };
 
 /**
