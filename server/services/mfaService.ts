@@ -1,7 +1,7 @@
 import crypto from 'crypto';
-import { eq } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { db } from '../db';
-import { mfaSettings } from '@shared/schema';
+import { mfaSettings, passkeyCredentials } from '@shared/schema';
 import { logger } from '../utils/logger';
 import { auditService, AuditAction, RiskLevel } from './auditService';
 
@@ -372,9 +372,11 @@ export class MFAService {
   }
 
   async getPasskeyCount(userId: string): Promise<number> {
-    // This would query the passkey credentials table
-    // For now, return 0 as placeholder
-    return 0;
+    const [{ total }] = await db.select({ total: count() })
+      .from(passkeyCredentials)
+      .where(eq(passkeyCredentials.userId, userId));
+
+    return Number(total ?? 0);
   }
 }
 
