@@ -455,3 +455,186 @@ CyberDocGen is a well-architected, feature-rich enterprise application with:
 **Document maintained by:** Development Team
 **Last reviewed:** December 12, 2025
 **Next review:** After Phase 1 completion
+
+---
+
+## 🔍 Consolidated Code TODOs
+
+This section consolidates all TODO, FIXME, and placeholder comments found throughout the codebase for centralized tracking.
+
+### Backend Service TODOs
+
+#### AI Guardrails Service
+**File:** `server/services/aiGuardrailsService.ts`
+
+- **Line 120, 349:** Mock moderation flags
+  - **Issue:** Using mock implementation instead of OpenAI Moderation API
+  - **Action:** Integrate OpenAI Moderation API for production content moderation
+  - **Priority:** Medium (Phase 3)
+
+- **Line 433:** Implement actual query
+  - **Issue:** `TODO: Implement actual query`
+  - **Action:** Replace placeholder with actual database query logic
+  - **Priority:** Medium (Phase 2)
+
+- **Line 449:** Implement actual update
+  - **Issue:** `TODO: Implement actual update`
+  - **Action:** Replace placeholder with actual database update logic
+  - **Priority:** Medium (Phase 2)
+
+#### Cloud Integration Service
+**File:** `server/services/cloudIntegrationService.ts`
+
+- **Lines 5-28:** Mock shims for Google Drive and OneDrive
+  - **Issue:** Using runtime-safe shims instead of real OAuth libraries
+  - **Mock classes:** `MockGraphClient`, placeholder OAuth2 class
+  - **Action:**
+    1. Install: `npm install @googleapis/drive @microsoft/microsoft-graph-client`
+    2. Replace mock shims with actual library imports
+    3. Implement Google Drive OAuth flow
+    4. Implement Microsoft OneDrive OAuth flow
+  - **Priority:** HIGH (Phase 3)
+  - **Referenced routes:** `/api/cloud/*` endpoints (see `server/routes/cloudIntegration.ts`)
+
+#### Data Retention Service
+**File:** `server/services/dataRetentionService.ts`
+
+- **Line 268:** Implement actual data cleanup
+  - **Issue:** `TODO: Implement actual data cleanup based on dataType`
+  - **Action:** Complete data cleanup logic for different data types
+  - **Priority:** Medium (Phase 3)
+
+- **Line 272:** Mock implementation
+  - **Issue:** Using placeholder cleanup logic
+  - **Action:** Implement proper data deletion with cascade handling
+  - **Priority:** Medium (Phase 3)
+
+#### Audit Service
+**File:** `server/services/auditService.ts`
+
+- **Line 204:** Minimal placeholder implementation
+  - **Issue:** Placeholder until full audit trail querying is wired up
+  - **Action:** Complete audit trail query implementation
+  - **Priority:** Medium (Phase 2)
+
+- **Line 268:** Placeholder counters
+  - **Issue:** Initialize counters - placeholder until full database query is implemented
+  - **Action:** Implement actual database aggregation queries
+  - **Priority:** Medium (Phase 2)
+
+#### MFA Service
+**File:** `server/services/mfaService.ts`
+
+- **Line 376:** Placeholder backup code count
+  - **Issue:** Returns 0 as placeholder for remaining backup codes
+  - **Action:** Implement actual backup code counting logic
+  - **Priority:** High (Phase 2)
+  - **Already tracked in Phase 2 section above**
+
+#### PDF Security Service
+**File:** `server/services/pdfSecurityService.ts`
+
+- **Line 69:** Placeholder implementation
+  - **Issue:** Requires pdf-lib package (already in dependencies)
+  - **Action:** Complete PDF security implementation using pdf-lib
+  - **Priority:** Medium (Phase 2)
+  - **Already tracked in Phase 2 section above**
+
+#### Session Risk Scoring Service
+**File:** `server/services/sessionRiskScoringService.ts`
+
+- **Lines 428, 437:** Mock implementations
+  - **Issue:** Using placeholder logic for risk calculation
+  - **Action:** Implement actual risk scoring algorithms
+  - **Priority:** Low (Phase 4)
+
+#### Key Rotation Service
+**File:** `server/services/keyRotationService.ts`
+
+- **Lines 389, 467, 478, 499:** Mock implementations
+  - **Issue:** Multiple mock/placeholder implementations
+  - **Warning on Line 467:** "DO NOT do this in production"
+  - **Action:** Implement proper key rotation with actual KMS integration
+  - **Priority:** Low (Phase 4)
+
+### Frontend TODOs
+
+#### Error Boundary
+**File:** `client/src/components/ErrorBoundary.tsx`
+
+- **Line 47:** Error tracking integration
+  - **Issue:** `TODO: Send to error tracking service (e.g., Sentry, Azure Application Insights)`
+  - **Action:** Integrate Sentry or similar error tracking service
+  - **Priority:** Medium (Phase 4 - Observability)
+
+#### Enhanced Company Profile
+**File:** `client/src/pages/enhanced-company-profile.tsx`
+
+- **Line 125:** User context
+  - **Issue:** `TODO: Get from authenticated user context`
+  - **Action:** Replace `"temp-user-id"` with actual authenticated user ID from context
+  - **Priority:** High (Phase 2)
+
+#### User Profile
+**File:** `client/src/pages/user-profile-new.tsx`
+
+- **Line 59:** Placeholder endpoint
+  - **Issue:** Using placeholder endpoint for user profile updates
+  - **Action:** Verify API endpoint is correctly implemented
+  - **Priority:** Medium (Phase 3)
+
+### Cloud Integration Routes
+**File:** `server/routes/cloudIntegration.ts`
+
+Multiple placeholder endpoints documented in JSDoc comments:
+
+- **Line 41:** Initiate Google Drive OAuth (placeholder)
+- **Line 52:** Google Drive OAuth callback (placeholder)
+- **Line 59:** Initiate Microsoft OneDrive OAuth (placeholder)
+- **Line 70:** Microsoft OneDrive OAuth callback (placeholder)
+- **Line 126:** Apply PDF security settings (placeholder)
+- **Line 136:** Get PDF security settings (placeholder)
+- **Line 146:** Delete cloud integration (placeholder)
+- **Line 156:** Remove PDF security (placeholder)
+
+**Action:** All these depend on completing the cloud integration service (see above)
+**Priority:** HIGH (Phase 3)
+
+---
+
+## 📊 TODO Summary by Priority
+
+### 🔴 HIGH Priority (Phase 2-3)
+1. ✅ Install dependencies and configure environment (Phase 1)
+2. Complete cloud integrations (remove mock shims) - **Phase 3**
+3. Fix authenticated user context in enhanced-company-profile.tsx - **Phase 2**
+4. Implement MFA backup code counting - **Phase 2**
+5. Complete PDF security service - **Phase 2**
+
+### 🟠 MEDIUM Priority (Phase 2-4)
+1. AI Guardrails: Implement actual query/update logic - **Phase 2**
+2. Data Retention: Complete cleanup implementation - **Phase 3**
+3. Audit Service: Complete query implementation - **Phase 2**
+4. Error Boundary: Integrate Sentry/error tracking - **Phase 4**
+5. User Profile: Verify endpoint implementation - **Phase 3**
+
+### 🟡 LOW Priority (Phase 4)
+1. AI Guardrails: Replace mock with OpenAI Moderation API - **Phase 4**
+2. Session Risk Scoring: Implement actual algorithms - **Phase 4**
+3. Key Rotation: Implement proper KMS integration - **Phase 4**
+
+---
+
+## ✅ How to Use This TODO List
+
+1. **For developers:** Before starting work, check if the feature you're working on has TODOs listed here
+2. **For code reviews:** Verify that TODO comments in code reference this document
+3. **For planning:** Use priority levels to schedule work across phases
+4. **Updates:** When completing a TODO:
+   - ✅ Mark it complete in this document
+   - Remove or update the code comment
+   - Verify implementation works as expected
+
+---
+
+**All TODOs consolidated and tracked centrally as of:** December 12, 2025
