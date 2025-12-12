@@ -40,7 +40,7 @@
 
 ## Overview
 
-CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management platform that automates the generation, analysis, and management of compliance documentation. Built for enterprise use, it supports multiple compliance frameworks including ISO 27001, SOC 2, FedRAMP, and NIST 800-53.
+CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management platform that automates the generation, analysis, and management of compliance documentation. Built for enterprise use, it provides the industry's most comprehensive framework coverage with 34+ compliance standards and 788+ document templates spanning security, privacy, healthcare, financial services, and cloud governance.
 
 ### Key Highlights
 
@@ -48,7 +48,8 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 - 🏢 **Enterprise-Ready** - Multi-tenancy, RBAC, audit logging, and SOC 2 compliance
 - 🔒 **Security-First** - MFA, encryption, threat detection, and comprehensive security measures
 - ☁️ **Cloud-Integrated** - Google Drive and Microsoft OneDrive connectivity
-- 📊 **Compliance Frameworks** - ISO 27001:2022, SOC 2, FedRAMP, NIST 800-53 Rev 5
+- 📊 **34+ Compliance Frameworks** - Complete coverage: ISO 27001/27002/27701/42001/9001/22301, SOC 2, FedRAMP, NIST 800-53/CSF 2.0, HIPAA, GDPR, CCPA, PCI DSS 4.0, NYDFS, NIS2, PSD2/3, AWS Well-Architected, CISA Zero Trust
+- 📝 **788+ Templates** - Pre-built document templates plus internal SOPs, board governance, and training materials
 - 🚀 **Production-Ready** - Comprehensive testing, monitoring, and deployment tools
 
 ## ✨ Features
@@ -77,10 +78,19 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ### Compliance Management
 
-- **Multiple Frameworks** - ISO 27001:2022, SOC 2 Type I/II, FedRAMP (Low/Moderate/High), NIST 800-53 Rev 5
+- **34+ Compliance Frameworks** - Comprehensive coverage across security, privacy, financial, healthcare, and cloud compliance
+  - **Security Standards**: ISO 27001:2022 (93 controls), ISO 27002:2022, ISO 27701 (PIMS), ISO 42001 (AI governance)
+  - **Federal & Government**: FedRAMP (Low/Moderate/High), NIST 800-53 Rev 5 (20 control families), NIST CSF 2.0 (6 functions)
+  - **Audit Frameworks**: SOC 2 Type I/II (Trust Services Criteria)
+  - **Healthcare**: HIPAA (Security, Privacy, Breach Notification Rules)
+  - **Privacy**: GDPR (EU), CCPA/CPRA (California)
+  - **Financial Services**: NYDFS 23 NYCRR 500, PCI DSS 4.0 (12 requirements), PSD2/PSD3, NIS2 (EU)
+  - **Quality & Business Continuity**: ISO 9001, ISO 22301
+  - **Cloud & Zero Trust**: AWS Well-Architected (6 pillars), CISA Zero Trust Maturity Model (5 pillars)
+- **788+ Document Templates** - Pre-built templates covering all framework requirements
+- **Internal Operations** - SOPs, board governance, training materials, and operational playbooks
 - **Document Workspace** - Collaborative document editing with real-time comments
 - **Quality Scoring** - Automated document quality assessment
-- **Template Management** - Pre-built templates for all supported frameworks
 - **Custom Controls** - Define and manage custom compliance controls
 
 ### Security & Monitoring
@@ -184,6 +194,7 @@ For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_
 
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
 - [API Documentation](docs/API.md) - Complete API reference
+- [Compliance Frameworks](docs/FRAMEWORKS.md) - **NEW**: Complete guide to 34+ supported frameworks
 - [Security](docs/SECURITY.md) - Security implementation details
 - [Testing](docs/TESTING.md) - Testing strategies and guidelines
 
@@ -257,7 +268,7 @@ cyberdocgen/
 
 ## 🔒 Security & Compliance
 
-CyberDocGen is designed with enterprise security as a top priority:
+CyberDocGen is designed with enterprise security as a top priority and provides the industry's most comprehensive compliance framework coverage:
 
 ### Security Features
 
@@ -271,13 +282,53 @@ CyberDocGen is designed with enterprise security as a top priority:
 - ✅ **Audit Logging** - Immutable audit trails for all operations
 - ✅ **Threat Detection** - Real-time anomaly detection
 
-### Compliance
+### Compliance Framework Coverage (34+ Standards)
 
-- **SOC 2 Type II Ready** - Complete audit trail and security controls
-- **ISO 27001:2022** - Information security management
-- **FedRAMP** - Federal compliance requirements
-- **NIST 800-53 Rev 5** - Security and privacy controls
-- **GDPR** - Data protection and privacy considerations
+#### **Security & Information Governance**
+- ✅ **ISO 27001:2022** - 93 Annex A controls across 4 categories (Organizational, People, Physical, Technological)
+- ✅ **ISO 27002:2022** - Information security controls implementation guide
+- ✅ **ISO 27701:2019/2024** - Privacy Information Management System (PIMS)
+- ✅ **ISO 42001:2023** - AI Management System (AIMS) - World's first AI governance standard
+- ✅ **ISO 9001** - Quality Management System
+- ✅ **ISO 22301** - Business Continuity Management System
+
+#### **Federal & Government Compliance**
+- ✅ **FedRAMP Low** - 156 NIST 800-53 controls for low-impact federal systems
+- ✅ **FedRAMP Moderate** - 323 controls for moderate-impact systems
+- ✅ **FedRAMP High** - 413 controls for high-impact federal systems
+- ✅ **NIST 800-53 Rev 5** - All 20 control families (1000+ controls)
+- ✅ **NIST Cybersecurity Framework 2.0** - 6 functions including new GOVERN pillar (22 categories, 107 subcategories)
+
+#### **Audit & Assurance**
+- ✅ **SOC 2 Type I** - Design effectiveness of Trust Services Criteria
+- ✅ **SOC 2 Type II** - Operating effectiveness over time (3-12 months)
+
+#### **Healthcare Compliance**
+- ✅ **HIPAA Security Rule** - Administrative, Physical, and Technical Safeguards
+- ✅ **HIPAA Privacy Rule** - Protected Health Information (PHI) protections
+- ✅ **HIPAA Breach Notification Rule** - 60-day notification requirements
+
+#### **Privacy Regulations**
+- ✅ **GDPR** - EU General Data Protection Regulation (Articles 1-99)
+- ✅ **CCPA/CPRA** - California Consumer Privacy Act with 2024 CPRA amendments
+
+#### **Financial Services & Payment Security**
+- ✅ **NYDFS 23 NYCRR 500** - New York Department of Financial Services cybersecurity requirements
+- ✅ **PCI DSS 4.0** - Payment Card Industry Data Security Standard (12 requirements, 64 new controls)
+- ✅ **PSD2** - Payment Services Directive 2 with Strong Customer Authentication (SCA)
+- ✅ **PSD3** - Proposed Payment Services Directive 3 (enforcement expected 2027)
+- ✅ **NIS2** - EU Network and Information Security Directive 2 (18 critical sectors)
+
+#### **Cloud & Zero Trust Architecture**
+- ✅ **AWS Well-Architected Framework** - 6 pillars (Operational Excellence, Security, Reliability, Performance, Cost, Sustainability)
+- ✅ **CISA Zero Trust Maturity Model v2.0** - 5 pillars (Identity, Devices, Networks, Applications/Workloads, Data)
+
+#### **Internal Operations & Governance**
+- ✅ **Board Governance** - Cybersecurity board reports, compliance memorandums, risk briefings
+- ✅ **Standard Operating Procedures** - Security, Privacy, Compliance, and IT Operations SOPs
+- ✅ **Internal Policies** - AUP, remote work, BYOD, data classification, AI usage policies
+- ✅ **Training & Awareness** - Security awareness, phishing simulations, privacy training programs
+- ✅ **Operational Documents** - Incident playbooks, risk registers, vendor questionnaires, management reports
 
 See [Security Documentation](docs/SECURITY.md) for detailed information.
 
@@ -390,6 +441,13 @@ See [Modernization Roadmap](docs/modernization-roadmap.md) and [Phased Plan](doc
 
 - ✅ **Latest AI Models** - Updated to GPT-5.1 (OpenAI), Claude Opus 4.5 (Anthropic), and Gemini 3.0 Pro (Google)
 - ✅ **Multi-Model AI Orchestration** - Intelligent model selection with automatic fallback between providers
+- ✅ **Industry-Leading Framework Coverage** - 34+ compliance frameworks with 788+ document templates
+- ✅ **Comprehensive Template Library** - Added 698 new templates across all major compliance standards:
+  - Advanced ISO standards (27701 Privacy, 42001 AI Governance, 9001 Quality, 22301 Business Continuity)
+  - Financial services (NYDFS, PCI DSS 4.0, PSD2/PSD3, NIS2)
+  - Privacy regulations (GDPR, CCPA/CPRA)
+  - Cloud & Zero Trust (AWS Well-Architected, CISA Zero Trust Maturity Model)
+  - Internal operations (165 templates for SOPs, board governance, training, policies)
 - ✅ **Enhanced Documentation** - Complete documentation suite with setup guides, testing guides, and troubleshooting
 - ✅ **Dependency Updates** - All npm packages updated to latest compatible versions
 - ✅ **Enhanced Audit Service** - Improved audit logging with tamper detection and immutability
