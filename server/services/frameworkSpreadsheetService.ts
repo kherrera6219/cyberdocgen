@@ -329,8 +329,8 @@ Respond ONLY with the JSON array, no additional text.`;
         maxTokens: 2000,
       });
 
-      if (response.content) {
-        const cleanedContent = response.content
+      if (response.result.content) {
+        const cleanedContent = response.result.content
           .replace(/```json\n?/g, '')
           .replace(/```\n?/g, '')
           .trim();

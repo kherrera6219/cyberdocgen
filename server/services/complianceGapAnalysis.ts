@@ -153,7 +153,7 @@ class ComplianceGapAnalysisService {
       });
 
       // Parse AI response and structure the results
-      const structuredResults = await this.parseAIAnalysisResults(aiResponse.content, framework);
+      const structuredResults = await this.parseAIAnalysisResults(aiResponse.result.content, framework);
 
       // Calculate overall compliance score
       const overallScore = this.calculateComplianceScore(structuredResults.findings);
@@ -370,7 +370,7 @@ Provide 2-3 specific remediation recommendations in JSON format:
           maxTokens: 1500
         });
 
-        const jsonMatch = aiResponse.content.match(/\{[\s\S]*\}/);
+        const jsonMatch = aiResponse.result.content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsedRecommendations = JSON.parse(jsonMatch[0]);
           
