@@ -30,8 +30,12 @@ interface AuditLogEntry {
 }
 
 class Logger {
-  private isDevelopment = process.env.NODE_ENV === "development";
   private auditLogs: AuditLogEntry[] = []; // Mock implementation
+
+  // Check if in development mode dynamically
+  private get isDevelopment(): boolean {
+    return process.env.NODE_ENV === "development";
+  }
 
   // Mock getColorCode method as it's used in the changes
   private getColorCode(level: LogLevel): string {

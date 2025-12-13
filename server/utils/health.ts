@@ -237,6 +237,7 @@ export async function readinessCheckHandler(req: Request, res: Response): Promis
       res.status(503).json({
         status: "not ready",
         message: "Database not ready",
+        timestamp: new Date().toISOString(),
       });
       return;
     }
@@ -249,6 +250,7 @@ export async function readinessCheckHandler(req: Request, res: Response): Promis
     res.status(503).json({
       status: "not ready",
       message: "Service not ready",
+      timestamp: new Date().toISOString(),
     });
   }
 }

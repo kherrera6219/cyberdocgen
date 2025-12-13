@@ -93,11 +93,11 @@ export function sanitizeInput(input: any): any {
       .replace(/javascript:/gi, '') // Remove javascript: protocols
       .replace(/on\w+\s*=/gi, ''); // Remove event handlers
   }
-  
+
   if (Array.isArray(input)) {
     return input.map(sanitizeInput);
   }
-  
+
   if (input && typeof input === 'object') {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(input)) {
@@ -105,8 +105,72 @@ export function sanitizeInput(input: any): any {
     }
     return sanitized;
   }
-  
+
   return input;
+}
+
+// String sanitization function
+export function sanitizeString(input: string, maxLength: number = 1000): string {
+  return input
+    .trim()
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // Remove iframe tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocols
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '') // Remove event handlers with content
+    .slice(0, maxLength);
+}
+
+// Email sanitization function
+export function sanitizeEmail(input: string): string {
+  return input.trim().toLowerCase();
+}
+
+// Filename sanitization function
+export function sanitizeFilename(input: string, maxLength: number = 255): string {
+  return input
+    .replace(/[<>:"/\\|?*\s]/g, '_') // Replace invalid characters and spaces with underscores
+    .replace(/_+/g, '_') // Collapse multiple underscores
+    .slice(0, maxLength);
+}
+
+// Validation schemas for common use cases
+export const paginationSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+});
+
+export const idParamSchema = z.object({
+  id: z.string().uuid('Invalid UUID format'),
+});
+
+export const searchSchema = z.object({
+  q: z.string().optional(),
+  framework: z.enum(['ISO27001', 'SOC2', 'NIST', 'GDPR', 'HIPAA', 'PCI-DSS', 'FedRAMP']).optional(),
+  status: z.enum(['draft', 'pending', 'approved', 'rejected']).optional(),
+});
+
+// Validation middleware factory
+export function validateSchema(schema: z.ZodSchema) {
+  return (req: any, res: any, next: any) => {
+    try {
+      const data = { ...req.body, ...req.query };
+      const validated = schema.parse(data);
+      req.validated = validated;
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: 'Validation failed',
+          errors: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message,
+          })),
+        });
+      }
+      next(error);
+    }
+  };
 }
 
 // Rate limiting configuration

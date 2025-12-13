@@ -149,7 +149,7 @@ describe("Validation Utils", () => {
     it("should pass validation with valid data", () => {
       const schema = z.object({
         name: z.string().min(1),
-        age: z.number().min(0),
+        age: z.coerce.number().min(0), // Use coerce to convert string to number
       });
 
       const middleware = validateSchema(schema);
@@ -157,16 +157,16 @@ describe("Validation Utils", () => {
         body: { name: "John" },
         query: { age: "25" },
         validated: undefined,
-      };
+      } as any;
       const res = {
         status: vi.fn(() => res),
         json: vi.fn(),
-      };
+      } as any;
       const next = vi.fn();
 
       middleware(req, res, next);
 
-      expect(req.validated).toEqual({ name: "John", age: "25" });
+      expect(req.validated).toEqual({ name: "John", age: 25 }); // age should be converted to number
       expect(next).toHaveBeenCalled();
       expect(res.status).not.toHaveBeenCalled();
     });
@@ -174,18 +174,18 @@ describe("Validation Utils", () => {
     it("should fail validation with invalid data", () => {
       const schema = z.object({
         name: z.string().min(1),
-        age: z.number().min(0),
+        age: z.coerce.number().min(0),
       });
 
       const middleware = validateSchema(schema);
       const req = {
         body: { name: "" },
         query: { age: "invalid" },
-      };
+      } as any;
       const res = {
         status: vi.fn(() => res),
         json: vi.fn(),
-      };
+      } as any;
       const next = vi.fn();
 
       middleware(req, res, next);
