@@ -1,32 +1,16 @@
-// Cloud service integrations (requires package installation)
-// import { google } from 'googleapis';
-// import { Client } from '@microsoft/microsoft-graph-client';
-// Lightweight runtime-safe shims to keep the module type-safe without optional deps
-const google: any = {
-  auth: {
-    OAuth2: class {
-      setCredentials(_: any) { /* noop for shim */ }
-    }
-  },
-  drive: () => ({ files: { list: async () => ({ data: { files: [] as any[] } }) } })
-};
+// Cloud service integrations - Real OAuth implementations
+import { drive_v3, drive } from '@googleapis/drive';
+import { OAuth2Client } from 'google-auth-library';
+import { Client, AuthenticationProvider } from '@microsoft/microsoft-graph-client';
 
-class CustomAuthProvider {
+// Custom authentication provider for Microsoft Graph
+class CustomAuthProvider implements AuthenticationProvider {
   constructor(private accessToken: string) {}
-  async getAccessToken(): Promise<string> { return this.accessToken; }
-}
 
-class MockGraphClient {
-  api(): this { return this; }
-  filter(): this { return this; }
-  select(): this { return this; }
-  top(): this { return this; }
-  async get(): Promise<{ value: any[] }> { return { value: [] }; }
+  async getAccessToken(): Promise<string> {
+    return this.accessToken;
+  }
 }
-
-const Client: any = {
-  initWithMiddleware: (_: any) => new MockGraphClient(),
-};
 import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import { cloudIntegrations, cloudFiles, oauthProviders } from '@shared/schema';
@@ -259,30 +243,30 @@ export class CloudIntegrationService {
         throw new Error('Google OAuth credentials not configured');
       }
 
-      const auth = new google.auth.OAuth2(
+      const auth = new OAuth2Client(
         credentials.clientId,
         credentials.clientSecret
       );
       auth.setCredentials({ access_token: accessToken });
 
-      const drive = google.drive({ version: 'v3', auth });
+      const driveClient = drive({ version: 'v3', auth });
 
-      const response = await drive.files.list({
+      const response = await driveClient.files.list({
         pageSize: 100,
         fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink,parents)',
         q: "trashed=false and (mimeType='application/pdf' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document' or mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')",
       });
 
-      return response.data.files?.map((file: { id?: string; name?: string; mimeType?: string; size?: string; modifiedTime?: string; webViewLink?: string; webContentLink?: string; thumbnailLink?: string; parents?: string[] }) => ({
+      return response.data.files?.map((file: drive_v3.Schema$File) => ({
         id: file.id!,
         name: file.name!,
         mimeType: file.mimeType!,
         size: parseInt(file.size || '0'),
         modifiedTime: new Date(file.modifiedTime!),
-        webViewLink: file.webViewLink,
-        downloadLink: file.webContentLink,
-        thumbnailLink: file.thumbnailLink,
-        parents: file.parents,
+        webViewLink: file.webViewLink || undefined,
+        downloadLink: file.webContentLink || undefined,
+        thumbnailLink: file.thumbnailLink || undefined,
+        parents: file.parents || undefined,
       })) || [];
     } catch (error: any) {
       logger.error('Failed to sync Google Drive files', { error: error.message });
