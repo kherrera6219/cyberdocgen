@@ -14,7 +14,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { Router } from 'wouter';
 import Dashboard from '../../client/src/pages/dashboard';
 import { OrganizationProvider } from '../../client/src/contexts/OrganizationContext';
 import * as queryClient from '../../client/src/lib/queryClient';
@@ -111,11 +111,11 @@ describe('Dashboard Component', () => {
   const renderDashboard = () => {
     return render(
       <QueryClientProvider client={testQueryClient}>
-        <BrowserRouter>
+        <Router>
           <OrganizationProvider>
             <Dashboard />
           </OrganizationProvider>
-        </BrowserRouter>
+        </Router>
       </QueryClientProvider>
     );
   };
@@ -552,11 +552,11 @@ describe('Dashboard Component', () => {
 
       rerender(
         <QueryClientProvider client={testQueryClient}>
-          <BrowserRouter>
+          <Router>
             <OrganizationProvider>
               <Dashboard />
             </OrganizationProvider>
-          </BrowserRouter>
+          </Router>
         </QueryClientProvider>
       );
 
