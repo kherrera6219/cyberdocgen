@@ -77,7 +77,7 @@ describe('Critical User Flows E2E Tests', () => {
       expect(firstDocument.status).toBe('draft');
 
       // Step 4: View generated document
-      const document = await storage.getDocumentById(firstDocument.id!);
+      const document = await storage.getDocument(firstDocument.id!);
       expect(document).toBeDefined();
       expect(document?.title).toBe('Information Security Policy');
 
@@ -89,7 +89,7 @@ describe('Critical User Flows E2E Tests', () => {
       expect(updatedDocument.status).toBe('in_progress');
 
       // Verify complete flow
-      const orgDocuments = await storage.getDocuments({ organizationId: testOrg.id! });
+      const orgDocuments = await storage.getDocuments().then(docs => docs.filter(d => d.organizationId === testOrg.id!));
       expect(orgDocuments.length).toBe(1);
       expect(orgDocuments[0].aiGenerated).toBe(true);
     });
@@ -171,27 +171,25 @@ describe('Critical User Flows E2E Tests', () => {
       expect(generatedDocs).toHaveLength(6);
 
       // Step 4: Verify documents by framework
-      const iso27001Docs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        framework: 'ISO27001',
-      });
+      const allStorageDocs = await storage.getDocuments();
+      const iso27001Docs = allStorageDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.framework === 'ISO27001'
+      );
 
-      const soc2Docs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        framework: 'SOC2',
-      });
+      const soc2Docs = allStorageDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.framework === 'SOC2'
+      );
 
-      const fedrampDocs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        framework: 'FedRAMP',
-      });
+      const fedrampDocs = allStorageDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.framework === 'FedRAMP'
+      );
 
       expect(iso27001Docs).toHaveLength(2);
       expect(soc2Docs).toHaveLength(2);
       expect(fedrampDocs).toHaveLength(2);
 
       // Step 5: Verify all are AI-generated
-      const allDocs = await storage.getDocuments({ organizationId: testOrg.id! });
+      const allDocs = await storage.getDocuments().then(docs => docs.filter(d => d.organizationId === testOrg.id!));
       expect(allDocs.every(doc => doc.aiGenerated)).toBe(true);
     });
   });
@@ -245,7 +243,7 @@ describe('Critical User Flows E2E Tests', () => {
       expect(approvedDoc.version).toBe('1.0');
 
       // Step 5: Verify document history
-      const finalDoc = await storage.getDocumentById(draftDoc.id!);
+      const finalDoc = await storage.getDocument(draftDoc.id!);
       expect(finalDoc?.status).toBe('complete');
       expect(finalDoc?.version).toBe('1.0');
     });
@@ -323,10 +321,10 @@ describe('Critical User Flows E2E Tests', () => {
       ]);
 
       // Step 2: Perform gap analysis
-      const iso27001Docs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        framework: 'ISO27001',
-      });
+      const allDocs = await storage.getDocuments();
+      const iso27001Docs = allDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.framework === 'ISO27001'
+      );
 
       const totalISO27001Controls = 114;
       const completedDocs = iso27001Docs.filter(d => d.status === 'complete');
@@ -356,10 +354,10 @@ describe('Critical User Flows E2E Tests', () => {
       expect(newDocs).toHaveLength(10);
 
       // Step 4: Re-analyze gap
-      const updatedDocs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        framework: 'ISO27001',
-      });
+      const allUpdatedDocs = await storage.getDocuments();
+      const updatedDocs = allUpdatedDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.framework === 'ISO27001'
+      );
 
       const updatedCompleted = updatedDocs.filter(d => d.status === 'complete');
       const updatedCoverage = (updatedCompleted.length / totalISO27001Controls) * 100;
@@ -420,7 +418,7 @@ describe('Critical User Flows E2E Tests', () => {
       expect(approvedDoc.status).toBe('complete');
 
       // All users can see the document
-      const orgDocs = await storage.getDocuments({ organizationId: testOrg.id! });
+      const orgDocs = await storage.getDocuments().then(docs => docs.filter(d => d.organizationId === testOrg.id!));
       expect(orgDocs).toHaveLength(1);
       expect(orgDocs[0].status).toBe('complete');
     });
@@ -490,15 +488,14 @@ describe('Critical User Flows E2E Tests', () => {
       ]);
 
       // Step 4: Verify both frameworks have documents
-      const iso27001Docs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        framework: 'ISO27001',
-      });
+      const allFrameworkDocs = await storage.getDocuments();
+      const iso27001Docs = allFrameworkDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.framework === 'ISO27001'
+      );
 
-      const soc2Docs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        framework: 'SOC2',
-      });
+      const soc2Docs = allFrameworkDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.framework === 'SOC2'
+      );
 
       expect(iso27001Docs).toHaveLength(1);
       expect(soc2Docs).toHaveLength(2);
@@ -545,10 +542,10 @@ describe('Critical User Flows E2E Tests', () => {
       ]);
 
       // Export only completed documents
-      const completedDocs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        status: 'complete',
-      });
+      const allExportDocs = await storage.getDocuments();
+      const completedDocs = allExportDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.status === 'complete'
+      );
 
       expect(completedDocs).toHaveLength(2);
 
@@ -570,7 +567,7 @@ describe('Critical User Flows E2E Tests', () => {
   describe('Flow 8: Real-time Dashboard Updates', () => {
     it('should track compliance metrics as documents are created', async () => {
       // Initial state - no documents
-      let allDocs = await storage.getDocuments({ organizationId: testOrg.id! });
+      let allDocs = await storage.getDocuments().then(docs => docs.filter(d => d.organizationId === testOrg.id!));
       let completedCount = allDocs.filter(d => d.status === 'complete').length;
 
       expect(completedCount).toBe(0);
@@ -588,12 +585,12 @@ describe('Critical User Flows E2E Tests', () => {
         updatedAt: new Date(),
       });
 
-      allDocs = await storage.getDocuments({ organizationId: testOrg.id! });
+      allDocs = await storage.getDocuments().then(docs => docs.filter(d => d.organizationId === testOrg.id!));
       expect(allDocs.length).toBe(1);
 
       // Complete first document
       await storage.updateDocument(doc1.id!, { status: 'complete' });
-      allDocs = await storage.getDocuments({ organizationId: testOrg.id! });
+      allDocs = await storage.getDocuments().then(docs => docs.filter(d => d.organizationId === testOrg.id!));
       completedCount = allDocs.filter(d => d.status === 'complete').length;
       expect(completedCount).toBe(1);
 
@@ -610,7 +607,7 @@ describe('Critical User Flows E2E Tests', () => {
         updatedAt: new Date(),
       });
 
-      allDocs = await storage.getDocuments({ organizationId: testOrg.id! });
+      allDocs = await storage.getDocuments().then(docs => docs.filter(d => d.organizationId === testOrg.id!));
       completedCount = allDocs.filter(d => d.status === 'complete').length;
 
       expect(allDocs.length).toBe(2);
@@ -641,11 +638,11 @@ describe('Critical User Flows E2E Tests', () => {
       });
 
       // Attempt to get non-existent document
-      const nonExistent = await storage.getDocumentById(99999);
-      expect(nonExistent).toBeNull();
+      const nonExistent = await storage.getDocument('99999');
+      expect(nonExistent).toBeUndefined();
 
       // Verify original document is still intact
-      const existingDoc = await storage.getDocumentById(doc.id!);
+      const existingDoc = await storage.getDocument(doc.id!);
       expect(existingDoc).toBeDefined();
       expect(existingDoc?.title).toBe('Important Policy');
 
@@ -722,10 +719,10 @@ describe('Critical User Flows E2E Tests', () => {
       );
 
       // Phase 4: Gap analysis
-      const completedDocs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        status: 'complete',
-      });
+      const gapAnalysisDocs = await storage.getDocuments();
+      const completedDocs = gapAnalysisDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.status === 'complete'
+      );
 
       expect(completedDocs.length).toBe(2);
 
@@ -752,10 +749,10 @@ describe('Critical User Flows E2E Tests', () => {
       );
 
       // Phase 6: Final compliance check
-      const finalDocs = await storage.getDocuments({
-        organizationId: testOrg.id!,
-        status: 'complete',
-      });
+      const allFinalDocs = await storage.getDocuments();
+      const finalDocs = allFinalDocs.filter(d =>
+        d.organizationId === testOrg.id! && d.status === 'complete'
+      );
 
       const finalCoverage = (finalDocs.length / totalControls) * 100;
 
