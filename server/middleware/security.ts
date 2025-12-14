@@ -128,29 +128,105 @@ export const auditLogger = (req: Request, res: Response, next: NextFunction) => 
   next();
 };
 
-// Rate limiting configurations
+// User-based rate limiting key generator
+// Combines IP and user ID for more accurate rate limiting
+function getRateLimitKey(req: Request): string {
+  const user = (req as any).user;
+  const userId = user?.claims?.sub || user?.id;
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+
+  // For authenticated users, use user ID + IP
+  // For anonymous users, use IP only
+  return userId ? `user:${userId}:${ip}` : `ip:${ip}`;
+}
+
+// Rate limiting configurations with user-based keys
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again later.",
+  max: 100, // limit per user+IP to 100 requests per windowMs
+  message: "Too many requests, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getRateLimitKey,
+  handler: (req, res) => {
+    logger.warn('Rate limit exceeded', {
+      ip: req.ip,
+      userId: (req as any).user?.claims?.sub || 'anonymous',
+      path: req.path,
+      method: req.method,
+    });
+    res.status(429).json({
+      message: "Too many requests, please try again later.",
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfter: res.getHeader('Retry-After'),
+    });
+  },
 });
 
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 auth attempts per windowMs
+  max: 5, // limit per IP to 5 auth attempts per windowMs
   message: "Too many authentication attempts, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
+  // Auth endpoints use IP only (users aren't authenticated yet)
+  keyGenerator: (req) => req.ip || 'unknown',
+  skipSuccessfulRequests: true, // Only count failed attempts
+  handler: (req, res) => {
+    logger.warn('Auth rate limit exceeded', {
+      ip: req.ip,
+      path: req.path,
+    });
+    res.status(429).json({
+      message: "Too many authentication attempts, please try again later.",
+      code: 'AUTH_RATE_LIMIT_EXCEEDED',
+      retryAfter: res.getHeader('Retry-After'),
+    });
+  },
 });
 
 export const generationLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // limit each IP to 10 generation requests per hour
+  max: 10, // limit per user+IP to 10 generation requests per hour
   message: "Generation limit exceeded. Please wait before generating more documents.",
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getRateLimitKey,
+  handler: (req, res) => {
+    logger.warn('Generation rate limit exceeded', {
+      ip: req.ip,
+      userId: (req as any).user?.claims?.sub || 'anonymous',
+      path: req.path,
+    });
+    res.status(429).json({
+      message: "Generation limit exceeded. Please wait before generating more documents.",
+      code: 'GENERATION_LIMIT_EXCEEDED',
+      retryAfter: res.getHeader('Retry-After'),
+      remainingQuota: 0,
+    });
+  },
+});
+
+// AI operations rate limiter (stricter limits for expensive operations)
+export const aiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 20, // 20 requests per minute per user
+  message: "Too many AI requests, please slow down.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: getRateLimitKey,
+  handler: (req, res) => {
+    logger.warn('AI rate limit exceeded', {
+      ip: req.ip,
+      userId: (req as any).user?.claims?.sub || 'anonymous',
+      path: req.path,
+    });
+    res.status(429).json({
+      message: "Too many AI requests, please slow down.",
+      code: 'AI_RATE_LIMIT_EXCEEDED',
+      retryAfter: res.getHeader('Retry-After'),
+    });
+  },
 });
 
 /**
@@ -209,37 +285,80 @@ export function validateRequest(req: Request, res: Response, next: NextFunction)
   next();
 }
 
-// Enhanced security headers middleware
+// Enhanced security headers middleware with nonce-based CSP
 export function securityHeaders(req: Request, res: Response, next: NextFunction) {
   // Skip security headers for development static assets
   if (req.path.startsWith('/@') || req.path.includes('.')) {
     return next();
   }
 
+  // Generate nonce for inline scripts and styles
+  const nonce = crypto.randomBytes(16).toString('base64');
+  res.locals.cspNonce = nonce;
+
   // Core security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
-  // Content Security Policy for enhanced security
+  // Enhanced Permissions Policy
+  const permissionsPolicy = [
+    'accelerometer=()',
+    'ambient-light-sensor=()',
+    'autoplay=()',
+    'battery=()',
+    'camera=()',
+    'display-capture=()',
+    'document-domain=()',
+    'encrypted-media=()',
+    'geolocation=()',
+    'gyroscope=()',
+    'magnetometer=()',
+    'microphone=()',
+    'midi=()',
+    'payment=()',
+    'picture-in-picture=()',
+    'usb=()',
+    'web-share=()',
+  ].join(', ');
+  res.setHeader('Permissions-Policy', permissionsPolicy);
+
+  // Cross-Origin policies for enhanced security
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+
+  // Content Security Policy with nonce-based inline script/style support
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' https://apis.google.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    // Use nonce for inline scripts instead of unsafe-inline
+    process.env.NODE_ENV === 'production'
+      ? `script-src 'self' 'nonce-${nonce}' https://apis.google.com`
+      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com`,
+    // Use nonce for inline styles instead of unsafe-inline
+    process.env.NODE_ENV === 'production'
+      ? `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`
+      : `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     "img-src 'self' data: https:",
     "connect-src 'self' ws: wss: https://api.openai.com https://api.anthropic.com",
     "font-src 'self' https://fonts.gstatic.com",
     "frame-ancestors 'none'",
     "form-action 'self'",
-    "base-uri 'self'"
+    "base-uri 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests"
   ];
   res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
 
-  // HSTS in production
+  // HSTS in production with preload
   if (process.env.NODE_ENV === 'production') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
+
+  // Clear-Site-Data header for logout endpoints
+  if (req.path.includes('/logout')) {
+    res.setHeader('Clear-Site-Data', '"cache", "cookies", "storage"');
   }
 
   next();
@@ -277,48 +396,127 @@ export const threatDetection = (req: Request, res: Response, next: NextFunction)
   next();
 };
 
-// Error handling middleware
+// Enhanced error handling middleware with production sanitization
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   // Skip if response already sent
   if (res.headersSent) {
     return next(err);
   }
 
+  // Generate unique error ID for tracking
+  const errorId = crypto.randomBytes(8).toString('hex');
+
+  // Log full error details (including sensitive data) securely
   logger.error('Error occurred', {
+    errorId,
     error: err.message,
     stack: err.stack,
     url: req.url,
     method: req.method,
     ip: req.ip,
     userAgent: req.get('User-Agent'),
-    userId: (req as any).user?.claims?.sub || 'anonymous'
+    userId: (req as any).user?.claims?.sub || 'anonymous',
+    // Include request body for debugging (be careful with sensitive data)
+    ...(process.env.NODE_ENV !== 'production' && {
+      body: req.body,
+      query: req.query,
+      params: req.params,
+    }),
   }, req);
 
+  // Handle specific error types
   if (err.code === 'EBADCSRFTOKEN') {
-    return res.status(403).json({ message: 'Invalid CSRF token' });
+    return res.status(403).json({
+      message: 'Invalid CSRF token',
+      code: 'CSRF_INVALID',
+      errorId,
+    });
   }
 
   if (err.type === 'entity.too.large') {
-    return res.status(413).json({ message: 'Request entity too large' });
+    return res.status(413).json({
+      message: 'Request entity too large',
+      code: 'PAYLOAD_TOO_LARGE',
+      maxSize: '10MB',
+      errorId,
+    });
   }
 
   if (err.name === 'ValidationError') {
-    return res.status(400).json({ message: 'Validation failed', details: err.details });
+    return res.status(400).json({
+      message: 'Validation failed',
+      code: 'VALIDATION_ERROR',
+      // Sanitize validation details in production
+      ...(process.env.NODE_ENV === 'production'
+        ? { fields: err.fields?.map((f: any) => f.field) }
+        : { details: err.details }),
+      errorId,
+    });
   }
 
   if (err.name === 'UnauthorizedError') {
-    return res.status(401).json({ message: 'Authentication required' });
+    return res.status(401).json({
+      message: 'Authentication required',
+      code: 'UNAUTHORIZED',
+      errorId,
+    });
   }
 
-  const statusCode = err.statusCode || err.status || 500;
-  const message = process.env.NODE_ENV === 'production'
-    ? 'Internal server error'
-    : err.message;
+  if (err.name === 'ForbiddenError') {
+    return res.status(403).json({
+      message: 'Insufficient permissions',
+      code: 'FORBIDDEN',
+      errorId,
+    });
+  }
 
+  // Database errors
+  if (err.code && err.code.startsWith('23')) { // PostgreSQL constraint errors
+    return res.status(400).json({
+      message: process.env.NODE_ENV === 'production'
+        ? 'Invalid request data'
+        : `Database constraint violation: ${err.message}`,
+      code: 'DATABASE_CONSTRAINT',
+      errorId,
+    });
+  }
+
+  // Determine status code
+  const statusCode = err.statusCode || err.status || 500;
+
+  // Sanitize error messages in production
+  let message: string;
+  if (process.env.NODE_ENV === 'production') {
+    // Generic error messages for production
+    const sanitizedMessages: Record<number, string> = {
+      400: 'Bad request',
+      401: 'Authentication required',
+      403: 'Access denied',
+      404: 'Resource not found',
+      409: 'Conflict with existing resource',
+      422: 'Invalid input data',
+      429: 'Too many requests',
+      500: 'Internal server error',
+      502: 'Bad gateway',
+      503: 'Service temporarily unavailable',
+    };
+    message = sanitizedMessages[statusCode] || 'An error occurred';
+  } else {
+    // Include detailed error messages in development
+    message = err.message || 'An error occurred';
+  }
+
+  // Send error response
   res.status(statusCode).json({
     message,
+    code: err.code || 'INTERNAL_ERROR',
+    errorId,
     timestamp: new Date().toISOString(),
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+    // Include stack trace only in development
+    ...(process.env.NODE_ENV !== 'production' && {
+      stack: err.stack,
+      details: err.details,
+    }),
   });
 };
 
