@@ -1,0 +1,81 @@
+/**
+ * Accessibility Tests
+ *
+ * Automated accessibility testing using axe-core to ensure WCAG 2.2 AA compliance.
+ * These tests run on critical components and pages to catch accessibility violations.
+ */
+
+import { describe, it, expect } from 'vitest';
+import { render } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+// Extend expect matchers
+expect.extend(toHaveNoViolations);
+
+// Import components to test
+import { SkipNavigation, MainContent } from '../../client/src/components/SkipNavigation';
+
+describe('Accessibility Tests', () => {
+  describe('SkipNavigation Component', () => {
+    it('should not have any accessibility violations', async () => {
+      const { container } = render(<SkipNavigation />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('should have correct ARIA attributes', () => {
+      const { getByText } = render(<SkipNavigation />);
+      const skipLink = getByText('Skip to main content');
+
+      expect(skipLink).toBeTruthy();
+      expect(skipLink.getAttribute('href')).toBe('#main-content');
+    });
+  });
+
+  describe('MainContent Component', () => {
+    it('should not have any accessibility violations', async () => {
+      const { container } = render(
+        <MainContent>
+          <h1>Test Content</h1>
+          <p>This is test content</p>
+        </MainContent>
+      );
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('should have correct main landmark and id', () => {
+      const { container } = render(
+        <MainContent>
+          <h1>Test Content</h1>
+        </MainContent>
+      );
+
+      const main = container.querySelector('main');
+      expect(main).toBeTruthy();
+      expect(main?.getAttribute('id')).toBe('main-content');
+      expect(main?.getAttribute('tabIndex')).toBe('-1');
+    });
+  });
+});
+
+/**
+ * Test helper for running accessibility audits on pages
+ *
+ * Usage:
+ * ```ts
+ * it('Dashboard should be accessible', async () => {
+ *   const { container } = render(<Dashboard />);
+ *   await expectNoA11yViolations(container);
+ * });
+ * ```
+ */
+export async function expectNoA11yViolations(container: HTMLElement) {
+  const results = await axe(container, {
+    rules: {
+      // Disable color-contrast check in tests (requires rendering)
+      'color-contrast': { enabled: false },
+    },
+  });
+  expect(results).toHaveNoViolations();
+}
