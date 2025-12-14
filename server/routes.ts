@@ -7,6 +7,8 @@ import { auditService, AuditAction } from "./services/auditService";
 import { logger } from "./utils/logger";
 import { metricsCollector } from "./monitoring/metrics";
 import { aiOrchestrator } from "./services/aiOrchestrator";
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
 
 import { insertContactMessageSchema } from "@shared/schema";
 import { registerOrganizationsRoutes } from "./routes/organizations";
@@ -26,7 +28,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
   app.use(metricsCollector.requestMetrics());
 
-  // System health endpoint with comprehensive metrics
+  /**
+   * @openapi
+   * /health:
+   *   get:
+   *     tags: [Health]
+   *     summary: System health check
+   *     description: Returns comprehensive system health metrics including uptime, request stats, and performance
+   *     responses:
+   *       200:
+   *         description: System is healthy
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/HealthCheck'
+   *       500:
+   *         description: System is unhealthy
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: unhealthy
+   *                 error:
+   *                   type: string
+   */
   app.get("/health", async (req, res) => {
     try {
       const metrics = metricsCollector.getMetrics();
@@ -71,6 +99,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OpenAPI Documentation - Interactive Swagger UI
+  /**
+   * @openapi
+   * /api-docs:
+   *   get:
+   *     tags: [Documentation]
+   *     summary: Interactive API documentation (Swagger UI)
+   *     description: Access the interactive OpenAPI documentation
+   *     responses:
+   *       200:
+   *         description: Swagger UI HTML page
+   */
+  app.use('/api-docs', swaggerUi.serve);
+  app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'CyberDocGen API Documentation',
+    customfavIcon: '/favicon.ico',
+  }));
+
+  // OpenAPI JSON specification endpoint
+  /**
+   * @openapi
+   * /api-docs.json:
+   *   get:
+   *     tags: [Documentation]
+   *     summary: OpenAPI specification in JSON format
+   *     description: Returns the raw OpenAPI 3.1 specification
+   *     responses:
+   *       200:
+   *         description: OpenAPI specification
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   */
+  app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
+
+  logger.info('API documentation available at /api-docs');
+
   // Auth middleware - IMPORTANT: This must come before any authenticated routes
   await setupAuth(app);
 
@@ -108,7 +178,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Public contact form endpoint (no auth required)
+  /**
+   * @openapi
+   * /api/contact-messages:
+   *   post:
+   *     tags: [Public]
+   *     summary: Submit a contact form message
+   *     description: Public endpoint for submitting contact messages (no authentication required)
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - email
+   *               - subject
+   *               - message
+   *             properties:
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 description: Sender's email address
+   *               subject:
+   *                 type: string
+   *                 description: Message subject
+   *               message:
+   *                 type: string
+   *                 description: Message content
+   *               name:
+   *                 type: string
+   *                 description: Sender's name (optional)
+   *     responses:
+   *       201:
+   *         description: Message submitted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 id:
+   *                   type: string
+   *                   format: uuid
+   *       400:
+   *         $ref: '#/components/responses/ValidationError'
+   */
   app.post('/api/contact-messages', async (req: any, res) => {
     try {
       const validated = insertContactMessageSchema.parse(req.body);
@@ -121,19 +238,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth routes
+  /**
+   * @openapi
+   * /api/auth/user:
+   *   get:
+   *     tags: [Authentication]
+   *     summary: Get current authenticated user
+   *     description: Returns the profile of the currently authenticated user
+   *     security:
+   *       - cookieAuth: []
+   *     responses:
+   *       200:
+   *         description: User profile
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/User'
+   *       401:
+   *         $ref: '#/components/responses/UnauthorizedError'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       await auditService.auditFromRequest(
         req,
         AuditAction.READ,
         'user',
         userId
       );
-      
+
       res.json(user);
     } catch (error: any) {
       logger.error("Error fetching user", { error: error.message, userId: req.user?.claims?.sub }, req);
