@@ -86,8 +86,30 @@ export const commonSchemas = {
 
 // Pagination schema
 export const paginationSchema = z.object({
-  page: z.string().optional().transform(val => val ? parseInt(val) : 1),
-  limit: z.string().optional().transform(val => val ? parseInt(val) : 20),
+  page: z.string().optional().transform((val, ctx) => {
+    if (!val) return 1;
+    const parsed = parseInt(val);
+    if (isNaN(parsed) || parsed < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Page must be a positive number',
+      });
+      return z.NEVER;
+    }
+    return parsed;
+  }),
+  limit: z.string().optional().transform((val, ctx) => {
+    if (!val) return 20;
+    const parsed = parseInt(val);
+    if (isNaN(parsed) || parsed < 1 || parsed > 100) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Limit must be between 1 and 100',
+      });
+      return z.NEVER;
+    }
+    return parsed;
+  }),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 }).transform(data => ({
@@ -152,7 +174,7 @@ export function sanitizeEmail(email: string): string {
 
 export function sanitizeFilename(filename: string, maxLength: number = 255): string {
   return filename
-    .replace(/[<>:"/\\|?*]/g, '_') // Replace invalid characters
+    .replace(/[<>:"/\\|?* ]/g, '_') // Replace invalid characters and spaces
     .replace(/_+/g, '_') // Collapse multiple underscores
     .slice(0, maxLength);
 }
