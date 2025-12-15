@@ -14,6 +14,7 @@ interface State {
   hasError: boolean;
   error?: Error;
   errorId: string;
+  resetKey: number;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -22,10 +23,11 @@ export class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       errorId: "",
+      resetKey: 0,
     };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Pick<State, 'hasError' | 'error' | 'errorId'> {
     return {
       hasError: true,
       error,
@@ -66,7 +68,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleRetry = (): void => {
-    this.setState({ hasError: false, error: undefined, errorId: "" });
+    this.setState((prevState) => ({
+      hasError: false,
+      error: undefined,
+      errorId: "",
+      resetKey: prevState.resetKey + 1
+    }));
     this.props.onRetry?.();
   };
 
@@ -98,7 +105,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {import.meta.env.DEV && this.state.error && (
+              {process.env.NODE_ENV !== 'production' && this.state.error && (
                 <div className="p-3 bg-muted rounded-md">
                   <p className="text-sm font-mono text-destructive" data-testid="text-error-message">
                     {this.state.error.message}
@@ -135,7 +142,7 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return <div key={this.state.resetKey}>{this.props.children}</div>;
   }
 }
 

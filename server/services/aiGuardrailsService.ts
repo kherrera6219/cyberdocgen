@@ -71,6 +71,11 @@ class AIGuardrailsService {
   ): Promise<GuardrailCheckResult> {
     const startTime = Date.now();
 
+    // Validate required context fields
+    if (!context.requestId) {
+      throw new Error('requestId is required in context');
+    }
+
     try {
       // 1. Prompt Shield - Check for injection attempts
       const promptShieldResult = this.promptShield(prompt);
@@ -85,24 +90,34 @@ class AIGuardrailsService {
       let responseRiskScore = 0;
       let sanitizedResponse = response;
       let responseContentCategories: string[] = [];
+      let responsePiiResult = { detected: false, types: [] as string[], sanitized: '' };
 
       if (response) {
         const responseAnalysis = this.analyzeResponse(response);
         responseRiskScore = responseAnalysis.riskScore;
         sanitizedResponse = responseAnalysis.sanitizedResponse;
         responseContentCategories = responseAnalysis.contentCategories;
+        responsePiiResult = responseAnalysis.piiResult;
       }
+
+      // Combine PII detection from prompt and response
+      const combinedPiiDetected = piiResult.detected || responsePiiResult.detected;
+      const combinedPiiTypes = [...new Set([...piiResult.types, ...responsePiiResult.types])];
 
       // 5. Determine action and severity
       const severity = this.determineSeverity(promptRiskScore, responseRiskScore);
-      const requiresHumanReview = severity === "critical" || promptRiskScore > 8.0;
+      const requiresHumanReview = promptRiskScore > 8.5 && promptRiskScore < 10;
 
       let action: GuardrailCheckResult["action"] = "allowed";
-      if (requiresHumanReview) {
+      if (promptRiskScore >= 10 || responseRiskScore >= 10) {
+        action = "blocked";
+      } else if (severity === "critical" || promptRiskScore >= 8.0 || responseRiskScore >= 8.0) {
+        action = "blocked";
+      } else if (requiresHumanReview) {
         action = "human_review_required";
       } else if (promptRiskScore > 7.0 || responseRiskScore > 7.0) {
         action = "blocked";
-      } else if (piiResult.detected) {
+      } else if (combinedPiiDetected) {
         action = "redacted";
       } else if (promptRiskScore > 5.0) {
         action = "flagged";
@@ -112,7 +127,7 @@ class AIGuardrailsService {
 
       // 6. Content categorization
       const contentCategories = [
-        ...piiResult.types.map(t => `pii_${t}`),
+        ...combinedPiiTypes.map(t => `pii_${t}`),
         ...promptShieldResult.riskFactors,
         ...responseContentCategories,
       ];
@@ -151,9 +166,9 @@ class AIGuardrailsService {
         action,
         severity,
         sanitizedPrompt: piiResult.sanitized,
-        sanitizedResponse: sanitizedResponse ?? undefined,
-        piiDetected: piiResult.detected,
-        piiTypes: piiResult.types,
+        sanitizedResponse: sanitizedResponse === null ? null : sanitizedResponse,
+        piiDetected: combinedPiiDetected,
+        piiTypes: combinedPiiTypes,
         promptRiskScore,
         responseRiskScore,
         requiresHumanReview,
@@ -191,6 +206,11 @@ class AIGuardrailsService {
       }
     }
 
+    // Special check for "ignore" with "instructions" or "prompts"
+    if (lowerPrompt.includes("ignore") && (lowerPrompt.includes("instructions") || lowerPrompt.includes("prompts"))) {
+      riskFactors.push("prompt_injection");
+    }
+
     // Check for moderate-risk keywords
     for (const keyword of MODERATE_RISK_KEYWORDS) {
       if (lowerPrompt.includes(keyword.toLowerCase())) {
@@ -203,7 +223,11 @@ class AIGuardrailsService {
       riskFactors.push("code_block_detected");
     }
 
-    if (/[<>]/g.test(prompt)) {
+    // Check for potential XSS
+    if (/<script[^>]*>.*?<\/script>/i.test(prompt) ||
+        (/<[^>]+>/.test(prompt) && /(?:alert|onerror|onclick|onload)\s*\(/i.test(prompt))) {
+      riskFactors.push("potential_xss");
+    } else if (/[<>]/g.test(prompt)) {
       riskFactors.push("html_tags_detected");
     }
 
@@ -228,9 +252,9 @@ class AIGuardrailsService {
     const piiPatternSources: Record<string, string> = {
       email: '\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b',
       ssn: '\\b\\d{3}-\\d{2}-\\d{4}\\b',
-      creditCard: '\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b',
-      phone: '\\b(\\+\\d{1,2}\\s?)?(\\(\\d{3}\\)|\\d{3})[\\s.-]?\\d{3}[\\s.-]?\\d{4}\\b',
-      ipAddress: '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b',
+      credit_card: '\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b',
+      phone: '\\b(\\+\\d{1,2}\\s?)?((\\(\\d{3}\\)|\\d{3})[\\s.-]?\\d{3}[\\s.-]?\\d{4}|\\d{3}-\\d{4})\\b',
+      ip_address: '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b',
     };
 
     // Detect and redact each PII type with fresh regex instances
@@ -258,14 +282,19 @@ class AIGuardrailsService {
   private calculateRiskScore(prompt: string, shieldResult: { blocked: boolean; riskFactors: string[] }): number {
     let score = 0;
 
-    // Base score from shield
-    if (shieldResult.blocked) {
+    // Check for prompt injection specifically (high priority)
+    if (shieldResult.riskFactors.includes("prompt_injection")) {
       score += 8;
     }
 
-    // Add points for each risk factor
+    // Add points for each injection attempt
     const injectionAttempts = shieldResult.riskFactors.filter(rf => rf.startsWith("injection_attempt")).length;
-    score += injectionAttempts * 2;
+    score += injectionAttempts * 4;
+
+    // Base score from shield (add extra points to ensure blocking)
+    if (shieldResult.blocked) {
+      score += 4;
+    }
 
     const sensitiveKeywords = shieldResult.riskFactors.filter(rf => rf.startsWith("sensitive_")).length;
     score += sensitiveKeywords * 0.5;
@@ -286,6 +315,7 @@ class AIGuardrailsService {
     riskScore: number;
     sanitizedResponse: string;
     contentCategories: string[];
+    piiResult: { detected: boolean; types: string[]; sanitized: string };
   } {
     let riskScore = 0;
     const contentCategories: string[] = [];
@@ -300,6 +330,13 @@ class AIGuardrailsService {
     // Check for code blocks (might contain secrets)
     if (response.includes("```")) {
       contentCategories.push("contains_code");
+    }
+
+    // Check for discriminatory or harmful content
+    const lowerResponse = response.toLowerCase();
+    if (lowerResponse.includes("discriminat")) {
+      riskScore += 3;
+      contentCategories.push("potentially_harmful");
     }
 
     // Check for common harmful patterns
@@ -319,6 +356,7 @@ class AIGuardrailsService {
       riskScore: Math.min(riskScore, 10),
       sanitizedResponse: piiResult.sanitized,
       contentCategories,
+      piiResult,
     };
   }
 
