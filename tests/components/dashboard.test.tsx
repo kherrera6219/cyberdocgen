@@ -90,7 +90,13 @@ describe('Dashboard Component', () => {
   beforeEach(() => {
     testQueryClient = new QueryClient({
       defaultOptions: {
-        queries: { retry: false },
+        queries: {
+          retry: false,
+          queryFn: async ({ queryKey }) => {
+            // Default queryFn to avoid "No queryFn" errors
+            return { data: mockDocuments };
+          },
+        },
       },
     });
 

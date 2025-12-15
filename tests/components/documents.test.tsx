@@ -77,10 +77,16 @@ describe('Documents Page', () => {
       defaultOptions: {
         queries: {
           retry: false,
+          queryFn: async ({ queryKey }) => {
+            const url = queryKey.join('/');
+            return mockApiRequest(url);
+          },
         },
       },
     });
     vi.clearAllMocks();
+    // Setup default mock response
+    mockApiRequest.mockResolvedValue(mockDocuments);
   });
 
   const renderDocuments = (path = '/documents') => {

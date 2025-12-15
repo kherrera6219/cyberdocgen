@@ -29,6 +29,10 @@ describe('Gap Analysis Page', () => {
       defaultOptions: {
         queries: {
           retry: false,
+          queryFn: async () => {
+            // Default queryFn to avoid "No queryFn" errors
+            return [];
+          },
         },
       },
     });

@@ -84,7 +84,79 @@ export const commonSchemas = {
   }),
 };
 
+// Pagination schema
+export const paginationSchema = z.object({
+  page: z.string().optional().transform(val => val ? parseInt(val) : 1),
+  limit: z.string().optional().transform(val => val ? parseInt(val) : 20),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+}).transform(data => ({
+  page: data.page,
+  limit: data.limit,
+  sortBy: data.sortBy,
+  sortOrder: data.sortOrder,
+}));
+
+// ID parameter schema
+export const idParamSchema = z.object({
+  id: z.string().uuid('Invalid UUID format'),
+});
+
+// Search schema
+export const searchSchema = z.object({
+  q: z.string().optional(),
+  framework: z.enum(['SOC2', 'ISO27001', 'HIPAA', 'PCI-DSS', 'GDPR', 'FedRAMP']).optional(),
+  status: z.enum(['draft', 'review', 'approved', 'archived']).optional(),
+  category: z.string().optional(),
+});
+
+// Validation middleware
+export function validateSchema<T>(schema: z.ZodSchema<T>) {
+  return (req: any, res: any, next: any) => {
+    try {
+      // Merge body and query for validation
+      const data = { ...req.body, ...req.query };
+      const validated = schema.parse(data);
+      req.validated = validated;
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: 'Validation failed',
+          errors: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message,
+          })),
+        });
+      }
+      next(error);
+    }
+  };
+}
+
 // Input sanitization
+export function sanitizeString(input: string, maxLength: number = 1000): string {
+  return input
+    .trim()
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '') // Remove iframe tags
+    .replace(/javascript:/gi, '') // Remove javascript: protocols
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '') // Remove event handlers with quotes
+    .replace(/on\w+\s*=[^\s>]*/gi, '') // Remove event handlers without quotes
+    .slice(0, maxLength);
+}
+
+export function sanitizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export function sanitizeFilename(filename: string, maxLength: number = 255): string {
+  return filename
+    .replace(/[<>:"/\\|?*]/g, '_') // Replace invalid characters
+    .replace(/_+/g, '_') // Collapse multiple underscores
+    .slice(0, maxLength);
+}
+
 export function sanitizeInput(input: any): any {
   if (typeof input === 'string') {
     return input

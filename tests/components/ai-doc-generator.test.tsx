@@ -27,6 +27,10 @@ describe('AI Document Generator Page', () => {
       defaultOptions: {
         queries: {
           retry: false,
+          queryFn: async () => {
+            // Default queryFn to avoid "No queryFn" errors
+            return [];
+          },
         },
       },
     });
