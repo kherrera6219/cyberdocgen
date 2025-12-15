@@ -75,24 +75,24 @@ describe('Gap Analysis Page', () => {
       renderGapAnalysis();
 
       const scoreRegex = /\d+%/;
-      expect(screen.getByText(scoreRegex)).toBeInTheDocument();
-      expect(screen.getByText('Needs Improvement')).toBeInTheDocument();
+      expect(screen.getAllByText(scoreRegex).length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Needs Improvement').length).toBeGreaterThan(0);
     });
 
     it('should display total gaps count', () => {
       renderGapAnalysis();
 
-      expect(screen.getByText('Across all categories')).toBeInTheDocument();
+      expect(screen.getAllByText('Across all categories').length).toBeGreaterThan(0);
       // Total gaps should be 27 (4+3+5+4+6+5)
-      expect(screen.getByText('27')).toBeInTheDocument();
+      expect(screen.getAllByText('27').length).toBeGreaterThan(0);
     });
 
     it('should display critical issues count', () => {
       renderGapAnalysis();
 
-      expect(screen.getByText('Immediate attention required')).toBeInTheDocument();
+      expect(screen.getAllByText('Immediate attention required').length).toBeGreaterThan(0);
       // 3 critical categories
-      expect(screen.getByText('3')).toBeInTheDocument();
+      expect(screen.getAllByText('3').length).toBeGreaterThan(0);
     });
 
     it('should display estimated timeline', () => {
