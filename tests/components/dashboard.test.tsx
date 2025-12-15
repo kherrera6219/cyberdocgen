@@ -14,7 +14,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { Router } from 'wouter';
 import Dashboard from '../../client/src/pages/dashboard';
 import { OrganizationProvider } from '../../client/src/contexts/OrganizationContext';
 import * as queryClient from '../../client/src/lib/queryClient';
@@ -22,7 +22,11 @@ import type { Document, CompanyProfile } from '@shared/schema';
 
 // Mock dependencies
 vi.mock('../../client/src/lib/queryClient');
-vi.mock('../../client/src/hooks/use-toast');
+vi.mock('../../client/src/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
 vi.mock('../../client/src/components/ai/AIInsightsDashboard', () => ({
   AIInsightsDashboard: () => <div data-testid="ai-insights">AI Insights</div>,
 }));
@@ -90,17 +94,18 @@ describe('Dashboard Component', () => {
   beforeEach(() => {
     testQueryClient = new QueryClient({
       defaultOptions: {
-        queries: { retry: false },
+        queries: {
+          retry: false,
+          queryFn: async ({ queryKey }) => {
+            // Default queryFn returns documents array directly
+            return mockDocuments;
+          },
+        },
       },
     });
 
     // Mock API requests
-    vi.mocked(queryClient.apiRequest).mockResolvedValue({ data: mockDocuments });
-
-    // Mock toast
-    vi.mocked(require('../../client/src/hooks/use-toast').useToast).mockReturnValue({
-      toast: vi.fn(),
-    });
+    vi.mocked(queryClient.apiRequest).mockResolvedValue(mockDocuments);
   });
 
   afterEach(() => {
@@ -111,11 +116,11 @@ describe('Dashboard Component', () => {
   const renderDashboard = () => {
     return render(
       <QueryClientProvider client={testQueryClient}>
-        <BrowserRouter>
+        <Router>
           <OrganizationProvider>
             <Dashboard />
           </OrganizationProvider>
-        </BrowserRouter>
+        </Router>
       </QueryClientProvider>
     );
   };
@@ -552,11 +557,11 @@ describe('Dashboard Component', () => {
 
       rerender(
         <QueryClientProvider client={testQueryClient}>
-          <BrowserRouter>
+          <Router>
             <OrganizationProvider>
               <Dashboard />
             </OrganizationProvider>
-          </BrowserRouter>
+          </Router>
         </QueryClientProvider>
       );
 

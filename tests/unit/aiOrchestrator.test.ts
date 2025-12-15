@@ -43,6 +43,7 @@ describe('AIOrchestrator', () => {
     title: 'Data Protection Policy',
     description: 'Policy for data protection',
     framework: 'SOC2',
+    category: 'policy',
     content: 'Template content',
   };
 
