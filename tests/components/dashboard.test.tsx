@@ -22,7 +22,11 @@ import type { Document, CompanyProfile } from '@shared/schema';
 
 // Mock dependencies
 vi.mock('../../client/src/lib/queryClient');
-vi.mock('../../client/src/hooks/use-toast');
+vi.mock('../../client/src/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
 vi.mock('../../client/src/components/ai/AIInsightsDashboard', () => ({
   AIInsightsDashboard: () => <div data-testid="ai-insights">AI Insights</div>,
 }));
@@ -102,11 +106,6 @@ describe('Dashboard Component', () => {
 
     // Mock API requests
     vi.mocked(queryClient.apiRequest).mockResolvedValue({ data: mockDocuments });
-
-    // Mock toast
-    vi.mocked(require('../../client/src/hooks/use-toast').useToast).mockReturnValue({
-      toast: vi.fn(),
-    });
   });
 
   afterEach(() => {
