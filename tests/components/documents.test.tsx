@@ -155,11 +155,11 @@ describe('Documents Page', () => {
       renderDocuments();
 
       await waitFor(() => {
-        expect(screen.getByText('Information Security Policy')).toBeInTheDocument();
+        expect(screen.getAllByText('Information Security Policy')).toHaveLength(1);
       });
-      expect(screen.getByText('Access Control Procedure')).toBeInTheDocument();
-      expect(screen.getByText('Incident Response Plan')).toBeInTheDocument();
-      expect(screen.getByText('Risk Assessment Report')).toBeInTheDocument();
+      expect(screen.getAllByText('Access Control Procedure')).toHaveLength(1);
+      expect(screen.getAllByText('Incident Response Plan')).toHaveLength(1);
+      expect(screen.getAllByText('Risk Assessment Report')).toHaveLength(1);
     });
 
     it('should display document descriptions', async () => {
@@ -167,9 +167,9 @@ describe('Documents Page', () => {
       renderDocuments();
 
       await waitFor(() => {
-        expect(screen.getByText('Main security policy document')).toBeInTheDocument();
+        expect(screen.getAllByText('Main security policy document')).toHaveLength(1);
       });
-      expect(screen.getByText('Detailed access control procedures')).toBeInTheDocument();
+      expect(screen.getAllByText('Detailed access control procedures')).toHaveLength(1);
     });
 
     it('should display framework badges with correct colors', async () => {
@@ -201,7 +201,7 @@ describe('Documents Page', () => {
 
       // Wait for documents to load
       await waitFor(() => {
-        expect(screen.getByText('Information Security Policy')).toBeInTheDocument();
+        expect(screen.getAllByText('Information Security Policy').length).toBeGreaterThan(0);
       });
 
       // Status icons should be present (CheckCircle, Clock, AlertCircle)
