@@ -97,15 +97,15 @@ describe('Dashboard Component', () => {
         queries: {
           retry: false,
           queryFn: async ({ queryKey }) => {
-            // Default queryFn to avoid "No queryFn" errors
-            return { data: mockDocuments };
+            // Default queryFn returns documents array directly
+            return mockDocuments;
           },
         },
       },
     });
 
     // Mock API requests
-    vi.mocked(queryClient.apiRequest).mockResolvedValue({ data: mockDocuments });
+    vi.mocked(queryClient.apiRequest).mockResolvedValue(mockDocuments);
   });
 
   afterEach(() => {
