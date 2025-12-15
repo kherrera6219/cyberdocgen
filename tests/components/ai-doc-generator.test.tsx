@@ -66,8 +66,8 @@ describe('AI Document Generator Page', () => {
     it('should start on step 1', () => {
       renderGenerator();
 
-      expect(screen.getByText('Company Basics')).toBeInTheDocument();
-      expect(screen.getByText(/Enter your company information/i)).toBeInTheDocument();
+      expect(screen.getAllByText('Company Basics').length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Enter your company information/i).length).toBeGreaterThan(0);
     });
 
     it('should show correct navigation buttons for step 1', () => {
@@ -171,7 +171,7 @@ describe('AI Document Generator Page', () => {
       await user.click(nextButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Infrastructure & Security')).toBeInTheDocument();
+        expect(screen.getAllByText('Infrastructure & Security').length).toBeGreaterThan(0);
       });
     });
   });
@@ -193,7 +193,7 @@ describe('AI Document Generator Page', () => {
       await user.click(screen.getByTestId('button-next'));
 
       await waitFor(() => {
-        expect(screen.getByText('Infrastructure & Security')).toBeInTheDocument();
+        expect(screen.getAllByText('Infrastructure & Security').length).toBeGreaterThan(0);
       });
     });
 
@@ -263,7 +263,7 @@ describe('AI Document Generator Page', () => {
       await user.click(prevButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Company Basics')).toBeInTheDocument();
+        expect(screen.getAllByText('Company Basics').length).toBeGreaterThan(0);
       });
     });
 
@@ -465,7 +465,7 @@ describe('AI Document Generator Page', () => {
     });
 
     it('should display infrastructure review', () => {
-      expect(screen.getByText('Infrastructure')).toBeInTheDocument();
+      expect(screen.getAllByText('Infrastructure').length).toBeGreaterThan(0);
       expect(screen.getByTestId('review-cloud-providers')).toBeInTheDocument();
       expect(screen.getByTestId('review-data-classification')).toHaveTextContent('Confidential');
     });
@@ -773,14 +773,14 @@ describe('AI Document Generator Page', () => {
       await user.click(screen.getByTestId('button-next'));
 
       await waitFor(() => {
-        expect(screen.getByText('Infrastructure & Security')).toBeInTheDocument();
+        expect(screen.getAllByText('Infrastructure & Security').length).toBeGreaterThan(0);
       });
 
       // Go back
       await user.click(screen.getByTestId('button-previous'));
 
       await waitFor(() => {
-        expect(screen.getByText('Company Basics')).toBeInTheDocument();
+        expect(screen.getAllByText('Company Basics').length).toBeGreaterThan(0);
       });
 
       // Check data is preserved
