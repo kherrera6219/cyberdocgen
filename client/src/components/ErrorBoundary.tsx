@@ -15,6 +15,7 @@ interface State {
   error?: Error;
   errorId: string;
   resetKey: number;
+  isResetting: boolean;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -24,6 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       errorId: "",
       resetKey: 0,
+      isResetting: false,
     };
   }
 
@@ -51,6 +53,13 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
+  componentDidUpdate(prevProps: Props): void {
+    // Clear resetting flag when children change
+    if (this.state.isResetting && prevProps.children !== this.props.children) {
+      this.setState({ isResetting: false });
+    }
+  }
+
   private logErrorToService(error: Error, errorInfo: ErrorInfo): void {
     // Placeholder for external error logging service
     const errorReport = {
@@ -72,7 +81,8 @@ export class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: undefined,
       errorId: "",
-      resetKey: prevState.resetKey + 1
+      resetKey: prevState.resetKey + 1,
+      isResetting: true
     }));
     this.props.onRetry?.();
   };
@@ -88,7 +98,7 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div 
+        <div
           className="min-h-[400px] flex items-center justify-center p-4"
           role="alert"
           aria-live="assertive"
@@ -140,6 +150,11 @@ export class ErrorBoundary extends Component<Props, State> {
           </Card>
         </div>
       );
+    }
+
+    // Don't render children while resetting - wait for parent to provide new children
+    if (this.state.isResetting) {
+      return null;
     }
 
     return <div key={this.state.resetKey}>{this.props.children}</div>;
