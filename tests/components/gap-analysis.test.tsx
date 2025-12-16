@@ -304,10 +304,10 @@ describe('Gap Analysis Page', () => {
     it('should display gap counts for each category', () => {
       renderGapAnalysis();
 
-      // Should show gap numbers: 4, 3, 5, 4, 6, 5
-      expect(screen.getByText('4')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument();
-      expect(screen.getByText('6')).toBeInTheDocument();
+      // Should show gap numbers: 4, 3, 5, 4, 6, 5 (may appear multiple times)
+      expect(screen.getAllByText('4').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('5').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('6').length).toBeGreaterThan(0);
     });
 
     it('should display category descriptions', () => {
