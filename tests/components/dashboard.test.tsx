@@ -96,16 +96,33 @@ describe('Dashboard Component', () => {
       defaultOptions: {
         queries: {
           retry: false,
+          staleTime: Infinity,
+          gcTime: Infinity,
           queryFn: async ({ queryKey }) => {
-            // Default queryFn returns documents array directly
-            return mockDocuments;
+            // Return appropriate data based on query key
+            const key = queryKey[0];
+            if (key === '/api/company-profiles') {
+              return Promise.resolve([mockCompanyProfile]);
+            }
+            if (key === '/api/documents') {
+              return Promise.resolve(mockDocuments);
+            }
+            return Promise.resolve([]);
           },
         },
       },
     });
 
     // Mock API requests
-    vi.mocked(queryClient.apiRequest).mockResolvedValue(mockDocuments);
+    vi.mocked(queryClient.apiRequest).mockImplementation(async (endpoint: string) => {
+      if (endpoint === '/api/company-profiles' || endpoint.includes('company-profiles')) {
+        return Promise.resolve([mockCompanyProfile]);
+      }
+      if (endpoint === '/api/documents' || endpoint.includes('documents')) {
+        return Promise.resolve(mockDocuments);
+      }
+      return Promise.resolve([]);
+    });
   });
 
   afterEach(() => {
@@ -114,6 +131,10 @@ describe('Dashboard Component', () => {
   });
 
   const renderDashboard = () => {
+    // Pre-populate the query cache with data
+    testQueryClient.setQueryData(['/api/company-profiles'], [mockCompanyProfile]);
+    testQueryClient.setQueryData(['/api/documents'], mockDocuments);
+
     return render(
       <QueryClientProvider client={testQueryClient}>
         <Router>

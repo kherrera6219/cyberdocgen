@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function DashboardSkeleton() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6" data-testid="dashboard-skeleton">
       <div>
         <Skeleton className="h-8 w-64 mb-2" />
         <Skeleton className="h-4 w-96" />
