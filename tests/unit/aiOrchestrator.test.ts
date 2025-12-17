@@ -19,7 +19,19 @@ import * as anthropic from '../../server/services/anthropic';
 import type { CompanyProfile } from '@shared/schema';
 
 // Mock dependencies
-vi.mock('../../server/services/openai');
+vi.mock('../../server/services/openai', () => ({
+  generateDocument: vi.fn(),
+  generateComplianceDocuments: vi.fn(),
+  frameworkTemplates: {
+    SOC2: [
+      { title: "Security Controls Framework", description: "Comprehensive security control implementation", category: "framework", priority: 1 },
+      { title: "Availability Controls", description: "System availability management procedures", category: "control", priority: 2 },
+    ],
+    ISO27001: [
+      { title: "Information Security Policy", description: "Main security governance document", category: "policy", priority: 1 },
+    ],
+  },
+}));
 vi.mock('../../server/services/anthropic');
 vi.mock('../../server/services/aiGuardrailsService');
 vi.mock('../../server/utils/logger');
