@@ -1,3 +1,14 @@
+// Polyfill requestSubmit FIRST before any imports (required by React Hook Form in jsdom)
+if (typeof global !== 'undefined' && typeof HTMLFormElement !== 'undefined') {
+  if (!HTMLFormElement.prototype.requestSubmit) {
+    HTMLFormElement.prototype.requestSubmit = function() {
+      if (this.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))) {
+        this.submit();
+      }
+    };
+  }
+}
+
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
