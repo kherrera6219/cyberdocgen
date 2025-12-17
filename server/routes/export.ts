@@ -16,7 +16,8 @@ function getContentType(format: string): string {
     'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'txt': 'text/plain',
     'html': 'text/html',
-    'json': 'application/json'
+    'json': 'application/json',
+    'md': 'text/markdown'
   };
   return contentTypes[format.toLowerCase()] || 'application/octet-stream';
 }
