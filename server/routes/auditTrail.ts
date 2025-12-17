@@ -50,4 +50,16 @@ export function registerAuditTrailRoutes(router: Router) {
       res.status(500).json({ message: 'Failed to fetch audit statistics' });
     }
   });
+
+  router.get('/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      // TODO: Implement get single audit entry
+      res.status(501).json({ message: 'Get audit entry by ID not yet implemented' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error fetching audit entry:', { error: errorMessage, auditId: req.params.id }, req);
+      res.status(500).json({ message: 'Failed to fetch audit entry' });
+    }
+  });
 }

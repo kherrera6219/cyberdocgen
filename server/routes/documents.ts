@@ -425,4 +425,29 @@ Category: ${category}`;
       res.status(500).json({ message: "Failed to generate document" });
     }
   });
+
+  /**
+   * @openapi
+   * /api/documents/{id}/history:
+   *   get:
+   *     tags: [Documents]
+   *     summary: Get document change history
+   *     security:
+   *       - sessionAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Document history retrieved
+   *       401:
+   *         description: Unauthorized
+   */
+  router.get('/:id/history', isAuthenticated, async (req: any, res) => {
+    // TODO: Implement document history tracking
+    res.status(501).json({ message: 'Document history not yet implemented' });
+  });
 }
