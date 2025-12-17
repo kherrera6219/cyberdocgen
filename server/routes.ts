@@ -329,6 +329,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const auditTrailRouter = Router();
   registerAuditTrailRoutes(auditTrailRouter);
   app.use('/api/audit-trail', auditTrailRouter);
+  // Alias for audit logs (used by some tests)
+  app.use('/api/audit-logs', auditTrailRouter);
 
   const generationJobsRouter = Router();
   registerGenerationJobsRoutes(generationJobsRouter);
