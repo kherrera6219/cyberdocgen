@@ -135,7 +135,7 @@ describe('Gap Analysis Page', () => {
       const user = userEvent.setup();
 
       // Initially should show all 6 categories
-      expect(screen.getByText('Framework Integration')).toBeInTheDocument();
+      expect(screen.getAllByText('Framework Integration').length).toBeGreaterThan(0);
       expect(screen.getByText('Document Generation')).toBeInTheDocument();
 
       // Click category filter
@@ -148,10 +148,10 @@ describe('Gap Analysis Page', () => {
 
       // Should only show Framework Integration category
       await waitFor(() => {
-        expect(screen.getByText('Framework Integration')).toBeInTheDocument();
         // Other categories should not be visible in the gap cards
         const gapCards = screen.getAllByRole('heading', { level: 3 });
         expect(gapCards.length).toBe(1);
+        expect(gapCards[0]).toHaveTextContent('Framework Integration');
       });
     });
 
@@ -195,7 +195,9 @@ describe('Gap Analysis Page', () => {
       await user.click(allOption);
 
       await waitFor(() => {
-        expect(screen.getByText('Framework Integration')).toBeInTheDocument();
+        // Should show all 6 gap categories again
+        const gapCards = screen.getAllByRole('heading', { level: 3 });
+        expect(gapCards.length).toBe(6);
         expect(screen.getByText('Document Generation')).toBeInTheDocument();
         expect(screen.getByText('Risk Assessment')).toBeInTheDocument();
       });
@@ -359,9 +361,10 @@ describe('Gap Analysis Page', () => {
 
       await waitFor(() => {
         // Coverage appears as "Coverage: 15% (17/114 controls)"
-        expect(screen.getByText(/Coverage: 15%/i)).toBeInTheDocument();
-        expect(screen.getByText(/Coverage: 5%/i)).toBeInTheDocument();
-        expect(screen.getByText(/Coverage: 0%/i)).toBeInTheDocument();
+        // Use getAllByText since there may be multiple elements with coverage percentages
+        expect(screen.getAllByText(/Coverage: 15%/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/Coverage: 5%/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/Coverage: 0%/i).length).toBeGreaterThan(0);
       }, { timeout: 3000 });
     });
 
@@ -373,10 +376,11 @@ describe('Gap Analysis Page', () => {
       await user.click(frameworkTab);
 
       await waitFor(() => {
-        expect(screen.getByText('114')).toBeInTheDocument(); // ISO 27001 total
-        expect(screen.getByText('64')).toBeInTheDocument(); // SOC 2 total
-        expect(screen.getByText('325')).toBeInTheDocument(); // FedRAMP total
-        expect(screen.getByText('1000')).toBeInTheDocument(); // NIST total
+        // Use getAllByText since numbers may appear in multiple places
+        expect(screen.getAllByText('114').length).toBeGreaterThan(0); // ISO 27001 total
+        expect(screen.getAllByText('64').length).toBeGreaterThan(0); // SOC 2 total
+        expect(screen.getAllByText('325').length).toBeGreaterThan(0); // FedRAMP total
+        expect(screen.getAllByText('1000').length).toBeGreaterThan(0); // NIST total
       });
     });
 
@@ -513,9 +517,10 @@ describe('Gap Analysis Page', () => {
       await user.click(priorityTab);
 
       await waitFor(() => {
-        expect(screen.getByText('0-30 days')).toBeInTheDocument();
-        expect(screen.getByText('0-60 days')).toBeInTheDocument();
-        expect(screen.getByText('1-3 months')).toBeInTheDocument();
+        // Use getAllByText since timeframes may appear in multiple recommendations
+        expect(screen.getAllByText('0-30 days').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('0-60 days').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('1-3 months').length).toBeGreaterThan(0);
       });
     });
 
