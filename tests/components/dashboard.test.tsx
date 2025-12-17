@@ -153,7 +153,16 @@ describe('Dashboard Component', () => {
     });
 
     it('should show loading skeleton while fetching data', () => {
-      renderDashboard();
+      // Don't pre-populate cache for this test - render without cached data
+      render(
+        <QueryClientProvider client={testQueryClient}>
+          <Router>
+            <OrganizationProvider>
+              <Dashboard />
+            </OrganizationProvider>
+          </Router>
+        </QueryClientProvider>
+      );
       expect(screen.getByTestId('dashboard-skeleton')).toBeInTheDocument();
     });
 
