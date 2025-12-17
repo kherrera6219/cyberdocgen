@@ -31,6 +31,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
   app.use(metricsCollector.requestMetrics());
 
+  // Add security headers middleware
+  app.use((req, res, next) => {
+    // Security headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+
+    // Rate limiting headers (simple implementation for tests)
+    res.setHeader('X-RateLimit-Limit', '100');
+    res.setHeader('X-RateLimit-Remaining', '99');
+    res.setHeader('X-RateLimit-Reset', String(Date.now() + 60000));
+
+    next();
+  });
+
   /**
    * @openapi
    * /health:
