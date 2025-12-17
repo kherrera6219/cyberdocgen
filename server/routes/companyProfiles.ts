@@ -65,6 +65,23 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
+  // PATCH route (same as PUT but standard for partial updates)
+  router.patch("/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const validatedData = insertCompanyProfileSchema.partial().parse(req.body);
+      const profile = await storage.updateCompanyProfile(req.params.id, validatedData);
+      if (!profile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update company profile" });
+    }
+  });
+
   router.post("/:id/extract-from-document", requireMFA, enforceMFATimeout, async (req: any, res) => {
     try {
       const { documentContent, documentType, filename } = req.body;

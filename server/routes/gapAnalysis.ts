@@ -10,6 +10,86 @@ export function registerGapAnalysisRoutes(router: Router) {
   /**
    * @openapi
    * /api/gap-analysis:
+   *   get:
+   *     tags: [Gap Analysis]
+   *     summary: Get gap analysis reports
+   *     security:
+   *       - sessionAuth: []
+   *     responses:
+   *       200:
+   *         description: Gap analysis reports retrieved
+   *       401:
+   *         description: Unauthorized
+   */
+  router.get("/", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const userOrganizations = await storage.getUserOrganizations(userId);
+
+      if (userOrganizations.length === 0) {
+        return res.json([]);
+      }
+
+      const organizationId = userOrganizations[0].organizationId;
+      const reports = await storage.getGapAnalysisReports(organizationId);
+
+      res.json(reports);
+    } catch (error) {
+      logger.error("Error fetching gap analysis reports", {
+        error: error instanceof Error ? error.message : String(error)
+      }, req);
+      res.status(500).json({ message: "Failed to fetch gap analysis reports" });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/gap-analysis/{framework}:
+   *   get:
+   *     tags: [Gap Analysis]
+   *     summary: Get gap analysis by framework
+   *     security:
+   *       - sessionAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: framework
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Gap analysis for framework retrieved
+   *       401:
+   *         description: Unauthorized
+   */
+  router.get("/:framework", isAuthenticated, async (req: any, res) => {
+    try {
+      const { framework } = req.params;
+      const userId = req.user.claims.sub;
+      const userOrganizations = await storage.getUserOrganizations(userId);
+
+      if (userOrganizations.length === 0) {
+        return res.json([]);
+      }
+
+      const organizationId = userOrganizations[0].organizationId;
+      const reports = await storage.getGapAnalysisReports(organizationId);
+
+      // Filter by framework
+      const frameworkReports = reports.filter(r => r.framework === framework);
+      res.json(frameworkReports);
+    } catch (error) {
+      logger.error("Error fetching gap analysis by framework", {
+        error: error instanceof Error ? error.message : String(error),
+        framework: req.params.framework
+      }, req);
+      res.status(500).json({ message: "Failed to fetch gap analysis by framework" });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/gap-analysis:
    *   post:
    *     tags: [Gap Analysis]
    *     summary: Create a new gap analysis

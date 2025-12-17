@@ -759,4 +759,38 @@ export function registerAIRoutes(router: Router) {
     // TODO: Implement AI statistics tracking
     res.status(501).json({ message: 'AI statistics not yet implemented' });
   });
+
+  /**
+   * @openapi
+   * /api/ai/generate:
+   *   post:
+   *     tags: [AI]
+   *     summary: Generate AI content
+   *     security:
+   *       - sessionAuth: []
+   *     responses:
+   *       401:
+   *         description: Unauthorized
+   */
+  router.post("/generate", isAuthenticated, async (req: any, res) => {
+    // Generic AI generation endpoint - redirects to more specific endpoints
+    res.status(501).json({ message: 'Please use specific generation endpoints like /generate-compliance-docs' });
+  });
+
+  /**
+   * @openapi
+   * /api/ai/analyze:
+   *   post:
+   *     tags: [AI]
+   *     summary: Analyze content with AI
+   *     security:
+   *       - sessionAuth: []
+   *     responses:
+   *       401:
+   *         description: Unauthorized
+   */
+  router.post("/analyze", isAuthenticated, async (req: any, res) => {
+    // Generic AI analysis endpoint - redirects to more specific endpoints
+    res.status(501).json({ message: 'Please use specific analysis endpoints like /analyze-document or /analyze-quality' });
+  });
 }
