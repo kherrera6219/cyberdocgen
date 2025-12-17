@@ -78,7 +78,8 @@ export function registerAnalyticsRoutes(router: Router) {
     }
   });
 
-  router.post('/analyze-document-quality', isAuthenticated, validateBody(documentQualityAnalysisSchema), async (req: any, res) => {
+  // Document quality analysis is public - no auth required
+  router.post('/analyze-document-quality', validateBody(documentQualityAnalysisSchema), async (req: any, res) => {
     try {
       const { content, framework, documentType } = req.body;
       

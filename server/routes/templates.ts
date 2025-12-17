@@ -3,7 +3,8 @@ import { logger } from '../utils/logger';
 import { isAuthenticated } from '../replitAuth';
 
 export function registerTemplatesRoutes(router: Router) {
-  router.get('/', isAuthenticated, async (req: any, res) => {
+  // Template listing is public (no auth required) - users can browse templates
+  router.get('/', async (req: any, res) => {
     try {
       const { DocumentTemplateService } = await import('../services/documentTemplates');
       const { framework } = req.query;
@@ -13,8 +14,10 @@ export function registerTemplatesRoutes(router: Router) {
         return res.json({ templates });
       }
 
+      // Return both stats and all templates when no framework specified
       const stats = DocumentTemplateService.getTemplateStats();
-      res.json({ ...stats });
+      const allTemplates = DocumentTemplateService.getAllTemplates();
+      res.json({ ...stats, templates: allTemplates });
     } catch (error: any) {
       logger.error("Failed to get templates", { error: error.message });
       res.status(500).json({
@@ -24,7 +27,8 @@ export function registerTemplatesRoutes(router: Router) {
     }
   });
 
-  router.get('/:templateId', isAuthenticated, async (req: any, res) => {
+  // Individual template access is public (no auth required)
+  router.get('/:templateId', async (req: any, res) => {
     try {
       const { DocumentTemplateService } = await import('../services/documentTemplates');
       const { templateId } = req.params;
