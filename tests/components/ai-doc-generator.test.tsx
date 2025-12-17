@@ -27,9 +27,10 @@ describe('AI Document Generator Page', () => {
       defaultOptions: {
         queries: {
           retry: false,
-          queryFn: async () => {
-            // Default queryFn to avoid "No queryFn" errors
-            return [];
+          queryFn: async ({ queryKey }) => {
+            // Use mockApiRequest for queries so tests can control the responses
+            const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+            return mockApiRequest(url as string, 'GET');
           },
         },
       },
@@ -504,11 +505,11 @@ describe('AI Document Generator Page', () => {
 
   describe('Step 5: Generation Results', () => {
     it('should show loading state during generation', async () => {
-      mockApiRequest.mockImplementation((url) => {
-        if (url === '/api/ai/generate-compliance-docs') {
+      mockApiRequest.mockImplementation((url, method) => {
+        if (url === '/api/ai/generate-compliance-docs' && method === 'POST') {
           return Promise.resolve({ jobId: 'job-123' });
         }
-        if (url.includes('/api/ai/generation-jobs')) {
+        if (typeof url === 'string' && url.includes('/api/ai/generation-jobs')) {
           return Promise.resolve({
             id: 'job-123',
             status: 'running',
@@ -567,11 +568,11 @@ describe('AI Document Generator Page', () => {
     });
 
     it('should show error state on generation failure', async () => {
-      mockApiRequest.mockImplementation((url) => {
-        if (url === '/api/ai/generate-compliance-docs') {
+      mockApiRequest.mockImplementation((url, method) => {
+        if (url === '/api/ai/generate-compliance-docs' && method === 'POST') {
           return Promise.resolve({ jobId: 'job-123' });
         }
-        if (url.includes('/api/ai/generation-jobs')) {
+        if (typeof url === 'string' && url.includes('/api/ai/generation-jobs')) {
           return Promise.resolve({
             id: 'job-123',
             status: 'failed',
@@ -639,11 +640,11 @@ describe('AI Document Generator Page', () => {
         },
       ];
 
-      mockApiRequest.mockImplementation((url) => {
-        if (url === '/api/ai/generate-compliance-docs') {
+      mockApiRequest.mockImplementation((url, method) => {
+        if (url === '/api/ai/generate-compliance-docs' && method === 'POST') {
           return Promise.resolve({ jobId: 'job-123' });
         }
-        if (url.includes('/api/ai/generation-jobs')) {
+        if (typeof url === 'string' && url.includes('/api/ai/generation-jobs')) {
           return Promise.resolve({
             id: 'job-123',
             status: 'completed',
@@ -652,7 +653,7 @@ describe('AI Document Generator Page', () => {
             totalDocuments: 3,
           });
         }
-        if (url.includes('/api/documents')) {
+        if (typeof url === 'string' && url.includes('/api/documents')) {
           return Promise.resolve(mockDocs);
         }
         return Promise.resolve([]);
@@ -813,10 +814,15 @@ describe('AI Document Generator Page', () => {
       const nextButton = screen.getByTestId('button-next');
       await user.click(nextButton);
 
+      // Wait for validation errors to appear
+      // React Hook Form validation errors may appear as text or in different elements
       await waitFor(() => {
-        const errorMessages = screen.getAllByRole('alert');
-        expect(errorMessages.length).toBeGreaterThan(0);
-      });
+        // Check for specific error messages that should appear for required fields
+        const errorText = screen.queryByText(/must be at least 2 characters/i) ||
+                          screen.queryByText(/Please select/i) ||
+                          screen.queryByText(/is required/i);
+        expect(errorText).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
   });
 });
