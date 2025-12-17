@@ -4,6 +4,9 @@ import '@testing-library/jest-dom/vitest';
 // Set test environment variables
 process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test';
 process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+process.env.REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || 'localhost,test.local';
+process.env.REPL_ID = process.env.REPL_ID || 'test-repl-id';
+process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'test-session-secret-key-for-testing-only';
 
 // Polyfill ResizeObserver for jsdom (required by Radix UI)
 if (typeof global.ResizeObserver === 'undefined') {

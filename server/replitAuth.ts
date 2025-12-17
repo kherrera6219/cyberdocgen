@@ -8,7 +8,8 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
+// Skip Replit auth validation in test environment
+if (!process.env.REPLIT_DOMAINS && process.env.NODE_ENV !== 'test') {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
@@ -71,6 +72,18 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Skip OIDC configuration in test environment
+  if (process.env.NODE_ENV === 'test') {
+    passport.serializeUser((user: Express.User, cb) => cb(null, user));
+    passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+
+    // Mock login/callback/logout routes for tests
+    app.get("/api/login", (req, res) => res.json({ message: "Login endpoint (test mode)" }));
+    app.get("/api/callback", (req, res) => res.redirect("/"));
+    app.get("/api/logout", (req, res) => res.json({ message: "Logout endpoint (test mode)" }));
+    return;
+  }
 
   const config = await getOidcConfig();
 

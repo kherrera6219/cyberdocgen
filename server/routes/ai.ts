@@ -740,4 +740,23 @@ export function registerAIRoutes(router: Router) {
       }
     }
   });
+
+  /**
+   * @openapi
+   * /api/ai/stats:
+   *   get:
+   *     tags: [AI]
+   *     summary: Get AI usage statistics
+   *     security:
+   *       - sessionAuth: []
+   *     responses:
+   *       200:
+   *         description: AI statistics retrieved
+   *       401:
+   *         description: Unauthorized
+   */
+  router.get("/stats", isAuthenticated, async (req: any, res) => {
+    // TODO: Implement AI statistics tracking
+    res.status(501).json({ message: 'AI statistics not yet implemented' });
+  });
 }
