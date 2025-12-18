@@ -5,6 +5,7 @@ import { encryptionService, DataClassification } from '../services/encryption';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
+import { getUserId } from '../replitAuth';
 
 const router = Router();
 
@@ -32,7 +33,7 @@ const verifySMSSchema = z.object({
  */
 router.get('/status', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -68,7 +69,7 @@ router.get('/status', async (req: any, res) => {
  * Generic setup endpoint (returns 401 to require authentication)
  */
 router.post('/setup', async (req: any, res) => {
-  const userId = req.user?.claims?.sub;
+  const userId = getUserId(req);
   if (!userId) {
     return res.status(401).json({ message: 'Unauthorized - Please use /setup/totp or /setup/sms' });
   }
@@ -81,7 +82,7 @@ router.post('/setup', async (req: any, res) => {
  */
 router.post('/setup/totp', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -132,7 +133,7 @@ router.post('/setup/totp', async (req: any, res) => {
  */
 router.post('/verify/totp', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -197,7 +198,7 @@ router.post('/verify/totp', async (req: any, res) => {
  */
 router.post('/setup/sms', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -234,7 +235,7 @@ router.post('/setup/sms', async (req: any, res) => {
  */
 router.post('/verify/sms', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -286,7 +287,7 @@ router.post('/verify/sms', async (req: any, res) => {
  */
 router.post('/challenge', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -328,7 +329,7 @@ router.post('/challenge', async (req: any, res) => {
  */
 router.post('/backup-codes', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -367,7 +368,7 @@ router.post('/backup-codes', async (req: any, res) => {
  */
 router.delete('/disable', async (req: any, res) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }

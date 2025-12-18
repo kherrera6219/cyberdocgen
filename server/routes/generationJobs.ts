@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../storage';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { aiOrchestrator, type AIModel, type GenerationOptions } from '../services/aiOrchestrator';
 import { frameworkTemplates } from '../services/openai';
@@ -43,7 +43,7 @@ export function registerGenerateDocumentsRoutes(router: Router) {
   router.post("/", generationLimiter, isAuthenticated, validateBody(generationJobCreateSchema), async (req: any, res) => {
     try {
       const { companyProfileId, framework, model = 'auto', includeQualityAnalysis = false, enableCrossValidation = false } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
 
       const companyProfile = await storage.getCompanyProfile(companyProfileId);
       if (!companyProfile) {

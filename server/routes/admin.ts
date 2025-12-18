@@ -6,7 +6,7 @@ import { cloudIntegrations, users } from '@shared/schema';
 import { encryptionService, DataClassification } from '../services/encryption';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { systemConfigService } from '../services/systemConfigService';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -32,12 +32,13 @@ const pdfDefaultsSchema = z.object({
 // Admin authorization middleware
 const isAdmin = async (req: any, res: any, next: any) => {
   try {
-    if (!req.user?.claims?.sub) {
+    const userId = getUserId(req);
+    if (!userId) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
 
     const user = await db.query.users.findFirst({
-      where: eq(users.id, req.user.claims.sub),
+      where: eq(users.id, userId),
     });
 
     if (!user || user.role !== 'admin') {
@@ -80,7 +81,7 @@ router.get('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) =>
 router.post('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) => {
   try {
     const settings = oauthSettingsSchema.parse(req.body);
-    const userId = req.user.claims.sub;
+    const userId = getRequiredUserId(req);
     const ipAddress = req.ip || '127.0.0.1';
 
     const configUpdates: string[] = [];
@@ -174,7 +175,7 @@ router.get('/pdf-defaults', isAuthenticated, isAdmin, async (req: any, res) => {
 router.post('/pdf-defaults', isAuthenticated, isAdmin, async (req: any, res) => {
   try {
     const defaults = pdfDefaultsSchema.parse(req.body);
-    const userId = req.user.claims.sub;
+    const userId = getRequiredUserId(req);
     const ipAddress = req.ip || '127.0.0.1';
 
     const success = await systemConfigService.setPDFDefaults(defaults, userId, ipAddress);
@@ -256,7 +257,7 @@ router.get('/cloud-integrations', isAuthenticated, isAdmin, async (req: any, res
 router.delete('/cloud-integrations/:integrationId', isAuthenticated, isAdmin, async (req: any, res) => {
   try {
     const { integrationId } = req.params;
-    const userId = req.user.claims.sub;
+    const userId = getRequiredUserId(req);
 
     const integration = await db.query.cloudIntegrations.findFirst({
       where: eq(cloudIntegrations.id, integrationId),

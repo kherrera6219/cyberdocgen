@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { storage } from '../storage';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { insertDocumentSchema, documentVersions } from '@shared/schema';
 import { versionService } from '../services/versionService';
@@ -165,7 +165,7 @@ Category: ${category}`;
 
       const document = await storage.createDocument({
         companyProfileId: req.body.companyProfileId || "temp-profile-id",
-        createdBy: req.user?.claims?.sub || "temp-user-id",
+        createdBy: getUserId(req) || "temp-user-id",
         title,
         description,
         framework,
@@ -189,7 +189,7 @@ Category: ${category}`;
   router.get('/:id/versions', isAuthenticated, async (req: any, res) => {
     try {
       const documentId = req.params.id;
-      const userId = req.user?.claims?.sub;
+      const userId = getUserId(req);
       
       const versions = await versionService.getVersionHistory(documentId);
       
@@ -216,7 +216,7 @@ Category: ${category}`;
     try {
       const { title, content, changes, changeType = "minor" } = req.body;
       const documentId = req.params.id;
-      const userId = req.user?.claims?.sub;
+      const userId = getRequiredUserId(req);
       
       if (!title || !content) {
         return res.status(400).json({ message: "Title and content are required" });
@@ -265,7 +265,7 @@ Category: ${category}`;
     try {
       const documentId = req.params.id;
       const versionId = req.params.versionId;
-      const userId = req.user?.claims?.sub;
+      const userId = getRequiredUserId(req);
 
       const document = await storage.getDocument(documentId);
       if (!document) {
@@ -306,7 +306,7 @@ Category: ${category}`;
   router.get('/:id/versions/:version1/compare/:version2', isAuthenticated, async (req: any, res) => {
     try {
       const { id: documentId, version1, version2 } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = getUserId(req);
 
       const comparison = await versionService.compareVersions(documentId, version1, version2);
 
@@ -341,7 +341,7 @@ Category: ${category}`;
           id: "approval-1",
           documentId: req.params.id,
           versionId: "ver-3",
-          requestedBy: req.user?.claims?.sub || "user-1",
+          requestedBy: getUserId(req) || "user-1",
           approverRole: "ciso",
           assignedTo: "user-ciso",
           status: "approved",
@@ -381,7 +381,7 @@ Category: ${category}`;
     try {
       const { aiOrchestrator } = await import('../services/aiOrchestrator');
       const { companyProfileId, framework, template, model = 'auto', includeQualityAnalysis = false } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
       
       if (!companyProfileId || !framework || !template) {
         return res.status(400).json({ message: "Company profile ID, framework, and template are required" });

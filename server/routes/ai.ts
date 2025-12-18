@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../storage';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { db } from '../db';
 import { aiGuardrailsLogs, aiUsageDisclosures, documents } from '@shared/schema';
@@ -61,7 +61,7 @@ export function registerAIRoutes(router: Router) {
   router.post("/generate-insights", isAuthenticated, validateBody(generateInsightsSchema), async (req: any, res) => {
     try {
       const { companyProfileId, framework } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
 
       const companyProfile = await storage.getCompanyProfile(companyProfileId);
       if (!companyProfile) {
@@ -92,7 +92,7 @@ export function registerAIRoutes(router: Router) {
   router.post('/generate-compliance-docs', isAuthenticated, generationLimiter, validateBody(generateComplianceDocsSchema), async (req: any, res) => {
     try {
       const { companyInfo, frameworks, soc2Options, fedrampOptions } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
       
       const userOrgs = await storage.getUserOrganizations(userId);
       let organizationId = userOrgs[0]?.organizationId;
@@ -317,7 +317,7 @@ export function registerAIRoutes(router: Router) {
   router.post("/risk-assessment", isAuthenticated, validateBody(riskAssessmentSchema), async (req: any, res) => {
     try {
       const { frameworks, includeDocuments } = req.body;
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
 
       const companyProfile = await storage.getCompanyProfile(userId);
       if (!companyProfile) {
@@ -460,7 +460,7 @@ export function registerAIRoutes(router: Router) {
   router.post("/fine-tune", isAuthenticated, validateBody(fineTuneSchema), async (req: any, res) => {
     try {
       const { industryId, requirements, customInstructions, priority } = req.body;
-      const userId = req.user?.claims?.sub;
+      const userId = getRequiredUserId(req);
 
       const { AIFineTuningService } = await import('../services/aiFineTuningService');
       const service = new AIFineTuningService();
@@ -491,7 +491,7 @@ export function registerAIRoutes(router: Router) {
   router.post("/generate-optimized", isAuthenticated, validateBody(generateOptimizedSchema), async (req: any, res) => {
     try {
       const { configId, documentType, context } = req.body;
-      const userId = req.user?.claims?.sub;
+      const userId = getRequiredUserId(req);
 
       const { AIFineTuningService } = await import('../services/aiFineTuningService');
       const service = new AIFineTuningService();
@@ -520,7 +520,7 @@ export function registerAIRoutes(router: Router) {
   router.post("/assess-risks", isAuthenticated, validateBody(assessRisksSchema), async (req: any, res) => {
     try {
       const { industryId, organizationContext } = req.body;
-      const userId = req.user?.claims?.sub;
+      const userId = getRequiredUserId(req);
 
       const { AIFineTuningService } = await import('../services/aiFineTuningService');
       const service = new AIFineTuningService();
@@ -547,7 +547,7 @@ export function registerAIRoutes(router: Router) {
     
     try {
       const { imageData, prompt, framework, analysisType } = req.body;
-      const userId = req.user?.claims?.sub;
+      const userId = getRequiredUserId(req);
 
       // Validate image data format and extract MIME type
       let mimeType = 'image/png';
@@ -628,7 +628,7 @@ export function registerAIRoutes(router: Router) {
     
     try {
       const { message, framework, sessionId, attachments } = req.body;
-      const userId = req.user?.claims?.sub;
+      const userId = getRequiredUserId(req);
 
       let imageAnalysisResults: any[] = [];
       const unsupportedFiles: string[] = [];

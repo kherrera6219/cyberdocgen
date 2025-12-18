@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { auditService } from '../services/auditService';
 
@@ -7,7 +7,7 @@ export function registerAuditTrailRoutes(router: Router) {
   router.get('/', isAuthenticated, async (req: any, res) => {
     try {
       const { page = 1, limit = 50, entityType, action, search, dateFrom, dateTo } = req.query;
-      const userId = req.user?.claims?.sub;
+      const userId = getUserId(req);
       
       const auditQuery = {
         page: parseInt(page as string),
@@ -54,7 +54,7 @@ export function registerAuditTrailRoutes(router: Router) {
   router.get('/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = getUserId(req);
 
       if (!id) {
         return res.status(400).json({ message: 'Audit entry ID is required' });

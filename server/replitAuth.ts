@@ -201,6 +201,29 @@ export async function setupAuth(app: Express) {
   console.log(`[Auth Setup] Registered ${registeredStrategies.size} initial strategies`);
 }
 
+// Helper function to get user ID from either OAuth or session-based auth
+export function getUserId(req: any): string | undefined {
+  // Check for temporary/enterprise session first
+  const session = req.session as any;
+  if (session?.userId) {
+    return session.userId;
+  }
+  // Check for OAuth user
+  if (req.user?.claims?.sub) {
+    return req.user.claims.sub;
+  }
+  return undefined;
+}
+
+// Helper that throws if user is not authenticated - use after isAuthenticated middleware
+export function getRequiredUserId(req: any): string {
+  const userId = getUserId(req);
+  if (!userId) {
+    throw new Error('User not authenticated');
+  }
+  return userId;
+}
+
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   // Check for Enterprise auth session first (email/password login)
   const session = req.session as any;

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../storage';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { type RemediationRecommendation } from '@shared/schema';
 import { validateBody } from '../middleware/routeValidation';
@@ -23,7 +23,7 @@ export function registerGapAnalysisRoutes(router: Router) {
    */
   router.get("/", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
       const userOrganizations = await storage.getUserOrganizations(userId);
 
       if (userOrganizations.length === 0) {
@@ -65,7 +65,7 @@ export function registerGapAnalysisRoutes(router: Router) {
   router.get("/:framework", isAuthenticated, async (req: any, res) => {
     try {
       const { framework } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
       const userOrganizations = await storage.getUserOrganizations(userId);
 
       if (userOrganizations.length === 0) {
@@ -119,7 +119,7 @@ export function registerGapAnalysisRoutes(router: Router) {
     // This endpoint is an alias for /generate
     // Forward to the generate handler below
     try {
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
       const { framework, companyProfileId } = req.body;
 
       if (!framework) {
@@ -146,7 +146,7 @@ export function registerGapAnalysisRoutes(router: Router) {
 
   router.get("/reports", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
       const userOrganizations = await storage.getUserOrganizations(userId);
       
       if (userOrganizations.length === 0) {
@@ -216,7 +216,7 @@ export function registerGapAnalysisRoutes(router: Router) {
 
   router.post("/generate", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getRequiredUserId(req);
       const { framework, includeMaturityAssessment, focusAreas } = req.body;
       
       const userOrganizations = await storage.getUserOrganizations(userId);

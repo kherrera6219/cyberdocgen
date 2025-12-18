@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { objectStorageService } from '../services/objectStorageService';
 import { auditService, AuditAction } from '../services/auditService';
@@ -31,7 +31,7 @@ export function registerStorageRoutes(router: Router) {
   router.post("/documents/:documentId", isAuthenticated, async (req: any, res) => {
     const { documentId } = req.params;
     const content = req.body;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.uploadDocument(documentId, content);
@@ -63,7 +63,7 @@ export function registerStorageRoutes(router: Router) {
 
   router.get("/documents/:documentId", isAuthenticated, async (req: any, res) => {
     const { documentId } = req.params;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.downloadDocument(documentId);
@@ -95,7 +95,7 @@ export function registerStorageRoutes(router: Router) {
   router.post("/profiles/:profileId", isAuthenticated, async (req: any, res) => {
     const { profileId } = req.params;
     const profileData = req.body;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.uploadCompanyProfile(profileId, profileData);
@@ -127,7 +127,7 @@ export function registerStorageRoutes(router: Router) {
 
   router.get("/profiles/:profileId", isAuthenticated, async (req: any, res) => {
     const { profileId } = req.params;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.downloadCompanyProfile(profileId);
@@ -159,7 +159,7 @@ export function registerStorageRoutes(router: Router) {
   router.post("/files", isAuthenticated, async (req: any, res) => {
     const { filename, folder = 'files' } = req.body;
     const fileData = req.body.data;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const buffer = Buffer.from(fileData, 'base64');
@@ -194,7 +194,7 @@ export function registerStorageRoutes(router: Router) {
 
   router.get("/files/:path(*)", isAuthenticated, async (req: any, res) => {
     const { path } = req.params;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.downloadFileAsBytes(path);
@@ -232,7 +232,7 @@ export function registerStorageRoutes(router: Router) {
 
   router.get("/list", isAuthenticated, async (req: any, res) => {
     const { folder } = req.query;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = folder 
@@ -267,7 +267,7 @@ export function registerStorageRoutes(router: Router) {
 
   router.delete("/objects/*", isAuthenticated, async (req: any, res) => {
     const path = req.params[0];
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.deleteObject(path);
@@ -298,7 +298,7 @@ export function registerStorageRoutes(router: Router) {
   });
 
   router.get("/stats", isAuthenticated, async (req: any, res) => {
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.getStorageStats();
@@ -331,7 +331,7 @@ export function registerStorageRoutes(router: Router) {
   router.post("/backups/:backupId", isAuthenticated, async (req: any, res) => {
     const { backupId } = req.params;
     const backupData = req.body;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.uploadBackup(backupId, backupData);
@@ -364,7 +364,7 @@ export function registerStorageRoutes(router: Router) {
 
   router.get("/backups/:backupId", isAuthenticated, async (req: any, res) => {
     const { backupId } = req.params;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.downloadBackup(backupId);
@@ -396,7 +396,7 @@ export function registerStorageRoutes(router: Router) {
   router.post("/audit-logs/:logId", isAuthenticated, async (req: any, res) => {
     const { logId } = req.params;
     const auditLogs = req.body.logs;
-    const userId = req.user?.claims?.sub;
+    const userId = getUserId(req);
 
     try {
       const result = await objectStorageService.uploadAuditLogs(logId, auditLogs);
