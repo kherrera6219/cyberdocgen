@@ -9,6 +9,13 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
+import aiDocGenImage from "@assets/generated_images/ai_document_generation_interface.png";
+import multiFrameworkImage from "@assets/generated_images/multi-framework_compliance_support.png";
+import gapAnalysisImage from "@assets/generated_images/gap_analysis_dashboard_interface.png";
+import teamCollabImage from "@assets/generated_images/team_collaboration_workspace.png";
+import auditorWorkspaceImage from "@assets/generated_images/auditor_workspace_interface.png";
+import continuousMonitoringImage from "@assets/generated_images/continuous_monitoring_dashboard.png";
+
 function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -104,37 +111,43 @@ export default function Features() {
       icon: Bot,
       title: "AI-Powered Document Generation",
       description: "Generate comprehensive compliance documents in minutes using advanced AI. Our multi-model system leverages GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro to create tailored policies, procedures, and assessments.",
-      highlights: ["Multi-model AI (GPT-5.1, Claude, Gemini)", "Context-aware content", "Multiple document types", "Automatic formatting"]
+      highlights: ["Multi-model AI (GPT-5.1, Claude, Gemini)", "Context-aware content", "Multiple document types", "Automatic formatting"],
+      image: aiDocGenImage
     },
     {
       icon: Shield,
       title: "Multi-Framework Support",
       description: "Complete coverage for the industry's most important compliance frameworks, with automatic control mapping and cross-framework alignment.",
-      highlights: ["ISO 27001", "SOC 2 Type II", "FedRAMP", "NIST CSF", "HIPAA", "PCI DSS"]
+      highlights: ["ISO 27001", "SOC 2 Type II", "FedRAMP", "NIST CSF", "HIPAA", "PCI DSS"],
+      image: multiFrameworkImage
     },
     {
       icon: BarChart3,
       title: "Gap Analysis & Assessment",
       description: "Identify compliance gaps instantly with AI-powered assessment. Get prioritized remediation plans and track progress toward certification.",
-      highlights: ["Automated gap detection", "Priority scoring", "Remediation tracking", "Progress dashboards"]
+      highlights: ["Automated gap detection", "Priority scoring", "Remediation tracking", "Progress dashboards"],
+      image: gapAnalysisImage
     },
     {
       icon: Users,
       title: "Team Collaboration",
       description: "Work together seamlessly with role-based access control, approval workflows, and real-time collaboration features.",
-      highlights: ["Role-based permissions", "Approval workflows", "Comments & mentions", "Activity tracking"]
+      highlights: ["Role-based permissions", "Approval workflows", "Comments & mentions", "Activity tracking"],
+      image: teamCollabImage
     },
     {
       icon: Eye,
       title: "Auditor Workspace",
       description: "Dedicated read-only workspace for auditors with organized evidence packages and streamlined access to all compliance artifacts.",
-      highlights: ["Read-only access", "Evidence packages", "Document export", "Audit trail"]
+      highlights: ["Read-only access", "Evidence packages", "Document export", "Audit trail"],
+      image: auditorWorkspaceImage
     },
     {
       icon: RefreshCw,
       title: "Continuous Monitoring",
       description: "Stay compliant with automated control monitoring, real-time alerts, and continuous compliance dashboards.",
-      highlights: ["Real-time monitoring", "Automated alerts", "Trend analysis", "Compliance scoring"]
+      highlights: ["Real-time monitoring", "Automated alerts", "Trend analysis", "Compliance scoring"],
+      image: continuousMonitoringImage
     }
   ];
 
@@ -226,12 +239,14 @@ export default function Features() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <Card className="border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 shadow-lg">
-                    <CardContent className="p-8 flex items-center justify-center min-h-[300px]">
-                      <div className="text-center">
-                        <feature.icon className="h-24 w-24 text-blue-600/30 dark:text-blue-400/30 mx-auto mb-4" />
-                        <p className="text-gray-500 dark:text-gray-400">Feature illustration</p>
-                      </div>
+                  <Card className="border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 shadow-lg overflow-hidden">
+                    <CardContent className="p-0">
+                      <img 
+                        src={feature.image} 
+                        alt={feature.title}
+                        className="w-full h-auto object-cover rounded-md"
+                        data-testid={`img-feature-${index}`}
+                      />
                     </CardContent>
                   </Card>
                 </div>
