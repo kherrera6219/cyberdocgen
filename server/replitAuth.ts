@@ -8,21 +8,6 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-// Get the primary domain for OAuth (first in REPLIT_DOMAINS list)
-function getPrimaryDomain(): string {
-  const domains = process.env.REPLIT_DOMAINS;
-  if (!domains && process.env.NODE_ENV !== 'test') {
-    throw new Error("Environment variable REPLIT_DOMAINS not provided");
-  }
-  if (!domains) return 'localhost';
-  
-  const primaryDomain = domains.split(",")[0]?.trim().toLowerCase();
-  if (!primaryDomain) {
-    throw new Error("REPLIT_DOMAINS is empty");
-  }
-  return primaryDomain;
-}
-
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
@@ -43,7 +28,6 @@ export function getSession() {
     tableName: "sessions",
   });
   
-  // In development, secure cookies won't work without HTTPS
   const isProduction = process.env.NODE_ENV === 'production';
   
   return session({
@@ -53,7 +37,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction, // Only require secure in production
+      secure: isProduction,
       sameSite: isProduction ? 'strict' : 'lax',
       maxAge: sessionTtl,
     },
@@ -70,9 +54,7 @@ function updateUserSession(
   user.expires_at = user.claims?.exp;
 }
 
-async function upsertUser(
-  claims: any,
-) {
+async function upsertUser(claims: any) {
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
@@ -81,6 +63,9 @@ async function upsertUser(
     profileImageUrl: claims["profile_image_url"],
   });
 }
+
+// Track registered strategies to avoid duplicates
+const registeredStrategies = new Set<string>();
 
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
@@ -92,8 +77,6 @@ export async function setupAuth(app: Express) {
   if (process.env.NODE_ENV === 'test') {
     passport.serializeUser((user: Express.User, cb) => cb(null, user));
     passport.deserializeUser((user: Express.User, cb) => cb(null, user));
-
-    // Mock login/callback/logout routes for tests
     app.get("/api/login", (req, res) => res.json({ message: "Login endpoint (test mode)" }));
     app.get("/api/callback", (req, res) => res.redirect("/"));
     app.get("/api/logout", (req, res) => res.json({ message: "Logout endpoint (test mode)" }));
@@ -101,11 +84,6 @@ export async function setupAuth(app: Express) {
   }
 
   const config = await getOidcConfig();
-  const primaryDomain = getPrimaryDomain();
-  const strategyName = "replitauth";
-  
-  console.log(`[Auth Setup] Primary domain: ${primaryDomain}`);
-  console.log(`[Auth Setup] Callback URL: https://${primaryDomain}/api/callback`);
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
@@ -117,24 +95,49 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  // Use a single strategy with the primary domain
-  const strategy = new Strategy(
-    {
-      name: strategyName,
-      config,
-      scope: "openid email profile offline_access",
-      callbackURL: `https://${primaryDomain}/api/callback`,
-    },
-    verify,
-  );
-  passport.use(strategy);
+  // Helper to get or create a strategy for a specific domain
+  function getOrCreateStrategy(domain: string): string {
+    const strategyName = `replitauth:${domain}`;
+    
+    if (!registeredStrategies.has(strategyName)) {
+      console.log(`[Auth] Registering new strategy for domain: ${domain}`);
+      const strategy = new Strategy(
+        {
+          name: strategyName,
+          config,
+          scope: "openid email profile offline_access",
+          callbackURL: `https://${domain}/api/callback`,
+        },
+        verify,
+      );
+      passport.use(strategy);
+      registeredStrategies.add(strategyName);
+    }
+    
+    return strategyName;
+  }
+
+  // Pre-register strategies for known domains from REPLIT_DOMAINS
+  if (process.env.REPLIT_DOMAINS) {
+    for (const rawDomain of process.env.REPLIT_DOMAINS.split(",")) {
+      const domain = rawDomain.trim().toLowerCase();
+      if (domain) {
+        getOrCreateStrategy(domain);
+      }
+    }
+  }
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
+  // Login route - dynamically creates strategy for the current hostname
   app.get("/api/login", (req, res, next) => {
-    console.log(`[Auth Login] Initiating login from hostname: ${req.hostname}`);
-    console.log(`[Auth Login] Will callback to: https://${primaryDomain}/api/callback`);
+    const hostname = req.hostname.toLowerCase();
+    console.log(`[Auth Login] Request from hostname: ${hostname}`);
+    
+    // Dynamically register strategy for this hostname if not already registered
+    const strategyName = getOrCreateStrategy(hostname);
+    console.log(`[Auth Login] Using strategy: ${strategyName}`);
     
     passport.authenticate(strategyName, {
       prompt: "login consent",
@@ -142,10 +145,23 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
+  // Callback route - uses the same hostname-based strategy
   app.get("/api/callback", (req, res, next) => {
-    console.log(`[Auth Callback] Processing callback`);
-    console.log(`[Auth Callback] Hostname: ${req.hostname}`);
+    const hostname = req.hostname.toLowerCase();
+    const strategyName = `replitauth:${hostname}`;
+    
+    console.log(`[Auth Callback] Hostname: ${hostname}`);
+    console.log(`[Auth Callback] Strategy: ${strategyName}`);
     console.log(`[Auth Callback] Query params:`, req.query);
+    
+    // Check if strategy exists
+    if (!registeredStrategies.has(strategyName)) {
+      console.error(`[Auth Callback] Strategy not found for hostname: ${hostname}`);
+      console.log(`[Auth Callback] Registered strategies:`, Array.from(registeredStrategies));
+      
+      // Try to register it now (the login might have been initiated from this domain)
+      getOrCreateStrategy(hostname);
+    }
     
     passport.authenticate(strategyName, (err: any, user: any, info: any) => {
       if (err) {
@@ -171,22 +187,24 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/logout", (req, res) => {
+    const hostname = req.hostname.toLowerCase();
     req.logout(() => {
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `https://${primaryDomain}`,
+          post_logout_redirect_uri: `https://${hostname}`,
         }).href
       );
     });
   });
+  
+  console.log(`[Auth Setup] Registered ${registeredStrategies.size} initial strategies`);
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   // Check for Enterprise auth session first (email/password login)
   const session = req.session as any;
   if (session?.userId) {
-    // Enterprise auth session exists
     return next();
   }
 
