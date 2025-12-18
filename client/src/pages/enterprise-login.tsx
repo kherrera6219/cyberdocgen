@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Lock, Mail, Shield, KeyRound } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 
 const loginSchema = z.object({
@@ -48,11 +48,15 @@ export default function EnterpriseLogin() {
     mutationFn: async (data: LoginForm) => {
       return apiRequest('/api/auth/enterprise/login', 'POST', data);
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data.requiresMFA) {
         setUserData(data.user);
         setRequiresMFA(true);
       } else {
+        // Invalidate auth cache to force refetch of user data before redirecting
+        await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+        // Small delay to ensure session cookie is set
+        await new Promise(resolve => setTimeout(resolve, 100));
         // Redirect to dashboard on successful login
         setLocation('/dashboard');
       }
