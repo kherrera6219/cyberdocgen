@@ -87,13 +87,52 @@ export function registerAnalyticsRoutes(router: Router) {
         return res.status(400).json({ message: 'Framework is required' });
       }
 
-      // TODO: Implement actual gap analysis logic
-      // For now, return a stub response that passes tests
-      res.status(503).json({
-        message: 'Compliance gap analysis not yet implemented',
+      // Perform gap analysis by comparing current controls against requirements
+      const controlsSet = new Set(currentControls || []);
+      const requirementsArray = requirements || [];
+
+      // Identify gaps (missing controls)
+      const gaps = requirementsArray.filter((req: string) => !controlsSet.has(req));
+
+      // Identify implemented controls
+      const implemented = requirementsArray.filter((req: string) => controlsSet.has(req));
+
+      // Calculate compliance percentage
+      const totalRequirements = requirementsArray.length;
+      const implementedCount = implemented.length;
+      const compliancePercentage = totalRequirements > 0
+        ? Math.round((implementedCount / totalRequirements) * 100)
+        : 0;
+
+      // Categorize gaps by severity (simplified heuristic)
+      const criticalGaps = gaps.slice(0, Math.ceil(gaps.length * 0.2));
+      const highGaps = gaps.slice(Math.ceil(gaps.length * 0.2), Math.ceil(gaps.length * 0.5));
+      const mediumGaps = gaps.slice(Math.ceil(gaps.length * 0.5), Math.ceil(gaps.length * 0.8));
+      const lowGaps = gaps.slice(Math.ceil(gaps.length * 0.8));
+
+      res.json({
+        success: true,
         framework,
-        providedControls: currentControls?.length || 0,
-        providedRequirements: requirements?.length || 0
+        summary: {
+          totalRequirements,
+          implementedControls: implementedCount,
+          gaps: gaps.length,
+          compliancePercentage
+        },
+        gapsByPriority: {
+          critical: criticalGaps,
+          high: highGaps,
+          medium: mediumGaps,
+          low: lowGaps
+        },
+        implementedControls: implemented,
+        recommendations: gaps.length > 0
+          ? [
+              `Address ${criticalGaps.length} critical gaps first to improve security posture`,
+              `Focus on high-priority gaps (${highGaps.length}) for quick compliance wins`,
+              `Plan medium and low priority implementations in phased approach`
+            ]
+          : ['All requirements are currently implemented - maintain regular reviews']
       });
     } catch (error) {
       logger.error('Compliance gap analysis failed', { error: error instanceof Error ? error.message : String(error) });
