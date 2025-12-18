@@ -156,7 +156,7 @@ export const generalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getRateLimitKey,
-  validate: { ip: false, trustProxy: false },
+  validate: false,
   handler: (req, res) => {
     logger.warn('Rate limit exceeded', {
       ip: req.ip,
@@ -180,7 +180,7 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   // Auth endpoints use IP only (users aren't authenticated yet)
   keyGenerator: (req) => req.ip || 'unknown',
-  validate: { ip: false, trustProxy: false },
+  validate: false,
   skipSuccessfulRequests: true, // Only count failed attempts
   handler: (req, res) => {
     logger.warn('Auth rate limit exceeded', {
@@ -202,7 +202,7 @@ export const generationLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getRateLimitKey,
-  validate: { ip: false, trustProxy: false },
+  validate: false,
   handler: (req, res) => {
     logger.warn('Generation rate limit exceeded', {
       ip: req.ip,
@@ -226,7 +226,7 @@ export const aiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getRateLimitKey,
-  validate: { ip: false, trustProxy: false },
+  validate: false,
   handler: (req, res) => {
     logger.warn('AI rate limit exceeded', {
       ip: req.ip,
@@ -337,38 +337,44 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   res.setHeader('Permissions-Policy', permissionsPolicy);
 
   // Cross-Origin policies for enhanced security
-  // Relaxed in development for Replit iframe embedding
+  // Use credentialless COEP to allow fonts and external resources
   if (process.env.NODE_ENV === 'production') {
-    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   } else {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   }
 
-  // Content Security Policy with nonce-based inline script/style support
+  // Content Security Policy configuration
+  // Production: Strict CSP with external scripts only (no inline scripts in Vite build)
+  // Development: Relaxed for HMR and development tools
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   const cspDirectives = [
     "default-src 'self'",
-    // Use nonce for inline scripts instead of unsafe-inline
-    process.env.NODE_ENV === 'production'
-      ? `script-src 'self' 'nonce-${nonce}' https://apis.google.com`
-      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://replit.com`,
-    // Use nonce for inline styles instead of unsafe-inline
-    process.env.NODE_ENV === 'production'
-      ? `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`
-      : `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+    // Production: External scripts only (Vite build has no inline scripts)
+    // Development: Allow inline for HMR and dev tools
+    isProduction
+      ? "script-src 'self' https://apis.google.com"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://replit.com",
+    // Styles: unsafe-inline needed for Tailwind/CSS-in-JS runtime styles
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     "img-src 'self' data: https:",
-    "connect-src 'self' ws: wss: https://api.openai.com https://api.anthropic.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    // Allow framing from Replit domains in development
-    process.env.NODE_ENV === 'production'
+    isProduction
+      ? "connect-src 'self' https://api.openai.com https://api.anthropic.com"
+      : "connect-src 'self' ws: wss: https://api.openai.com https://api.anthropic.com https://*.replit.dev https://*.replit.app",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    // Production: Restrict framing to prevent clickjacking
+    // Development: Allow Replit domains for iframe preview
+    isProduction
       ? "frame-ancestors 'none'"
       : "frame-ancestors 'self' https://*.replit.dev https://*.replit.app https://*.repl.co",
     "form-action 'self'",
     "base-uri 'self'",
     "object-src 'none'",
-    process.env.NODE_ENV === 'production' ? "upgrade-insecure-requests" : ""
+    isProduction ? "upgrade-insecure-requests" : ""
   ].filter(Boolean);
   res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
 
