@@ -30,8 +30,7 @@ function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login"><Button variant="ghost">Sign In</Button></Link>
-            <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
+            <Link href="/login"><Button>Sign In</Button></Link>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -47,8 +46,7 @@ function Header() {
               <Link href="/about"><span className="block px-3 py-2 text-sm font-medium">About</span></Link>
               <Link href="/contact"><span className="block px-3 py-2 text-sm font-medium">Contact</span></Link>
               <div className="flex flex-col gap-2 pt-3 border-t">
-                <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
+                <Link href="/login"><Button>Sign In</Button></Link>
               </div>
             </nav>
           </div>
@@ -169,7 +167,7 @@ export default function Pricing() {
     },
     {
       question: "How do I get beta access?",
-      answer: "Click the 'Request Beta Access' button to sign up. We're accepting new users on a rolling basis."
+      answer: "Contact us at CEO@lucentry.ai to request beta access. We're accepting new users on a rolling basis."
     }
   ];
 
@@ -192,10 +190,12 @@ export default function Pricing() {
             Join now to lock in early-adopter pricing when we launch.
           </p>
 
-          <Button size="lg" onClick={() => window.location.href = '/api/login'} data-testid="button-request-beta">
-            Request Beta Access
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <Link href="/contact">
+            <Button size="lg" data-testid="button-request-beta">
+              Contact Us for Beta Access
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -239,15 +239,16 @@ export default function Pricing() {
                     ))}
                   </ul>
 
-                  <Button 
-                    className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                    variant={plan.popular ? 'default' : 'outline'}
-                    onClick={() => window.location.href = '/api/login'}
-                    data-testid={`button-${plan.name.toLowerCase()}-cta`}
-                  >
-                    Request Beta Access
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  <Link href="/contact">
+                    <Button 
+                      className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                      variant={plan.popular ? 'default' : 'outline'}
+                      data-testid={`button-${plan.name.toLowerCase()}-cta`}
+                    >
+                      Contact for Access
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
@@ -328,13 +329,15 @@ export default function Pricing() {
             Join our beta program today and get free access to all features. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = '/api/login'} data-testid="button-start-trial-footer">
-              Request Beta Access
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/login">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" data-testid="button-start-trial-footer">
+                Sign In
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Link href="/contact">
               <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-contact-sales-footer">
-                Contact Us
+                Request Beta Access
               </Button>
             </Link>
           </div>

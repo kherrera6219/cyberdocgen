@@ -34,8 +34,7 @@ function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login"><Button variant="ghost">Sign In</Button></Link>
-            <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
+            <Link href="/login"><Button>Sign In</Button></Link>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -51,8 +50,7 @@ function Header() {
               <Link href="/about"><span className="block px-3 py-2 text-sm font-medium">About</span></Link>
               <Link href="/contact"><span className="block px-3 py-2 text-sm font-medium">Contact</span></Link>
               <div className="flex flex-col gap-2 pt-3 border-t">
-                <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
+                <Link href="/login"><Button>Sign In</Button></Link>
               </div>
             </nav>
           </div>
@@ -171,10 +169,12 @@ export default function Features() {
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
             From AI-powered document generation to continuous monitoring, CyberDocGen provides a complete platform for managing your compliance journey.
           </p>
-          <Button size="lg" onClick={() => window.location.href = '/api/login'} data-testid="button-start-free-trial">
-            Request Beta Access
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <Link href="/login">
+            <Button size="lg" data-testid="button-start-free-trial">
+              Sign In
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -295,13 +295,15 @@ export default function Features() {
             Join our beta program and experience the power of AI-driven compliance automation. Free during beta.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = '/api/login'} data-testid="button-start-trial">
-              Request Beta Access
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/login">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" data-testid="button-start-trial">
+                Sign In
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Link href="/contact">
               <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-view-pricing">
-                Contact Us
+                Request Beta Access
               </Button>
             </Link>
           </div>

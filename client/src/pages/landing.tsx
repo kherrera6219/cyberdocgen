@@ -44,18 +44,11 @@ function Header() {
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login">
               <Button 
-                variant="ghost" 
                 data-testid="header-login-button"
               >
                 Sign In
               </Button>
             </Link>
-            <Button 
-              onClick={() => window.location.href = '/api/login'}
-              data-testid="header-get-started-button"
-            >
-              Request Beta Access
-            </Button>
           </div>
 
           <button 
@@ -83,8 +76,7 @@ function Header() {
                 <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Contact</span>
               </Link>
               <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
+                <Link href="/login"><Button>Sign In</Button></Link>
               </div>
             </nav>
           </div>
@@ -209,15 +201,16 @@ export function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6 px-4">
-              <Button 
-                size="lg" 
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
-                onClick={() => window.location.href = '/api/login'}
-                data-testid="button-get-started"
-              >
-                Request Beta Access
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+              <Link href="/login">
+                <Button 
+                  size="lg" 
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
+                  data-testid="button-get-started"
+                >
+                  Sign In
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
 
               <Button 
                 variant="outline" 
@@ -400,18 +393,19 @@ export function Landing() {
             Ready to Transform Your Compliance?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join our beta program and experience the future of AI-powered compliance documentation. Free during the beta period.
+            Experience the future of AI-powered compliance documentation. Contact us to request beta access.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-md shadow-lg transition-all duration-300"
-              onClick={() => window.location.href = '/api/login'}
-              data-testid="button-start-free-trial"
-            >
-              Request Beta Access
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/login">
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-md shadow-lg transition-all duration-300"
+                data-testid="button-start-free-trial"
+              >
+                Sign In
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Link href="/contact">
               <Button 
                 variant="outline" 
@@ -419,7 +413,7 @@ export function Landing() {
                 className="border-white text-white hover:bg-white/10 px-8 py-4 rounded-md"
                 data-testid="button-contact-sales"
               >
-                Contact Us
+                Request Beta Access
               </Button>
             </Link>
           </div>

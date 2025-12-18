@@ -35,8 +35,7 @@ function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login"><Button variant="ghost">Sign In</Button></Link>
-            <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
+            <Link href="/login"><Button>Sign In</Button></Link>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -52,8 +51,7 @@ function Header() {
               <Link href="/about"><span className="block px-3 py-2 text-sm font-medium">About</span></Link>
               <Link href="/contact"><span className="block px-3 py-2 text-sm font-medium text-blue-600">Contact</span></Link>
               <div className="flex flex-col gap-2 pt-3 border-t">
-                <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
+                <Link href="/login"><Button>Sign In</Button></Link>
               </div>
             </nav>
           </div>
