@@ -590,10 +590,8 @@ export class EnterpriseAuthService {
         return { success: false, error: 'Account is locked due to too many failed login attempts' };
       }
 
-      // Check if account is active
-      if (user.accountStatus !== 'active') {
-        return { success: false, error: 'Account is not active. Please verify your email.' };
-      }
+      // Email verification is disabled - allow all users to log in regardless of accountStatus
+      // Previously: checked if user.accountStatus !== 'active'
 
       // Verify password
       const isPasswordValid = await this.verifyPassword(password, user.passwordHash || '');
