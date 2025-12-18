@@ -25,8 +25,8 @@ async function seedTestAccounts() {
   
   if (!password) {
     console.error('Error: BETA_TESTER_PASSWORD environment variable is not set');
-    console.error('Please set it before running this script:');
-    console.error('  export BETA_TESTER_PASSWORD="YourSecurePassword"');
+    console.error('Please set it in your Replit Secrets before running this script.');
+    console.error('Go to Tools > Secrets and add BETA_TESTER_PASSWORD');
     process.exit(1);
   }
 

@@ -12,7 +12,18 @@ interface BuildCheck {
   details?: string;
 }
 
-async function runCommand(command: string, args: string[]): Promise<{ success: boolean; output: string }> {
+const ALLOWED_COMMANDS = ['npm', 'npx'] as const;
+type AllowedCommand = typeof ALLOWED_COMMANDS[number];
+
+function isAllowedCommand(command: string): command is AllowedCommand {
+  return ALLOWED_COMMANDS.includes(command as AllowedCommand);
+}
+
+async function runCommand(command: AllowedCommand, args: string[]): Promise<{ success: boolean; output: string }> {
+  if (!isAllowedCommand(command)) {
+    return { success: false, output: `Command not allowed: ${command}` };
+  }
+  
   return new Promise((resolve) => {
     const proc = spawn(command, args, { stdio: 'pipe' });
     let output = '';

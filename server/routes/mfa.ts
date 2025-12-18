@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import crypto from 'crypto';
 import { mfaService } from '../services/mfaService';
 import { encryptionService, DataClassification } from '../services/encryption';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
@@ -139,7 +140,8 @@ router.post('/verify/totp', async (req: any, res) => {
     const { token, backupCode } = verifyTOTPSchema.parse(req.body);
 
     // In production, fetch encrypted secret from database
-    const mockSecret = 'JBSWY3DPEHPK3PXP'; // Development only
+    // TODO: Replace with actual database lookup for user's TOTP secret
+    const mockSecret = process.env.MFA_DEV_SECRET || crypto.randomBytes(10).toString('base32').slice(0, 16);
 
     let verified = false;
     let usedBackupCode = false;

@@ -81,7 +81,9 @@ export class EncryptionService {
       const iv = Buffer.from(encryptedData.iv, 'hex');
       const authTag = Buffer.from(encryptedData.authTag, 'hex');
       
-      const decipher = crypto.createDecipheriv(this.algorithm, key, iv) as crypto.DecipherGCM;
+      const decipher = crypto.createDecipheriv(this.algorithm, key, iv, {
+        authTagLength: this.tagLength
+      }) as crypto.DecipherGCM;
       decipher.setAuthTag(authTag);
 
       let decrypted = decipher.update(encryptedData.encryptedValue, 'hex', 'utf8');
