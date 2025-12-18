@@ -8,9 +8,19 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-// Skip Replit auth validation in test environment
-if (!process.env.REPLIT_DOMAINS && process.env.NODE_ENV !== 'test') {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+// Get the primary domain for OAuth (first in REPLIT_DOMAINS list)
+function getPrimaryDomain(): string {
+  const domains = process.env.REPLIT_DOMAINS;
+  if (!domains && process.env.NODE_ENV !== 'test') {
+    throw new Error("Environment variable REPLIT_DOMAINS not provided");
+  }
+  if (!domains) return 'localhost';
+  
+  const primaryDomain = domains.split(",")[0]?.trim().toLowerCase();
+  if (!primaryDomain) {
+    throw new Error("REPLIT_DOMAINS is empty");
+  }
+  return primaryDomain;
 }
 
 const getOidcConfig = memoize(
@@ -91,6 +101,11 @@ export async function setupAuth(app: Express) {
   }
 
   const config = await getOidcConfig();
+  const primaryDomain = getPrimaryDomain();
+  const strategyName = "replitauth";
+  
+  console.log(`[Auth Setup] Primary domain: ${primaryDomain}`);
+  console.log(`[Auth Setup] Callback URL: https://${primaryDomain}/api/callback`);
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
@@ -102,73 +117,25 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  // Parse all configured domains and store them for lookup
-  const configuredDomains: string[] = [];
-  for (const rawDomain of process.env.REPLIT_DOMAINS!.split(",")) {
-    const domain = rawDomain.trim().toLowerCase();
-    if (!domain) continue;
-    configuredDomains.push(domain);
-    const strategy = new Strategy(
-      {
-        name: `replitauth:${domain}`,
-        config,
-        scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
-      },
-      verify,
-    );
-    passport.use(strategy);
-  }
-
-  // Helper to find the best matching strategy for a hostname
-  function findStrategyForHost(hostname: string): string | null {
-    const normalizedHost = hostname.toLowerCase();
-    
-    // Exact match first
-    if (configuredDomains.includes(normalizedHost)) {
-      return `replitauth:${normalizedHost}`;
-    }
-    
-    // Try to match by suffix (e.g., replit.app, replit.dev, repl.co)
-    for (const domain of configuredDomains) {
-      // Check if both are from the same Replit infrastructure
-      const hostParts = normalizedHost.split('.');
-      const domainParts = domain.split('.');
-      
-      // Match replit.app, replit.dev, repl.co domains
-      if (hostParts.length >= 2 && domainParts.length >= 2) {
-        const hostSuffix = hostParts.slice(-2).join('.');
-        const domainSuffix = domainParts.slice(-2).join('.');
-        
-        // If both are Replit domains, use the first configured domain
-        const replitSuffixes = ['replit.app', 'replit.dev', 'repl.co'];
-        if (replitSuffixes.some(s => hostSuffix.includes(s.split('.')[0])) &&
-            replitSuffixes.some(s => domainSuffix.includes(s.split('.')[0]))) {
-          return `replitauth:${domain}`;
-        }
-      }
-    }
-    
-    // Fallback to first configured domain if available
-    if (configuredDomains.length > 0) {
-      console.log(`[Auth] Using fallback domain: ${configuredDomains[0]} for hostname: ${hostname}`);
-      return `replitauth:${configuredDomains[0]}`;
-    }
-    
-    return null;
-  }
+  // Use a single strategy with the primary domain
+  const strategy = new Strategy(
+    {
+      name: strategyName,
+      config,
+      scope: "openid email profile offline_access",
+      callbackURL: `https://${primaryDomain}/api/callback`,
+    },
+    verify,
+  );
+  passport.use(strategy);
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    const strategyName = findStrategyForHost(req.hostname);
-    if (!strategyName) {
-      console.error(`[Auth Login] No strategy found for hostname: ${req.hostname}`);
-      return res.redirect('/login?error=Authentication%20not%20configured');
-    }
+    console.log(`[Auth Login] Initiating login from hostname: ${req.hostname}`);
+    console.log(`[Auth Login] Will callback to: https://${primaryDomain}/api/callback`);
     
-    console.log(`[Auth Login] Using strategy: ${strategyName} for hostname: ${req.hostname}`);
     passport.authenticate(strategyName, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
@@ -176,15 +143,9 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
-    const strategyName = findStrategyForHost(req.hostname);
-    console.log(`[Auth Callback] Processing callback for hostname: ${req.hostname}`);
-    console.log(`[Auth Callback] Using strategy: ${strategyName}`);
+    console.log(`[Auth Callback] Processing callback`);
+    console.log(`[Auth Callback] Hostname: ${req.hostname}`);
     console.log(`[Auth Callback] Query params:`, req.query);
-    
-    if (!strategyName) {
-      console.error(`[Auth Callback] No strategy found for hostname: ${req.hostname}`);
-      return res.redirect('/login?error=Authentication%20not%20configured');
-    }
     
     passport.authenticate(strategyName, (err: any, user: any, info: any) => {
       if (err) {
@@ -214,7 +175,7 @@ export async function setupAuth(app: Express) {
       res.redirect(
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+          post_logout_redirect_uri: `https://${primaryDomain}`,
         }).href
       );
     });
