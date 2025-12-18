@@ -14,9 +14,17 @@ const CSRF_EXEMPT_PATHS = [
   '/live',
   '/api/csrf-token',
   '/api/auth/callback',
+  '/api/callback',
   '/api/login',
   '/api/logout',
-  '/api/__replit'
+  '/api/__replit',
+  '/api/auth/enterprise/login',
+  '/api/auth/enterprise/signup',
+  '/api/auth/enterprise/forgot-password',
+  '/api/auth/enterprise/reset-password',
+  '/api/auth/enterprise/verify-email',
+  '/api/auth/enterprise/logout',
+  '/api/auth/replit'
 ];
 
 // Generate cryptographically secure CSRF token

@@ -305,8 +305,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // Support both Replit OAuth and Enterprise auth with multiple fallbacks:
+      // 1. req.user.claims.sub - Replit OAuth with full claims
+      // 2. req.user.id - Replit OAuth with serialized user object
+      // 3. req.session.userId - Enterprise email/password auth
+      const userId = req.user?.claims?.sub || req.user?.id || req.session?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found in session" });
+      }
+      
       const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
       await auditService.auditFromRequest(
         req,
@@ -317,7 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(user);
     } catch (error: any) {
-      logger.error("Error fetching user", { error: error.message, userId: req.user?.claims?.sub }, req);
+      logger.error("Error fetching user", { error: error.message, userId: req.user?.claims?.sub || req.user?.id || req.session?.userId }, req);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
