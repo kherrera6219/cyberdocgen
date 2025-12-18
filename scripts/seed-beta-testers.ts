@@ -46,6 +46,11 @@ async function seedBetaTesters() {
             accountStatus: 'active',
             firstName: tester.firstName,
             lastName: tester.lastName,
+            isActive: true,
+            twoFactorEnabled: false,
+            passkeyEnabled: false,
+            failedLoginAttempts: 0,
+            accountLockedUntil: null,
           })
           .where(eq(users.email, tester.email));
       } else {
