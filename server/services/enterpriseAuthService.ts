@@ -74,6 +74,9 @@ export class EnterpriseAuthService {
       const emailToken = this.generateSecureToken();
       const tokenExpiry = new Date(Date.now() + this.TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
 
+      // In development, skip email verification for easier testing
+      const skipEmailVerification = process.env.NODE_ENV !== 'production';
+      
       // Create user with enterprise fields
       const [newUser] = await db.insert(users).values({
         email: request.email.toLowerCase(),
@@ -81,8 +84,8 @@ export class EnterpriseAuthService {
         lastName: request.lastName,
         passwordHash,
         phoneNumber: request.phoneNumber,
-        emailVerified: false,
-        accountStatus: 'pending_verification',
+        emailVerified: skipEmailVerification,
+        accountStatus: skipEmailVerification ? 'active' : 'pending_verification',
         twoFactorEnabled: false,
         passkeyEnabled: false,
       }).returning();
@@ -112,7 +115,8 @@ export class EnterpriseAuthService {
       logger.info('Enterprise account created', {
         userId: newUser.id,
         email: request.email.toLowerCase(),
-        requiresEmailVerification: true,
+        requiresEmailVerification: !skipEmailVerification,
+        autoActivated: skipEmailVerification,
       });
 
       return {
