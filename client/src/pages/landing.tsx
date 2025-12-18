@@ -167,7 +167,15 @@ function Footer() {
 
 function DevLoginButton() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    fetch('/api/dev-login/status')
+      .then(res => res.json())
+      .then(data => setIsEnabled(data.enabled))
+      .catch(() => setIsEnabled(false));
+  }, []);
 
   const handleDevLogin = async () => {
     setIsLoading(true);
@@ -188,6 +196,10 @@ function DevLoginButton() {
       setIsLoading(false);
     }
   };
+
+  if (!isEnabled) {
+    return null;
+  }
 
   return (
     <div className="flex justify-center mb-8 px-4">

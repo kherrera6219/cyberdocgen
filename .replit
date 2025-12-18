@@ -44,3 +44,8 @@ expertMode = true
 
 [objectStorage]
 defaultBucketID = "replit-objstore-93b7b08f-8123-4e08-8e29-d4b898b4785d"
+
+[userenv]
+
+[userenv.development]
+DEV_LOGIN_ENABLED = "true"

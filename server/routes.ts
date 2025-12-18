@@ -120,7 +120,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dev login endpoint - creates a session for testing without credentials
+  // SECURITY: Only enabled when DEV_LOGIN_ENABLED=true environment variable is set
+  app.get("/api/dev-login/status", (req, res) => {
+    const isEnabled = process.env.DEV_LOGIN_ENABLED === 'true';
+    res.json({ enabled: isEnabled });
+  });
+
   app.post("/api/dev-login", async (req: any, res) => {
+    // Security gate: Only allow dev login if explicitly enabled
+    if (process.env.DEV_LOGIN_ENABLED !== 'true') {
+      logger.warn('Dev login attempt blocked - feature not enabled');
+      return res.status(404).json({ message: 'Not found' });
+    }
+
     try {
       // Create a temporary user session for testing
       req.session.userId = "dev-tempuser1";
