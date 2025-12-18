@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Router } from "express";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { auditService, AuditAction } from "./services/auditService";
@@ -191,7 +192,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: 'Session not available' });
     }
     
-    const crypto = require('crypto');
     if (!session.csrfToken) {
       session.csrfToken = crypto.randomBytes(32).toString('hex');
     }
