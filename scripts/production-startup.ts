@@ -3,6 +3,7 @@ import { validateEnvironment } from '../server/utils/validation';
 import { logger } from '../server/utils/logger';
 import { performanceService } from '../server/services/performanceService';
 import { db } from '../server/db';
+import { sql } from 'drizzle-orm';
 
 /**
  * Production startup validation and initialization
@@ -19,8 +20,7 @@ async function productionStartup() {
     await db.execute(sql`SELECT 1`);
     logger.info('✅ Database connection verified');
 
-    // 3. Initialize performance monitoring
-    performanceService.reset();
+    // 3. Initialize performance monitoring (auto-initialized on service import)
     logger.info('✅ Performance monitoring initialized');
 
     // 4. Validate encryption setup

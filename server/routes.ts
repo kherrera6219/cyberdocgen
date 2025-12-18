@@ -94,8 +94,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Metrics endpoint for monitoring
-  app.get("/metrics", async (req, res) => {
+  // Metrics endpoint for monitoring - protected by default
+  // Only allow public access if ENABLE_PUBLIC_METRICS=true is explicitly set
+  app.get("/metrics", async (req: any, res) => {
+    const allowPublicMetrics = process.env.ENABLE_PUBLIC_METRICS === 'true';
+    
+    if (!allowPublicMetrics) {
+      // Check for authentication via session or API key
+      const apiKey = req.headers['x-metrics-key'];
+      const hasValidApiKey = process.env.METRICS_API_KEY && apiKey === process.env.METRICS_API_KEY;
+      const isAuthenticated = req.isAuthenticated?.() || req.user;
+      
+      if (!isAuthenticated && !hasValidApiKey) {
+        return res.status(401).json({ error: "Unauthorized - metrics access requires authentication" });
+      }
+    }
+    
     try {
       const metrics = metricsCollector.getMetrics();
       res.json(metrics);
@@ -118,46 +132,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // OpenAPI Documentation - Interactive Swagger UI
-  /**
-   * @openapi
-   * /api-docs:
-   *   get:
-   *     tags: [Documentation]
-   *     summary: Interactive API documentation (Swagger UI)
-   *     description: Access the interactive OpenAPI documentation
-   *     responses:
-   *       200:
-   *         description: Swagger UI HTML page
-   */
-  app.use('/api-docs', swaggerUi.serve);
-  app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'CyberDocGen API Documentation',
-    customfavIcon: '/favicon.ico',
-  }));
+  // Disabled by default in production (when NODE_ENV !== 'development')
+  // Enable with ENABLE_SWAGGER=true if needed
+  const isDevEnvironment = process.env.NODE_ENV === 'development';
+  const enableSwagger = process.env.ENABLE_SWAGGER === 'true';
+  if (isDevEnvironment || enableSwagger) {
+    /**
+     * @openapi
+     * /api-docs:
+     *   get:
+     *     tags: [Documentation]
+     *     summary: Interactive API documentation (Swagger UI)
+     *     description: Access the interactive OpenAPI documentation
+     *     responses:
+     *       200:
+     *         description: Swagger UI HTML page
+     */
+    app.use('/api-docs', swaggerUi.serve);
+    app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'CyberDocGen API Documentation',
+      customfavIcon: '/favicon.ico',
+    }));
 
-  // OpenAPI JSON specification endpoint
-  /**
-   * @openapi
-   * /api-docs.json:
-   *   get:
-   *     tags: [Documentation]
-   *     summary: OpenAPI specification in JSON format
-   *     description: Returns the raw OpenAPI 3.1 specification
-   *     responses:
-   *       200:
-   *         description: OpenAPI specification
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   */
-  app.get('/api-docs.json', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.send(swaggerSpec);
-  });
+    // OpenAPI JSON specification endpoint
+    /**
+     * @openapi
+     * /api-docs.json:
+     *   get:
+     *     tags: [Documentation]
+     *     summary: OpenAPI specification in JSON format
+     *     description: Returns the raw OpenAPI 3.1 specification
+     *     responses:
+     *       200:
+     *         description: OpenAPI specification
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     */
+    app.get('/api-docs.json', (req, res) => {
+      res.setHeader('Content-Type', 'application/json');
+      res.send(swaggerSpec);
+    });
 
-  logger.info('API documentation available at /api-docs');
+    logger.info('API documentation available at /api-docs');
+  } else {
+    logger.info('API documentation disabled in production (set ENABLE_SWAGGER=true to enable)');
+  }
 
   // Auth middleware - IMPORTANT: This must come before any authenticated routes
   await setupAuth(app);
