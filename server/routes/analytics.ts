@@ -113,6 +113,7 @@ export function registerAnalyticsRoutes(router: Router) {
       res.json({
         success: true,
         framework,
+        gaps, // Backward compatibility: top-level gaps array
         summary: {
           totalRequirements,
           implementedControls: implementedCount,
