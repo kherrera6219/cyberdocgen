@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
-import { eq, and, lt, isNull } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { db } from '../db';
 import { users, passwordResetTokens, emailVerificationTokens, passkeyCredentials, mfaSettings } from '@shared/schema';
 import { encryptionService, DataClassification } from './encryption';
@@ -141,13 +141,19 @@ export class EnterpriseAuthService {
   async verifyEmail(token: string, ipAddress?: string): Promise<boolean> {
     try {
       const verification = await db.query.emailVerificationTokens.findFirst({
-        where: and(
-          eq(emailVerificationTokens.token, token),
-          lt(emailVerificationTokens.expiresAt, new Date())
-        ),
+        where: eq(emailVerificationTokens.token, token),
       });
 
       if (!verification || verification.verifiedAt) {
+        return false;
+      }
+      
+      // Check if token has expired
+      if (verification.expiresAt < new Date()) {
+        logger.warn('Email verification token has expired', { 
+          userId: verification.userId,
+          email: verification.email,
+        });
         return false;
       }
 

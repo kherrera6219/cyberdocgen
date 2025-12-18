@@ -118,7 +118,7 @@ router.post('/signup', async (req, res) => {
     
     const result = await enterpriseAuthService.createAccount(validatedData, ipAddress);
     
-    // In production, send email verification here
+    // TODO: Integrate email service (SendGrid/Resend) for production email sending
     // await emailService.sendVerificationEmail(result.user.email, result.emailToken);
     
     logger.info('Enterprise account creation initiated', {
@@ -127,12 +127,20 @@ router.post('/signup', async (req, res) => {
       requiresEmailVerification: true,
     });
 
+    // In development, provide the token directly for testing
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    
     res.status(201).json({
       success: true,
-      message: 'Account created successfully. Please check your email for verification.',
+      message: isDevelopment 
+        ? 'Account created! Use the verification token below to verify your email (development mode).'
+        : 'Account created successfully. Please check your email for verification.',
       user: result.user,
-      // Don't send token in production - it should be emailed
-      emailVerificationToken: result.emailToken, // DEV ONLY
+      // Include token in development for testing
+      ...(isDevelopment && { 
+        emailVerificationToken: result.emailToken,
+        verificationUrl: `/api/enterprise-auth/verify-email?token=${result.emailToken}`,
+      }),
     });
   } catch (error: any) {
     logger.error('Account creation failed', { error: error.message });
@@ -153,7 +161,7 @@ router.post('/signup', async (req, res) => {
 });
 
 /**
- * Verify email address
+ * Verify email address (POST)
  */
 router.post('/verify-email', async (req, res) => {
   try {
@@ -179,6 +187,40 @@ router.post('/verify-email', async (req, res) => {
       success: false,
       message: 'Email verification failed',
       errors: error.issues || [{ message: error.message }],
+    });
+  }
+});
+
+/**
+ * Verify email address (GET - for email link clicks)
+ */
+router.get('/verify-email', async (req, res) => {
+  try {
+    const token = req.query.token as string;
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token is required',
+      });
+    }
+    
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const verified = await enterpriseAuthService.verifyEmail(token, ipAddress);
+    
+    if (!verified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification token',
+      });
+    }
+
+    // Redirect to login page after successful verification
+    res.redirect('/enterprise-login?verified=true');
+  } catch (error: any) {
+    logger.error('Email verification failed', { error: error.message });
+    res.status(400).json({
+      success: false,
+      message: 'Email verification failed',
     });
   }
 });

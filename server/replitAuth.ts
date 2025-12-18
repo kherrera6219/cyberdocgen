@@ -102,8 +102,10 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
+  for (const rawDomain of process.env
     .REPLIT_DOMAINS!.split(",")) {
+    const domain = rawDomain.trim().toLowerCase();
+    if (!domain) continue;
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
