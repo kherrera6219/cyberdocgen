@@ -17,9 +17,17 @@ declare global {
  */
 export function requireMFA(req: Request & any, res: Response, next: NextFunction) {
   try {
-    const userId = req.user?.claims?.sub;
+    // Get userId from either OAuth claims, session userId (enterprise/temp), or serialized user
+    const userId = req.user?.claims?.sub || req.session?.userId || req.user?.id;
     const userAgent = req.get('User-Agent') || 'unknown';
     const ipAddress = req.ip;
+
+    // Bypass MFA for temporary sessions - they are demo accounts
+    if (req.session?.isTemporary || (typeof userId === 'string' && userId.startsWith('temp-'))) {
+      req.mfaRequired = false;
+      req.mfaVerified = true;
+      return next();
+    }
 
     if (!userId) {
       return res.status(401).json({ 

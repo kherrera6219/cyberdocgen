@@ -8,6 +8,7 @@ import {
   BarChart3, Clock, Award, Building2, ChevronRight, Menu, X, Sparkles,
   Brain, Cpu, Mail, MapPin
 } from "lucide-react";
+import { TemporaryLoginDialog } from "@/components/TemporaryLoginDialog";
 
 function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -42,13 +43,13 @@ function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login">
-              <Button 
-                data-testid="header-login-button"
-              >
-                Sign In
-              </Button>
-            </Link>
+            <TemporaryLoginDialog 
+              trigger={
+                <Button data-testid="header-login-button">
+                  Login
+                </Button>
+              }
+            />
           </div>
 
           <button 
@@ -76,7 +77,9 @@ function Header() {
                 <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Contact</span>
               </Link>
               <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <Link href="/login"><Button>Sign In</Button></Link>
+                <TemporaryLoginDialog 
+                  trigger={<Button className="w-full">Login</Button>}
+                />
               </div>
             </nav>
           </div>
@@ -201,16 +204,18 @@ export function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6 px-4">
-              <Link href="/login">
-                <Button 
-                  size="lg" 
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
-                  data-testid="button-get-started"
-                >
-                  Sign In
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              <TemporaryLoginDialog 
+                trigger={
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
+                    data-testid="button-get-started"
+                  >
+                    Login
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                }
+              />
 
               <Button 
                 variant="outline" 
@@ -396,16 +401,18 @@ export function Landing() {
             Experience the future of AI-powered compliance documentation. Contact us to request beta access.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
-              <Button 
-                size="lg" 
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-md shadow-lg transition-all duration-300"
-                data-testid="button-start-free-trial"
-              >
-                Sign In
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+            <TemporaryLoginDialog 
+              trigger={
+                <Button 
+                  size="lg" 
+                  className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-md shadow-lg transition-all duration-300"
+                  data-testid="button-start-free-trial"
+                >
+                  Login
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              }
+            />
             <Link href="/contact">
               <Button 
                 variant="outline" 

@@ -25,12 +25,14 @@ export function useAuth() {
     gcTime: 1000 * 60 * 10, // 10 minutes
   });
 
-  // Only show loading if we're actually fetching and have no data
   const showLoading = status === 'pending' && isFetching;
+
+  const isTemporaryUser = user?.id?.startsWith('temp-') || user?.isTemporary === true;
 
   return {
     user,
     isLoading: showLoading,
     isAuthenticated: !!user,
+    isTemporaryUser,
   };
 }

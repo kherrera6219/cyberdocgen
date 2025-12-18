@@ -218,6 +218,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // Temporary login endpoint - creates a demo session for testing
+  // This is a workaround while the main authentication system is being fixed
+  // Rate limited to prevent abuse
+  const tempLoginLimiter = new Map<string, { count: number; resetTime: number }>();
+  
+  app.post('/api/auth/temp-login', async (req: any, res) => {
+    try {
+      // Simple rate limiting by IP
+      const clientIp = req.ip || 'unknown';
+      const now = Date.now();
+      const rateLimit = tempLoginLimiter.get(clientIp);
+      
+      if (rateLimit) {
+        if (now < rateLimit.resetTime) {
+          if (rateLimit.count >= 5) {
+            return res.status(429).json({ message: 'Too many login attempts. Please try again later.' });
+          }
+          rateLimit.count++;
+        } else {
+          tempLoginLimiter.set(clientIp, { count: 1, resetTime: now + 60000 });
+        }
+      } else {
+        tempLoginLimiter.set(clientIp, { count: 1, resetTime: now + 60000 });
+      }
+      
+      const { name, email } = req.body;
+      
+      if (!name || !email) {
+        return res.status(400).json({ message: 'Name and email are required' });
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
+      }
+      
+      // Sanitize inputs
+      const sanitizedName = name.trim().slice(0, 100);
+      const sanitizedEmail = email.trim().toLowerCase().slice(0, 255);
+      
+      // Create a temporary user ID based on email
+      const tempUserId = `temp-${crypto.createHash('sha256').update(sanitizedEmail).digest('hex').slice(0, 16)}`;
+      
+      // Create or update the temporary user in storage
+      await storage.upsertUser({
+        id: tempUserId,
+        email: sanitizedEmail,
+        firstName: sanitizedName.split(' ')[0] || sanitizedName,
+        lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
+        profileImageUrl: null,
+      });
+      
+      // Set the session userId to enable authenticated routes
+      req.session.userId = tempUserId;
+      req.session.isTemporary = true;
+      req.session.tempUserName = sanitizedName;
+      req.session.tempUserEmail = sanitizedEmail;
+      // Auto-verify MFA for temp sessions
+      req.session.mfaVerified = true;
+      req.session.mfaVerifiedAt = new Date().toISOString();
+      
+      // Save session explicitly
+      req.session.save((err: any) => {
+        if (err) {
+          logger.error('Failed to save temp session', { error: err.message });
+          return res.status(500).json({ message: 'Failed to create session' });
+        }
+        
+        logger.info('Temporary login successful', { userId: tempUserId, email: sanitizedEmail });
+        
+        res.json({
+          success: true,
+          user: {
+            id: tempUserId,
+            email: sanitizedEmail,
+            displayName: sanitizedName,
+            firstName: sanitizedName.split(' ')[0] || sanitizedName,
+            lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
+            isTemporary: true,
+          }
+        });
+      });
+    } catch (error: any) {
+      logger.error('Temporary login failed', { error: error.message });
+      res.status(500).json({ message: 'Login failed', error: error.message });
+    }
+  });
+
+  // Temporary logout endpoint
+  app.post('/api/auth/temp-logout', (req: any, res) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        logger.error('Failed to destroy temp session', { error: err.message });
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.clearCookie('connect.sid');
+      res.json({ success: true });
+    });
+  });
+
   /**
    * @openapi
    * /api/contact-messages:
