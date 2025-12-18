@@ -119,6 +119,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dev login endpoint - creates a session for testing without credentials
+  app.post("/api/dev-login", async (req: any, res) => {
+    try {
+      // Create a temporary user session for testing
+      req.session.userId = "dev-tempuser1";
+      req.session.email = "tempuser1@demo.cyberdocgen.com";
+      req.session.isDevUser = true;
+      
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      
+      logger.info('Dev user logged in', { userId: 'dev-tempuser1' });
+      
+      res.json({
+        success: true,
+        message: 'Dev login successful',
+        user: {
+          id: 'dev-tempuser1',
+          email: 'tempuser1@demo.cyberdocgen.com',
+          firstName: 'Demo',
+          lastName: 'User',
+        }
+      });
+    } catch (error: any) {
+      logger.error('Dev login failed', { error: error.message });
+      res.status(500).json({ success: false, message: 'Dev login failed' });
+    }
+  });
+
   // Public health check endpoint - must be before auth setup
   app.get("/api/ai/health", async (req: any, res) => {
     try {

@@ -1,14 +1,14 @@
-import { useEffect } from "react";
-import { Link } from "wouter";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Shield, FileText, CheckCircle, Users, ArrowRight, Zap, Globe, Lock, 
   BarChart3, Clock, Award, Building2, ChevronRight, Menu, X, Sparkles,
-  Brain, Cpu, Mail, MapPin
+  Brain, Cpu, Mail, MapPin, Play
 } from "lucide-react";
-import { useState } from "react";
+import { queryClient } from "@/lib/queryClient";
 
 function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -165,6 +165,47 @@ function Footer() {
   );
 }
 
+function DevLoginButton() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [, setLocation] = useLocation();
+
+  const handleDevLogin = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/dev-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      
+      if (response.ok) {
+        await queryClient.invalidateQueries();
+        setLocation('/home');
+      }
+    } catch (error) {
+      console.error('Dev login failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex justify-center mb-8 px-4">
+      <Button 
+        size="lg"
+        variant="secondary"
+        className="bg-green-600 text-white border-green-700 px-6 py-3 rounded-md"
+        onClick={handleDevLogin}
+        disabled={isLoading}
+        data-testid="button-dev-login"
+      >
+        <Play className="mr-2 h-5 w-5" />
+        {isLoading ? 'Logging in...' : 'Try Demo (No Login Required)'}
+      </Button>
+    </div>
+  );
+}
+
 export function Landing() {
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -209,7 +250,7 @@ export function Landing() {
               Generate audit-ready documentation for ISO 27001, SOC 2, FedRAMP, and NIST frameworks in minutes, not months. Multi-model AI for superior results.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 px-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6 px-4">
               <Button 
                 size="lg" 
                 className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
@@ -231,6 +272,8 @@ export function Landing() {
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
+
+            <DevLoginButton />
 
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-8 text-sm text-gray-500 dark:text-gray-400 px-4">
               <div className="flex items-center space-x-2">
