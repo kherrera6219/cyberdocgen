@@ -156,6 +156,7 @@ export const generalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getRateLimitKey,
+  validate: { ip: false, trustProxy: false },
   handler: (req, res) => {
     logger.warn('Rate limit exceeded', {
       ip: req.ip,
@@ -179,6 +180,7 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   // Auth endpoints use IP only (users aren't authenticated yet)
   keyGenerator: (req) => req.ip || 'unknown',
+  validate: { ip: false, trustProxy: false },
   skipSuccessfulRequests: true, // Only count failed attempts
   handler: (req, res) => {
     logger.warn('Auth rate limit exceeded', {
@@ -200,6 +202,7 @@ export const generationLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getRateLimitKey,
+  validate: { ip: false, trustProxy: false },
   handler: (req, res) => {
     logger.warn('Generation rate limit exceeded', {
       ip: req.ip,
@@ -223,6 +226,7 @@ export const aiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: getRateLimitKey,
+  validate: { ip: false, trustProxy: false },
   handler: (req, res) => {
     logger.warn('AI rate limit exceeded', {
       ip: req.ip,
@@ -333,9 +337,15 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   res.setHeader('Permissions-Policy', permissionsPolicy);
 
   // Cross-Origin policies for enhanced security
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  // Relaxed in development for Replit iframe embedding
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  } else {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
 
   // Content Security Policy with nonce-based inline script/style support
   const cspDirectives = [
@@ -343,7 +353,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     // Use nonce for inline scripts instead of unsafe-inline
     process.env.NODE_ENV === 'production'
       ? `script-src 'self' 'nonce-${nonce}' https://apis.google.com`
-      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com`,
+      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://replit.com`,
     // Use nonce for inline styles instead of unsafe-inline
     process.env.NODE_ENV === 'production'
       ? `style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com`
@@ -351,12 +361,15 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     "img-src 'self' data: https:",
     "connect-src 'self' ws: wss: https://api.openai.com https://api.anthropic.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "frame-ancestors 'none'",
+    // Allow framing from Replit domains in development
+    process.env.NODE_ENV === 'production'
+      ? "frame-ancestors 'none'"
+      : "frame-ancestors 'self' https://*.replit.dev https://*.replit.app https://*.repl.co",
     "form-action 'self'",
     "base-uri 'self'",
     "object-src 'none'",
-    "upgrade-insecure-requests"
-  ];
+    process.env.NODE_ENV === 'production' ? "upgrade-insecure-requests" : ""
+  ].filter(Boolean);
   res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
 
   // HSTS in production with preload
