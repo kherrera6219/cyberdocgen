@@ -64,7 +64,7 @@ export default function MobileSidebar({ onClose }: MobileSidebarProps) {
               <path fillRule="evenodd" d="M9.38 2.21a.75.75 0 01.24 0l7 2.5a.75.75 0 01.5.7v11.84a.75.75 0 01-.5.7l-7 2.5a.75.75 0 01-.48 0l-7-2.5a.75.75 0 01-.5-.7V5.41a.75.75 0 01.5-.7l7-2.5zM10 3.73L4.25 5.75v8.5L10 16.27l5.75-2.02v-8.5L10 3.73z" clipRule="evenodd" />
             </svg>
           </div>
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white">ComplianceAI</h1>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-white">CyberDocGen</h1>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
           <X className="h-5 w-5" />

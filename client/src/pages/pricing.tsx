@@ -1,7 +1,8 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, CheckCircle, ArrowRight, Menu, X, Zap, HelpCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Shield, CheckCircle, ArrowRight, Menu, X, Zap, HelpCircle, Mail, MapPin, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 
 function Header() {
@@ -15,8 +16,9 @@ function Header() {
             <div className="flex items-center gap-2 cursor-pointer">
               <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ComplianceAI
+                CyberDocGen
               </span>
+              <Badge variant="secondary" className="ml-2 text-xs">Beta</Badge>
             </div>
           </Link>
 
@@ -29,7 +31,7 @@ function Header() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login"><Button variant="ghost">Sign In</Button></Link>
-            <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+            <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -46,7 +48,7 @@ function Header() {
               <Link href="/contact"><span className="block px-3 py-2 text-sm font-medium">Contact</span></Link>
               <div className="flex flex-col gap-2 pt-3 border-t">
                 <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
               </div>
             </nav>
           </div>
@@ -60,17 +62,25 @@ function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">ComplianceAI</span>
+            <span className="font-bold">CyberDocGen</span>
+            <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
+          </div>
+          <div className="text-center md:text-left">
+            <p className="text-gray-400 text-sm">A product of Lucentry.ai LLC</p>
+            <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
+              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
+              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
+            </div>
           </div>
           <div className="flex gap-6 text-sm text-gray-400">
             <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
             <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
             <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
           </div>
-          <p className="text-gray-400 text-sm">2024 ComplianceAI. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">2025 Lucentry.ai LLC</p>
         </div>
       </div>
     </footer>
@@ -78,8 +88,6 @@ function Footer() {
 }
 
 export default function Pricing() {
-  const [isAnnual, setIsAnnual] = useState(true);
-
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
     if (savedTheme === "dark") {
@@ -93,42 +101,34 @@ export default function Pricing() {
     {
       name: "Starter",
       description: "Perfect for small teams getting started with compliance",
-      monthlyPrice: 299,
-      annualPrice: 249,
       features: [
         "1 compliance framework",
         "Up to 5 team members",
-        "AI document generation (50/mo)",
+        "AI document generation",
         "Basic gap analysis",
         "Email support",
         "Standard templates",
       ],
-      cta: "Start Free Trial",
       popular: false,
     },
     {
       name: "Professional",
       description: "For growing organizations with multiple compliance needs",
-      monthlyPrice: 799,
-      annualPrice: 649,
       features: [
         "3 compliance frameworks",
         "Up to 20 team members",
-        "AI document generation (200/mo)",
+        "Unlimited AI generation",
         "Advanced gap analysis",
         "Priority support",
         "Custom templates",
         "Approval workflows",
         "Auditor workspace",
       ],
-      cta: "Start Free Trial",
       popular: true,
     },
     {
       name: "Enterprise",
       description: "For large organizations with advanced requirements",
-      monthlyPrice: null,
-      annualPrice: null,
       features: [
         "Unlimited frameworks",
         "Unlimited team members",
@@ -142,35 +142,34 @@ export default function Pricing() {
         "Custom integrations",
         "Dedicated account manager",
       ],
-      cta: "Contact Sales",
       popular: false,
     },
   ];
 
   const faqs = [
     {
-      question: "What's included in the free trial?",
-      answer: "The 14-day free trial includes full access to all features in your selected plan. No credit card required to start."
+      question: "Is CyberDocGen free during beta?",
+      answer: "Yes! During the beta period, all features are available free of charge. We'll notify beta users before transitioning to paid plans."
     },
     {
-      question: "Can I change plans later?",
-      answer: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect on your next billing cycle."
+      question: "When will pricing be available?",
+      answer: "Pricing will be announced when we launch out of beta. Beta users will receive special early-adopter pricing."
     },
     {
-      question: "Do you offer discounts for nonprofits?",
-      answer: "Yes, we offer special pricing for nonprofits, educational institutions, and startups. Contact our sales team for details."
+      question: "What AI models are included?",
+      answer: "All plans include access to GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro with intelligent model routing."
     },
     {
-      question: "What happens to my data if I cancel?",
-      answer: "You can export all your data before cancellation. We retain data for 30 days after cancellation in case you change your mind."
+      question: "Can I export my data?",
+      answer: "Yes, you can export all your documents and data at any time in standard formats."
     },
     {
-      question: "Is there a setup fee?",
-      answer: "No, there are no setup fees for Starter or Professional plans. Enterprise plans may include implementation services."
+      question: "Is my data secure?",
+      answer: "Absolutely. We use AES-256 encryption, multi-factor authentication, and role-based access controls."
     },
     {
-      question: "Do you offer refunds?",
-      answer: "We offer a 30-day money-back guarantee for annual subscriptions if you're not satisfied with the service."
+      question: "How do I get beta access?",
+      answer: "Click the 'Request Beta Access' button to sign up. We're accepting new users on a rolling basis."
     }
   ];
 
@@ -181,34 +180,26 @@ export default function Pricing() {
       {/* Hero Section */}
       <div className="pt-32 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge variant="secondary" className="mb-6">
+            <Sparkles className="h-3 w-3 mr-1" />
+            Free During Beta
+          </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            Simple, Transparent Pricing
+            Pricing Coming Soon
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
-            Choose the plan that fits your organization's compliance needs. All plans include a 14-day free trial.
+            CyberDocGen is currently in beta. All features are available free during the beta period. 
+            Join now to lock in early-adopter pricing when we launch.
           </p>
 
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-4 mb-12">
-            <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isAnnual ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-              data-testid="toggle-billing-period"
-            >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-1'}`} />
-            </button>
-            <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
-              Annual
-              <span className="ml-1 text-green-600 dark:text-green-400">(Save 20%)</span>
-            </span>
-          </div>
+          <Button size="lg" onClick={() => window.location.href = '/api/login'} data-testid="button-request-beta">
+            Request Beta Access
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
         </div>
       </div>
 
-      {/* Pricing Cards */}
+      {/* Pricing Cards - Coming Soon */}
       <div className="pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8">
@@ -231,21 +222,12 @@ export default function Pricing() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-center mb-6">
-                    {plan.monthlyPrice !== null ? (
-                      <>
-                        <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                          ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                        </span>
-                        <span className="text-gray-500 dark:text-gray-400">/month</span>
-                        {isAnnual && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Billed annually (${plan.annualPrice! * 12}/year)
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-4xl font-bold text-gray-900 dark:text-white">Custom</span>
-                    )}
+                    <Badge variant="outline" className="text-lg px-4 py-2">
+                      Coming Soon
+                    </Badge>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                      Free during beta
+                    </p>
                   </div>
 
                   <ul className="space-y-3 mb-8">
@@ -260,10 +242,10 @@ export default function Pricing() {
                   <Button 
                     className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
-                    onClick={() => plan.monthlyPrice !== null ? window.location.href = '/api/login' : window.location.href = '/contact'}
+                    onClick={() => window.location.href = '/api/login'}
                     data-testid={`button-${plan.name.toLowerCase()}-cta`}
                   >
-                    {plan.cta}
+                    Request Beta Access
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </CardContent>
@@ -291,7 +273,8 @@ export default function Pricing() {
                 {[
                   { feature: "Team members", starter: "5", pro: "20", enterprise: "Unlimited" },
                   { feature: "Compliance frameworks", starter: "1", pro: "3", enterprise: "Unlimited" },
-                  { feature: "AI generations/month", starter: "50", pro: "200", enterprise: "Unlimited" },
+                  { feature: "AI generations/month", starter: "50", pro: "500", enterprise: "Unlimited" },
+                  { feature: "AI Models (GPT-5.1, Claude, Gemini)", starter: "Yes", pro: "Yes", enterprise: "Yes" },
                   { feature: "Document storage", starter: "10 GB", pro: "100 GB", enterprise: "Unlimited" },
                   { feature: "Gap analysis", starter: "Basic", pro: "Advanced", enterprise: "Full suite" },
                   { feature: "Approval workflows", starter: "-", pro: "Yes", enterprise: "Yes" },
@@ -339,18 +322,19 @@ export default function Pricing() {
       {/* CTA Section */}
       <div className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center px-4">
+          <Badge variant="secondary" className="mb-4 bg-white/20 text-white border-white/30">Beta Program</Badge>
           <h2 className="text-3xl font-bold text-white mb-6">Ready to Get Started?</h2>
           <p className="text-xl text-blue-100 mb-8">
-            Start your 14-day free trial today. No credit card required.
+            Join our beta program today and get free access to all features. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = '/api/login'} data-testid="button-start-trial-footer">
-              Start Free Trial
+              Request Beta Access
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Link href="/contact">
               <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-contact-sales-footer">
-                Contact Sales
+                Contact Us
               </Button>
             </Link>
           </div>

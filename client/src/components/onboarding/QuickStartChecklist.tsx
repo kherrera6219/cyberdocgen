@@ -87,7 +87,7 @@ export function QuickStartChecklist({ className }: QuickStartChecklistProps) {
           <div>
             <CardTitle className="text-lg">Quick Start Checklist</CardTitle>
             <CardDescription>
-              Complete these steps to get the most out of ComplianceAI
+              Complete these steps to get the most out of CyberDocGen
             </CardDescription>
           </div>
           <Button 

@@ -2,9 +2,11 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
   Shield, FileText, CheckCircle, Users, ArrowRight, Zap, Globe, Lock, 
-  BarChart3, Clock, Award, Building2, Star, ChevronRight, Menu, X
+  BarChart3, Clock, Award, Building2, ChevronRight, Menu, X, Sparkles,
+  Brain, Cpu, Mail, MapPin
 } from "lucide-react";
 import { useState } from "react";
 
@@ -19,8 +21,9 @@ function Header() {
             <div className="flex items-center gap-2 cursor-pointer">
               <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ComplianceAI
+                CyberDocGen
               </span>
+              <Badge variant="secondary" className="ml-2 text-xs">Beta</Badge>
             </div>
           </Link>
 
@@ -52,7 +55,7 @@ function Header() {
               onClick={() => window.location.href = '/api/login'}
               data-testid="header-get-started-button"
             >
-              Get Started
+              Request Beta Access
             </Button>
           </div>
 
@@ -82,7 +85,7 @@ function Header() {
               </Link>
               <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
                 <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
               </div>
             </nav>
           </div>
@@ -100,11 +103,21 @@ function Footer() {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <Shield className="h-8 w-8 text-blue-400" />
-              <span className="text-xl font-bold">ComplianceAI</span>
+              <span className="text-xl font-bold">CyberDocGen</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">
-              Enterprise-grade compliance automation powered by AI. Streamline your security documentation journey.
+              Enterprise-grade compliance automation powered by AI. A product of Lucentry.ai LLC.
             </p>
+            <div className="space-y-2 text-sm text-gray-400">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                <a href="mailto:CEO@lucentry.ai" className="hover:text-white transition-colors">CEO@lucentry.ai</a>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>Sacramento, CA</span>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -140,12 +153,11 @@ function Footer() {
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-gray-400 text-sm">
-            2024 ComplianceAI. All rights reserved.
+            2025 Lucentry.ai LLC. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-gray-400">
-            <span className="text-sm">SOC 2 Certified</span>
-            <span className="text-sm">ISO 27001 Certified</span>
-            <span className="text-sm">GDPR Compliant</span>
+            <Badge variant="outline" className="border-gray-600 text-gray-400">Beta</Badge>
+            <span className="text-sm">Building the future of compliance</span>
           </div>
         </div>
       </div>
@@ -166,32 +178,10 @@ export function Landing() {
     }
   }, []);
 
-  const stats = [
-    { value: "500+", label: "Enterprise Customers" },
-    { value: "10M+", label: "Documents Generated" },
-    { value: "99.9%", label: "Uptime SLA" },
-    { value: "4.9/5", label: "Customer Rating" },
-  ];
-
-  const testimonials = [
-    {
-      quote: "ComplianceAI reduced our SOC 2 preparation time from 6 months to just 6 weeks. The AI-generated documentation was comprehensive and audit-ready.",
-      author: "Sarah Chen",
-      role: "CISO",
-      company: "TechScale Inc.",
-    },
-    {
-      quote: "The multi-framework support allowed us to tackle ISO 27001 and SOC 2 simultaneously. A game-changer for our compliance team.",
-      author: "Michael Rodriguez",
-      role: "VP of Security",
-      company: "CloudFirst Solutions",
-    },
-    {
-      quote: "Finally, a compliance tool that understands the nuances of FedRAMP. Our authorization process has never been smoother.",
-      author: "Jennifer Walsh",
-      role: "Compliance Director",
-      company: "GovTech Partners",
-    },
+  const aiModels = [
+    { name: "GPT-5.1", provider: "OpenAI", icon: Brain },
+    { name: "Claude Opus 4.5", provider: "Anthropic", icon: Sparkles },
+    { name: "Gemini 3.0 Pro", provider: "Google", icon: Cpu },
   ];
 
   return (
@@ -203,9 +193,9 @@ export function Landing() {
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-12 sm:pb-16">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
-              <Zap className="h-4 w-4" />
-              <span>Now with GPT-4 powered document generation</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
+              <Sparkles className="h-4 w-4" />
+              <span>Now in Beta - Powered by GPT-5.1, Claude Opus 4.5 & Gemini 3.0</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight px-2">
@@ -216,7 +206,7 @@ export function Landing() {
             </h1>
 
             <p className="text-base sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed px-4">
-              Generate audit-ready documentation for ISO 27001, SOC 2, FedRAMP, and NIST frameworks in minutes, not months. Trusted by 500+ enterprises worldwide.
+              Generate audit-ready documentation for ISO 27001, SOC 2, FedRAMP, and NIST frameworks in minutes, not months. Multi-model AI for superior results.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 px-4">
@@ -226,7 +216,7 @@ export function Landing() {
                 onClick={() => window.location.href = '/api/login'}
                 data-testid="button-get-started"
               >
-                Start Free Trial
+                Request Beta Access
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
 
@@ -245,34 +235,43 @@ export function Landing() {
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-8 text-sm text-gray-500 dark:text-gray-400 px-4">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                <span>14-day free trial</span>
+                <span>Free during beta</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Lock className="h-4 w-4 text-green-500 flex-shrink-0" />
-                <span>SOC 2 Type II certified</span>
+                <span>Enterprise-grade security</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4 text-green-500 flex-shrink-0" />
-                <span>Unlimited team members</span>
+                <span>Multi-tenant support</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Section */}
+      {/* AI Models Section */}
       <div className="py-16 bg-white dark:bg-gray-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {stat.label}
-                </div>
-              </div>
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Powered by Leading AI Models
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Intelligent model selection routes your requests to the best AI for each task
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {aiModels.map((model) => (
+              <Card key={model.name} className="border-0 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 shadow-sm text-center">
+                <CardContent className="pt-8 pb-6">
+                  <div className="mx-auto mb-4 p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full w-fit">
+                    <model.icon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{model.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{model.provider}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -301,8 +300,8 @@ export function Landing() {
             ].map((feature, index) => (
               <Card key={index} className="group border-0 bg-white dark:bg-gray-800/80 shadow-sm hover:shadow-lg transition-all duration-300">
                 <CardHeader className="pb-4">
-                  <div className={`mb-4 p-3 bg-${feature.color}-100 dark:bg-${feature.color}-900/30 rounded-lg w-fit`}>
-                    <feature.icon className={`h-6 w-6 text-${feature.color}-600 dark:text-${feature.color}-400`} />
+                  <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg w-fit">
+                    <feature.icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <CardTitle className="text-xl text-gray-900 dark:text-white">{feature.title}</CardTitle>
                 </CardHeader>
@@ -362,39 +361,29 @@ export function Landing() {
         </div>
       </div>
 
-      {/* Testimonials Section */}
+      {/* Security & Trust Section */}
       <div className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Trusted by Security Leaders
+              Built with Security First
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              See what compliance professionals are saying about ComplianceAI
+              Your compliance data deserves enterprise-grade protection
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 bg-white dark:bg-gray-800 shadow-sm">
-                <CardContent className="pt-6">
-                  <div className="flex gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6 italic">
-                    "{testimonial.quote}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                      {testimonial.author.charAt(0)}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">{testimonial.author}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{testimonial.role}, {testimonial.company}</div>
-                    </div>
-                  </div>
+            {[
+              { title: "AES-256 Encryption", description: "All data encrypted at rest and in transit with field-level encryption support" },
+              { title: "Multi-Factor Auth", description: "TOTP and passkey support with comprehensive audit logging" },
+              { title: "Role-Based Access", description: "Granular permissions with multi-tenant isolation" },
+            ].map((item, index) => (
+              <Card key={index} className="border-0 bg-white dark:bg-gray-800 shadow-sm text-center">
+                <CardContent className="pt-8">
+                  <Lock className="h-12 w-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{item.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">{item.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -405,11 +394,14 @@ export function Landing() {
       {/* CTA Section */}
       <div className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <Badge variant="secondary" className="mb-6 bg-white/20 text-white border-white/30">
+            Now in Beta
+          </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Automate Your Compliance?
+            Ready to Transform Your Compliance?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join 500+ organizations who trust ComplianceAI to streamline their security documentation and accelerate their compliance journey.
+            Join our beta program and experience the future of AI-powered compliance documentation. Free during the beta period.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -418,7 +410,7 @@ export function Landing() {
               onClick={() => window.location.href = '/api/login'}
               data-testid="button-start-free-trial"
             >
-              Start Free Trial
+              Request Beta Access
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Link href="/contact">
@@ -428,7 +420,7 @@ export function Landing() {
                 className="border-white text-white hover:bg-white/10 px-8 py-4 rounded-md"
                 data-testid="button-contact-sales"
               >
-                Contact Sales
+                Contact Us
               </Button>
             </Link>
           </div>

@@ -175,7 +175,7 @@ export default function EnterpriseSignup() {
           </div>
           <CardTitle className="text-2xl">Create Enterprise Account</CardTitle>
           <CardDescription>
-            Join ComplianceAI with enterprise-grade security and authentication options
+            Join CyberDocGen with enterprise-grade security and authentication options
           </CardDescription>
         </CardHeader>
         <CardContent>

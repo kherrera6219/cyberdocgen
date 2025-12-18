@@ -103,7 +103,7 @@ export function Home() {
   const aiFeatures = [
     {
       title: "AI Document Generator",
-      description: "Generate complete compliance documents using GPT-4 and Claude AI models",
+      description: "Generate complete compliance documents using GPT-5.1, Claude Opus 4.5 & Gemini 3.0",
       icon: Wand2,
       href: "/ai-doc-generator",
       color: "from-blue-500 to-purple-500",

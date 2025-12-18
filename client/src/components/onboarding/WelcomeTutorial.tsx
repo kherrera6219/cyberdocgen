@@ -18,7 +18,7 @@ interface TutorialStep {
 const tutorialSteps: TutorialStep[] = [
   {
     id: "welcome",
-    title: "Welcome to ComplianceAI",
+    title: "Welcome to CyberDocGen",
     description: "Your AI-powered compliance documentation platform. Let's get you started with a quick tour of the key features.",
     icon: <Lightbulb className="h-6 w-6 text-blue-500" />
   },

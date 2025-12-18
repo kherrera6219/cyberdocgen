@@ -15,7 +15,7 @@ function Header() {
             <div className="flex items-center gap-2 cursor-pointer">
               <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ComplianceAI
+                CyberDocGen
               </span>
             </div>
           </Link>
@@ -63,14 +63,14 @@ function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">ComplianceAI</span>
+            <span className="font-bold">CyberDocGen</span>
           </div>
           <div className="flex gap-6 text-sm text-gray-400">
             <Link href="/privacy"><span className="text-white cursor-pointer">Privacy</span></Link>
             <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
             <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
           </div>
-          <p className="text-gray-400 text-sm">2024 ComplianceAI. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">2025 CyberDocGen by Lucentry.ai LLC. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -100,10 +100,10 @@ export default function Privacy() {
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">1. Introduction</h2>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                ComplianceAI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our compliance automation platform and related services.
+                CyberDocGen ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our compliance automation platform and related services.
               </p>
               <p className="text-gray-600 dark:text-gray-300">
-                By using ComplianceAI, you agree to the collection and use of information in accordance with this policy. If you do not agree with our policies and practices, please do not use our services.
+                By using CyberDocGen, you agree to the collection and use of information in accordance with this policy. If you do not agree with our policies and practices, please do not use our services.
               </p>
             </section>
 
@@ -212,8 +212,8 @@ export default function Privacy() {
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
               <ul className="list-none text-gray-600 dark:text-gray-300 mt-4 space-y-2">
-                <li>Email: privacy@complianceai.com</li>
-                <li>Address: 123 Market Street, Suite 500, San Francisco, CA 94105</li>
+                <li>Email: CEO@lucentry.ai</li>
+                <li>Address: Sacramento, CA</li>
               </ul>
             </section>
           </div>

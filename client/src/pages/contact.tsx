@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Mail, Phone, MapPin, MessageSquare, Send, Menu, X, Clock, CheckCircle } from "lucide-react";
+import { Shield, Mail, MapPin, MessageSquare, Send, Menu, X, Clock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 function Header() {
@@ -20,8 +21,9 @@ function Header() {
             <div className="flex items-center gap-2 cursor-pointer">
               <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ComplianceAI
+                CyberDocGen
               </span>
+              <Badge variant="secondary" className="ml-2 text-xs">Beta</Badge>
             </div>
           </Link>
 
@@ -34,7 +36,7 @@ function Header() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login"><Button variant="ghost">Sign In</Button></Link>
-            <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+            <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -51,7 +53,7 @@ function Header() {
               <Link href="/contact"><span className="block px-3 py-2 text-sm font-medium text-blue-600">Contact</span></Link>
               <div className="flex flex-col gap-2 pt-3 border-t">
                 <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
               </div>
             </nav>
           </div>
@@ -65,17 +67,25 @@ function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">ComplianceAI</span>
+            <span className="font-bold">CyberDocGen</span>
+            <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
+          </div>
+          <div className="text-center md:text-left">
+            <p className="text-gray-400 text-sm">A product of Lucentry.ai LLC</p>
+            <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
+              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
+              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
+            </div>
           </div>
           <div className="flex gap-6 text-sm text-gray-400">
             <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
             <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
             <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
           </div>
-          <p className="text-gray-400 text-sm">2024 ComplianceAI. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">2025 Lucentry.ai LLC</p>
         </div>
       </div>
     </footer>
@@ -139,10 +149,9 @@ export default function Contact() {
   };
 
   const contactInfo = [
-    { icon: Mail, title: "Email", value: "hello@complianceai.com", link: "mailto:hello@complianceai.com" },
-    { icon: Phone, title: "Phone", value: "+1 (555) 123-4567", link: "tel:+15551234567" },
-    { icon: MapPin, title: "Office", value: "San Francisco, CA", link: null },
-    { icon: Clock, title: "Hours", value: "Mon-Fri 9am-6pm PST", link: null },
+    { icon: Mail, title: "Email", value: "CEO@lucentry.ai", link: "mailto:CEO@lucentry.ai" },
+    { icon: MapPin, title: "Location", value: "Sacramento, CA", link: null },
+    { icon: Clock, title: "Response Time", value: "Within 24 hours", link: null },
   ];
 
   return (
@@ -152,11 +161,12 @@ export default function Contact() {
       {/* Hero Section */}
       <div className="pt-32 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge variant="secondary" className="mb-6">Contact</Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
             Get in Touch
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Have questions about ComplianceAI? Our team is here to help you find the right solution for your compliance needs.
+            Have questions about CyberDocGen? Our team is here to help you find the right solution for your compliance needs.
           </p>
         </div>
       </div>
@@ -168,6 +178,20 @@ export default function Contact() {
             {/* Contact Info */}
             <div className="lg:col-span-1">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Contact Information</h2>
+              
+              {/* Company Card */}
+              <Card className="border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 shadow-sm mb-6">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white">Lucentry.ai LLC</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">CyberDocGen</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="space-y-6">
                 {contactInfo.map((item, index) => (
                   <div key={index} className="flex items-start gap-4">
@@ -177,7 +201,7 @@ export default function Contact() {
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">{item.title}</p>
                       {item.link ? (
-                        <a href={item.link} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                        <a href={item.link} className="text-blue-600 dark:text-blue-400 hover:underline">
                           {item.value}
                         </a>
                       ) : (
@@ -262,7 +286,7 @@ export default function Contact() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="demo">Request a Demo</SelectItem>
-                            <SelectItem value="pricing">Pricing Question</SelectItem>
+                            <SelectItem value="beta">Beta Access</SelectItem>
                             <SelectItem value="support">Technical Support</SelectItem>
                             <SelectItem value="partnership">Partnership Inquiry</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
@@ -297,30 +321,6 @@ export default function Contact() {
                 </CardContent>
               </Card>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Office Locations */}
-      <div className="py-16 bg-white dark:bg-gray-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Our Offices</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { city: "San Francisco", country: "United States", address: "123 Market Street, Suite 500", type: "Headquarters" },
-              { city: "London", country: "United Kingdom", address: "45 Finsbury Square", type: "EMEA Office" },
-              { city: "Singapore", country: "Singapore", address: "1 Raffles Place, Tower 2", type: "APAC Office" },
-            ].map((office, index) => (
-              <Card key={index} className="border-0 bg-gray-50 dark:bg-gray-800 shadow-sm text-center">
-                <CardContent className="pt-6">
-                  <MapPin className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{office.city}</h3>
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mb-2">{office.type}</p>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">{office.address}</p>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">{office.country}</p>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </div>
       </div>

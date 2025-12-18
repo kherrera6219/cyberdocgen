@@ -1,10 +1,11 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
   Shield, FileText, Users, BarChart3, Clock, Award, ArrowRight, Menu, X,
   Zap, Lock, Bot, CheckCircle, Upload, Eye, RefreshCw, Bell, Workflow,
-  Database, Cloud, Settings, GitBranch
+  Database, Cloud, Settings, GitBranch, Brain, Sparkles, Cpu, Mail, MapPin
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -19,8 +20,9 @@ function Header() {
             <div className="flex items-center gap-2 cursor-pointer">
               <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ComplianceAI
+                CyberDocGen
               </span>
+              <Badge variant="secondary" className="ml-2 text-xs">Beta</Badge>
             </div>
           </Link>
 
@@ -33,7 +35,7 @@ function Header() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login"><Button variant="ghost">Sign In</Button></Link>
-            <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+            <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -50,7 +52,7 @@ function Header() {
               <Link href="/contact"><span className="block px-3 py-2 text-sm font-medium">Contact</span></Link>
               <div className="flex flex-col gap-2 pt-3 border-t">
                 <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
               </div>
             </nav>
           </div>
@@ -64,17 +66,25 @@ function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">ComplianceAI</span>
+            <span className="font-bold">CyberDocGen</span>
+            <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
+          </div>
+          <div className="text-center md:text-left">
+            <p className="text-gray-400 text-sm">A product of Lucentry.ai LLC</p>
+            <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
+              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
+              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
+            </div>
           </div>
           <div className="flex gap-6 text-sm text-gray-400">
             <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
             <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
             <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
           </div>
-          <p className="text-gray-400 text-sm">2024 ComplianceAI. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">2025 Lucentry.ai LLC</p>
         </div>
       </div>
     </footer>
@@ -95,8 +105,8 @@ export default function Features() {
     {
       icon: Bot,
       title: "AI-Powered Document Generation",
-      description: "Generate comprehensive compliance documents in minutes using advanced AI. Our models understand your organization's context and create tailored policies, procedures, and assessments.",
-      highlights: ["GPT-4 powered generation", "Context-aware content", "Multiple document types", "Automatic formatting"]
+      description: "Generate comprehensive compliance documents in minutes using advanced AI. Our multi-model system leverages GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro to create tailored policies, procedures, and assessments.",
+      highlights: ["Multi-model AI (GPT-5.1, Claude, Gemini)", "Context-aware content", "Multiple document types", "Automatic formatting"]
     },
     {
       icon: Shield,
@@ -135,7 +145,7 @@ export default function Features() {
     { icon: Workflow, title: "Approval Workflows", description: "Configurable multi-stage approval processes for documents and controls." },
     { icon: GitBranch, title: "Version Control", description: "Full document version history with diff comparison and rollback capabilities." },
     { icon: Bell, title: "Smart Notifications", description: "Get notified about pending approvals, upcoming deadlines, and compliance changes." },
-    { icon: Database, title: "Secure Storage", description: "Enterprise-grade encrypted storage for all your compliance documents and evidence." },
+    { icon: Database, title: "Secure Storage", description: "Enterprise-grade AES-256 encrypted storage for all your compliance documents and evidence." },
     { icon: Cloud, title: "Cloud Integrations", description: "Connect with Google Drive, OneDrive, and other cloud storage providers." },
     { icon: Clock, title: "Audit Trail", description: "Comprehensive audit logging of all activities for complete accountability." },
     { icon: Settings, title: "Custom Templates", description: "Create and manage custom document templates for your organization." }
@@ -148,7 +158,7 @@ export default function Features() {
       {/* Hero Section */}
       <div className="pt-32 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
             <Zap className="h-4 w-4" />
             <span>Powerful Features for Modern Compliance</span>
           </div>
@@ -159,12 +169,37 @@ export default function Features() {
             </span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-            From AI-powered document generation to continuous monitoring, ComplianceAI provides a complete platform for managing your compliance journey.
+            From AI-powered document generation to continuous monitoring, CyberDocGen provides a complete platform for managing your compliance journey.
           </p>
           <Button size="lg" onClick={() => window.location.href = '/api/login'} data-testid="button-start-free-trial">
-            Start Free Trial
+            Request Beta Access
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
+        </div>
+      </div>
+
+      {/* AI Models Banner */}
+      <div className="py-12 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-white mb-8">
+            <h2 className="text-2xl font-bold mb-2">Powered by Leading AI Models</h2>
+            <p className="text-blue-100">Intelligent routing selects the best model for each task</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-6">
+            {[
+              { name: "GPT-5.1", provider: "OpenAI", icon: Brain },
+              { name: "Claude Opus 4.5", provider: "Anthropic", icon: Sparkles },
+              { name: "Gemini 3.0 Pro", provider: "Google", icon: Cpu },
+            ].map((model) => (
+              <div key={model.name} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
+                <model.icon className="h-6 w-6 text-white" />
+                <div>
+                  <p className="font-semibold text-white">{model.name}</p>
+                  <p className="text-xs text-blue-200">{model.provider}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -211,7 +246,7 @@ export default function Features() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">More Powerful Features</h2>
           <p className="text-gray-600 dark:text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-            Beyond the core functionality, ComplianceAI includes everything you need to manage compliance at scale.
+            Beyond the core functionality, CyberDocGen includes everything you need to manage compliance at scale.
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {additionalFeatures.map((feature, index) => (
@@ -254,18 +289,19 @@ export default function Features() {
       {/* CTA Section */}
       <div className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center px-4">
+          <Badge variant="secondary" className="mb-4 bg-white/20 text-white border-white/30">Beta Program</Badge>
           <h2 className="text-3xl font-bold text-white mb-6">Ready to Transform Your Compliance Process?</h2>
           <p className="text-xl text-blue-100 mb-8">
-            Start your 14-day free trial and experience the power of AI-driven compliance automation.
+            Join our beta program and experience the power of AI-driven compliance automation. Free during beta.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = '/api/login'} data-testid="button-start-trial">
-              Start Free Trial
+              Request Beta Access
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Link href="/pricing">
+            <Link href="/contact">
               <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-view-pricing">
-                View Pricing
+                Contact Us
               </Button>
             </Link>
           </div>

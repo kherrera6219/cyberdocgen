@@ -15,7 +15,7 @@ function Header() {
             <div className="flex items-center gap-2 cursor-pointer">
               <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ComplianceAI
+                CyberDocGen
               </span>
             </div>
           </Link>
@@ -63,14 +63,14 @@ function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">ComplianceAI</span>
+            <span className="font-bold">CyberDocGen</span>
           </div>
           <div className="flex gap-6 text-sm text-gray-400">
             <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
             <Link href="/terms"><span className="text-white cursor-pointer">Terms</span></Link>
             <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
           </div>
-          <p className="text-gray-400 text-sm">2024 ComplianceAI. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">2025 CyberDocGen by Lucentry.ai LLC. All rights reserved.</p>
         </div>
       </div>
     </footer>
@@ -100,14 +100,14 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">1. Agreement to Terms</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                By accessing or using ComplianceAI's services, you agree to be bound by these Terms of Service ("Terms"). If you disagree with any part of these terms, you may not access our services. These Terms apply to all visitors, users, and others who access or use our platform.
+                By accessing or using CyberDocGen's services, you agree to be bound by these Terms of Service ("Terms"). If you disagree with any part of these terms, you may not access our services. These Terms apply to all visitors, users, and others who access or use our platform.
               </p>
             </section>
 
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">2. Description of Service</h2>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                ComplianceAI provides an AI-powered compliance automation platform that helps organizations:
+                CyberDocGen provides an AI-powered compliance automation platform that helps organizations:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
                 <li>Generate compliance documentation for various frameworks</li>
@@ -150,7 +150,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">5. Intellectual Property</h2>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                <strong>Our Content:</strong> The ComplianceAI platform, including its design, features, and content, is owned by ComplianceAI and protected by intellectual property laws. You may not copy, modify, or distribute our content without permission.
+                <strong>Our Content:</strong> The CyberDocGen platform, including its design, features, and content, is owned by CyberDocGen and protected by intellectual property laws. You may not copy, modify, or distribute our content without permission.
               </p>
               <p className="text-gray-600 dark:text-gray-300">
                 <strong>Your Content:</strong> You retain ownership of any content you upload to our platform. By uploading content, you grant us a limited license to use, store, and process that content solely to provide our services to you.
@@ -165,7 +165,7 @@ export default function Terms() {
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-300 space-y-2">
                 <li>AI-generated content should be reviewed by qualified professionals</li>
                 <li>Generated documents may require customization for your specific needs</li>
-                <li>ComplianceAI does not guarantee that generated content meets all regulatory requirements</li>
+                <li>CyberDocGen does not guarantee that generated content meets all regulatory requirements</li>
                 <li>You are responsible for ensuring compliance with applicable laws and standards</li>
                 <li>AI outputs should not be considered legal or professional advice</li>
               </ul>
@@ -204,7 +204,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">10. Indemnification</h2>
               <p className="text-gray-600 dark:text-gray-300">
-                You agree to indemnify and hold harmless ComplianceAI and its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising out of your use of our services, violation of these Terms, or infringement of any third-party rights.
+                You agree to indemnify and hold harmless CyberDocGen and its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including legal fees) arising out of your use of our services, violation of these Terms, or infringement of any third-party rights.
               </p>
             </section>
 
@@ -235,8 +235,8 @@ export default function Terms() {
                 If you have any questions about these Terms, please contact us at:
               </p>
               <ul className="list-none text-gray-600 dark:text-gray-300 mt-4 space-y-2">
-                <li>Email: legal@complianceai.com</li>
-                <li>Address: 123 Market Street, Suite 500, San Francisco, CA 94105</li>
+                <li>Email: CEO@lucentry.ai</li>
+                <li>Address: Sacramento, CA</li>
               </ul>
             </section>
           </div>

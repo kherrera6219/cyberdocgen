@@ -16,7 +16,7 @@ export function WelcomeWizard({ onComplete }: WelcomeWizardProps) {
   const steps = [
     {
       icon: Building,
-      title: "Welcome to ComplianceAI",
+      title: "Welcome to CyberDocGen",
       description: "Your AI-powered cybersecurity compliance automation platform",
       content: (
         <div className="text-center space-y-4">

@@ -208,12 +208,12 @@ export default function MFASetupPage() {
   };
 
   const downloadBackupCodes = () => {
-    const content = `ComplianceAI MFA Backup Codes\nGenerated: ${new Date().toISOString()}\n\n${backupCodes.join('\n')}\n\nStore these codes securely. Each code can only be used once.`;
+    const content = `CyberDocGen MFA Backup Codes\nGenerated: ${new Date().toISOString()}\n\n${backupCodes.join('\n')}\n\nStore these codes securely. Each code can only be used once.`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'complianceai-backup-codes.txt';
+    a.download = 'cyberdocgen-backup-codes.txt';
     a.click();
     URL.revokeObjectURL(url);
   };

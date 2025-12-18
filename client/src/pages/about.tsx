@@ -1,7 +1,8 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Target, Heart, Lightbulb, Users, Award, ArrowRight, Menu, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Target, Heart, Lightbulb, ArrowRight, Menu, X, Mail, MapPin, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 function Header() {
@@ -15,8 +16,9 @@ function Header() {
             <div className="flex items-center gap-2 cursor-pointer">
               <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ComplianceAI
+                CyberDocGen
               </span>
+              <Badge variant="secondary" className="ml-2 text-xs">Beta</Badge>
             </div>
           </Link>
 
@@ -29,7 +31,7 @@ function Header() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login"><Button variant="ghost">Sign In</Button></Link>
-            <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+            <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
           </div>
 
           <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -46,7 +48,7 @@ function Header() {
               <Link href="/contact"><span className="block px-3 py-2 text-sm font-medium">Contact</span></Link>
               <div className="flex flex-col gap-2 pt-3 border-t">
                 <Link href="/login"><Button variant="outline">Sign In</Button></Link>
-                <Button onClick={() => window.location.href = '/api/login'}>Get Started</Button>
+                <Button onClick={() => window.location.href = '/api/login'}>Request Beta Access</Button>
               </div>
             </nav>
           </div>
@@ -60,17 +62,25 @@ function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">ComplianceAI</span>
+            <span className="font-bold">CyberDocGen</span>
+            <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
+          </div>
+          <div className="text-center md:text-left">
+            <p className="text-gray-400 text-sm">A product of Lucentry.ai LLC</p>
+            <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
+              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
+              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
+            </div>
           </div>
           <div className="flex gap-6 text-sm text-gray-400">
             <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
             <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
             <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
           </div>
-          <p className="text-gray-400 text-sm">2024 ComplianceAI. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">2025 Lucentry.ai LLC</p>
         </div>
       </div>
     </footer>
@@ -94,15 +104,6 @@ export default function About() {
     { icon: Shield, title: "Security First", description: "We practice what we preach - our platform is built with security and compliance at its core." },
   ];
 
-  const team = [
-    { name: "Alex Thompson", role: "CEO & Co-Founder", background: "Former CISO at Fortune 500" },
-    { name: "Dr. Sarah Kim", role: "CTO & Co-Founder", background: "AI Research at Stanford" },
-    { name: "Marcus Chen", role: "VP of Engineering", background: "Ex-Google, Security Lead" },
-    { name: "Emily Rodriguez", role: "VP of Compliance", background: "Former Big 4 Auditor" },
-    { name: "David Park", role: "Head of Product", background: "Product at Okta" },
-    { name: "Lisa Wang", role: "Head of Customer Success", background: "Customer Success at Datadog" },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Header />
@@ -110,8 +111,9 @@ export default function About() {
       {/* Hero Section */}
       <div className="pt-32 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge variant="secondary" className="mb-6">About Us</Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            About ComplianceAI
+            About CyberDocGen
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             We're building the future of compliance automation, helping organizations achieve and maintain security certifications faster than ever before.
@@ -119,26 +121,62 @@ export default function About() {
         </div>
       </div>
 
-      {/* Story Section */}
+      {/* Company Info Section */}
       <div className="py-16 bg-white dark:bg-gray-800/50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 shadow-lg">
+            <CardContent className="p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <Building2 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Lucentry.ai LLC</h2>
+                  <p className="text-gray-600 dark:text-gray-300">The company behind CyberDocGen</p>
+                </div>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Location</p>
+                    <p className="text-gray-600 dark:text-gray-300">Sacramento, CA, United States</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Contact</p>
+                    <a href="mailto:CEO@lucentry.ai" className="text-blue-600 dark:text-blue-400 hover:underline">CEO@lucentry.ai</a>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Story Section */}
+      <div className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Our Story</h2>
           <div className="prose prose-lg dark:prose-invert mx-auto text-gray-600 dark:text-gray-300">
             <p className="mb-6">
-              ComplianceAI was founded in 2022 by a team of security professionals and AI researchers who experienced firsthand the challenges of achieving compliance certifications. After spending countless hours manually creating documentation and preparing for audits, we knew there had to be a better way.
+              CyberDocGen was born from a simple observation: security compliance is too complex, too time-consuming, and too expensive for most organizations. We set out to change that.
             </p>
             <p className="mb-6">
-              We combined our expertise in cybersecurity, compliance frameworks, and artificial intelligence to create a platform that automates the most tedious aspects of compliance work. Our AI understands the nuances of different frameworks and can generate documentation that's tailored to each organization's unique context.
+              By combining our expertise in cybersecurity, compliance frameworks, and artificial intelligence, we created a platform that automates the most tedious aspects of compliance work. Our multi-model AI system leverages GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro to generate documentation that's tailored to each organization's unique context.
             </p>
             <p>
-              Today, ComplianceAI helps over 500 organizations worldwide streamline their compliance journey, reducing preparation time by up to 80% while improving documentation quality and audit outcomes.
+              Today, CyberDocGen is in beta, helping organizations streamline their compliance journey. We're continuously improving our platform based on user feedback and are committed to making enterprise-grade compliance accessible to everyone.
             </p>
           </div>
         </div>
       </div>
 
       {/* Values Section */}
-      <div className="py-16">
+      <div className="py-16 bg-gray-50 dark:bg-gray-800/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-12 text-center">Our Values</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -157,50 +195,33 @@ export default function About() {
         </div>
       </div>
 
-      {/* Team Section */}
-      <div className="py-16 bg-gray-50 dark:bg-gray-800/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">Leadership Team</h2>
-          <p className="text-gray-600 dark:text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-            Our team combines deep expertise in cybersecurity, compliance, and AI technology.
-          </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {team.map((member, index) => (
-              <Card key={index} className="border-0 bg-white dark:bg-gray-800 shadow-sm">
-                <CardContent className="pt-6 text-center">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                    {member.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{member.name}</h3>
-                  <p className="text-blue-600 dark:text-blue-400 text-sm mb-2">{member.role}</p>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">{member.background}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Section */}
+      {/* Beta Status Section */}
       <div className="py-16 bg-white dark:bg-gray-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">500+</div>
-              <div className="text-gray-600 dark:text-gray-300">Enterprise Customers</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">50+</div>
-              <div className="text-gray-600 dark:text-gray-300">Team Members</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">$25M</div>
-              <div className="text-gray-600 dark:text-gray-300">Funding Raised</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">4</div>
-              <div className="text-gray-600 dark:text-gray-300">Global Offices</div>
-            </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge variant="secondary" className="mb-6">Current Status</Badge>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Currently in Beta</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            CyberDocGen is actively being developed and refined. We're working closely with our beta users to build the best compliance automation platform possible. Your feedback helps shape the future of our product.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="border-0 bg-gray-50 dark:bg-gray-800 shadow-sm">
+              <CardContent className="pt-6 text-center">
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Beta</p>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">Current Phase</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-gray-50 dark:bg-gray-800 shadow-sm">
+              <CardContent className="pt-6 text-center">
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Free</p>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">During Beta</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-gray-50 dark:bg-gray-800 shadow-sm">
+              <CardContent className="pt-6 text-center">
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Active</p>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">Development</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -208,18 +229,18 @@ export default function About() {
       {/* CTA Section */}
       <div className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center px-4">
-          <h2 className="text-3xl font-bold text-white mb-6">Join Our Mission</h2>
+          <h2 className="text-3xl font-bold text-white mb-6">Join Our Beta Program</h2>
           <p className="text-xl text-blue-100 mb-8">
-            We're always looking for talented individuals who share our passion for security and innovation.
+            Be part of the future of compliance automation. Get free access during our beta period and help shape the product.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = '/api/login'} data-testid="button-get-started">
-              Get Started
+              Request Beta Access
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Link href="/contact">
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-view-careers">
-                View Careers
+              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-contact">
+                Contact Us
               </Button>
             </Link>
           </div>

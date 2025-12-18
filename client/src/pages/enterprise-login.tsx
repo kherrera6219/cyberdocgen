@@ -149,7 +149,7 @@ export default function EnterpriseLogin() {
           <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
             <Lock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
           </div>
-          <CardTitle className="text-2xl">Sign In to ComplianceAI</CardTitle>
+          <CardTitle className="text-2xl">Sign In to CyberDocGen</CardTitle>
           <CardDescription>
             Enterprise-grade authentication with advanced security features
           </CardDescription>
