@@ -68,11 +68,15 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
       });
 
       if (response.success) {
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        // Refetch auth data and wait for it to complete before navigating
+        await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
         
         setOpen(false);
         setName("");
         setEmail("");
+        
+        // Small delay to ensure React state updates are processed
+        await new Promise(resolve => setTimeout(resolve, 50));
         
         startTransition(() => {
           setLocation("/dashboard");
@@ -188,7 +192,12 @@ export function TempUserBanner() {
     setIsLoggingOut(true);
     try {
       await apiRequest('/api/auth/temp-logout', { method: 'POST' });
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Refetch to clear cached user data
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Small delay to ensure React state updates are processed
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       startTransition(() => {
         setLocation("/");
       });
