@@ -102,10 +102,12 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const rawDomain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  // Parse all configured domains and store them for lookup
+  const configuredDomains: string[] = [];
+  for (const rawDomain of process.env.REPLIT_DOMAINS!.split(",")) {
     const domain = rawDomain.trim().toLowerCase();
     if (!domain) continue;
+    configuredDomains.push(domain);
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -118,20 +120,71 @@ export async function setupAuth(app: Express) {
     passport.use(strategy);
   }
 
+  // Helper to find the best matching strategy for a hostname
+  function findStrategyForHost(hostname: string): string | null {
+    const normalizedHost = hostname.toLowerCase();
+    
+    // Exact match first
+    if (configuredDomains.includes(normalizedHost)) {
+      return `replitauth:${normalizedHost}`;
+    }
+    
+    // Try to match by suffix (e.g., replit.app, replit.dev, repl.co)
+    for (const domain of configuredDomains) {
+      // Check if both are from the same Replit infrastructure
+      const hostParts = normalizedHost.split('.');
+      const domainParts = domain.split('.');
+      
+      // Match replit.app, replit.dev, repl.co domains
+      if (hostParts.length >= 2 && domainParts.length >= 2) {
+        const hostSuffix = hostParts.slice(-2).join('.');
+        const domainSuffix = domainParts.slice(-2).join('.');
+        
+        // If both are Replit domains, use the first configured domain
+        const replitSuffixes = ['replit.app', 'replit.dev', 'repl.co'];
+        if (replitSuffixes.some(s => hostSuffix.includes(s.split('.')[0])) &&
+            replitSuffixes.some(s => domainSuffix.includes(s.split('.')[0]))) {
+          return `replitauth:${domain}`;
+        }
+      }
+    }
+    
+    // Fallback to first configured domain if available
+    if (configuredDomains.length > 0) {
+      console.log(`[Auth] Using fallback domain: ${configuredDomains[0]} for hostname: ${hostname}`);
+      return `replitauth:${configuredDomains[0]}`;
+    }
+    
+    return null;
+  }
+
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const strategyName = findStrategyForHost(req.hostname);
+    if (!strategyName) {
+      console.error(`[Auth Login] No strategy found for hostname: ${req.hostname}`);
+      return res.redirect('/login?error=Authentication%20not%20configured');
+    }
+    
+    console.log(`[Auth Login] Using strategy: ${strategyName} for hostname: ${req.hostname}`);
+    passport.authenticate(strategyName, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    const strategyName = `replitauth:${req.hostname}`;
+    const strategyName = findStrategyForHost(req.hostname);
     console.log(`[Auth Callback] Processing callback for hostname: ${req.hostname}`);
+    console.log(`[Auth Callback] Using strategy: ${strategyName}`);
     console.log(`[Auth Callback] Query params:`, req.query);
+    
+    if (!strategyName) {
+      console.error(`[Auth Callback] No strategy found for hostname: ${req.hostname}`);
+      return res.redirect('/login?error=Authentication%20not%20configured');
+    }
     
     passport.authenticate(strategyName, (err: any, user: any, info: any) => {
       if (err) {
