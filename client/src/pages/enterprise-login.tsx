@@ -13,7 +13,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  identifier: z.string().min(1, 'Email or username is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -39,7 +39,7 @@ export default function EnterpriseLogin() {
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      identifier: '',
       password: '',
     },
   });
@@ -74,7 +74,7 @@ export default function EnterpriseLogin() {
         });
       } else if (errorMessage.includes('Invalid credentials')) {
         form.setError('root', {
-          message: 'Invalid email or password. Please try again.'
+          message: 'Invalid email/username or password. Please try again.'
         });
       } else {
         form.setError('root', { message: errorMessage });
@@ -157,20 +157,20 @@ export default function EnterpriseLogin() {
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="identifier">Email or Username</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="your.email@company.com"
-                  {...form.register('email')}
-                  className={`pl-10 ${form.formState.errors.email ? 'border-red-500' : ''}`}
-                  autoComplete="email"
+                  id="identifier"
+                  type="text"
+                  placeholder="your.email@company.com or username"
+                  {...form.register('identifier')}
+                  className={`pl-10 ${form.formState.errors.identifier ? 'border-red-500' : ''}`}
+                  autoComplete="username"
                 />
               </div>
-              {form.formState.errors.email && (
-                <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
+              {form.formState.errors.identifier && (
+                <p className="text-sm text-red-600">{form.formState.errors.identifier.message}</p>
               )}
             </div>
 

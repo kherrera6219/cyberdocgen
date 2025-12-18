@@ -562,16 +562,26 @@ export class EnterpriseAuthService {
   }
 
   /**
-   * Authenticate user with email and password
+   * Authenticate user with email/username and password
+   * Accepts either a full email address or a username (which will be converted to email@cyberdocgen.com)
    */
-  async authenticateUser(email: string, password: string, ipAddress?: string): Promise<{ success: boolean; user?: any; error?: string }> {
+  async authenticateUser(identifier: string, password: string, ipAddress?: string): Promise<{ success: boolean; user?: any; error?: string }> {
     try {
-      const user = await db.query.users.findFirst({
-        where: eq(users.email, email.toLowerCase()),
+      // First try to find user by exact email match
+      let user = await db.query.users.findFirst({
+        where: eq(users.email, identifier.toLowerCase()),
       });
 
+      // If not found and identifier doesn't contain @, try with @cyberdocgen.com suffix
+      if (!user && !identifier.includes('@')) {
+        const emailFromUsername = `${identifier.toLowerCase()}@cyberdocgen.com`;
+        user = await db.query.users.findFirst({
+          where: eq(users.email, emailFromUsername),
+        });
+      }
+
       if (!user) {
-        // Don't reveal if email exists
+        // Don't reveal if email/username exists
         return { success: false, error: 'Invalid credentials' };
       }
 
@@ -615,7 +625,7 @@ export class EnterpriseAuthService {
       };
     } catch (error: any) {
       logger.error('Authentication failed', {
-        email: email.toLowerCase(),
+        identifier: identifier.toLowerCase(),
         error: error.message
       });
       return { success: false, error: 'Authentication failed' };

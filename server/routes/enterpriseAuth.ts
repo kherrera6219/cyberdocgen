@@ -7,9 +7,9 @@ import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 
 const router = Router();
 
-// Login schema
+// Login schema - accepts email or username
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  identifier: z.string().min(1, 'Email or username is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -60,7 +60,7 @@ const passkeyRegistrationSchema = z.object({
 });
 
 /**
- * Login with email and password
+ * Login with email/username and password
  */
 router.post('/login', async (req, res) => {
   try {
@@ -68,7 +68,7 @@ router.post('/login', async (req, res) => {
     const ipAddress = req.ip || req.socket.remoteAddress;
 
     const result = await enterpriseAuthService.authenticateUser(
-      validatedData.email,
+      validatedData.identifier,
       validatedData.password,
       ipAddress
     );
