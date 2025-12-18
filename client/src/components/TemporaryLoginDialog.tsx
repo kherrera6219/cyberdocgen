@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, startTransition } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,7 +74,9 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
         setName("");
         setEmail("");
         
-        setLocation("/dashboard");
+        startTransition(() => {
+          setLocation("/dashboard");
+        });
       } else {
         setErrors({ general: response.message || 'Login failed' });
       }
@@ -187,7 +189,9 @@ export function TempUserBanner() {
     try {
       await apiRequest('/api/auth/temp-logout', { method: 'POST' });
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
+      startTransition(() => {
+        setLocation("/");
+      });
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
