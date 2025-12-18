@@ -61,10 +61,10 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
     try {
       const response = await apiRequest('/api/auth/temp-login', {
         method: 'POST',
-        body: JSON.stringify({
+        body: {
           name: name.trim(),
           email: email.trim(),
-        }),
+        },
       });
 
       if (response.success) {

@@ -259,20 +259,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sanitizedName = name.trim().slice(0, 100);
       const sanitizedEmail = email.trim().toLowerCase().slice(0, 255);
       
-      // Create a temporary user ID based on email
-      const tempUserId = `temp-${crypto.createHash('sha256').update(sanitizedEmail).digest('hex').slice(0, 16)}`;
+      // Check if user with this email already exists
+      const existingUser = await storage.getUserByEmail(sanitizedEmail);
+      let sessionUserId: string;
       
-      // Create or update the temporary user in storage
-      await storage.upsertUser({
-        id: tempUserId,
-        email: sanitizedEmail,
-        firstName: sanitizedName.split(' ')[0] || sanitizedName,
-        lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
-        profileImageUrl: null,
-      });
+      if (existingUser) {
+        // Use the existing user's ID - don't modify the database
+        sessionUserId = existingUser.id;
+        logger.info('Temp login using existing user', { userId: sessionUserId, email: sanitizedEmail });
+      } else {
+        // Create a new temporary user for this email
+        const tempUserId = `temp-${crypto.createHash('sha256').update(sanitizedEmail).digest('hex').slice(0, 16)}`;
+        await storage.upsertUser({
+          id: tempUserId,
+          email: sanitizedEmail,
+          firstName: sanitizedName.split(' ')[0] || sanitizedName,
+          lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
+          profileImageUrl: null,
+        });
+        sessionUserId = tempUserId;
+        logger.info('Temp login created new temp user', { userId: sessionUserId, email: sanitizedEmail });
+      }
       
       // Set the session userId to enable authenticated routes
-      req.session.userId = tempUserId;
+      req.session.userId = sessionUserId;
       req.session.isTemporary = true;
       req.session.tempUserName = sanitizedName;
       req.session.tempUserEmail = sanitizedEmail;
@@ -287,12 +297,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: 'Failed to create session' });
         }
         
-        logger.info('Temporary login successful', { userId: tempUserId, email: sanitizedEmail });
+        logger.info('Temporary login successful', { userId: sessionUserId, email: sanitizedEmail });
         
         res.json({
           success: true,
           user: {
-            id: tempUserId,
+            id: sessionUserId,
             email: sanitizedEmail,
             displayName: sanitizedName,
             firstName: sanitizedName.split(' ')[0] || sanitizedName,
