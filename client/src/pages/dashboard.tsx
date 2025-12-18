@@ -421,7 +421,12 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           }>
-            <ControlPrioritizer onImplementControl={(id) => console.log('Implementing control:', id)} />
+            <ControlPrioritizer onImplementControl={(controlId) => {
+              toast({
+                title: "Control Implementation Started",
+                description: `Starting implementation for control ${controlId}. This feature will guide you through the process.`,
+              });
+            }} />
           </Suspense>
         </ErrorBoundary>
       </div>

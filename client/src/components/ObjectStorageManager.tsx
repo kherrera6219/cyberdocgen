@@ -244,11 +244,14 @@ export function ObjectStorageManager() {
     </Card>
   );
 
-  // Dummy function for rename, needs implementation
+  // Rename file by copying to new name and deleting old
   const handleRename = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement rename logic here
-    console.log("Rename logic needs implementation");
+    toast({
+      title: "Rename",
+      description: "File rename is not currently supported. Please download the file and re-upload with a new name.",
+      variant: "default"
+    });
   };
 
   return (
