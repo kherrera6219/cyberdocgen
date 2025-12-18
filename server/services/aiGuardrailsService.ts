@@ -166,7 +166,7 @@ class AIGuardrailsService {
         action,
         severity,
         sanitizedPrompt: piiResult.sanitized,
-        sanitizedResponse: sanitizedResponse === null ? null : sanitizedResponse,
+        sanitizedResponse: sanitizedResponse ?? undefined,
         piiDetected: combinedPiiDetected,
         piiTypes: combinedPiiTypes,
         promptRiskScore,
