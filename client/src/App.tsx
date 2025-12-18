@@ -167,7 +167,9 @@ function AuthenticatedRouter() {
         </Suspense>
       </Route>
       <Route>
-        <NotFound />
+        <Suspense fallback={<div>Loading...</div>}>
+          <NotFound />
+        </Suspense>
       </Route>
     </Switch>
   );
@@ -176,7 +178,11 @@ function AuthenticatedRouter() {
 function PublicRouter() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/">
+        <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+          <Landing />
+        </Suspense>
+      </Route>
       <Route path="/login">
         <Suspense fallback={<div>Loading...</div>}>
           <EnterpriseLogin />
@@ -233,7 +239,9 @@ function PublicRouter() {
         </Suspense>
       </Route>
       <Route>
-        <NotFound fullScreen />
+        <Suspense fallback={<div>Loading...</div>}>
+          <NotFound fullScreen />
+        </Suspense>
       </Route>
     </Switch>
   );
