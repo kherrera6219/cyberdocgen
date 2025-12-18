@@ -82,11 +82,10 @@ export function registerControlsRoutes(app: Router) {
         .update(documentApprovals)
         .set({
           status: approved ? 'approved' : 'rejected',
-          approvedBy: user?.id?.toString(),
           approvedAt: new Date(),
           comments: comments || null
         })
-        .where(eq(documentApprovals.id, approvalId))
+        .where(eq(documentApprovals.id, approvalId.toString()))
         .returning();
 
       if (!updatedApproval) {
