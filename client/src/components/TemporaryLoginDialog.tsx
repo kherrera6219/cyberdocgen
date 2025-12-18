@@ -74,7 +74,7 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
         setName("");
         setEmail("");
         
-        setLocation("/");
+        setLocation("/dashboard");
       } else {
         setErrors({ general: response.message || 'Login failed' });
       }

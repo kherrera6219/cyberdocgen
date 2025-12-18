@@ -24,7 +24,9 @@ const CSRF_EXEMPT_PATHS = [
   '/api/auth/enterprise/reset-password',
   '/api/auth/enterprise/verify-email',
   '/api/auth/enterprise/logout',
-  '/api/auth/replit'
+  '/api/auth/replit',
+  '/api/auth/temp-login',
+  '/api/auth/temp-logout'
 ];
 
 // Generate cryptographically secure CSRF token
