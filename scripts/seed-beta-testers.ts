@@ -5,19 +5,22 @@ import { eq } from 'drizzle-orm';
 
 const SALT_ROUNDS = 12;
 
-interface BetaTester {
+interface TestAccount {
   email: string;
   firstName: string;
   lastName: string;
+  role: 'user' | 'admin';
 }
 
-const betaTesters: BetaTester[] = [
-  { email: 'betatester1@cyberdocgen.com', firstName: 'Beta', lastName: 'Tester1' },
-  { email: 'betatester2@cyberdocgen.com', firstName: 'Beta', lastName: 'Tester2' },
-  { email: 'betatester3@cyberdocgen.com', firstName: 'Beta', lastName: 'Tester3' },
+const testAccounts: TestAccount[] = [
+  { email: 'betatester1@cyberdocgen.com', firstName: 'Beta', lastName: 'Tester1', role: 'user' },
+  { email: 'betatester2@cyberdocgen.com', firstName: 'Beta', lastName: 'Tester2', role: 'user' },
+  { email: 'betatester3@cyberdocgen.com', firstName: 'Beta', lastName: 'Tester3', role: 'user' },
+  { email: 'kevin.herrera@cyberdocgen.com', firstName: 'Kevin', lastName: 'Herrera', role: 'admin' },
+  { email: 'lucero.huante-frias@cyberdocgen.com', firstName: 'Lucero', lastName: 'Huante-Frias', role: 'admin' },
 ];
 
-async function seedBetaTesters() {
+async function seedTestAccounts() {
   const password = process.env.BETA_TESTER_PASSWORD;
   
   if (!password) {
@@ -27,62 +30,65 @@ async function seedBetaTesters() {
     process.exit(1);
   }
 
-  console.log('Creating beta tester accounts...\n');
+  console.log('Creating test accounts...\n');
   
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  for (const tester of betaTesters) {
+  for (const account of testAccounts) {
     try {
       const existingUser = await db.query.users.findFirst({
-        where: eq(users.email, tester.email),
+        where: eq(users.email, account.email),
       });
 
       if (existingUser) {
-        console.log(`Updating existing account: ${tester.email}`);
+        console.log(`Updating existing account: ${account.email} (${account.role})`);
         await db.update(users)
           .set({
             passwordHash,
             emailVerified: true,
             accountStatus: 'active',
-            firstName: tester.firstName,
-            lastName: tester.lastName,
+            firstName: account.firstName,
+            lastName: account.lastName,
+            role: account.role,
             isActive: true,
             twoFactorEnabled: false,
             passkeyEnabled: false,
             failedLoginAttempts: 0,
             accountLockedUntil: null,
           })
-          .where(eq(users.email, tester.email));
+          .where(eq(users.email, account.email));
       } else {
-        console.log(`Creating new account: ${tester.email}`);
+        console.log(`Creating new account: ${account.email} (${account.role})`);
         await db.insert(users).values({
-          email: tester.email,
-          firstName: tester.firstName,
-          lastName: tester.lastName,
+          email: account.email,
+          firstName: account.firstName,
+          lastName: account.lastName,
           passwordHash,
           emailVerified: true,
           accountStatus: 'active',
           twoFactorEnabled: false,
           passkeyEnabled: false,
-          role: 'user',
+          role: account.role,
           isActive: true,
         });
       }
-      console.log(`  Account ready for ${tester.email}`);
+      console.log(`  Account ready for ${account.email}`);
     } catch (error) {
-      console.error(`  Failed to create/update ${tester.email}:`, error);
+      console.error(`  Failed to create/update ${account.email}:`, error);
     }
   }
 
-  console.log('\nBeta tester accounts setup complete!');
-  console.log('\nLogin credentials:');
-  console.log('  Usernames: betatester1@cyberdocgen.com, betatester2@cyberdocgen.com, betatester3@cyberdocgen.com');
-  console.log('  Password: (as set in BETA_TESTER_PASSWORD environment variable)');
+  console.log('\nTest accounts setup complete!');
+  console.log('\nBeta Tester Accounts:');
+  console.log('  betatester1@cyberdocgen.com, betatester2@cyberdocgen.com, betatester3@cyberdocgen.com');
+  console.log('\nAdmin Accounts:');
+  console.log('  kevin.herrera@cyberdocgen.com, lucero.huante-frias@cyberdocgen.com');
+  console.log('\nPassword: (as set in BETA_TESTER_PASSWORD environment variable)');
   
   process.exit(0);
 }
 
-seedBetaTesters().catch((error) => {
-  console.error('Failed to seed beta testers:', error);
+seedTestAccounts().catch((error) => {
+  console.error('Failed to seed test accounts:', error);
   process.exit(1);
 });
