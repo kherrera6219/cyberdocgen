@@ -1,0 +1,5 @@
+
+> rest-express@1.0.0 test
+> vitest
+
+sh: 1: vitest: not found

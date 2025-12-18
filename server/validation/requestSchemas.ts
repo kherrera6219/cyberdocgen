@@ -235,7 +235,7 @@ export type ComplianceChatRequestInput = z.infer<typeof complianceChatRequestSch
 
 export const exportDocumentRequestSchema = z.object({
   content: z.string().min(1, 'Content is required'),
-  format: z.enum(['pdf', 'docx', 'txt', 'html']),
+  format: z.enum(['pdf', 'docx', 'txt', 'html', 'md']),
   filename: z.string().optional(),
 });
 

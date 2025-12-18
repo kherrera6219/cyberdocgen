@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import { and, eq, gte, lte } from 'drizzle-orm';
 import { db } from '../db';
 import { logger } from '../utils/logger';
+import { auditLogs, type AuditLog } from '@shared/schema';
 
 export enum AuditAction {
   CREATE = 'CREATE',
@@ -224,6 +226,24 @@ export class AuditService {
     };
   }
 
+  async getAuditById(id: string): Promise<AuditLog | null> {
+    try {
+      const [auditEntry] = await db
+        .select()
+        .from(auditLogs)
+        .where(eq(auditLogs.id, id))
+        .limit(1);
+
+      return auditEntry || null;
+    } catch (error) {
+      logger.error('Failed to retrieve audit entry', {
+        error: error instanceof Error ? error.message : String(error),
+        auditId: id
+      });
+      return null;
+    }
+  }
+
   /**
    * Calculate risk level based on action and resource type
    */
@@ -265,7 +285,21 @@ export class AuditService {
     eventsByAction: Record<AuditAction, number>;
     highRiskEvents: AuditLogEntry[];
   }> {
-    // Initialize counters - placeholder until full database query is implemented
+    const conditions = [
+      gte(auditLogs.timestamp, startDate),
+      lte(auditLogs.timestamp, endDate)
+    ];
+
+    if (organizationId) {
+      conditions.push(eq(auditLogs.organizationId, organizationId));
+    }
+
+    const query = conditions.length
+      ? db.select().from(auditLogs).where(and(...conditions))
+      : db.select().from(auditLogs);
+
+    const events = await query;
+
     const eventsByRisk: Record<RiskLevel, number> = {
       [RiskLevel.LOW]: 0,
       [RiskLevel.MEDIUM]: 0,
@@ -273,15 +307,46 @@ export class AuditService {
       [RiskLevel.CRITICAL]: 0
     };
 
-    const eventsByAction: Record<string, number> = {};
-    const highRiskEvents: AuditLogEntry[] = [];
+    const eventsByAction: Partial<Record<AuditAction, number>> = {};
 
-    // Note: Full implementation would query database with date range and organizationId filters
-    // For now, return empty report structure
-    logger.info('Generating audit report', { startDate, endDate, organizationId });
+    const normalizedEvents: AuditLogEntry[] = events.map((event: AuditLog) => ({
+      userId: event.userId ?? undefined,
+      organizationId: event.organizationId ?? undefined,
+      action: event.action as AuditAction,
+      resourceType: event.resourceType,
+      resourceId: event.resourceId ?? undefined,
+      oldValues: event.oldValues as Record<string, any> | undefined,
+      newValues: event.newValues as Record<string, any> | undefined,
+      ipAddress: event.ipAddress,
+      userAgent: event.userAgent ?? undefined,
+      riskLevel: event.riskLevel as RiskLevel,
+      additionalContext: event.additionalContext as Record<string, any> | undefined,
+      metadata: event.additionalContext as Record<string, any> | undefined,
+      timestamp: event.timestamp,
+    }));
+
+    normalizedEvents.forEach((event) => {
+      const risk = event.riskLevel || RiskLevel.LOW;
+      eventsByRisk[risk] = (eventsByRisk[risk] || 0) + 1;
+
+      const action = event.action || AuditAction.CREATE;
+      eventsByAction[action] = (eventsByAction[action] || 0) + 1;
+    });
+
+    const highRiskEvents = normalizedEvents.filter((event) =>
+      event.riskLevel === RiskLevel.HIGH || event.riskLevel === RiskLevel.CRITICAL
+    );
+
+    logger.info('Generated audit report', {
+      startDate,
+      endDate,
+      organizationId,
+      totalEvents: events.length,
+      highRiskEvents: highRiskEvents.length
+    });
 
     return {
-      totalEvents: 0,
+      totalEvents: events.length,
       eventsByRisk,
       eventsByAction: eventsByAction as Record<AuditAction, number>,
       highRiskEvents

@@ -50,4 +50,41 @@ export function registerAuditTrailRoutes(router: Router) {
       res.status(500).json({ message: 'Failed to fetch audit statistics' });
     }
   });
+
+  router.get('/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.claims?.sub;
+
+      if (!id) {
+        return res.status(400).json({ message: 'Audit entry ID is required' });
+      }
+
+      // Get single audit entry by ID
+      const auditEntry = await auditService.getAuditById(id);
+
+      if (!auditEntry) {
+        return res.status(404).json({ message: 'Audit entry not found' });
+      }
+
+      // Log access to audit entry
+      await auditService.logAction({
+        action: "view",
+        entityType: "audit_log",
+        entityId: id,
+        userId,
+        ipAddress: req.ip || '',
+        details: { message: `Viewed audit entry ${id}`, auditId: id }
+      });
+
+      res.json({
+        success: true,
+        auditEntry
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Error fetching audit entry:', { error: errorMessage, auditId: req.params.id }, req);
+      res.status(500).json({ message: 'Failed to fetch audit entry' });
+    }
+  });
 }

@@ -63,6 +63,18 @@ router.get('/status', async (req: any, res) => {
 });
 
 /**
+ * POST /api/auth/mfa/setup
+ * Generic setup endpoint (returns 401 to require authentication)
+ */
+router.post('/setup', async (req: any, res) => {
+  const userId = req.user?.claims?.sub;
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized - Please use /setup/totp or /setup/sms' });
+  }
+  res.status(400).json({ message: 'Please specify MFA method: use /setup/totp or /setup/sms' });
+});
+
+/**
  * POST /api/auth/mfa/setup/totp
  * Initialize TOTP setup for user
  */

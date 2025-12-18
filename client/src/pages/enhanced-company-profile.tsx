@@ -122,7 +122,7 @@ export default function EnhancedCompanyProfile() {
       // Transform form data to match schema
       const profileData: InsertCompanyProfile = {
         organizationId: (user as any)?.organizationId || "default-org",
-        createdBy: "temp-user-id", // TODO: Get from authenticated user context
+        createdBy: (user as any)?.id?.toString() || "unknown-user",
         companyName: data.companyName,
         industry: data.industry,
         companySize: data.companySize,

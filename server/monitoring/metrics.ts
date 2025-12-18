@@ -86,21 +86,23 @@ class MetricsCollector {
   }
 
   // Track AI operations
-  trackAIOperation(type: 'generation' | 'analysis' | 'chat', success: boolean = true) {
+  trackAIOperation(type: 'generation' | 'analysis' | 'chat' | 'vision_analysis' | 'multimodal_chat', success: boolean = true) {
     switch (type) {
       case 'generation':
         this.metrics.ai.documentsGenerated++;
         break;
       case 'analysis':
+      case 'vision_analysis':
         this.metrics.ai.analysisRequests++;
         break;
       case 'chat':
+      case 'multimodal_chat':
         this.metrics.ai.chatbotInteractions++;
         break;
     }
-    
+
     if (!success) {
-      this.metrics.ai.errorRate = 
+      this.metrics.ai.errorRate =
         (this.metrics.ai.errorRate * 0.95) + (1 * 0.05); // Exponential moving average
     } else {
       this.metrics.ai.errorRate = this.metrics.ai.errorRate * 0.95;

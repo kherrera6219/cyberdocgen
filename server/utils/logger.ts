@@ -76,10 +76,49 @@ class Logger {
       service: 'complianceai'
     };
 
-    // Console output for development
-    if (this.isDevelopment) {
-      const colorCode = this.getColorCode(level);
-      console.log(`${colorCode}[${timestamp}] [${level.toUpperCase()}] ${message}${colorCode === '' ? '' : '\x1b[0m'}`, meta || '');
+    // Build log message with metadata
+    let logMessage = `${timestamp} [${level.toUpperCase()}] ${message}`;
+
+    // Add request info if provided
+    if (req) {
+      const requestId = req.headers?.['x-request-id'];
+      const userId = (req as any).user?.claims?.sub;
+      const ip = req.ip;
+
+      if (requestId) logMessage += ` [${requestId}]`;
+      if (userId) logMessage += ` [User: ${userId}]`;
+      if (ip) logMessage += ` [IP: ${ip}]`;
+    }
+
+    // Add metadata if provided
+    if (meta && Object.keys(meta).length > 0) {
+      logMessage += ` ${JSON.stringify(meta)}`;
+    }
+
+    // Console output based on log level
+    const colorCode = this.getColorCode(level);
+    const coloredMessage = `${colorCode}${logMessage}\x1b[0m`;
+
+    // Only log debug messages in development
+    if (level === LogLevel.DEBUG && process.env.NODE_ENV !== 'development') {
+      return;
+    }
+
+    switch (level) {
+      case LogLevel.ERROR:
+        console.error(coloredMessage);
+        break;
+      case LogLevel.WARN:
+        console.warn(coloredMessage);
+        break;
+      case LogLevel.INFO:
+        console.info(coloredMessage);
+        break;
+      case LogLevel.DEBUG:
+        console.debug(coloredMessage);
+        break;
+      default:
+        console.log(coloredMessage);
     }
 
     // Store in audit trail for compliance
@@ -89,13 +128,6 @@ class Logger {
     if (this.auditLogs.length > 10000) {
       this.auditLogs = this.auditLogs.slice(-10000);
     }
-
-    // The original recursive call 'this.error(message, meta);' has been removed.
-    // The original internal log method was also replaced with this new implementation.
-    // When logging other levels (WARN, INFO, DEBUG), the original `switch` statement is now absent,
-    // and the logic is solely handled by the console.log and auditLogs.push above.
-    // If a specific console output for WARN, INFO, DEBUG is needed beyond the development block,
-    // it should be added here similar to how ERROR is handled in the rewritten `error` method.
   }
 
   // This method was rewritten to prevent infinite recursion
@@ -113,9 +145,28 @@ class Logger {
         service: 'complianceai'
       };
 
+      // Build log message with metadata
+      let logMessage = `${timestamp} [ERROR] ${message}`;
+
+      // Add request info if provided
+      if (req) {
+        const requestId = req.headers?.['x-request-id'];
+        const userId = (req as any).user?.claims?.sub;
+        const ip = req.ip;
+
+        if (requestId) logMessage += ` [${requestId}]`;
+        if (userId) logMessage += ` [User: ${userId}]`;
+        if (ip) logMessage += ` [IP: ${ip}]`;
+      }
+
+      // Add metadata if provided
+      if (meta && Object.keys(meta).length > 0) {
+        logMessage += ` ${JSON.stringify(meta)}`;
+      }
+
       // Console output for errors
       const colorCode = '\x1b[31m'; // Red for errors
-      console.error(`${colorCode}[${timestamp}] [ERROR] ${message}\x1b[0m`, meta || '');
+      console.error(`${colorCode}${logMessage}\x1b[0m`);
 
       // Store in audit trail
       this.auditLogs.push(entry);
@@ -128,11 +179,11 @@ class Logger {
       // In production, also write to error output
       if (process.env.NODE_ENV === 'production') {
         // In a real scenario, this might send to an external service
-        console.error(`[PRODUCTION ERROR] ${message}`, meta);
+        console.error(`[PRODUCTION ERROR] ${logMessage}`);
       }
     } catch (e) {
       // Fallback to console.error to prevent recursion
-      console.error(`Error logging failed: ${message}`, meta);
+      console.error(`Error logging failed: ${message}`);
     }
   }
 

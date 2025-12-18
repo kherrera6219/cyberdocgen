@@ -16,13 +16,15 @@ function getContentType(format: string): string {
     'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'txt': 'text/plain',
     'html': 'text/html',
-    'json': 'application/json'
+    'json': 'application/json',
+    'md': 'text/markdown'
   };
   return contentTypes[format.toLowerCase()] || 'application/octet-stream';
 }
 
 export function registerExportRoutes(router: Router) {
-  router.post('/export-document', isAuthenticated, validateBody(exportDocumentRequestSchema), async (req: any, res) => {
+  // Export is public - no auth required (users can export any content they provide)
+  router.post('/export-document', validateBody(exportDocumentRequestSchema), async (req: any, res) => {
     try {
       const { content, format, filename } = req.body;
 

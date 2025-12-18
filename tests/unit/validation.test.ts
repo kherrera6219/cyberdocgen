@@ -149,7 +149,7 @@ describe("Validation Utils", () => {
     it("should pass validation with valid data", () => {
       const schema = z.object({
         name: z.string().min(1),
-        age: z.number().min(0),
+        age: z.coerce.number().min(0),
       });
 
       const middleware = validateSchema(schema);
@@ -166,7 +166,7 @@ describe("Validation Utils", () => {
 
       middleware(req, res, next);
 
-      expect(req.validated).toEqual({ name: "John", age: "25" });
+      expect(req.validated).toEqual({ name: "John", age: 25 });
       expect(next).toHaveBeenCalled();
       expect(res.status).not.toHaveBeenCalled();
     });
@@ -174,7 +174,7 @@ describe("Validation Utils", () => {
     it("should fail validation with invalid data", () => {
       const schema = z.object({
         name: z.string().min(1),
-        age: z.number().min(0),
+        age: z.coerce.number().min(0),
       });
 
       const middleware = validateSchema(schema);

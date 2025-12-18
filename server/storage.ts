@@ -366,10 +366,17 @@ export class MemStorage implements IStorage {
       cloudInfrastructure: Array.isArray(insertProfile.cloudInfrastructure) ? insertProfile.cloudInfrastructure : [],
       complianceFrameworks: insertProfile.complianceFrameworks ?? [],
       contactInfo: insertProfile.contactInfo ?? null,
+      organizationStructure: insertProfile.organizationStructure ?? null,
+      geographicOperations: insertProfile.geographicOperations ?? null,
+      productsAndServices: insertProfile.productsAndServices ?? null,
+      securityInfrastructure: insertProfile.securityInfrastructure ?? null,
+      businessContinuity: insertProfile.businessContinuity ?? null,
+      vendorManagement: insertProfile.vendorManagement ?? null,
+      aiResearchData: insertProfile.aiResearchData ?? null,
       isActive: insertProfile.isActive ?? true,
-      keyPersonnel: insertProfile.keyPersonnel || null,
-      frameworkConfigs: insertProfile.frameworkConfigs || null,
-      uploadedDocs: insertProfile.uploadedDocs || null,
+      keyPersonnel: insertProfile.keyPersonnel ?? null,
+      frameworkConfigs: insertProfile.frameworkConfigs ?? null,
+      uploadedDocs: insertProfile.uploadedDocs ?? null,
       websiteUrl: insertProfile.websiteUrl ?? null,
       createdAt: now,
       updatedAt: now,
@@ -680,12 +687,15 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const now = new Date();
     const newApproval: DocumentApproval = {
-      ...approval,
       id,
-      status: approval.status ?? "pending",
-      priority: approval.priority ?? "medium",
+      documentId: approval.documentId,
+      versionId: approval.versionId ?? null,
+      requestedBy: approval.requestedBy,
+      approverRole: approval.approverRole,
       assignedTo: approval.assignedTo ?? null,
+      status: (approval.status ?? "pending") as DocumentApproval['status'],
       comments: approval.comments ?? null,
+      priority: (approval.priority ?? "medium") as DocumentApproval['priority'],
       dueDate: approval.dueDate ?? null,
       approvedAt: approval.approvedAt ?? null,
       rejectedAt: approval.rejectedAt ?? null,
@@ -709,6 +719,197 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  // Extended user management operations
+  async getAllUsers(filters?: UserFilters, pagination?: PaginationParams): Promise<PaginatedResult<User>> {
+    let filteredUsers = Array.from(this.users.values());
+
+    if (filters?.search) {
+      const search = filters.search.toLowerCase();
+      filteredUsers = filteredUsers.filter(u =>
+        u.email.toLowerCase().includes(search) ||
+        u.firstName?.toLowerCase().includes(search) ||
+        u.lastName?.toLowerCase().includes(search)
+      );
+    }
+    if (filters?.role) {
+      filteredUsers = filteredUsers.filter(u => u.role === filters.role);
+    }
+    if (filters?.isActive !== undefined) {
+      filteredUsers = filteredUsers.filter(u => u.isActive === filters.isActive);
+    }
+
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 10;
+    const total = filteredUsers.length;
+    const start = (page - 1) * limit;
+    const data = filteredUsers.slice(start, start + limit);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    return this.users.delete(id);
+  }
+
+  async suspendUser(id: string, _reason?: string): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updated = { ...user, isActive: false, updatedAt: new Date() };
+    this.users.set(id, updated);
+    return updated;
+  }
+
+  async reactivateUser(id: string): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updated = { ...user, isActive: true, updatedAt: new Date() };
+    this.users.set(id, updated);
+    return updated;
+  }
+
+  async bulkUpdateUsers(ids: string[], updates: Partial<InsertUser>): Promise<number> {
+    let count = 0;
+    for (const id of ids) {
+      const user = this.users.get(id);
+      if (user) {
+        this.users.set(id, { ...user, ...updates, updatedAt: new Date() });
+        count++;
+      }
+    }
+    return count;
+  }
+
+  // User invitation operations
+  async createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation> {
+    const newInvitation: UserInvitation = {
+      id: randomUUID(),
+      ...invitation,
+      role: invitation.role ?? "user",
+      organizationId: invitation.organizationId ?? null,
+      organizationRole: invitation.organizationRole ?? "member",
+      status: (invitation.status ?? "pending") as UserInvitation['status'],
+      acceptedAt: null,
+      createdAt: new Date(),
+    };
+    this.userInvitationsStore.set(newInvitation.id, newInvitation);
+    return newInvitation;
+  }
+
+  async getInvitation(id: string): Promise<UserInvitation | undefined> {
+    return this.userInvitationsStore.get(id);
+  }
+
+  async getInvitationByToken(token: string): Promise<UserInvitation | undefined> {
+    return Array.from(this.userInvitationsStore.values()).find(inv => inv.token === token);
+  }
+
+  async getInvitationsByOrganization(organizationId: string): Promise<UserInvitation[]> {
+    return Array.from(this.userInvitationsStore.values())
+      .filter(inv => inv.organizationId === organizationId);
+  }
+
+  async getPendingInvitations(): Promise<UserInvitation[]> {
+    return Array.from(this.userInvitationsStore.values())
+      .filter(inv => inv.status === 'pending');
+  }
+
+  async updateInvitation(id: string, updates: Partial<InsertUserInvitation>): Promise<UserInvitation | undefined> {
+    const existing = this.userInvitationsStore.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...updates };
+    this.userInvitationsStore.set(id, updated);
+    return updated;
+  }
+
+  async revokeInvitation(id: string): Promise<boolean> {
+    const invitation = this.userInvitationsStore.get(id);
+    if (!invitation) return false;
+    this.userInvitationsStore.set(id, { ...invitation, status: 'revoked' });
+    return true;
+  }
+
+  async acceptInvitation(token: string, userId: string): Promise<UserInvitation | undefined> {
+    const invitation = await this.getInvitationByToken(token);
+    if (!invitation) return undefined;
+    const updated = {
+      ...invitation,
+      status: 'accepted' as const,
+      acceptedAt: new Date(),
+      acceptedBy: userId
+    };
+    this.userInvitationsStore.set(invitation.id, updated);
+    return updated;
+  }
+
+  // User session operations
+  async createUserSession(session: InsertUserSession): Promise<UserSession> {
+    const newSession: UserSession = {
+      id: randomUUID(),
+      userId: session.userId,
+      sessionToken: session.sessionToken,
+      ipAddress: session.ipAddress ?? null,
+      userAgent: session.userAgent ?? null,
+      deviceInfo: session.deviceInfo ?? null,
+      location: session.location ?? null,
+      isActive: session.isActive ?? true,
+      expiresAt: session.expiresAt,
+      createdAt: new Date(),
+      lastActivityAt: new Date(),
+    };
+    this.userSessionsStore.set(newSession.id, newSession);
+    return newSession;
+  }
+
+  async getUserSessions(userId: string): Promise<UserSession[]> {
+    return Array.from(this.userSessionsStore.values())
+      .filter(session => session.userId === userId);
+  }
+
+  async getActiveUserSessions(userId: string): Promise<UserSession[]> {
+    const now = new Date();
+    return Array.from(this.userSessionsStore.values())
+      .filter(session =>
+        session.userId === userId &&
+        (!session.expiresAt || session.expiresAt > now)
+      );
+  }
+
+  async terminateSession(sessionId: string): Promise<boolean> {
+    return this.userSessionsStore.delete(sessionId);
+  }
+
+  async terminateAllUserSessions(userId: string): Promise<number> {
+    const sessions = await this.getUserSessions(userId);
+    sessions.forEach(session => this.userSessionsStore.delete(session.id));
+    return sessions.length;
+  }
+
+  async updateSessionActivity(sessionId: string): Promise<UserSession | undefined> {
+    const session = this.userSessionsStore.get(sessionId);
+    if (!session) return undefined;
+    const updated = { ...session, lastActivityAt: new Date() };
+    this.userSessionsStore.set(sessionId, updated);
+    return updated;
+  }
+
+  async cleanupExpiredSessions(): Promise<number> {
+    const now = new Date();
+    let count = 0;
+    for (const [id, session] of this.userSessionsStore.entries()) {
+      if (session.expiresAt && session.expiresAt < now) {
+        this.userSessionsStore.delete(id);
+        count++;
+      }
+    }
+    return count;
+  }
+
   // Private storage
   private gapAnalysisReports = new Map<string, GapAnalysisReport>();
   private gapAnalysisFindings = new Map<string, GapAnalysisFinding>();
@@ -717,6 +918,8 @@ export class MemStorage implements IStorage {
   private auditEntries = new Map<string, AuditTrail>();
   private contactMessagesStore = new Map<string, ContactMessage>();
   private documentApprovalsStore = new Map<string, DocumentApproval>();
+  private userInvitationsStore = new Map<string, UserInvitation>();
+  private userSessionsStore = new Map<string, UserSession>();
 }
 
 export class DatabaseStorage implements IStorage {
@@ -769,26 +972,29 @@ export class DatabaseStorage implements IStorage {
     const limit = pagination?.limit || 20;
     const offset = (page - 1) * limit;
 
-    let conditions = [];
-    
+    const conditions: any[] = [];
+
     if (filters?.search) {
-      conditions.push(
-        or(
-          ilike(users.email, `%${filters.search}%`),
+      const searchConditions = [
+        ilike(users.email, `%${filters.search}%`),
+      ];
+      if (filters.search) {
+        searchConditions.push(
           ilike(users.firstName, `%${filters.search}%`),
           ilike(users.lastName, `%${filters.search}%`)
-        )
-      );
+        );
+      }
+      conditions.push(or(...searchConditions));
     }
-    
+
     if (filters?.role) {
-      conditions.push(eq(users.role, filters.role));
+      conditions.push(eq(users.role, filters.role as any));
     }
-    
+
     if (filters?.status) {
-      conditions.push(eq(users.accountStatus, filters.status));
+      conditions.push(eq(users.accountStatus, filters.status as any));
     }
-    
+
     if (filters?.isActive !== undefined) {
       conditions.push(eq(users.isActive, filters.isActive));
     }
@@ -801,22 +1007,22 @@ export class DatabaseStorage implements IStorage {
       .where(whereClause);
     
     const total = totalResult?.count || 0;
-    
-    let query = db.select().from(users).where(whereClause).limit(limit).offset(offset);
-    
+
+    // Build query with orderBy based on sorting parameters
+    let data;
     if (pagination?.sortBy === 'createdAt') {
-      query = pagination.sortOrder === 'asc' 
-        ? query.orderBy(asc(users.createdAt))
-        : query.orderBy(desc(users.createdAt));
+      data = await db.select().from(users).where(whereClause)
+        .orderBy(pagination.sortOrder === 'asc' ? asc(users.createdAt) : desc(users.createdAt))
+        .limit(limit).offset(offset);
     } else if (pagination?.sortBy === 'email') {
-      query = pagination.sortOrder === 'asc'
-        ? query.orderBy(asc(users.email))
-        : query.orderBy(desc(users.email));
+      data = await db.select().from(users).where(whereClause)
+        .orderBy(pagination.sortOrder === 'asc' ? asc(users.email) : desc(users.email))
+        .limit(limit).offset(offset);
     } else {
-      query = query.orderBy(desc(users.createdAt));
+      data = await db.select().from(users).where(whereClause)
+        .orderBy(desc(users.createdAt))
+        .limit(limit).offset(offset);
     }
-    
-    const data = await query;
     
     return {
       data,
@@ -1356,7 +1562,7 @@ export class DatabaseStorage implements IStorage {
       return await db
         .select()
         .from(documentApprovals)
-        .where(eq(documentApprovals.status, status as DocumentApproval["status"]))
+        .where(eq(documentApprovals.status, status as any))
         .orderBy(desc(documentApprovals.createdAt));
     }
     return await db

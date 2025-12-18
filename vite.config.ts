@@ -30,6 +30,67 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core and routing
+          'vendor-react': [
+            'react',
+            'react-dom',
+            'react/jsx-runtime',
+            'wouter'
+          ],
+          // UI component library (Radix UI)
+          'vendor-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-label',
+            '@radix-ui/react-switch',
+            '@radix-ui/react-separator',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-scroll-area',
+            '@radix-ui/react-slider',
+            '@radix-ui/react-progress',
+          ],
+          // Form handling
+          'vendor-forms': [
+            'react-hook-form',
+            '@hookform/resolvers',
+            'zod',
+            'zod-validation-error'
+          ],
+          // Data fetching and state
+          'vendor-query': [
+            '@tanstack/react-query'
+          ],
+          // Charts and visualizations
+          'vendor-charts': [
+            'recharts'
+          ],
+          // Icons and animations
+          'vendor-icons': [
+            'lucide-react',
+            'react-icons',
+            'framer-motion'
+          ],
+          // Utility libraries
+          'vendor-utils': [
+            'date-fns',
+            'clsx',
+            'tailwind-merge',
+            'class-variance-authority'
+          ]
+        },
+      },
+    },
+    chunkSizeWarningLimit: 500,
   },
   server: {
     fs: {
