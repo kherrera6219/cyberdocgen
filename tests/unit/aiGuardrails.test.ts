@@ -466,7 +466,7 @@ describe('AIGuardrailsService', () => {
         );
 
         expect(result.responseRiskScore).toBe(0);
-        expect(result.sanitizedResponse).toBeNull();
+        expect(result.sanitizedResponse).toBeUndefined();
       });
 
       it('should handle special characters in prompts', async () => {

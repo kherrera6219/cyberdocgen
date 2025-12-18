@@ -7,6 +7,7 @@ import { db } from "../db";
 import { aiGuardrailsLogs } from "../../shared/schema";
 import { logger } from "../utils/logger";
 import crypto from "crypto";
+import { eq, and, desc } from "drizzle-orm";
 
 // Prompt Risk Keywords (potential injection attempts, harmful content)
 const HIGH_RISK_KEYWORDS = [
@@ -166,7 +167,7 @@ class AIGuardrailsService {
         action,
         severity,
         sanitizedPrompt: piiResult.sanitized,
-        sanitizedResponse: sanitizedResponse === null ? null : sanitizedResponse,
+        sanitizedResponse: sanitizedResponse ?? undefined,
         piiDetected: combinedPiiDetected,
         piiTypes: combinedPiiTypes,
         promptRiskScore,
@@ -466,10 +467,41 @@ class AIGuardrailsService {
     limit?: number;
     offset?: number;
   }) {
-    // Implementation would use drizzle queries
-    logger.info("Fetching guardrail logs", { organizationId, options });
-    // TODO: Implement actual query
-    return [];
+    try {
+      logger.info("Fetching guardrail logs", { organizationId, options });
+
+      const limit = options?.limit || 50;
+      const offset = options?.offset || 0;
+
+      // Build query conditions
+      const conditions = [eq(aiGuardrailsLogs.organizationId, organizationId)];
+
+      if (options?.severity) {
+        conditions.push(eq(aiGuardrailsLogs.severity, options.severity as any));
+      }
+
+      if (options?.requiresReview !== undefined) {
+        conditions.push(eq(aiGuardrailsLogs.requiresHumanReview, options.requiresReview));
+      }
+
+      // Execute query
+      const logs = await db
+        .select()
+        .from(aiGuardrailsLogs)
+        .where(and(...conditions))
+        .orderBy(desc(aiGuardrailsLogs.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      return logs;
+    } catch (error: any) {
+      logger.error("Failed to fetch guardrail logs", {
+        error: error.message,
+        organizationId,
+        options
+      });
+      throw error;
+    }
   }
 
   /**
@@ -482,12 +514,42 @@ class AIGuardrailsService {
     notes?: string
   ) {
     try {
-      // Update the log with human review decision
       logger.info("Submitting human review", { logId, decision, reviewedBy });
-      // TODO: Implement actual update
-      return { success: true };
+
+      // Update the guardrail log with human review decision
+      const [updatedLog] = await db
+        .update(aiGuardrailsLogs)
+        .set({
+          humanReviewDecision: decision,
+          humanReviewedBy: reviewedBy,
+          humanReviewedAt: new Date(),
+          humanReviewNotes: notes || undefined,
+          requiresHumanReview: false // Mark as reviewed
+        })
+        .where(eq(aiGuardrailsLogs.id, logId))
+        .returning();
+
+      if (!updatedLog) {
+        throw new Error(`Guardrail log with ID ${logId} not found`);
+      }
+
+      logger.info("Human review submitted successfully", {
+        logId,
+        decision,
+        reviewedBy
+      });
+
+      return {
+        success: true,
+        log: updatedLog
+      };
     } catch (error: any) {
-      logger.error("Failed to submit human review", { error: error.message });
+      logger.error("Failed to submit human review", {
+        error: error.message,
+        logId,
+        decision,
+        reviewedBy
+      });
       throw error;
     }
   }

@@ -3,12 +3,14 @@ import { z } from 'zod';
 import { storage } from '../storage';
 import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
-import { insertDocumentSchema } from '@shared/schema';
+import { insertDocumentSchema, documentVersions } from '@shared/schema';
 import { versionService } from '../services/versionService';
 import { auditService } from '../services/auditService';
 import type { AIModel } from '../services/aiOrchestrator';
 import { validateBody } from '../middleware/routeValidation';
 import { generateDocumentSchema, generateSingleDocumentSchema, createDocumentVersionSchema } from '../validation/schemas';
+import { db } from '../db';
+import { eq, desc } from 'drizzle-orm';
 
 export async function registerDocumentsRoutes(router: Router) {
   const { requireMFA, enforceMFATimeout } = await import('../middleware/mfa');
@@ -447,7 +449,42 @@ Category: ${category}`;
    *         description: Unauthorized
    */
   router.get('/:id/history', isAuthenticated, async (req: any, res) => {
-    // TODO: Implement document history tracking
-    res.status(501).json({ message: 'Document history not yet implemented' });
+    try {
+      const documentId = req.params.id;
+
+      if (!documentId) {
+        return res.status(400).json({ message: 'Invalid document ID' });
+      }
+
+      // Query document versions history
+      const versions = await db
+        .select()
+        .from(documentVersions)
+        .where(eq(documentVersions.documentId, documentId))
+        .orderBy(desc(documentVersions.versionNumber));
+
+      if (!versions || versions.length === 0) {
+        return res.json({
+          success: true,
+          documentId,
+          versions: [],
+          message: 'No version history found for this document'
+        });
+      }
+
+      res.json({
+        success: true,
+        documentId,
+        versions,
+        currentVersion: versions[0], // Latest version
+        totalVersions: versions.length
+      });
+    } catch (error) {
+      logger.error('Failed to retrieve document history', {
+        error: error instanceof Error ? error.message : String(error),
+        documentId: req.params.id
+      });
+      res.status(500).json({ message: 'Failed to retrieve document history' });
+    }
   });
 }

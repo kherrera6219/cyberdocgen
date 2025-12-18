@@ -7,56 +7,59 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
-import NotFound from "./pages/not-found";
-import Dashboard from "./pages/dashboard";
-import CompanyProfile from "./pages/company-profile";
-import Documents from "./pages/documents";
-import { Landing } from "./pages/landing";
-import { Home } from "./pages/home";
-import { UserProfile } from "./pages/user-profile";
-import { OrganizationSetup } from "./pages/organization-setup";
-import EnhancedCompanyProfile from "./pages/enhanced-company-profile";
-import DocumentWorkspace from "./pages/document-workspace";
-import AuditTrail from "./pages/audit-trail";
-import DocumentVersions from "./pages/document-versions";
 import { useParams } from "wouter";
-
-function WorkspaceWrapper() {
-  return <DocumentWorkspace organizationId="default" />;
-}
-
-function DocumentVersionsWrapper() {
-  const params = useParams<{ id: string }>();
-  return <DocumentVersions documentId={params.id || ""} documentTitle="Document" />;
-}
-import { ObjectStorageManager } from "./components/ObjectStorageManager";
-import { IndustrySpecialization } from "./components/ai/IndustrySpecialization";
-import GapAnalysis from "./pages/gap-analysis";
-import ExportCenter from "./pages/export-center";
-import ISO27001Framework from "./pages/iso27001-framework";
-import SOC2Framework from "./pages/soc2-framework";
-import FedRAMPFramework from "./pages/fedramp-framework";
-import NISTFramework from "./pages/nist-framework";
 import Layout from "./components/layout";
 
-// Lazy load components
+// Lazy load all pages for code splitting
+const NotFound = lazy(() => import("./pages/not-found"));
+const Landing = lazy(() => import("./pages/landing").then(m => ({ default: m.Landing })));
+const Home = lazy(() => import("./pages/home").then(m => ({ default: m.Home })));
+
+// Core application pages
+const Dashboard = lazy(() => import("./pages/dashboard"));
+const CompanyProfile = lazy(() => import("./pages/company-profile"));
+const EnhancedCompanyProfile = lazy(() => import("./pages/enhanced-company-profile"));
+const Documents = lazy(() => import("./pages/documents"));
+const DocumentWorkspace = lazy(() => import("./pages/document-workspace"));
+const DocumentVersions = lazy(() => import("./pages/document-versions"));
+const UserProfile = lazy(() => import("./pages/user-profile").then(m => ({ default: m.UserProfile })));
+const OrganizationSetup = lazy(() => import("./pages/organization-setup").then(m => ({ default: m.OrganizationSetup })));
+
+// Compliance framework pages
+const ISO27001Framework = lazy(() => import("./pages/iso27001-framework"));
+const SOC2Framework = lazy(() => import("./pages/soc2-framework"));
+const FedRAMPFramework = lazy(() => import("./pages/fedramp-framework"));
+const NISTFramework = lazy(() => import("./pages/nist-framework"));
+
+// Analysis and audit pages
+const GapAnalysis = lazy(() => import("./pages/gap-analysis"));
+const AuditTrail = lazy(() => import("./pages/audit-trail"));
+const AuditTrailComplete = lazy(() => import("./pages/audit-trail-complete"));
+const ExportCenter = lazy(() => import("./pages/export-center"));
+
+// Authentication pages
 const EnterpriseLogin = lazy(() => import("@/pages/enterprise-login"));
 const EnterpriseSignup = lazy(() => import("@/pages/enterprise-signup"));
 const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 const ResetPassword = lazy(() => import("@/pages/reset-password"));
 const MfaSetup = lazy(() => import("@/pages/mfa-setup"));
-const AdminSettings = lazy(() => import("@/pages/admin-settings"));
-const CloudIntegrations = lazy(() => import("@/pages/cloud-integrations"));
-const AIAssistant = lazy(() => import("@/pages/ai-assistant"));
-const MCPTools = lazy(() => import("@/pages/mcp-tools"));
-const AIDocGenerator = lazy(() => import("@/pages/ai-doc-generator"));
 
-// Placeholder for AuditTrailComplete and UserProfileNew components
-const AuditTrailComplete = lazy(() => import("./pages/audit-trail-complete"));
+// Admin and settings
+const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const UserProfileNew = lazy(() => import("./pages/user-profile-new"));
 
-// Phase 3 pages
+// AI features
+const AIAssistant = lazy(() => import("@/pages/ai-assistant"));
+const AIDocGenerator = lazy(() => import("@/pages/ai-doc-generator"));
 const AIHub = lazy(() => import("./pages/ai-hub"));
+
+// Integrations and tools
+const CloudIntegrations = lazy(() => import("@/pages/cloud-integrations"));
+const MCPTools = lazy(() => import("@/pages/mcp-tools"));
+const ObjectStorageManager = lazy(() => import("./components/ObjectStorageManager").then(m => ({ default: m.ObjectStorageManager })));
+const IndustrySpecialization = lazy(() => import("./components/ai/IndustrySpecialization").then(m => ({ default: m.IndustrySpecialization })));
+
+// Evidence and approvals
 const EvidenceIngestion = lazy(() => import("./pages/evidence-ingestion"));
 const ControlApprovals = lazy(() => import("./pages/control-approvals"));
 const AuditorWorkspace = lazy(() => import("./pages/auditor-workspace"));
@@ -68,6 +71,24 @@ const Pricing = lazy(() => import("./pages/pricing"));
 const Contact = lazy(() => import("./pages/contact"));
 const Privacy = lazy(() => import("./pages/privacy"));
 const Terms = lazy(() => import("./pages/terms"));
+
+// Wrapper components for dynamic routes
+function WorkspaceWrapper() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading workspace...</div>}>
+      <DocumentWorkspace organizationId="default" />
+    </Suspense>
+  );
+}
+
+function DocumentVersionsWrapper() {
+  const params = useParams<{ id: string }>();
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading document versions...</div>}>
+      <DocumentVersions documentId={params.id || ""} documentTitle="Document" />
+    </Suspense>
+  );
+}
 
 function AuthenticatedRouter() {
   return (

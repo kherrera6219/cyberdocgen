@@ -19,6 +19,22 @@ process.env.REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || 'localhost,test.local
 process.env.REPL_ID = process.env.REPL_ID || 'test-repl-id';
 process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'test-session-secret-key-for-testing-only';
 
+// Mock @replit/object-storage to prevent connection errors in tests
+vi.mock('@replit/object-storage', () => {
+  return {
+    Client: vi.fn().mockImplementation(() => ({
+      init: vi.fn().mockResolvedValue(undefined),
+      uploadFromText: vi.fn().mockResolvedValue({ ok: true, error: null }),
+      uploadFromBytes: vi.fn().mockResolvedValue({ ok: true, error: null }),
+      downloadAsText: vi.fn().mockResolvedValue({ ok: true, value: '{}', error: null }),
+      downloadAsBytes: vi.fn().mockResolvedValue({ ok: true, value: Buffer.from(''), error: null }),
+      list: vi.fn().mockResolvedValue({ ok: true, value: [], error: null }),
+      delete: vi.fn().mockResolvedValue({ ok: true, error: null }),
+      exists: vi.fn().mockResolvedValue({ ok: true, value: true, error: null }),
+    })),
+  };
+});
+
 // Polyfill ResizeObserver for jsdom (required by Radix UI)
 if (typeof global.ResizeObserver === 'undefined') {
   global.ResizeObserver = class ResizeObserver {

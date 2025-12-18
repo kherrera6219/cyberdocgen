@@ -262,7 +262,7 @@ async function checkAIServices(): Promise<boolean> {
   try {
     const { aiOrchestrator } = await import('../services/aiOrchestrator');
     const healthStatus = await aiOrchestrator.healthCheck();
-    return healthStatus.overall;
+    return healthStatus.overall ?? false;
   } catch (error) {
     logger.error('AI services health check failed:', error);
     return false;
