@@ -53,10 +53,10 @@ export default function EnterpriseLogin() {
         setUserData(data.user);
         setRequiresMFA(true);
       } else {
-        // Invalidate auth cache to force refetch of user data before redirecting
-        await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-        // Small delay to ensure session cookie is set
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Refetch auth data and wait for it to complete before redirecting
+        await queryClient.refetchQueries({ queryKey: ['/api/auth/user'] });
+        // Small delay to ensure React state updates are processed
+        await new Promise(resolve => setTimeout(resolve, 50));
         // Redirect to dashboard on successful login (wrapped in startTransition to prevent Suspense errors)
         startTransition(() => {
           setLocation('/dashboard');
