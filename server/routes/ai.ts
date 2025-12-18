@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { storage } from '../storage';
 import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
+import { db } from '../db';
+import { aiGuardrailsLogs, aiUsageDisclosures, documents } from '@shared/schema';
+import { eq, desc, count, sql } from 'drizzle-orm';
 import { aiOrchestrator, type AIModel, type GenerationOptions } from '../services/aiOrchestrator';
 import { documentAnalysisService } from '../services/documentAnalysis';
 import { complianceChatbot } from '../services/chatbot';
@@ -756,8 +759,117 @@ export function registerAIRoutes(router: Router) {
    *         description: Unauthorized
    */
   router.get("/stats", isAuthenticated, async (req: any, res) => {
-    // TODO: Implement AI statistics tracking
-    res.status(501).json({ message: 'AI statistics not yet implemented' });
+    try {
+      const { organizationId, timeRange = '30d' } = req.query;
+
+      // Calculate time filter
+      const now = new Date();
+      let startDate = new Date();
+      if (timeRange === '7d') {
+        startDate.setDate(now.getDate() - 7);
+      } else if (timeRange === '30d') {
+        startDate.setDate(now.getDate() - 30);
+      } else if (timeRange === '90d') {
+        startDate.setDate(now.getDate() - 90);
+      } else if (timeRange === '1y') {
+        startDate.setFullYear(now.getFullYear() - 1);
+      }
+
+      // Get guardrail statistics
+      const guardrailsQuery = organizationId
+        ? db.select({
+            action: aiGuardrailsLogs.action,
+            severity: aiGuardrailsLogs.severity,
+            count: count()
+          })
+          .from(aiGuardrailsLogs)
+          .where(eq(aiGuardrailsLogs.organizationId, organizationId as string))
+          .groupBy(aiGuardrailsLogs.action, aiGuardrailsLogs.severity)
+        : db.select({
+            action: aiGuardrailsLogs.action,
+            severity: aiGuardrailsLogs.severity,
+            count: count()
+          })
+          .from(aiGuardrailsLogs)
+          .groupBy(aiGuardrailsLogs.action, aiGuardrailsLogs.severity);
+
+      const guardrailStats = await guardrailsQuery;
+
+      // Get usage disclosure statistics
+      const usageQuery = organizationId
+        ? db.select({
+            actionType: aiUsageDisclosures.actionType,
+            modelProvider: aiUsageDisclosures.modelProvider,
+            count: count()
+          })
+          .from(aiUsageDisclosures)
+          .where(eq(aiUsageDisclosures.organizationId, organizationId as string))
+          .groupBy(aiUsageDisclosures.actionType, aiUsageDisclosures.modelProvider)
+        : db.select({
+            actionType: aiUsageDisclosures.actionType,
+            modelProvider: aiUsageDisclosures.modelProvider,
+            count: count()
+          })
+          .from(aiUsageDisclosures)
+          .groupBy(aiUsageDisclosures.actionType, aiUsageDisclosures.modelProvider);
+
+      const usageStats = await usageQuery;
+
+      // Get AI-generated documents count
+      const [aiDocsResult] = await db
+        .select({ count: count() })
+        .from(documents)
+        .where(eq(documents.aiGenerated, true));
+
+      // Calculate summary statistics
+      const totalGuardrailActions = guardrailStats.reduce((sum, stat) => sum + stat.count, 0);
+      const blockedActions = guardrailStats
+        .filter(stat => stat.action === 'blocked')
+        .reduce((sum, stat) => sum + stat.count, 0);
+      const redactedActions = guardrailStats
+        .filter(stat => stat.action === 'redacted')
+        .reduce((sum, stat) => sum + stat.count, 0);
+      const totalUsageActions = usageStats.reduce((sum, stat) => sum + stat.count, 0);
+
+      res.json({
+        success: true,
+        timeRange,
+        statistics: {
+          guardrails: {
+            total: totalGuardrailActions,
+            blocked: blockedActions,
+            redacted: redactedActions,
+            byAction: guardrailStats.reduce((acc, stat) => {
+              acc[stat.action] = (acc[stat.action] || 0) + stat.count;
+              return acc;
+            }, {} as Record<string, number>),
+            bySeverity: guardrailStats.reduce((acc, stat) => {
+              acc[stat.severity] = (acc[stat.severity] || 0) + stat.count;
+              return acc;
+            }, {} as Record<string, number>)
+          },
+          usage: {
+            total: totalUsageActions,
+            byActionType: usageStats.reduce((acc, stat) => {
+              acc[stat.actionType] = (acc[stat.actionType] || 0) + stat.count;
+              return acc;
+            }, {} as Record<string, number>),
+            byModelProvider: usageStats.reduce((acc, stat) => {
+              acc[stat.modelProvider] = (acc[stat.modelProvider] || 0) + stat.count;
+              return acc;
+            }, {} as Record<string, number>)
+          },
+          documents: {
+            aiGenerated: aiDocsResult.count
+          }
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to retrieve AI statistics', {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      res.status(500).json({ message: 'Failed to retrieve AI statistics' });
+    }
   });
 
   /**

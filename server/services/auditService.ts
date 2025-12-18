@@ -226,6 +226,24 @@ export class AuditService {
     };
   }
 
+  async getAuditById(id: string): Promise<AuditLog | null> {
+    try {
+      const [auditEntry] = await db
+        .select()
+        .from(auditLogs)
+        .where(eq(auditLogs.id, id))
+        .limit(1);
+
+      return auditEntry || null;
+    } catch (error) {
+      logger.error('Failed to retrieve audit entry', {
+        error: error instanceof Error ? error.message : String(error),
+        auditId: id
+      });
+      return null;
+    }
+  }
+
   /**
    * Calculate risk level based on action and resource type
    */
