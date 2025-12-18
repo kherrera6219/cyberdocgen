@@ -4,7 +4,7 @@
  */
 
 import { db } from "../db";
-import { dataRetentionPolicies } from "../../shared/schema";
+import { dataRetentionPolicies, documents, aiGuardrailsLogs, auditLogs, cloudFiles, documentVersions } from "../../shared/schema";
 import { logger } from "../utils/logger";
 import { eq, and, lt } from "drizzle-orm";
 
@@ -265,22 +265,162 @@ class DataRetentionService {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() - policy.retentionDays);
 
-    // TODO: Implement actual data cleanup based on dataType
-    // This would query specific tables (documents, aiGuardrailsLogs, etc.)
-    // and archive/delete records older than expiryDate
+    let archived = 0;
+    let deleted = 0;
 
-    // Mock implementation
-    const archived = 0;
-    const deleted = 0;
+    // Implement data cleanup based on dataType
+    try {
+      switch (policy.dataType.toLowerCase()) {
+        case 'documents':
+          // Delete or archive old documents
+          const oldDocuments = await db
+            .select()
+            .from(documents)
+            .where(
+              and(
+                eq(documents.companyProfileId, policy.organizationId),
+                lt(documents.createdAt, expiryDate)
+              )
+            );
 
-    logger.info("Retention policy enforced", {
-      policyId: policy.id,
-      dataType: policy.dataType,
-      archived,
-      deleted,
-    });
+          if (policy.deleteAfterExpiry) {
+            const deleteResult = await db
+              .delete(documents)
+              .where(
+                and(
+                  eq(documents.companyProfileId, policy.organizationId),
+                  lt(documents.createdAt, expiryDate)
+                )
+              );
+            deleted = oldDocuments.length;
+          } else {
+            // Archive logic would go here
+            archived = oldDocuments.length;
+          }
+          break;
 
-    return { archived, deleted };
+        case 'ai_guardrails_logs':
+          // Clean up old AI guardrail logs
+          const oldGuardrailLogs = await db
+            .select()
+            .from(aiGuardrailsLogs)
+            .where(
+              and(
+                eq(aiGuardrailsLogs.organizationId, policy.organizationId),
+                lt(aiGuardrailsLogs.createdAt, expiryDate)
+              )
+            );
+
+          if (policy.deleteAfterExpiry) {
+            await db
+              .delete(aiGuardrailsLogs)
+              .where(
+                and(
+                  eq(aiGuardrailsLogs.organizationId, policy.organizationId),
+                  lt(aiGuardrailsLogs.createdAt, expiryDate)
+                )
+              );
+            deleted = oldGuardrailLogs.length;
+          } else {
+            archived = oldGuardrailLogs.length;
+          }
+          break;
+
+        case 'audit_logs':
+          // Clean up old audit logs
+          const oldAuditLogs = await db
+            .select()
+            .from(auditLogs)
+            .where(
+              and(
+                eq(auditLogs.organizationId, policy.organizationId),
+                lt(auditLogs.timestamp, expiryDate)
+              )
+            );
+
+          if (policy.deleteAfterExpiry) {
+            await db
+              .delete(auditLogs)
+              .where(
+                and(
+                  eq(auditLogs.organizationId, policy.organizationId),
+                  lt(auditLogs.timestamp, expiryDate)
+                )
+              );
+            deleted = oldAuditLogs.length;
+          } else {
+            archived = oldAuditLogs.length;
+          }
+          break;
+
+        case 'cloud_files':
+          // Clean up old cloud files
+          const oldCloudFiles = await db
+            .select()
+            .from(cloudFiles)
+            .where(
+              and(
+                eq(cloudFiles.organizationId, policy.organizationId),
+                lt(cloudFiles.createdAt, expiryDate)
+              )
+            );
+
+          if (policy.deleteAfterExpiry) {
+            await db
+              .delete(cloudFiles)
+              .where(
+                and(
+                  eq(cloudFiles.organizationId, policy.organizationId),
+                  lt(cloudFiles.createdAt, expiryDate)
+                )
+              );
+            deleted = oldCloudFiles.length;
+          } else {
+            archived = oldCloudFiles.length;
+          }
+          break;
+
+        case 'document_versions':
+          // Clean up old document versions (keep only recent versions)
+          const oldVersions = await db
+            .select()
+            .from(documentVersions)
+            .where(lt(documentVersions.createdAt, expiryDate));
+
+          if (policy.deleteAfterExpiry) {
+            await db
+              .delete(documentVersions)
+              .where(lt(documentVersions.createdAt, expiryDate));
+            deleted = oldVersions.length;
+          } else {
+            archived = oldVersions.length;
+          }
+          break;
+
+        default:
+          logger.warn("Unknown data type for retention policy", {
+            dataType: policy.dataType,
+            policyId: policy.id
+          });
+      }
+
+      logger.info("Retention policy enforced", {
+        policyId: policy.id,
+        dataType: policy.dataType,
+        archived,
+        deleted,
+        expiryDate
+      });
+
+      return { archived, deleted };
+    } catch (error: any) {
+      logger.error("Failed to enforce retention policy", {
+        error: error.message,
+        policyId: policy.id,
+        dataType: policy.dataType
+      });
+      throw error;
+    }
   }
 
   /**
