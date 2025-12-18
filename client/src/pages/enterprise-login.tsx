@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, startTransition } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,8 +57,10 @@ export default function EnterpriseLogin() {
         await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
         // Small delay to ensure session cookie is set
         await new Promise(resolve => setTimeout(resolve, 100));
-        // Redirect to dashboard on successful login
-        setLocation('/dashboard');
+        // Redirect to dashboard on successful login (wrapped in startTransition to prevent Suspense errors)
+        startTransition(() => {
+          setLocation('/dashboard');
+        });
       }
     },
     onError: (error: any) => {
