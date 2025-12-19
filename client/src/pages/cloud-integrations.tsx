@@ -505,21 +505,19 @@ export default function CloudIntegrations() {
             </Card>
           )}
 
-          {/* Admin Notice */}
-          {(!process.env.GOOGLE_CLIENT_ID || !process.env.MICROSOFT_CLIENT_ID) && (
+          {/* Admin Notice - shown to admins when integrations may not be configured */}
+          {user.role === 'admin' && integrationsData?.integrations?.length === 0 && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Cloud integrations require OAuth credentials to be configured by an administrator.
-                {user.role === 'admin' && (
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto ml-2"
-                    onClick={() => window.location.href = '/admin'}
-                  >
-                    Configure now
-                  </Button>
-                )}
+                Cloud integrations require OAuth credentials to be configured.
+                <Button
+                  variant="link"
+                  className="p-0 h-auto ml-2"
+                  onClick={() => window.location.href = '/admin'}
+                >
+                  Configure now
+                </Button>
               </AlertDescription>
             </Alert>
           )}
