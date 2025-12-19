@@ -137,6 +137,7 @@ function PublicRouter() {
       <Switch>
         <Route path="/" component={Landing} />
         <Route path="/login" component={EnterpriseLogin} />
+        <Route path="/enterprise-login" component={EnterpriseLogin} />
         <Route path="/enterprise-signup" component={EnterpriseSignup} />
         <Route path="/forgot-password" component={ForgotPassword} />
         <Route path="/reset-password" component={ResetPassword} />
