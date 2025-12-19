@@ -38,8 +38,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    const isProd = process.env.NODE_ENV === 'production';
+
     // Log error to console in development
-    if (import.meta.env.DEV) {
+    if (!isProd) {
       console.error("ErrorBoundary caught an error:", error, errorInfo);
     }
 
@@ -47,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.props.onError?.(error, errorInfo);
 
     // In production, send to error tracking service
-    if (import.meta.env.PROD) {
+    if (isProd) {
       // TODO: Send to error tracking service (e.g., Sentry, Azure Application Insights)
       this.logErrorToService(error, errorInfo);
     }
@@ -115,7 +117,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {import.meta.env.DEV && this.state.error && (
+              {process.env.NODE_ENV !== 'production' && this.state.error && (
                 <div className="p-3 bg-muted rounded-md">
                   <p className="text-sm font-mono text-destructive" data-testid="text-error-message">
                     {this.state.error.message}
