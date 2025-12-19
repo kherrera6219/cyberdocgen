@@ -44,10 +44,17 @@ function Header() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login">
-              <Button data-testid="header-login-button">
-                Login
+              <Button variant="ghost" data-testid="header-enterprise-login">
+                Enterprise Login
               </Button>
             </Link>
+            <TemporaryLoginDialog 
+              trigger={
+                <Button data-testid="header-login-button">
+                  Quick Login
+                </Button>
+              }
+            />
           </div>
 
           <button 
@@ -75,8 +82,11 @@ function Header() {
                 <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Contact</span>
               </Link>
               <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
+                <TemporaryLoginDialog 
+                  trigger={<Button className="w-full">Quick Login</Button>}
+                />
                 <Link href="/login">
-                  <Button className="w-full">Login</Button>
+                  <Button variant="outline" className="w-full">Enterprise Login</Button>
                 </Link>
               </div>
             </nav>
