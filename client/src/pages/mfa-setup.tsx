@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { logger } from '../utils/logger';
+import { useToast } from '../hooks/use-toast';
 
 interface MFAStatus {
   enabled: boolean;
@@ -35,6 +35,7 @@ interface TOTPSetup {
 
 export default function MFASetupPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [status, setStatus] = useState<MFAStatus | null>(null);
   const [totpSetup, setTotpSetup] = useState<TOTPSetup | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);

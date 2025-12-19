@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Lock, Mail, Shield, KeyRound } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Email or username is required'),
@@ -23,6 +24,7 @@ export default function EnterpriseLogin() {
   const [, setLocation] = useLocation();
   const [requiresMFA, setRequiresMFA] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -52,7 +54,15 @@ export default function EnterpriseLogin() {
       if (data.requiresMFA) {
         setUserData(data.user);
         setRequiresMFA(true);
+        toast({
+          title: "Verification Required",
+          description: "Please enter your two-factor authentication code.",
+        });
       } else {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back! Redirecting to your dashboard.",
+        });
         // Refetch auth data and wait for it to complete before redirecting
         await queryClient.refetchQueries({ queryKey: ['/api/auth/user'] });
         // Small delay to ensure React state updates are processed

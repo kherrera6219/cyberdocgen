@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, AlertCircle, Mail, ArrowLeft } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -21,6 +22,7 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPassword() {
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [resetData, setResetData] = useState<any>(null);
+  const { toast } = useToast();
 
   const form = useForm<ForgotPasswordForm>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -36,9 +38,18 @@ export default function ForgotPassword() {
     onSuccess: (data) => {
       setResetData(data);
       setStep('success');
+      toast({
+        title: "Reset Email Sent",
+        description: "Check your inbox for password reset instructions.",
+      });
     },
     onError: (error: any) => {
       form.setError('root', { message: error.message || 'Password reset failed' });
+      toast({
+        title: "Request Failed",
+        description: error.message || 'Password reset failed',
+        variant: "destructive",
+      });
     },
   });
 

@@ -21,11 +21,13 @@ import {
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import type { Document } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Documents() {
   const [location] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const frameworkFilter = searchParams.get('framework') || '';
+  const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");

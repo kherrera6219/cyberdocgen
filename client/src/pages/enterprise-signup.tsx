@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertCircle, Lock, Mail, Phone, Shield, Zap, Smartphone } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -34,6 +35,7 @@ export default function EnterpriseSignup() {
   const [, setLocation] = useLocation();
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [accountData, setAccountData] = useState<any>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -67,6 +69,10 @@ export default function EnterpriseSignup() {
     onSuccess: (data) => {
       setAccountData(data);
       setStep('success');
+      toast({
+        title: "Account Created",
+        description: "Please check your email to verify your account.",
+      });
     },
     onError: (error: any) => {
       if (error.message.includes('already exists')) {
@@ -74,6 +80,11 @@ export default function EnterpriseSignup() {
       } else {
         form.setError('root', { message: error.message || 'Account creation failed' });
       }
+      toast({
+        title: "Signup Failed",
+        description: error.message || 'Account creation failed',
+        variant: "destructive",
+      });
     },
   });
 

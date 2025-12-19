@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, AlertCircle, Lock, ArrowLeft } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 const resetPasswordSchema = z.object({
   newPassword: z.string()
@@ -29,6 +30,7 @@ export default function ResetPassword() {
   const [location, setLocation] = useLocation();
   const [token, setToken] = useState<string>('');
   const [step, setStep] = useState<'form' | 'success'>('form');
+  const { toast } = useToast();
 
   const form = useForm<ResetPasswordForm>({
     resolver: zodResolver(resetPasswordSchema),
@@ -55,6 +57,10 @@ export default function ResetPassword() {
     },
     onSuccess: () => {
       setStep('success');
+      toast({
+        title: "Password Reset Successful",
+        description: "Your password has been updated. You can now log in.",
+      });
     },
     onError: (error: any) => {
       if (error.message.includes('Invalid or expired')) {
@@ -64,6 +70,11 @@ export default function ResetPassword() {
       } else {
         form.setError('root', { message: error.message || 'Password reset failed' });
       }
+      toast({
+        title: "Reset Failed",
+        description: error.message || 'Password reset failed',
+        variant: "destructive",
+      });
     },
   });
 

@@ -1,8 +1,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FolderOutput, FileText, FileSpreadsheet, Download, Clock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ExportCenter() {
+  const { toast } = useToast();
+  
+  const handleExport = (format: string) => {
+    toast({
+      title: "Export Started",
+      description: `Preparing your ${format} export. This may take a moment.`,
+    });
+  };
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -28,7 +37,7 @@ export default function ExportCenter() {
             </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
-            <Button className="w-full" data-testid="button-export-pdf">
+            <Button className="w-full" data-testid="button-export-pdf" onClick={() => handleExport('PDF')}>
               <Download className="h-4 w-4 mr-2" />
               Export to PDF
             </Button>
@@ -48,7 +57,7 @@ export default function ExportCenter() {
             </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
-            <Button variant="outline" className="w-full" data-testid="button-export-excel">
+            <Button variant="outline" className="w-full" data-testid="button-export-excel" onClick={() => handleExport('Excel')}>
               <Download className="h-4 w-4 mr-2" />
               Export to Excel
             </Button>
