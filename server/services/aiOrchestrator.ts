@@ -1,8 +1,8 @@
-import OpenAI from "openai";
 import { type CompanyProfile } from "@shared/schema";
 import { generateDocument as generateWithOpenAI, generateComplianceDocuments as generateBatchWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
 import { aiGuardrailsService, type GuardrailCheckResult } from "./aiGuardrailsService";
+import { getOpenAIClient, getAnthropicClient } from "./aiClients";
 import { logger } from "../utils/logger";
 import crypto from "crypto";
 
@@ -16,13 +16,6 @@ const fallbackFrameworkTemplates: Record<string, DocumentTemplate[]> = {
     { title: "Information Security Policy", description: "Main security governance document", category: "policy", priority: 1 },
   ],
 };
-
-function getOpenAIClient(): OpenAI {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY environment variable is not set");
-  }
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
 
 export type AIModel = 'gpt-5.1' | 'claude-sonnet-4' | 'auto';
 
@@ -390,8 +383,7 @@ export class AIOrchestrator {
       // Fallback to Anthropic if OpenAI fails
       try {
         logger.info('Attempting fallback to Anthropic for content generation', { requestId });
-        const Anthropic = await import('@anthropic-ai/sdk');
-        const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const client = getAnthropicClient();
         const response = await client.messages.create({
           model: "claude-sonnet-4-20250514",
           max_tokens: maxTokens,
@@ -538,9 +530,8 @@ export class AIOrchestrator {
 
     // Test OpenAI with minimal API call
     try {
-      const openai = await import('openai');
-      const client = new openai.default({ apiKey: process.env.OPENAI_API_KEY });
-      await client.chat.completions.create({
+      const openaiClient = getOpenAIClient();
+      await openaiClient.chat.completions.create({
         model: "gpt-5.1",
         messages: [{ role: "user", content: "Test" }],
         max_tokens: 5
@@ -552,9 +543,8 @@ export class AIOrchestrator {
 
     // Test Anthropic with minimal API call
     try {
-      const Anthropic = await import('@anthropic-ai/sdk');
-      const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
-      await client.messages.create({
+      const anthropicClient = getAnthropicClient();
+      await anthropicClient.messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 5,
         messages: [{ role: "user", content: "Test" }]

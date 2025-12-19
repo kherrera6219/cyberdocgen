@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
-import { and, eq, gte, lte } from 'drizzle-orm';
+import { and, eq, gte, lte, count, desc } from 'drizzle-orm';
 import { db } from '../db';
 import { logger } from '../utils/logger';
 import { auditLogs, type AuditLog } from '@shared/schema';
@@ -191,54 +191,138 @@ export class AuditService {
     });
   }
 
-  async getAuditLogs(query: {
-    page?: number;
-    limit?: number;
-    entityType?: string;
-    action?: string;
-    search?: string;
-    dateFrom?: Date;
-    dateTo?: Date;
-  }): Promise<{ data: AuditLogEntry[]; page: number; limit: number; total: number }> {
+  async getAuditLogs(
+    organizationId: string,
+    query: {
+      page?: number;
+      limit?: number;
+      entityType?: string;
+      action?: string;
+      search?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+    }
+  ): Promise<{ data: AuditLogEntry[]; page: number; limit: number; total: number }> {
     const page = query.page ?? 1;
-    const limit = query.limit ?? 50;
+    const limit = Math.min(query.limit ?? 50, 100);
+    const offset = (page - 1) * limit;
 
-    // Minimal placeholder implementation until full audit trail querying is wired up
-    return {
-      data: [],
-      page,
-      limit,
-      total: 0,
-    };
+    try {
+      const conditions = [eq(auditLogs.organizationId, organizationId)];
+
+      if (query.entityType) {
+        conditions.push(eq(auditLogs.resourceType, query.entityType));
+      }
+      if (query.action) {
+        conditions.push(eq(auditLogs.action, query.action));
+      }
+      if (query.dateFrom) {
+        conditions.push(gte(auditLogs.timestamp, query.dateFrom));
+      }
+      if (query.dateTo) {
+        conditions.push(lte(auditLogs.timestamp, query.dateTo));
+      }
+
+      // Get total count for proper pagination
+      const [countResult] = await db
+        .select({ total: count() })
+        .from(auditLogs)
+        .where(and(...conditions));
+      
+      const total = countResult?.total ?? 0;
+
+      const results = await db
+        .select()
+        .from(auditLogs)
+        .where(and(...conditions))
+        .orderBy(desc(auditLogs.timestamp))
+        .limit(limit)
+        .offset(offset);
+
+      const data: AuditLogEntry[] = results.map(log => ({
+        userId: log.userId || undefined,
+        organizationId: log.organizationId || undefined,
+        action: log.action as AuditAction,
+        resourceType: log.resourceType || undefined,
+        resourceId: log.resourceId || undefined,
+        entityType: log.resourceType || undefined,
+        entityId: log.resourceId || undefined,
+        ipAddress: log.ipAddress || 'unknown',
+        userAgent: log.userAgent || undefined,
+        riskLevel: log.riskLevel as RiskLevel || undefined,
+      }));
+
+      return {
+        data,
+        page,
+        limit,
+        total,
+      };
+    } catch (error) {
+      logger.error('Failed to retrieve audit logs', {
+        error: error instanceof Error ? error.message : String(error),
+        organizationId,
+      });
+      return { data: [], page, limit, total: 0 };
+    }
   }
 
-  async getAuditStats(): Promise<{
+  async getAuditStats(organizationId: string): Promise<{
     totalEvents: number;
     highRiskEvents: number;
     actions: Record<string, number>;
     entities: Record<string, number>;
   }> {
-    return {
-      totalEvents: 0,
-      highRiskEvents: 0,
-      actions: {},
-      entities: {},
-    };
+    try {
+      const results = await db
+        .select()
+        .from(auditLogs)
+        .where(eq(auditLogs.organizationId, organizationId))
+        .limit(10000);
+
+      const stats = {
+        totalEvents: results.length,
+        highRiskEvents: results.filter(r => r.riskLevel === 'high' || r.riskLevel === 'critical').length,
+        actions: {} as Record<string, number>,
+        entities: {} as Record<string, number>,
+      };
+
+      for (const log of results) {
+        if (log.action) {
+          stats.actions[log.action] = (stats.actions[log.action] || 0) + 1;
+        }
+        if (log.resourceType) {
+          stats.entities[log.resourceType] = (stats.entities[log.resourceType] || 0) + 1;
+        }
+      }
+
+      return stats;
+    } catch (error) {
+      logger.error('Failed to retrieve audit stats', {
+        error: error instanceof Error ? error.message : String(error),
+        organizationId,
+      });
+      return { totalEvents: 0, highRiskEvents: 0, actions: {}, entities: {} };
+    }
   }
 
-  async getAuditById(id: string): Promise<AuditLog | null> {
+  async getAuditById(id: string, organizationId: string): Promise<AuditLog | null> {
     try {
       const [auditEntry] = await db
         .select()
         .from(auditLogs)
-        .where(eq(auditLogs.id, id))
+        .where(and(
+          eq(auditLogs.id, id),
+          eq(auditLogs.organizationId, organizationId)
+        ))
         .limit(1);
 
       return auditEntry || null;
     } catch (error) {
       logger.error('Failed to retrieve audit entry', {
         error: error instanceof Error ? error.message : String(error),
-        auditId: id
+        auditId: id,
+        organizationId,
       });
       return null;
     }

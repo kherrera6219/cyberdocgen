@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import Anthropic from '@anthropic-ai/sdk';
 import crypto from 'crypto';
 import { logger } from '../utils/logger';
 import { isAuthenticated, getUserId } from '../replitAuth';
 import { validateBody } from '../middleware/routeValidation';
 import { aiGuardrailsService } from '../services/aiGuardrailsService';
+import { getAnthropicClient, getGeminiClient } from '../services/aiClients';
 import {
   riskAssessmentRequestSchema,
   complianceAnalysisRequestSchema,
@@ -45,7 +45,7 @@ export function registerAnalyticsRoutes(router: Router) {
 
       const sanitizedContent = guardrailResult.sanitizedPrompt || promptContent;
       
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const anthropic = getAnthropicClient();
       
       const systemPrompt = `You are a cybersecurity risk analyst. Analyze the company profile and provide a comprehensive risk assessment with specific recommendations.`;
       
@@ -107,22 +107,26 @@ export function registerAnalyticsRoutes(router: Router) {
 
       const sanitizedPrompt = guardrailResult.sanitizedPrompt || prompt;
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: sanitizedPrompt }] }],
-          generationConfig: { maxOutputTokens: 2000 }
-        })
+      const gemini = getGeminiClient();
+      const response = await gemini.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: sanitizedPrompt }]
+          }
+        ],
+        config: {
+          maxOutputTokens: 2000,
+        }
       });
-
-      const data = await response.json();
-      const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Compliance analysis completed';
+      
+      const analysisText = response.text || 'Compliance analysis completed';
 
       res.json({
         success: true,
         gapAnalysis: analysisText,
-        model: "gemini-3.0-pro"
+        model: "gemini-2.0-flash"
       });
     } catch (error: any) {
       logger.error("Compliance analysis failed", { error: error.message });
@@ -227,7 +231,7 @@ export function registerAnalyticsRoutes(router: Router) {
       // Use sanitized content
       const sanitizedContent = guardrailResult.sanitizedPrompt || content;
       
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const anthropic = getAnthropicClient();
       
       const response = await anthropic.messages.create({
         model: "claude-sonnet-4-20250514",
@@ -285,7 +289,7 @@ export function registerAnalyticsRoutes(router: Router) {
       // Use sanitized message
       const sanitizedMessage = guardrailResult.sanitizedPrompt || message;
       
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const anthropic = getAnthropicClient();
       
       const systemPrompt = `You are an expert ${framework || 'compliance'} compliance advisor. Answer questions clearly and provide actionable guidance. Context: ${context || 'General compliance inquiry'}`;
       

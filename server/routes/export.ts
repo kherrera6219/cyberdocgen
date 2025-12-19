@@ -163,7 +163,8 @@ export function registerExportRoutes(router: Router) {
         });
       }
       
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const { getOpenAIClient } = await import('../services/aiClients');
+      const openai = getOpenAIClient();
       
       const systemPrompt = `You are a cybersecurity compliance expert. Generate a comprehensive ${documentType} document for ${framework} compliance framework for the company: ${companyProfile.name} (Industry: ${companyProfile.industry}, Size: ${companyProfile.size}).
 

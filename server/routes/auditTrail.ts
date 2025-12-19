@@ -1,13 +1,21 @@
 import { Router } from 'express';
-import { isAuthenticated, getUserId } from '../replitAuth';
+import { isAuthenticated, getUserId, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { auditService } from '../services/auditService';
+import { storage } from '../storage';
 
 export function registerAuditTrailRoutes(router: Router) {
   router.get('/', isAuthenticated, async (req: any, res) => {
     try {
       const { page = 1, limit = 50, entityType, action, search, dateFrom, dateTo } = req.query;
-      const userId = getUserId(req);
+      const userId = getRequiredUserId(req);
+      
+      // Get user's organization for multi-tenant scoping
+      const userOrganizations = await storage.getUserOrganizations(userId);
+      if (userOrganizations.length === 0) {
+        return res.status(403).json({ message: 'User not associated with any organization' });
+      }
+      const organizationId = userOrganizations[0].organizationId;
       
       const auditQuery = {
         page: parseInt(page as string),
@@ -19,13 +27,14 @@ export function registerAuditTrailRoutes(router: Router) {
         ...(dateTo && { dateTo: new Date(dateTo as string) })
       };
 
-      const result = await auditService.getAuditLogs(auditQuery);
+      const result = await auditService.getAuditLogs(organizationId, auditQuery);
       
       await auditService.logAction({
         action: "view",
         entityType: "audit_trail",
         entityId: "system",
         userId: userId,
+        organizationId,
         ipAddress: req.ip,
         userAgent: req.get('User-Agent'),
         sessionId: req.sessionID,
@@ -42,7 +51,16 @@ export function registerAuditTrailRoutes(router: Router) {
 
   router.get('/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await auditService.getAuditStats();
+      const userId = getRequiredUserId(req);
+      
+      // Get user's organization for multi-tenant scoping
+      const userOrganizations = await storage.getUserOrganizations(userId);
+      if (userOrganizations.length === 0) {
+        return res.status(403).json({ message: 'User not associated with any organization' });
+      }
+      const organizationId = userOrganizations[0].organizationId;
+      
+      const stats = await auditService.getAuditStats(organizationId);
       res.json(stats);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -54,14 +72,21 @@ export function registerAuditTrailRoutes(router: Router) {
   router.get('/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = getUserId(req);
+      const userId = getRequiredUserId(req);
 
       if (!id) {
         return res.status(400).json({ message: 'Audit entry ID is required' });
       }
 
-      // Get single audit entry by ID
-      const auditEntry = await auditService.getAuditById(id);
+      // Get user's organization for multi-tenant scoping
+      const userOrganizations = await storage.getUserOrganizations(userId);
+      if (userOrganizations.length === 0) {
+        return res.status(403).json({ message: 'User not associated with any organization' });
+      }
+      const organizationId = userOrganizations[0].organizationId;
+
+      // Get single audit entry by ID - scoped to user's organization
+      const auditEntry = await auditService.getAuditById(id, organizationId);
 
       if (!auditEntry) {
         return res.status(404).json({ message: 'Audit entry not found' });
@@ -73,6 +98,7 @@ export function registerAuditTrailRoutes(router: Router) {
         entityType: "audit_log",
         entityId: id,
         userId,
+        organizationId,
         ipAddress: req.ip || '',
         details: { message: `Viewed audit entry ${id}`, auditId: id }
       });

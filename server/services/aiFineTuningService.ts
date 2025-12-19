@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { logger } from '../utils/logger';
+import { getOpenAIClient, getAnthropicClient } from './aiClients';
 
 // Industry-specific configuration types
 export interface IndustryConfig {
@@ -128,12 +129,12 @@ const INDUSTRY_CONFIGURATIONS: Record<string, IndustryConfig> = {
 };
 
 export class AIFineTuningService {
-  private openai: OpenAI;
-  private anthropic: Anthropic;
-
-  constructor() {
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    this.anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  private getOpenAI(): OpenAI {
+    return getOpenAIClient();
+  }
+  
+  private getAnthropic(): Anthropic {
+    return getAnthropicClient();
   }
 
   /**
@@ -400,7 +401,8 @@ Generate a comprehensive ${documentType} that addresses the specific requirement
     prompt: string,
     settings: any
   ): Promise<string> {
-    const response = await this.anthropic.messages.create({
+    const anthropic = this.getAnthropic();
+    const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: settings.maxTokens,
       temperature: settings.temperature,
@@ -417,7 +419,8 @@ Generate a comprehensive ${documentType} that addresses the specific requirement
     prompt: string,
     settings: any
   ): Promise<string> {
-    const response = await this.openai.chat.completions.create({
+    const openai = this.getOpenAI();
+    const response = await openai.chat.completions.create({
       model: 'gpt-5.1',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: settings.maxTokens,
