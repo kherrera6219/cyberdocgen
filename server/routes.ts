@@ -10,6 +10,7 @@ import { metricsCollector } from "./monitoring/metrics";
 import { aiOrchestrator } from "./services/aiOrchestrator";
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
+import { generalLimiter, authLimiter, authStrictLimiter, aiLimiter, apiLimiter } from './middleware/rateLimiter';
 
 import { insertContactMessageSchema } from "@shared/schema";
 import { registerOrganizationsRoutes } from "./routes/organizations";
@@ -34,18 +35,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add security headers middleware
   app.use((req, res, next) => {
-    // Security headers
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
-
-    // Rate limiting headers (simple implementation for tests)
-    res.setHeader('X-RateLimit-Limit', '100');
-    res.setHeader('X-RateLimit-Remaining', '99');
-    res.setHeader('X-RateLimit-Reset', String(Date.now() + 60000));
-
     next();
   });
+
+  // Apply general rate limiting to all routes
+  app.use(generalLimiter);
 
   /**
    * @openapi
@@ -220,29 +217,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Temporary login endpoint - creates a demo session for testing
   // This is a workaround while the main authentication system is being fixed
-  // Rate limited to prevent abuse
-  const tempLoginLimiter = new Map<string, { count: number; resetTime: number }>();
-  
-  app.post('/api/auth/temp-login', async (req: any, res) => {
+  // Uses production-grade rate limiting via authLimiter middleware
+  app.post('/api/auth/temp-login', authLimiter, async (req: any, res) => {
     try {
-      // Simple rate limiting by IP
-      const clientIp = req.ip || 'unknown';
-      const now = Date.now();
-      const rateLimit = tempLoginLimiter.get(clientIp);
-      
-      if (rateLimit) {
-        if (now < rateLimit.resetTime) {
-          if (rateLimit.count >= 5) {
-            return res.status(429).json({ message: 'Too many login attempts. Please try again later.' });
-          }
-          rateLimit.count++;
-        } else {
-          tempLoginLimiter.set(clientIp, { count: 1, resetTime: now + 60000 });
-        }
-      } else {
-        tempLoginLimiter.set(clientIp, { count: 1, resetTime: now + 60000 });
-      }
-      
       const { name, email } = req.body;
       
       if (!name || !email) {
@@ -281,34 +258,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         logger.info('Temp login created new temp user', { userId: sessionUserId, email: sanitizedEmail });
       }
       
-      // Set the session userId to enable authenticated routes
-      req.session.userId = sessionUserId;
-      req.session.isTemporary = true;
-      req.session.tempUserName = sanitizedName;
-      req.session.tempUserEmail = sanitizedEmail;
-      // Auto-verify MFA for temp sessions
-      req.session.mfaVerified = true;
-      req.session.mfaVerifiedAt = new Date().toISOString();
-      
-      // Save session explicitly
-      req.session.save((err: any) => {
-        if (err) {
-          logger.error('Failed to save temp session', { error: err.message });
-          return res.status(500).json({ message: 'Failed to create session' });
+      // Regenerate session to prevent session fixation attacks
+      req.session.regenerate((regenerateErr: any) => {
+        if (regenerateErr) {
+          logger.error('Failed to regenerate session', { error: regenerateErr.message });
+          return res.status(500).json({ message: 'Failed to create secure session' });
         }
         
-        logger.info('Temporary login successful', { userId: sessionUserId, email: sanitizedEmail });
+        // Set the session data on the new regenerated session
+        req.session.userId = sessionUserId;
+        req.session.isTemporary = true;
+        req.session.tempUserName = sanitizedName;
+        req.session.tempUserEmail = sanitizedEmail;
+        req.session.loginTime = new Date().toISOString();
+        // Auto-verify MFA for temp sessions
+        req.session.mfaVerified = true;
+        req.session.mfaVerifiedAt = new Date().toISOString();
         
-        res.json({
-          success: true,
-          user: {
-            id: sessionUserId,
-            email: sanitizedEmail,
-            displayName: sanitizedName,
-            firstName: sanitizedName.split(' ')[0] || sanitizedName,
-            lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
-            isTemporary: true,
+        // Save session explicitly
+        req.session.save((err: any) => {
+          if (err) {
+            logger.error('Failed to save temp session', { error: err.message });
+            return res.status(500).json({ message: 'Failed to create session' });
           }
+          
+          logger.info('Temporary login successful with session regeneration', { userId: sessionUserId, email: sanitizedEmail });
+          
+          res.json({
+            success: true,
+            user: {
+              id: sessionUserId,
+              email: sanitizedEmail,
+              displayName: sanitizedName,
+              firstName: sanitizedName.split(' ')[0] || sanitizedName,
+              lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
+              isTemporary: true,
+            }
+          });
         });
       });
     } catch (error: any) {
@@ -467,7 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const aiRouter = Router();
   await registerAIRoutes(aiRouter);
-  app.use('/api/ai', aiRouter);
+  app.use('/api/ai', aiLimiter, aiRouter);
 
   const storageRouter = Router();
   registerStorageRoutes(storageRouter);
@@ -520,11 +506,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auditor routes
   registerAuditorRoutes(app);
 
-  // Phase 2 Implementation - MFA Routes Integration
+  // Phase 2 Implementation - MFA Routes Integration - with auth rate limiting
   const { default: mfaRoutes } = await import('./routes/mfa');
-  app.use('/api/auth/mfa', mfaRoutes);
+  app.use('/api/auth/mfa', authLimiter, mfaRoutes);
 
   // Enterprise Authentication Routes
+  // Note: Rate limiting applied at individual route level in enterpriseAuth.ts
   const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth');
   app.use('/api/auth/enterprise', enterpriseAuthRoutes);
 

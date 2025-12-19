@@ -4,6 +4,7 @@ import { enterpriseAuthService } from '../services/enterpriseAuthService';
 import { mfaService } from '../services/mfaService';
 import { logger } from '../utils/logger';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
+import { authStrictLimiter, authLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -61,8 +62,9 @@ const passkeyRegistrationSchema = z.object({
 
 /**
  * Login with email/username and password
+ * Strict rate limiting: 5 attempts per hour to prevent brute force
  */
-router.post('/login', async (req, res) => {
+router.post('/login', authStrictLimiter, async (req, res) => {
   try {
     const validatedData = loginSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress;
@@ -80,13 +82,51 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Create session for the user
-    if (req.session) {
-      req.session.userId = result.user?.id;
-      req.session.email = result.user?.email;
+    // Regenerate session to prevent session fixation attacks
+    // This creates a new session ID while preserving session data
+    const regenerateSession = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (!req.session) {
+          resolve();
+          return;
+        }
+        
+        req.session.regenerate((err) => {
+          if (err) {
+            logger.error('Session regeneration failed', { error: err.message });
+            reject(err);
+            return;
+          }
+          
+          // Set user data on the new session
+          req.session.userId = result.user?.id;
+          req.session.email = result.user?.email;
+          req.session.loginTime = new Date().toISOString();
+          
+          // Save the new session
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              logger.error('Session save failed', { error: saveErr.message });
+              reject(saveErr);
+              return;
+            }
+            resolve();
+          });
+        });
+      });
+    };
+
+    try {
+      await regenerateSession();
+    } catch (sessionError: any) {
+      logger.error('Session management failed during login', { error: sessionError.message });
+      return res.status(500).json({
+        success: false,
+        message: 'Session creation failed',
+      });
     }
 
-    logger.info('User logged in successfully', {
+    logger.info('User logged in successfully with session regeneration', {
       userId: result.user?.id,
       email: result.user?.email,
       mfaEnabled: result.user?.twoFactorEnabled,
@@ -110,8 +150,9 @@ router.post('/login', async (req, res) => {
 
 /**
  * Create enterprise user account
+ * Strict rate limiting to prevent account enumeration
  */
-router.post('/signup', async (req, res) => {
+router.post('/signup', authStrictLimiter, async (req, res) => {
   try {
     const validatedData = createAccountSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress;
@@ -162,8 +203,9 @@ router.post('/signup', async (req, res) => {
 
 /**
  * Verify email address (POST)
+ * Standard auth rate limiting
  */
-router.post('/verify-email', async (req, res) => {
+router.post('/verify-email', authLimiter, async (req, res) => {
   try {
     const { token } = emailVerificationSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress;
@@ -193,8 +235,9 @@ router.post('/verify-email', async (req, res) => {
 
 /**
  * Verify email address (GET - for email link clicks)
+ * Standard auth rate limiting
  */
-router.get('/verify-email', async (req, res) => {
+router.get('/verify-email', authLimiter, async (req, res) => {
   try {
     const token = req.query.token as string;
     if (!token) {
@@ -227,8 +270,9 @@ router.get('/verify-email', async (req, res) => {
 
 /**
  * Request password reset
+ * Strict rate limiting to prevent enumeration and abuse
  */
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', authStrictLimiter, async (req, res) => {
   try {
     const { email } = passwordResetRequestSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress;
@@ -259,8 +303,9 @@ router.post('/forgot-password', async (req, res) => {
 
 /**
  * Confirm password reset
+ * Strict rate limiting to prevent token brute-forcing
  */
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', authStrictLimiter, async (req, res) => {
   try {
     const validatedData = passwordResetConfirmSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress;
@@ -290,8 +335,9 @@ router.post('/reset-password', async (req, res) => {
 
 /**
  * Setup Google Authenticator
+ * Standard auth rate limiting
  */
-router.post('/setup-google-authenticator', async (req, res) => {
+router.post('/setup-google-authenticator', authLimiter, async (req, res) => {
   try {
     const { userId } = googleAuthSetupSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress;
@@ -319,8 +365,9 @@ router.post('/setup-google-authenticator', async (req, res) => {
 
 /**
  * Verify Google Authenticator setup
+ * Standard auth rate limiting
  */
-router.post('/verify-google-authenticator', async (req, res) => {
+router.post('/verify-google-authenticator', authLimiter, async (req, res) => {
   try {
     const { userId, token } = z.object({
       userId: z.string(),
@@ -381,8 +428,9 @@ router.post('/verify-google-authenticator', async (req, res) => {
 
 /**
  * Register passkey
+ * Standard auth rate limiting
  */
-router.post('/register-passkey', async (req, res) => {
+router.post('/register-passkey', authLimiter, async (req, res) => {
   try {
     const validatedData = passkeyRegistrationSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress;
@@ -418,15 +466,7 @@ router.post('/logout', async (req, res) => {
     const userId = req.session?.userId;
     const email = req.session?.email;
 
-    if (req.session) {
-      req.session.destroy((err) => {
-        if (err) {
-          logger.error('Session destruction failed', { error: err.message });
-        }
-      });
-    }
-
-    // Audit log
+    // Audit log before destroying session
     if (userId) {
       await auditService.logAuditEvent({
         userId,
@@ -441,7 +481,36 @@ router.post('/logout', async (req, res) => {
       });
     }
 
-    logger.info('User logged out', { userId, email });
+    // Destroy session and wait for completion
+    const destroySession = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (!req.session) {
+          resolve();
+          return;
+        }
+        
+        req.session.destroy((err) => {
+          if (err) {
+            logger.error('Session destruction failed', { error: err.message });
+            reject(err);
+            return;
+          }
+          resolve();
+        });
+      });
+    };
+
+    await destroySession();
+    
+    // Clear session cookie
+    res.clearCookie('connect.sid', {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    });
+
+    logger.info('User logged out with session destroyed', { userId, email });
 
     res.json({
       success: true,
