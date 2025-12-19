@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import crypto from "crypto";
 import cookieParser from "cookie-parser";
+import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
@@ -45,14 +46,45 @@ app.get('/health', healthCheckHandler);
 app.get('/ready', readinessCheckHandler);
 app.get('/live', livenessCheckHandler);
 
-// CORS configuration
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.ALLOWED_ORIGINS?.split(',') || []
-    : true,
-  credentials: true,
-  optionsSuccessStatus: 200
+// Production environment detection
+const isProduction = process.env.NODE_ENV === 'production';
+
+// CORS configuration with secure production defaults
+const getAllowedOrigins = () => {
+  if (!isProduction) return true;
+  
+  const origins = process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean);
+  
+  // Use configured origins if provided and non-empty, otherwise fallback to Replit domains
+  if (origins && origins.length > 0) {
+    return origins;
+  }
+  
+  // Default whitelist for Replit platform domains
+  return [/\.replit\.dev$/, /\.repl\.co$/, /\.replit\.app$/];
 };
+
+const corsOptions = {
+  origin: getAllowedOrigins(),
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Request-ID']
+};
+
+// Compression middleware for production performance
+if (isProduction) {
+  app.use(compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    }
+  }));
+}
 
 // Security middleware - only apply to API routes
 app.use(securityHeaders);
@@ -140,5 +172,54 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     logger.info(`Server started on port ${port}`, { port, environment: process.env.NODE_ENV });
+  });
+
+  // Graceful shutdown handling for autoscale deployments
+  let isShuttingDown = false;
+  
+  const gracefulShutdown = (signal: string, exitCode: number = 0) => {
+    if (isShuttingDown) {
+      logger.warn(`${signal} received during shutdown, ignoring duplicate signal`);
+      return;
+    }
+    isShuttingDown = true;
+    
+    logger.info(`${signal} received, starting graceful shutdown...`);
+    
+    // Stop accepting new connections
+    server.close((err) => {
+      if (err) {
+        logger.error('Error during server close', { error: err.message });
+        process.exit(1);
+      }
+      
+      logger.info('HTTP server closed, cleaning up resources...');
+      
+      // Give time for ongoing requests to complete
+      setTimeout(() => {
+        logger.info('Graceful shutdown complete');
+        process.exit(exitCode);
+      }, 5000);
+    });
+    
+    // Force exit after 30 seconds
+    setTimeout(() => {
+      logger.error('Forced shutdown after timeout');
+      process.exit(1);
+    }, 30000);
+  };
+
+  // Handle shutdown signals from autoscale infrastructure
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM', 0));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT', 0));
+  
+  // Handle uncaught errors - exit with non-zero code to signal failure to autoscale
+  process.on('uncaughtException', (error) => {
+    logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+    gracefulShutdown('uncaughtException', 1);
+  });
+  
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled rejection', { reason: String(reason) });
   });
 })();
