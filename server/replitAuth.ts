@@ -227,6 +227,64 @@ export function getRequiredUserId(req: any): string {
   return userId;
 }
 
+// Role-based access control middleware
+// Checks if user has the required permission in any of their organizations
+export function requirePermission(permission: string): RequestHandler {
+  return async (req, res, next) => {
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      // Check user's role assignments for this permission
+      const userRoles = await storage.getUserRoleAssignments(userId);
+      
+      const hasPermission = userRoles.some(assignment => {
+        if (!assignment.role) return false;
+        
+        // Safely parse permissions - handle both object and string JSON
+        let permissions: Record<string, boolean> = {};
+        try {
+          if (typeof assignment.role.permissions === 'string') {
+            permissions = JSON.parse(assignment.role.permissions);
+          } else if (assignment.role.permissions && typeof assignment.role.permissions === 'object') {
+            permissions = assignment.role.permissions as Record<string, boolean>;
+          }
+        } catch {
+          return false; // Invalid permissions JSON, skip this role
+        }
+        
+        return permissions[permission] === true;
+      });
+
+      if (!hasPermission) {
+        logger.warn('Permission denied', { userId, permission });
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      return next();
+    } catch (error) {
+      logger.error('Permission check failed', { 
+        message: error instanceof Error ? error.message : 'Unknown error',
+        userId, 
+        permission 
+      });
+      return res.status(500).json({ message: "Permission check failed" });
+    }
+  };
+}
+
+// Check if user has admin role
+export function requireAdmin(): RequestHandler {
+  return requirePermission('manage_users');
+}
+
+// Check if user has auditor role (read-only access)
+export function requireAuditor(): RequestHandler {
+  return requirePermission('view_audit_logs');
+}
+
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   // Check for Enterprise auth session first (email/password login)
   const session = req.session as any;

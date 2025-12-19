@@ -12,6 +12,8 @@ import {
   auditTrail,
   contactMessages,
   documentApprovals,
+  roles,
+  roleAssignments,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -43,6 +45,8 @@ import {
   type InsertUserInvitation,
   type UserSession,
   type InsertUserSession,
+  type Role,
+  type RoleAssignment,
   userInvitations,
   userSessions
 } from "@shared/schema";
@@ -171,6 +175,9 @@ export interface IStorage {
   getDocumentApproval(id: string): Promise<DocumentApproval | undefined>;
   createDocumentApproval(approval: InsertDocumentApproval): Promise<DocumentApproval>;
   updateDocumentApproval(id: string, updates: Partial<InsertDocumentApproval>): Promise<DocumentApproval | undefined>;
+
+  // Role-based access control
+  getUserRoleAssignments(userId: string): Promise<Array<RoleAssignment & { role: Role | null }>>;
 }
 
 export class MemStorage implements IStorage {
@@ -910,6 +917,12 @@ export class MemStorage implements IStorage {
     return count;
   }
 
+  // Role-based access control
+  async getUserRoleAssignments(userId: string): Promise<Array<RoleAssignment & { role: Role | null }>> {
+    // MemStorage stub - returns empty array as there's no role storage in memory
+    return [];
+  }
+
   // Private storage
   private gapAnalysisReports = new Map<string, GapAnalysisReport>();
   private gapAnalysisFindings = new Map<string, GapAnalysisFinding>();
@@ -1608,6 +1621,25 @@ export class DatabaseStorage implements IStorage {
       .where(eq(documentApprovals.id, id))
       .returning();
     return updated || undefined;
+  }
+
+  // Role-based access control
+  async getUserRoleAssignments(userId: string): Promise<Array<RoleAssignment & { role: Role | null }>> {
+    const results = await db
+      .select({
+        id: roleAssignments.id,
+        userId: roleAssignments.userId,
+        roleId: roleAssignments.roleId,
+        organizationId: roleAssignments.organizationId,
+        assignedBy: roleAssignments.assignedBy,
+        createdAt: roleAssignments.createdAt,
+        role: roles
+      })
+      .from(roleAssignments)
+      .leftJoin(roles, eq(roleAssignments.roleId, roles.id))
+      .where(eq(roleAssignments.userId, userId));
+    
+    return results;
   }
 }
 

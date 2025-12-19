@@ -23,8 +23,12 @@ import {
   ExternalLink,
   Trash2,
   Folder,
-  FileText
+  FileText,
+  Users,
+  UserPlus,
+  ShieldCheck
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -69,11 +73,45 @@ interface CloudIntegration {
   createdAt: string;
 }
 
+interface OrgUser {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+interface Role {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string | null;
+  permissions: Record<string, boolean>;
+  isDefault: boolean;
+}
+
+interface RoleAssignment {
+  id: string;
+  userId: string;
+  roleId: string;
+  roleName: string;
+  roleDisplayName: string;
+  userEmail: string;
+  userFirstName: string | null;
+  userLastName: string | null;
+  createdAt: string;
+}
+
 export default function AdminSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [selectedOrgId, setSelectedOrgId] = useState<string>('');
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
 
   // Check if user is admin
   if (!user || user.role !== 'admin') {
@@ -125,6 +163,23 @@ export default function AdminSettings() {
   // Get all organization cloud integrations
   const { data: integrations } = useQuery<{ integrations: CloudIntegration[] }>({
     queryKey: ['/api/admin/cloud-integrations'],
+  });
+
+  // Get user's organizations
+  const { data: organizations } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ['/api/organizations'],
+  });
+
+  // Get roles for selected organization
+  const { data: roles = [], isLoading: rolesLoading } = useQuery<Role[]>({
+    queryKey: ['/api/roles', selectedOrgId],
+    enabled: !!selectedOrgId,
+  });
+
+  // Get role assignments for selected organization
+  const { data: roleAssignments = [], isLoading: assignmentsLoading } = useQuery<RoleAssignment[]>({
+    queryKey: ['/api/roles/assignments/organization', selectedOrgId],
+    enabled: !!selectedOrgId,
   });
 
   // Save OAuth settings
@@ -190,6 +245,50 @@ export default function AdminSettings() {
     },
   });
 
+  // Assign role to user
+  const assignRoleMutation = useMutation({
+    mutationFn: async ({ userId, roleId, organizationId }: { userId: string; roleId: string; organizationId: string }) => {
+      return apiRequest('/api/roles/assignments', 'POST', { userId, roleId, organizationId });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Role Assigned',
+        description: 'Role has been assigned to the user.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles/assignments/organization', selectedOrgId] });
+      setSelectedUserId('');
+      setSelectedRoleId('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Assignment Failed',
+        description: error.message || 'Failed to assign role',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Remove role assignment
+  const removeAssignmentMutation = useMutation({
+    mutationFn: async (assignmentId: string) => {
+      return apiRequest(`/api/roles/assignments/${assignmentId}`, 'DELETE');
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Role Removed',
+        description: 'Role assignment has been removed.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/roles/assignments/organization', selectedOrgId] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Removal Failed',
+        description: error.message || 'Failed to remove role assignment',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const toggleSecretVisibility = (field: string) => {
     setShowSecrets(prev => ({
       ...prev,
@@ -226,24 +325,149 @@ export default function AdminSettings() {
           </p>
         </div>
 
-        <Tabs defaultValue="oauth" className="space-y-6">
+        <Tabs defaultValue="users" className="space-y-6">
           <TabsList className="flex flex-wrap h-auto gap-1 p-1 w-full">
-            <TabsTrigger value="oauth" className="flex-1 min-w-[120px] flex items-center justify-center gap-2 text-xs sm:text-sm">
+            <TabsTrigger value="users" className="flex-1 min-w-[100px] flex items-center justify-center gap-2 text-xs sm:text-sm" data-testid="tab-users">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Users & Roles</span>
+              <span className="sm:hidden">Users</span>
+            </TabsTrigger>
+            <TabsTrigger value="oauth" className="flex-1 min-w-[100px] flex items-center justify-center gap-2 text-xs sm:text-sm" data-testid="tab-oauth">
               <Key className="h-4 w-4" />
               <span className="hidden sm:inline">OAuth Settings</span>
               <span className="sm:hidden">OAuth</span>
             </TabsTrigger>
-            <TabsTrigger value="pdf" className="flex-1 min-w-[120px] flex items-center justify-center gap-2 text-xs sm:text-sm">
+            <TabsTrigger value="pdf" className="flex-1 min-w-[100px] flex items-center justify-center gap-2 text-xs sm:text-sm" data-testid="tab-pdf">
               <Shield className="h-4 w-4" />
               <span className="hidden sm:inline">PDF Security</span>
               <span className="sm:hidden">PDF</span>
             </TabsTrigger>
-            <TabsTrigger value="integrations" className="flex-1 min-w-[120px] flex items-center justify-center gap-2 text-xs sm:text-sm">
+            <TabsTrigger value="integrations" className="flex-1 min-w-[100px] flex items-center justify-center gap-2 text-xs sm:text-sm" data-testid="tab-integrations">
               <Cloud className="h-4 w-4" />
-              <span className="hidden sm:inline">Active Integrations</span>
-              <span className="sm:hidden">Integrations</span>
+              <span className="hidden sm:inline">Integrations</span>
+              <span className="sm:hidden">Cloud</span>
             </TabsTrigger>
           </TabsList>
+
+          {/* Users & Roles Tab */}
+          <TabsContent value="users" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  User Role Management
+                </CardTitle>
+                <CardDescription>
+                  Manage user roles and permissions across your organizations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Organization Selector */}
+                <div className="space-y-2">
+                  <Label>Select Organization</Label>
+                  <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+                    <SelectTrigger data-testid="select-organization">
+                      <SelectValue placeholder="Choose an organization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations?.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedOrgId && (
+                  <>
+                    {/* Available Roles */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <ShieldCheck className="h-5 w-5" />
+                        Available Roles
+                      </h3>
+                      {rolesLoading ? (
+                        <div className="text-center py-4 text-muted-foreground">Loading roles...</div>
+                      ) : roles.length === 0 ? (
+                        <div className="text-center py-4 text-muted-foreground">No roles found for this organization</div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {roles.map((role) => (
+                            <div key={role.id} className="border rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-semibold">{role.displayName}</h4>
+                                {role.isDefault && <Badge variant="secondary">Default</Badge>}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">{role.description || 'No description'}</p>
+                              <div className="flex flex-wrap gap-1">
+                                {Object.entries(role.permissions || {}).filter(([_, v]) => v).slice(0, 3).map(([key]) => (
+                                  <Badge key={key} variant="outline" className="text-xs">{key.replace(/_/g, ' ')}</Badge>
+                                ))}
+                                {Object.values(role.permissions || {}).filter(Boolean).length > 3 && (
+                                  <Badge variant="outline" className="text-xs">+{Object.values(role.permissions).filter(Boolean).length - 3} more</Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Current Role Assignments */}
+                    <div className="space-y-4 pt-6 border-t">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <UserPlus className="h-5 w-5" />
+                        Role Assignments
+                      </h3>
+                      {assignmentsLoading ? (
+                        <div className="text-center py-4 text-muted-foreground">Loading assignments...</div>
+                      ) : roleAssignments.length === 0 ? (
+                        <div className="text-center py-4 text-muted-foreground">No role assignments found</div>
+                      ) : (
+                        <div className="space-y-2">
+                          {roleAssignments.map((assignment) => (
+                            <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                                  {(assignment.userFirstName?.[0] || assignment.userEmail[0]).toUpperCase()}
+                                </div>
+                                <div>
+                                  <p className="font-medium">
+                                    {assignment.userFirstName && assignment.userLastName 
+                                      ? `${assignment.userFirstName} ${assignment.userLastName}` 
+                                      : assignment.userEmail}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">{assignment.userEmail}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge>{assignment.roleDisplayName}</Badge>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => removeAssignmentMutation.mutate(assignment.id)}
+                                  disabled={removeAssignmentMutation.isPending}
+                                  data-testid={`button-remove-assignment-${assignment.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {!selectedOrgId && (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-600 dark:text-gray-300">Select an organization to manage users and roles</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* OAuth Settings Tab */}
           <TabsContent value="oauth" className="space-y-6">
