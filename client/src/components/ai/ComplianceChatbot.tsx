@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,9 +58,28 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
   const [inputMessage, setInputMessage] = useState("");
   const [selectedFramework, setSelectedFramework] = useState(defaultFramework || "general");
   const [sessionId, setSessionId] = useState<string>();
+  const [csrfReady, setCsrfReady] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Pre-fetch CSRF token on mount to establish session
+  const initCsrf = async (): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/csrf-token', { credentials: 'include' });
+      if (res.ok) {
+        setCsrfReady(true);
+        return true;
+      }
+    } catch (error) {
+      console.warn('Failed to initialize CSRF token:', error);
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    initCsrf();
+  }, []);
 
   // Suggested questions query
   const { data: suggestedQuestions } = useQuery({
@@ -125,6 +144,19 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
+    // Ensure CSRF token is ready before sending
+    if (!csrfReady) {
+      const success = await initCsrf();
+      if (!success) {
+        toast({
+          title: "Connection Issue",
+          description: "Unable to establish a secure connection. Please refresh the page and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     // Add user message
     const userMessage: ChatMessage = {
       id: Date.now().toString() + "-user",
@@ -169,26 +201,27 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+    <div className={`flex flex-col h-full ${className}`}>
+      <Card className="flex flex-col flex-1 min-h-0">
+        <CardHeader className="flex-shrink-0 pb-3">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <MessageSquare className="h-5 w-5" />
-            Compliance AI Assistant
+            <span className="hidden sm:inline">Compliance AI Assistant</span>
+            <span className="sm:hidden">AI Assistant</span>
           </CardTitle>
-          <CardDescription>
-            Ask questions about compliance frameworks, get personalized guidance, and receive
-            actionable recommendations
+          <CardDescription className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Ask questions about compliance frameworks, get personalized guidance, and receive actionable recommendations</span>
+            <span className="sm:hidden">Get AI-powered compliance guidance</span>
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col flex-1 min-h-0 pt-0">
           {/* Framework Selection */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Focus Framework (Optional)</label>
-            <div className="flex gap-2">
+          <div className="mb-3 flex-shrink-0">
+            <label className="block text-xs sm:text-sm font-medium mb-1.5">Framework (Optional)</label>
+            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
               <Select value={selectedFramework} onValueChange={setSelectedFramework}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select framework for context" />
+                <SelectTrigger className="flex-1 min-w-0 text-xs sm:text-sm" data-testid="select-framework">
+                  <SelectValue placeholder="Select framework" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="general">General Compliance</SelectItem>
@@ -199,31 +232,32 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                 </SelectContent>
               </Select>
               {messages.length > 0 && (
-                <Button variant="outline" onClick={clearChat} size="sm">
-                  Clear Chat
+                <Button variant="outline" onClick={clearChat} size="sm" data-testid="button-clear-chat" className="flex-shrink-0">
+                  <span className="hidden sm:inline">Clear Chat</span>
+                  <span className="sm:hidden">Clear</span>
                 </Button>
               )}
             </div>
           </div>
 
           {/* Chat Messages */}
-          <Card className="h-[500px] flex flex-col">
-            <ScrollArea className="flex-1 p-4">
+          <Card className="flex-1 min-h-0 flex flex-col border-border/50">
+            <ScrollArea className="flex-1 p-3 sm:p-4">
               {messages.length === 0 ? (
                 <div className="space-y-4">
-                  <div className="text-center text-gray-500 py-8">
-                    <Bot className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-lg font-medium">Welcome to your AI Compliance Assistant!</p>
-                    <p className="text-sm">
-                      Ask me anything about cybersecurity compliance, frameworks, or implementation
-                      guidance.
+                  <div className="text-center text-muted-foreground py-6 sm:py-8">
+                    <Bot className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                    <p className="text-base sm:text-lg font-medium text-foreground">Welcome to your AI Assistant!</p>
+                    <p className="text-xs sm:text-sm mt-1">
+                      <span className="hidden sm:inline">Ask me anything about cybersecurity compliance, frameworks, or implementation guidance.</span>
+                      <span className="sm:hidden">Ask about compliance or get guidance.</span>
                     </p>
                   </div>
 
                   {/* Suggested Questions */}
                   {Array.isArray(suggestedQuestions) && suggestedQuestions.length > 0 && (
                       <div>
-                        <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <h4 className="font-medium mb-2 sm:mb-3 flex items-center gap-2 text-sm">
                           <Lightbulb className="h-4 w-4" />
                           Suggested Questions
                         </h4>
@@ -237,9 +271,10 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleSuggestedQuestion(question)}
-                                    className="text-left justify-start h-auto p-3 whitespace-normal"
+                                    className="text-left justify-start h-auto p-2 sm:p-3 whitespace-normal text-xs sm:text-sm"
+                                    data-testid={`button-suggested-question-${index}`}
                                   >
-                                    <HelpCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                                    <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
                                     {question}
                                   </Button>
                                 ))
@@ -249,58 +284,59 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
                     )}
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex gap-3 ${
+                      className={`flex gap-2 sm:gap-3 ${
                         message.role === "user" ? "justify-end" : "justify-start"
                       }`}
+                      data-testid={`message-${message.role}-${message.id}`}
                     >
                       {message.role === "assistant" && (
                         <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Bot className="h-4 w-4 text-blue-600" />
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                           </div>
                         </div>
                       )}
 
                       <div
-                        className={`flex flex-col max-w-[80%] ${
+                        className={`flex flex-col max-w-[85%] sm:max-w-[80%] ${
                           message.role === "user" ? "items-end" : "items-start"
                         }`}
                       >
                         <div
-                          className={`rounded-lg p-3 ${
+                          className={`rounded-lg p-2.5 sm:p-3 ${
                             message.role === "user"
-                              ? "bg-blue-500 text-white"
-                              : "bg-gray-100 text-gray-900"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-foreground"
                           }`}
                         >
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-xs sm:text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                         </div>
 
                         {/* Message metadata */}
-                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-                          <Clock className="h-3 w-3" />
+                        <div className="flex items-center gap-1.5 sm:gap-2 mt-1 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
+                          <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           {formatTimestamp(message.timestamp)}
 
                           {message.metadata?.confidence && (
                             <>
-                              <Separator orientation="vertical" className="h-3" />
+                              <Separator orientation="vertical" className="h-2.5 sm:h-3 hidden sm:block" />
                               <Badge
                                 variant={message.metadata.confidence > 80 ? "default" : "secondary"}
-                                className="text-xs"
+                                className="text-[10px] sm:text-xs px-1.5 py-0"
                               >
-                                {message.metadata.confidence}% confidence
+                                {message.metadata.confidence}%
                               </Badge>
                             </>
                           )}
 
                           {message.metadata?.framework && (
                             <>
-                              <Separator orientation="vertical" className="h-3" />
-                              <Badge variant="outline" className="text-xs">
+                              <Separator orientation="vertical" className="h-2.5 sm:h-3 hidden sm:block" />
+                              <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0 hidden sm:inline-flex">
                                 {message.metadata.framework}
                               </Badge>
                             </>
@@ -309,15 +345,20 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
 
                         {/* Sources */}
                         {message.metadata?.sources && message.metadata.sources.length > 0 && (
-                          <div className="mt-2 text-xs">
-                            <p className="text-gray-500 mb-1">Sources:</p>
+                          <div className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs">
+                            <p className="text-muted-foreground mb-1">Sources:</p>
                             <div className="flex flex-wrap gap-1">
-                              {message.metadata.sources.map((source, index) => (
-                                <Badge key={index} variant="outline" className="text-xs">
-                                  <FileText className="h-3 w-3 mr-1" />
-                                  {source}
+                              {message.metadata.sources.slice(0, 2).map((source, index) => (
+                                <Badge key={index} variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0">
+                                  <FileText className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                                  <span className="truncate max-w-[80px] sm:max-w-none">{source}</span>
                                 </Badge>
                               ))}
+                              {message.metadata.sources.length > 2 && (
+                                <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0">
+                                  +{message.metadata.sources.length - 2}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         )}
@@ -325,8 +366,8 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
 
                       {message.role === "user" && (
                         <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                            <User className="h-4 w-4 text-white" />
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
+                            <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary-foreground" />
                           </div>
                         </div>
                       )}
@@ -335,26 +376,26 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
 
                   {/* Loading indicator */}
                   {chatMutation.isPending && (
-                    <div className="flex gap-3 justify-start">
+                    <div className="flex gap-2 sm:gap-3 justify-start">
                       <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                          <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary animate-pulse" />
                         </div>
                       </div>
-                      <div className="bg-gray-100 rounded-lg p-3">
+                      <div className="bg-muted rounded-lg p-2.5 sm:p-3">
                         <div className="flex items-center gap-2">
                           <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground/50 rounded-full animate-bounce"></div>
                             <div
-                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground/50 rounded-full animate-bounce"
                               style={{ animationDelay: "0.1s" }}
                             ></div>
                             <div
-                              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                              className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground/50 rounded-full animate-bounce"
                               style={{ animationDelay: "0.2s" }}
                             ></div>
                           </div>
-                          <span className="text-sm text-gray-500">AI is thinking...</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">Thinking...</span>
                         </div>
                       </div>
                     </div>
@@ -365,20 +406,22 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
             </ScrollArea>
 
             {/* Input Area */}
-            <div className="border-t p-4">
+            <div className="border-t border-border/50 p-2.5 sm:p-4 flex-shrink-0">
               <div className="flex gap-2">
                 <Input
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask about compliance requirements, implementation guidance, or specific controls..."
-                  className="flex-1"
+                  placeholder="Ask a question..."
+                  className="flex-1 text-sm"
                   disabled={chatMutation.isPending}
+                  data-testid="input-chat-message"
                 />
                 <Button
                   onClick={handleSendMessage}
                   disabled={!inputMessage.trim() || chatMutation.isPending}
-                  size="sm"
+                  size="icon"
+                  data-testid="button-send-message"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
