@@ -44,6 +44,7 @@ import {
   CheckCircle2,
   Sparkles,
 } from "lucide-react";
+import { logger } from '@/utils/logger';
 
 const formSchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
@@ -225,7 +226,7 @@ export default function AIDocGenerator() {
       const docs = await apiRequest("/api/documents?aiGenerated=true");
       setGeneratedDocs(docs.slice(-10));
     } catch (error) {
-      console.error("Failed to fetch documents:", error);
+      logger.error("Failed to fetch documents:", error);
     }
   };
 

@@ -20,10 +20,35 @@ export interface StorageListResult {
 }
 
 export class ObjectStorageService {
-  private client: Client;
+  private client: Client | null = null;
+  private initialized: boolean = false;
 
   constructor() {
-    this.client = new Client();
+    // Don't initialize here - will initialize lazily on first use
+  }
+
+  private async initializeClient(): Promise<void> {
+    if (this.initialized) return;
+
+    try {
+      this.client = new Client();
+      // Client auto-initializes on first use, no need to call init()
+      this.initialized = true;
+      logger.info('Object storage client initialized successfully');
+    } catch (error) {
+      logger.warn('Object storage not available - features will be limited', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      this.client = null;
+      this.initialized = true;
+    }
+  }
+
+  private async ensureClient(): Promise<Client | null> {
+    if (!this.initialized) {
+      await this.initializeClient();
+    }
+    return this.client;
   }
 
   /**
@@ -31,9 +56,14 @@ export class ObjectStorageService {
    */
   async uploadDocument(documentId: string, content: any): Promise<UploadResult> {
     try {
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
       const filename = `documents/${documentId}.json`;
-      const { ok, error } = await this.client.uploadFromText(filename, JSON.stringify(content, null, 2));
-      
+      const { ok, error } = await client.uploadFromText(filename, JSON.stringify(content, null, 2));
+
       if (!ok) {
         const errorMessage = error ? String(error) : 'Upload failed';
         logger.error('Failed to upload document', { documentId, error: errorMessage });
@@ -53,9 +83,14 @@ export class ObjectStorageService {
    */
   async uploadFileFromBytes(filename: string, data: Buffer, folder: string = 'files'): Promise<UploadResult> {
     try {
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
       const fullPath = `${folder}/${filename}`;
-      const { ok, error } = await this.client.uploadFromBytes(fullPath, data);
-      
+      const { ok, error } = await client.uploadFromBytes(fullPath, data);
+
       if (!ok) {
         const errorMessage = error ? String(error) : 'Upload failed';
         logger.error('Failed to upload file from bytes', { filename, error: errorMessage });
@@ -75,8 +110,13 @@ export class ObjectStorageService {
    */
   async uploadCompanyProfile(profileId: string, profileData: any): Promise<UploadResult> {
     try {
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
       const filename = `profiles/${profileId}.json`;
-      const { ok, error } = await this.client.uploadFromText(filename, JSON.stringify(profileData, null, 2));
+      const { ok, error } = await client.uploadFromText(filename, JSON.stringify(profileData, null, 2));
 
       if (!ok) {
         logger.error('Failed to upload company profile', { profileId, error });
@@ -99,8 +139,13 @@ export class ObjectStorageService {
    */
   async downloadDocument(documentId: string): Promise<DownloadResult> {
     try {
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
       const filename = `documents/${documentId}.json`;
-      const { ok, value, error } = await this.client.downloadAsText(filename);
+      const { ok, value, error } = await client.downloadAsText(filename);
 
       if (!ok) {
         logger.error('Failed to download document', { documentId, error });
@@ -124,8 +169,13 @@ export class ObjectStorageService {
    */
   async downloadFileAsBytes(path: string): Promise<DownloadResult> {
     try {
-      const { ok, value, error } = await this.client.downloadAsBytes(path);
-      
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
+      const { ok, value, error } = await client.downloadAsBytes(path);
+
       if (!ok) {
         logger.error('Failed to download file as bytes', { path, error });
         const errorMessage = error instanceof Error ? error.message : error ? String(error) : 'Download failed';
@@ -145,9 +195,14 @@ export class ObjectStorageService {
    */
   async downloadCompanyProfile(profileId: string): Promise<DownloadResult> {
     try {
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
       const filename = `profiles/${profileId}.json`;
-      const { ok, value, error } = await this.client.downloadAsText(filename);
-      
+      const { ok, value, error } = await client.downloadAsText(filename);
+
       if (!ok) {
         logger.error('Failed to download company profile', { profileId, error });
         const errorMessage = error instanceof Error ? error.message : error ? String(error) : 'Download failed';
@@ -168,8 +223,13 @@ export class ObjectStorageService {
    */
   async downloadAsStream(path: string): Promise<DownloadResult> {
     try {
-      const result = await this.client.downloadAsStream(path);
-      
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
+      const result = await client.downloadAsStream(path);
+
       // Handle stream response properly
       if (!result || typeof result !== 'object') {
         logger.error('Failed to download as stream', { path, error: 'Invalid response' });
@@ -189,8 +249,13 @@ export class ObjectStorageService {
    */
   async listObjects(): Promise<StorageListResult> {
     try {
-      const { ok, value, error } = await this.client.list();
-      
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
+      const { ok, value, error } = await client.list();
+
       if (!ok) {
         logger.error('Failed to list objects', { error });
         const errorMessage = error instanceof Error ? error.message : error ? String(error) : 'List failed';
@@ -211,8 +276,13 @@ export class ObjectStorageService {
    */
   async listObjectsInFolder(folder: string): Promise<StorageListResult> {
     try {
-      const { ok, value, error } = await this.client.list();
-      
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
+      const { ok, value, error } = await client.list();
+
       if (!ok) {
         logger.error('Failed to list objects', { error });
         const errorMessage = error instanceof Error ? error.message : error ? String(error) : 'List failed';
@@ -222,7 +292,7 @@ export class ObjectStorageService {
       // Filter objects by folder prefix and convert to strings
       const allFiles = Array.isArray(value) ? value.map(item => typeof item === 'string' ? item : item.name || String(item)) : [];
       const folderFiles = allFiles.filter(file => file.startsWith(`${folder}/`));
-      
+
       logger.info('Folder objects listed successfully', { folder, count: folderFiles.length });
       return { success: true, files: folderFiles };
     } catch (error) {
@@ -236,7 +306,12 @@ export class ObjectStorageService {
    */
   async deleteObject(path: string): Promise<UploadResult> {
     try {
-      const { ok, error } = await this.client.delete(path);
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
+      const { ok, error } = await client.delete(path);
 
       if (!ok) {
         const errorMessage = typeof error === 'string'
@@ -285,8 +360,13 @@ export class ObjectStorageService {
    */
   async uploadBackup(backupId: string, data: any): Promise<UploadResult> {
     try {
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
       const filename = `backups/${backupId}.json`;
-      const { ok, error } = await this.client.uploadFromText(filename, JSON.stringify(data, null, 2));
+      const { ok, error } = await client.uploadFromText(filename, JSON.stringify(data, null, 2));
 
       if (!ok) {
         logger.error('Failed to upload backup', { backupId, error });
@@ -309,8 +389,13 @@ export class ObjectStorageService {
    */
   async downloadBackup(backupId: string): Promise<DownloadResult> {
     try {
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
       const filename = `backups/${backupId}.json`;
-      const { ok, value, error } = await this.client.downloadAsText(filename);
+      const { ok, value, error } = await client.downloadAsText(filename);
 
       if (!ok) {
         logger.error('Failed to download backup', { backupId, error });
@@ -334,8 +419,13 @@ export class ObjectStorageService {
    */
   async uploadAuditLogs(logId: string, logs: any[]): Promise<UploadResult> {
     try {
+      const client = await this.ensureClient();
+      if (!client) {
+        return { success: false, error: 'Object storage not available' };
+      }
+
       const filename = `audit-logs/${logId}.json`;
-      const { ok, error } = await this.client.uploadFromText(filename, JSON.stringify(logs, null, 2));
+      const { ok, error } = await client.uploadFromText(filename, JSON.stringify(logs, null, 2));
 
       if (!ok) {
         logger.error('Failed to upload audit logs', { logId, error });
@@ -359,7 +449,7 @@ export class ObjectStorageService {
   async getStorageStats(): Promise<DownloadResult> {
     try {
       const listResult = await this.listObjects();
-      
+
       if (!listResult.success || !listResult.files) {
         return { success: false, error: 'Failed to get storage stats' };
       }

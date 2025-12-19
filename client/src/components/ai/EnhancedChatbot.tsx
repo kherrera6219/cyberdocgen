@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { logger } from "@/utils/logger";
 import {
   Bot,
   Clock,
@@ -273,7 +274,7 @@ export function EnhancedChatbot({ className, defaultFramework }: EnhancedChatbot
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      logger.error('Speech recognition error:', { error: event.error });
       setIsRecording(false);
       toast({
         title: "Voice Error",

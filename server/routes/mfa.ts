@@ -142,7 +142,7 @@ router.post('/verify/totp', async (req: any, res) => {
 
     // In production, fetch encrypted secret from database
     // TODO: Replace with actual database lookup for user's TOTP secret
-    const mockSecret = process.env.MFA_DEV_SECRET || crypto.randomBytes(10).toString('base32').slice(0, 16);
+    const mockSecret = process.env.MFA_DEV_SECRET || crypto.randomBytes(10).toString('base64').replace(/\+/g, 'A').replace(/\//g, 'B').replace(/=/g, '').slice(0, 16);
 
     let verified = false;
     let usedBackupCode = false;

@@ -5,6 +5,8 @@
  * accessibility features throughout the application.
  */
 
+import { logger } from './logger';
+
 /**
  * Focus Management
  *
@@ -20,7 +22,7 @@ export function focusElementById(id: string): boolean {
     element.focus();
     return true;
   }
-  console.warn(`Cannot focus element: #${id} not found`);
+  logger.warn(`Cannot focus element: #${id} not found`);
   return false;
 }
 

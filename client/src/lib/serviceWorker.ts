@@ -4,6 +4,8 @@
  * Handles service worker registration, updates, and PWA features.
  */
 
+import { logger } from '../utils/logger';
+
 interface ServiceWorkerConfig {
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
   onSuccess?: (registration: ServiceWorkerRegistration) => void;
@@ -19,7 +21,7 @@ let swRegistration: ServiceWorkerRegistration | null = null;
 export function registerServiceWorker(config: ServiceWorkerConfig = {}) {
   if (!('serviceWorker' in navigator)) {
     if (import.meta.env.DEV) {
-      console.debug('[SW] Service workers not supported in this environment');
+      logger.debug('[SW] Service workers not supported in this environment');
     }
     return;
   }
@@ -35,7 +37,7 @@ export function registerServiceWorker(config: ServiceWorkerConfig = {}) {
       swRegistration = registration;
 
       if (isDev) {
-        console.info('[SW] Service worker registered:', registration.scope);
+        logger.info('[SW] Service worker registered:', registration.scope);
       }
 
       // Handle updates
@@ -48,7 +50,7 @@ export function registerServiceWorker(config: ServiceWorkerConfig = {}) {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
             // New service worker available
             if (isDev) {
-              console.log('[SW] New version available');
+              logger.info('[SW] New version available');
             }
 
             if (config.onUpdate) {
@@ -72,7 +74,7 @@ export function registerServiceWorker(config: ServiceWorkerConfig = {}) {
       }, 60 * 60 * 1000);
 
     } catch (error) {
-      console.error('[SW] Registration failed:', error);
+      logger.error('[SW] Registration failed:', error);
     }
   });
 
@@ -175,11 +177,11 @@ export function skipWaiting(registration: ServiceWorkerRegistration) {
 function setupOnlineOfflineDetection(config: ServiceWorkerConfig) {
   const updateOnlineStatus = () => {
     if (navigator.onLine) {
-      console.log('[SW] Online');
+      logger.info('[SW] Online');
       hideOfflineBanner();
       if (config.onOnline) config.onOnline();
     } else {
-      console.log('[SW] Offline');
+      logger.info('[SW] Offline');
       showOfflineBanner();
       if (config.onOffline) config.onOffline();
     }
@@ -285,7 +287,7 @@ export function setupInstallPrompt(
     e.preventDefault();
     deferredPrompt = e as BeforeInstallPromptEvent;
 
-    console.log('[PWA] Install prompt available');
+    logger.info('[PWA] Install prompt available');
 
     if (onPromptAvailable) {
       onPromptAvailable(deferredPrompt);
@@ -293,7 +295,7 @@ export function setupInstallPrompt(
   });
 
   window.addEventListener('appinstalled', () => {
-    console.log('[PWA] App installed');
+    logger.info('[PWA] App installed');
     deferredPrompt = null;
   });
 }
@@ -303,7 +305,7 @@ export function setupInstallPrompt(
  */
 export async function showInstallPrompt(): Promise<boolean> {
   if (!deferredPrompt) {
-    console.log('[PWA] Install prompt not available');
+    logger.info('[PWA] Install prompt not available');
     return false;
   }
 
@@ -311,13 +313,13 @@ export async function showInstallPrompt(): Promise<boolean> {
     await deferredPrompt.prompt();
     const choiceResult = await deferredPrompt.userChoice;
 
-    console.log('[PWA] User choice:', choiceResult.outcome);
+    logger.info('[PWA] User choice:', choiceResult.outcome);
 
     deferredPrompt = null;
 
     return choiceResult.outcome === 'accepted';
   } catch (error) {
-    console.error('[PWA] Install prompt error:', error);
+    logger.error('[PWA] Install prompt error:', error);
     return false;
   }
 }

@@ -6,18 +6,19 @@ import { Input } from '../components/ui/input';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
-import { 
-  Shield, 
-  Smartphone, 
-  QrCode, 
-  Key, 
-  CheckCircle, 
+import {
+  Shield,
+  Smartphone,
+  QrCode,
+  Key,
+  CheckCircle,
   XCircle,
   Copy,
   Download,
   Loader2
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { logger } from '../utils/logger';
 
 interface MFAStatus {
   enabled: boolean;
@@ -58,7 +59,7 @@ export default function MFASetupPage() {
         setStatus(data);
       }
     } catch (err) {
-      console.error('Failed to load MFA status:', err);
+      logger.error('Failed to load MFA status:', err);
     }
   };
 

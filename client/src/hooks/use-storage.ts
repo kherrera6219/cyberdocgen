@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from '../utils/logger';
 
 interface StorageState<T> {
   value: T;
@@ -21,7 +22,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): StorageState<T
       }
     } catch (err) {
       setError("Failed to load from localStorage");
-      console.error("Error reading localStorage key", key, err);
+      logger.error("Error reading localStorage key", { key, error: err });
     } finally {
       setLoading(false);
     }
@@ -35,7 +36,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): StorageState<T
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (err) {
       setError("Failed to save to localStorage");
-      console.error("Error setting localStorage key", key, err);
+      logger.error("Error setting localStorage key", { key, error: err });
     }
   };
 
@@ -56,7 +57,7 @@ export function useSessionStorage<T>(key: string, defaultValue: T): StorageState
       }
     } catch (err) {
       setError("Failed to load from sessionStorage");
-      console.error("Error reading sessionStorage key", key, err);
+      logger.error("Error reading sessionStorage key", { key, error: err });
     } finally {
       setLoading(false);
     }
@@ -70,7 +71,7 @@ export function useSessionStorage<T>(key: string, defaultValue: T): StorageState
       window.sessionStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (err) {
       setError("Failed to save to sessionStorage");
-      console.error("Error setting sessionStorage key", key, err);
+      logger.error("Error setting sessionStorage key", { key, error: err });
     }
   };
 
@@ -86,7 +87,7 @@ export const clearStorageItem = (key: string, type: 'local' | 'session' = 'local
       window.sessionStorage.removeItem(key);
     }
   } catch (error) {
-    console.error(`Failed to clear ${type} storage item:`, key, error);
+    logger.error(`Failed to clear ${type} storage item:`, { key, error });
   }
 };
 
