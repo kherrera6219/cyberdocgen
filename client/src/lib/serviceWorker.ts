@@ -18,7 +18,9 @@ let swRegistration: ServiceWorkerRegistration | null = null;
  */
 export function registerServiceWorker(config: ServiceWorkerConfig = {}) {
   if (!('serviceWorker' in navigator)) {
-    console.log('[SW] Service workers not supported');
+    if (import.meta.env.DEV) {
+      console.debug('[SW] Service workers not supported in this environment');
+    }
     return;
   }
 
