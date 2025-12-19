@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { WelcomeTutorial } from "@/components/onboarding/WelcomeTutorial";
 import { QuickStartChecklist } from "@/components/onboarding/QuickStartChecklist";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { 
+import {
   User, 
   LogOut, 
   Building, 
@@ -27,6 +27,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
+import { logger } from '../utils/logger';
 
 export function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
@@ -40,7 +41,7 @@ export function Home() {
         setShowTutorial(true);
       }
     } catch (error) {
-      console.error('Error accessing localStorage for tutorial state:', error);
+      logger.error('Error accessing localStorage for tutorial state:', error);
       setShowTutorial(false);
     }
   }, []);
@@ -77,7 +78,7 @@ export function Home() {
     try {
       localStorage.setItem('hasSeenTutorial', 'true');
     } catch (error) {
-      console.error('Error saving tutorial state to localStorage:', error);
+      logger.error('Error saving tutorial state to localStorage:', error);
     }
     setShowTutorial(false);
   };

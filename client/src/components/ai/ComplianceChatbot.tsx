@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { logger } from "@/utils/logger";
 import {
   Bot,
   Clock,
@@ -72,7 +73,7 @@ export function ComplianceChatbot({ className, defaultFramework }: ChatbotProps)
         return true;
       }
     } catch (error) {
-      console.warn('Failed to initialize CSRF token:', error);
+      logger.warn('Failed to initialize CSRF token:', error);
     }
     return false;
   };

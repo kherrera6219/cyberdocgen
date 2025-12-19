@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction, QueryKey, UseQueryOptions } from "@tanstack/react-query";
+import { logger } from '../utils/logger';
 
 // Cache time constants (in milliseconds)
 export const CACHE_TIMES = {
@@ -150,7 +151,7 @@ async function ensureCsrfToken(): Promise<string | null> {
         token = data.csrfToken;
       }
     } catch {
-      console.warn('Failed to fetch CSRF token');
+      logger.warn('Failed to fetch CSRF token');
     }
   }
   return token;

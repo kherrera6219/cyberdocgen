@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { logger } from '../utils/logger';
 
 export function useAuth() {
   const { data: user, isLoading, isFetching, status } = useQuery({
@@ -16,7 +17,7 @@ export function useAuth() {
         }
         return await res.json();
       } catch (error) {
-        console.error("Auth check failed:", error);
+        logger.error("Auth check failed:", error);
         return null;
       }
     },

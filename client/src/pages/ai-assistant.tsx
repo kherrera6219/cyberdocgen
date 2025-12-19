@@ -12,14 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useDropzone } from "react-dropzone";
-import { 
-  Bot, 
-  Send, 
-  User, 
-  Loader2, 
-  Sparkles, 
-  FileText, 
-  Shield, 
+import {
+  Bot,
+  Send,
+  User,
+  Loader2,
+  Sparkles,
+  FileText,
+  Shield,
   AlertTriangle,
   CheckCircle,
   RefreshCw,
@@ -39,6 +39,7 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
+import { logger } from '@/utils/logger';
 
 interface Agent {
   id: string;
@@ -260,7 +261,7 @@ export default function AIAssistant() {
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      logger.error('Speech recognition error:', event.error);
       setIsRecording(false);
       if (event.error !== 'no-speech') {
         toast({

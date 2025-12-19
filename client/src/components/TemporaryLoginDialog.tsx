@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from '../utils/logger';
 
 interface TemporaryLoginDialogProps {
   trigger?: React.ReactNode;
@@ -202,7 +203,7 @@ export function TempUserBanner() {
         setLocation("/");
       });
     } catch (error) {
-      console.error('Logout failed:', error);
+      logger.error('Logout failed:', error);
     } finally {
       setIsLoggingOut(false);
     }

@@ -12,6 +12,7 @@ import { DocumentPreview } from "@/components/templates/document-preview";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorCard } from "@/components/ui/loading-error-states";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import { logger } from '../utils/logger';
 
 const AIInsightsDashboard = lazy(() => import("@/components/ai/AIInsightsDashboard").then(m => ({ default: m.AIInsightsDashboard })));
 const RiskHeatmap = lazy(() => import("@/components/ai/RiskHeatmap").then(m => ({ default: m.RiskHeatmap })));
@@ -161,7 +162,7 @@ export default function Dashboard() {
             pollingTimeoutRef.current = setTimeout(pollJob, 2000);
           }
         } catch (error) {
-          console.error("Error polling job:", error);
+          logger.error("Error polling job:", error);
           if (!isMountedRef.current) return;
           cleanupGeneration();
           toast({

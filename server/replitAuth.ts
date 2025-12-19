@@ -7,6 +7,7 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { logger } from "./utils/logger";
 
 const getOidcConfig = memoize(
   async () => {
@@ -100,7 +101,7 @@ export async function setupAuth(app: Express) {
     const strategyName = `replitauth:${domain}`;
     
     if (!registeredStrategies.has(strategyName)) {
-      console.log(`[Auth] Registering new strategy for domain: ${domain}`);
+      logger.info(`[Auth] Registering new strategy for domain: ${domain}`);
       const strategy = new Strategy(
         {
           name: strategyName,
@@ -133,11 +134,11 @@ export async function setupAuth(app: Express) {
   // Login route - dynamically creates strategy for the current hostname
   app.get("/api/login", (req, res, next) => {
     const hostname = req.hostname.toLowerCase();
-    console.log(`[Auth Login] Request from hostname: ${hostname}`);
-    
+    logger.info(`[Auth Login] Request from hostname: ${hostname}`);
+
     // Dynamically register strategy for this hostname if not already registered
     const strategyName = getOrCreateStrategy(hostname);
-    console.log(`[Auth Login] Using strategy: ${strategyName}`);
+    logger.info(`[Auth Login] Using strategy: ${strategyName}`);
     
     passport.authenticate(strategyName, {
       prompt: "login consent",
@@ -149,15 +150,15 @@ export async function setupAuth(app: Express) {
   app.get("/api/callback", (req, res, next) => {
     const hostname = req.hostname.toLowerCase();
     const strategyName = `replitauth:${hostname}`;
-    
-    console.log(`[Auth Callback] Hostname: ${hostname}`);
-    console.log(`[Auth Callback] Strategy: ${strategyName}`);
-    console.log(`[Auth Callback] Query params:`, req.query);
-    
+
+    logger.info(`[Auth Callback] Hostname: ${hostname}`);
+    logger.info(`[Auth Callback] Strategy: ${strategyName}`);
+    logger.info(`[Auth Callback] Query params:`, { query: req.query });
+
     // Check if strategy exists
     if (!registeredStrategies.has(strategyName)) {
-      console.error(`[Auth Callback] Strategy not found for hostname: ${hostname}`);
-      console.log(`[Auth Callback] Registered strategies:`, Array.from(registeredStrategies));
+      logger.error(`[Auth Callback] Strategy not found for hostname: ${hostname}`);
+      logger.info(`[Auth Callback] Registered strategies:`, { strategies: Array.from(registeredStrategies) });
       
       // Try to register it now (the login might have been initiated from this domain)
       getOrCreateStrategy(hostname);
@@ -165,22 +166,22 @@ export async function setupAuth(app: Express) {
     
     passport.authenticate(strategyName, (err: any, user: any, info: any) => {
       if (err) {
-        console.error(`[Auth Callback] Authentication error:`, err);
+        logger.error(`[Auth Callback] Authentication error:`, { error: err });
         return res.redirect(`/login?error=${encodeURIComponent(err.message || 'Authentication failed')}`);
       }
-      
+
       if (!user) {
-        console.error(`[Auth Callback] No user returned. Info:`, info);
+        logger.error(`[Auth Callback] No user returned. Info:`, { info });
         return res.redirect('/login?error=Authentication%20failed');
       }
-      
+
       req.logIn(user, (loginErr) => {
         if (loginErr) {
-          console.error(`[Auth Callback] Login error:`, loginErr);
+          logger.error(`[Auth Callback] Login error:`, { error: loginErr });
           return res.redirect(`/login?error=${encodeURIComponent(loginErr.message || 'Login failed')}`);
         }
-        
-        console.log(`[Auth Callback] Successfully authenticated user`);
+
+        logger.info(`[Auth Callback] Successfully authenticated user`);
         return res.redirect('/dashboard');
       });
     })(req, res, next);
@@ -197,8 +198,8 @@ export async function setupAuth(app: Express) {
       );
     });
   });
-  
-  console.log(`[Auth Setup] Registered ${registeredStrategies.size} initial strategies`);
+
+  logger.info(`[Auth Setup] Registered ${registeredStrategies.size} initial strategies`);
 }
 
 // Helper function to get user ID from either OAuth or session-based auth
