@@ -123,7 +123,9 @@ function AuthenticatedRouter() {
         <Route path="/evidence-ingestion" component={EvidenceIngestion} />
         <Route path="/control-approvals" component={ControlApprovals} />
         <Route path="/auditor-workspace" component={AuditorWorkspace} />
-        <Route component={NotFound} />
+        <Route>
+          <NotFound />
+        </Route>
       </Switch>
     </Suspense>
   );
