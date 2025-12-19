@@ -5,6 +5,7 @@ import MobileNavigation from "./mobile-navigation";
 import { OfflineIndicator } from "./offline-indicator";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { TempUserBanner } from "@/components/TemporaryLoginDialog";
+import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 
 interface LayoutProps {
   children: ReactNode;
@@ -28,6 +29,7 @@ export default function Layout({ children }: LayoutProps) {
           <main className="flex-1 overflow-y-auto transition-colors pt-16 sm:pt-20 pb-16 lg:pb-0">
             <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8 max-w-full space-y-4">
               {!isOnline && <OfflineIndicator />}
+              <Breadcrumbs className="mb-2" />
               {children}
             </div>
           </main>
