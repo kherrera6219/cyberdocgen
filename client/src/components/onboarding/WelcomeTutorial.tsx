@@ -113,6 +113,10 @@ export function WelcomeTutorial({ isOpen, onClose, onComplete }: WelcomeTutorial
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
+          <DialogTitle className="sr-only">Getting Started Tutorial</DialogTitle>
+          <DialogDescription className="sr-only">
+            Step-by-step guide to help you get started with CyberDocGen
+          </DialogDescription>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Badge variant="outline">
