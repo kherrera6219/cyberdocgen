@@ -7,6 +7,7 @@ import { insertCompanyProfileSchema } from '@shared/schema';
 import { companyDataExtractionService } from '../services/companyDataExtractionService';
 import { validateBody } from '../middleware/routeValidation';
 import { extractFromDocumentSchema, extractFromWebsiteSchema } from '../validation/schemas';
+import { cache } from '../middleware/production';
 
 export async function registerCompanyProfilesRoutes(router: Router) {
   const { requireMFA, enforceMFATimeout } = await import('../middleware/mfa');
@@ -40,6 +41,10 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     try {
       const validatedData = insertCompanyProfileSchema.parse(req.body);
       const profile = await storage.createCompanyProfile(validatedData);
+      
+      // Invalidate company profile caches after creation
+      cache.invalidateByPattern('/api/company-profiles');
+      
       res.status(201).json(profile);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -56,6 +61,10 @@ export async function registerCompanyProfilesRoutes(router: Router) {
       if (!profile) {
         return res.status(404).json({ message: "Company profile not found" });
       }
+      
+      // Invalidate company profile caches after update
+      cache.invalidateByPattern('/api/company-profiles');
+      
       res.json(profile);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -73,6 +82,10 @@ export async function registerCompanyProfilesRoutes(router: Router) {
       if (!profile) {
         return res.status(404).json({ message: "Company profile not found" });
       }
+      
+      // Invalidate company profile caches after update
+      cache.invalidateByPattern('/api/company-profiles');
+      
       res.json(profile);
     } catch (error) {
       if (error instanceof z.ZodError) {

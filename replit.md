@@ -37,6 +37,12 @@ Preferred communication style: Simple, everyday language.
 - **Rate Limiting**: Tiered rate limiting for general requests, auth, and AI generation
 - **Audit Logging**: Comprehensive audit trail with risk-level classification
 - **Security Headers**: Full OWASP compliance (CSP, X-Frame-Options, HSTS)
+- **PII Scrubbing**: Automatic redaction of emails, SSNs, credit cards, phone numbers, IP addresses in logs
+- **AI Guardrails**: Prompt injection detection, content filtering, and response moderation via aiGuardrailsService
+- **Query Limits**: Default pagination limits on all database queries to prevent memory exhaustion
+- **Cache Invalidation**: Automatic cache clearing on document and company profile mutations
+- **Graceful Shutdown**: SIGTERM/SIGINT handlers with 30-second timeout for clean shutdown
+- **Environment Validation**: Zod-based validation of all required environment variables at startup
 
 ### AI Integration
 - **Multi-Model Support**: OpenAI GPT-5.1, Anthropic Claude Opus 4.5, and Google Gemini 3.0 Pro with automatic fallback

@@ -1266,14 +1266,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCompanyProfiles(organizationId?: string): Promise<CompanyProfile[]> {
+    const DEFAULT_LIMIT = 1000; // Prevent memory exhaustion
     if (organizationId) {
       return await db
         .select()
         .from(companyProfiles)
         .where(eq(companyProfiles.organizationId, organizationId))
-        .orderBy(desc(companyProfiles.updatedAt));
+        .orderBy(desc(companyProfiles.updatedAt))
+        .limit(DEFAULT_LIMIT);
     }
-    return await db.select().from(companyProfiles).orderBy(desc(companyProfiles.updatedAt));
+    return await db.select().from(companyProfiles).orderBy(desc(companyProfiles.updatedAt)).limit(DEFAULT_LIMIT);
   }
 
   async createCompanyProfile(insertProfile: InsertCompanyProfile): Promise<CompanyProfile> {
@@ -1312,6 +1314,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocuments(organizationId?: string): Promise<Document[]> {
+    const DEFAULT_LIMIT = 1000; // Prevent memory exhaustion
     if (organizationId) {
       return await db
         .select()
@@ -1319,25 +1322,30 @@ export class DatabaseStorage implements IStorage {
         .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
         .where(eq(companyProfiles.organizationId, organizationId))
         .orderBy(desc(documents.updatedAt))
+        .limit(DEFAULT_LIMIT)
         .then(results => results.map(result => result.documents));
     }
-    return await db.select().from(documents).orderBy(desc(documents.updatedAt));
+    return await db.select().from(documents).orderBy(desc(documents.updatedAt)).limit(DEFAULT_LIMIT);
   }
 
   async getDocumentsByCompanyProfile(companyProfileId: string): Promise<Document[]> {
+    const DEFAULT_LIMIT = 500; // Prevent memory exhaustion
     return await db
       .select()
       .from(documents)
       .where(eq(documents.companyProfileId, companyProfileId))
-      .orderBy(desc(documents.updatedAt));
+      .orderBy(desc(documents.updatedAt))
+      .limit(DEFAULT_LIMIT);
   }
 
   async getDocumentsByFramework(framework: string): Promise<Document[]> {
+    const DEFAULT_LIMIT = 500; // Prevent memory exhaustion
     return await db
       .select()
       .from(documents)
       .where(eq(documents.framework, framework))
-      .orderBy(desc(documents.updatedAt));
+      .orderBy(desc(documents.updatedAt))
+      .limit(DEFAULT_LIMIT);
   }
 
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
@@ -1381,6 +1389,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGenerationJobs(organizationId?: string): Promise<GenerationJob[]> {
+    const DEFAULT_LIMIT = 500; // Prevent memory exhaustion
     if (organizationId) {
       return await db
         .select()
@@ -1388,17 +1397,20 @@ export class DatabaseStorage implements IStorage {
         .innerJoin(companyProfiles, eq(generationJobs.companyProfileId, companyProfiles.id))
         .where(eq(companyProfiles.organizationId, organizationId))
         .orderBy(desc(generationJobs.createdAt))
+        .limit(DEFAULT_LIMIT)
         .then(results => results.map(result => result.generation_jobs));
     }
-    return await db.select().from(generationJobs).orderBy(desc(generationJobs.createdAt));
+    return await db.select().from(generationJobs).orderBy(desc(generationJobs.createdAt)).limit(DEFAULT_LIMIT);
   }
 
   async getGenerationJobsByCompanyProfile(companyProfileId: string): Promise<GenerationJob[]> {
+    const DEFAULT_LIMIT = 200; // Prevent memory exhaustion
     return await db
       .select()
       .from(generationJobs)
       .where(eq(generationJobs.companyProfileId, companyProfileId))
-      .orderBy(desc(generationJobs.createdAt));
+      .orderBy(desc(generationJobs.createdAt))
+      .limit(DEFAULT_LIMIT);
   }
 
   async createGenerationJob(insertJob: InsertGenerationJob): Promise<GenerationJob> {
@@ -1428,11 +1440,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGapAnalysisReports(organizationId: string): Promise<GapAnalysisReport[]> {
+    const DEFAULT_LIMIT = 500; // Prevent memory exhaustion
     return db
       .select()
       .from(gapAnalysisReports)
       .where(eq(gapAnalysisReports.organizationId, organizationId))
-      .orderBy(desc(gapAnalysisReports.createdAt));
+      .orderBy(desc(gapAnalysisReports.createdAt))
+      .limit(DEFAULT_LIMIT);
   }
 
   async getGapAnalysisReport(id: string): Promise<GapAnalysisReport | undefined> {

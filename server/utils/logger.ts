@@ -8,6 +8,59 @@ export enum LogLevel {
   DEBUG = "debug",
 }
 
+// PII patterns to redact from logs
+const PII_PATTERNS = [
+  { pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, replacement: '[EMAIL_REDACTED]' },
+  // SSN with delimiters only (avoid matching generic 9-digit IDs)
+  { pattern: /\b\d{3}[-.\s]\d{2}[-.\s]\d{4}\b/g, replacement: '[SSN_REDACTED]' },
+  // Credit card numbers with optional separators
+  { pattern: /\b(?:\d{4}[-.\s]?){3}\d{4}\b/g, replacement: '[CREDIT_CARD_REDACTED]' },
+  { pattern: /\b(?:\+?1[-.]?)?\(?[0-9]{3}\)?[-.]?[0-9]{3}[-.]?[0-9]{4}\b/g, replacement: '[PHONE_REDACTED]' },
+  // IPv4 addresses
+  { pattern: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, replacement: '[IP_REDACTED]' },
+  // IPv6 addresses (simplified pattern)
+  { pattern: /\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b/g, replacement: '[IP_REDACTED]' },
+  { pattern: /\b(?:[0-9a-fA-F]{1,4}:){1,7}:\b/g, replacement: '[IP_REDACTED]' },
+  { pattern: /::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}\b/g, replacement: '[IP_REDACTED]' },
+  // Credentials in various formats
+  { pattern: /(?:password|passwd|pwd|secret|token|apikey|api_key|bearer|authorization)\s*[:=]\s*["']?[^"'\s]{4,}/gi, replacement: '[CREDENTIAL_REDACTED]' },
+];
+
+// Scrub PII from a string
+function scrubPII(value: string): string {
+  let result = value;
+  for (const { pattern, replacement } of PII_PATTERNS) {
+    result = result.replace(pattern, replacement);
+  }
+  return result;
+}
+
+// Recursively scrub PII from objects
+function scrubPIIFromObject(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  if (typeof obj === 'string') {
+    return scrubPII(obj);
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(item => scrubPIIFromObject(item));
+  }
+  if (typeof obj === 'object') {
+    const scrubbed: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // Redact sensitive keys entirely
+      if (/password|secret|token|apikey|api_key|authorization|bearer/i.test(key)) {
+        scrubbed[key] = '[REDACTED]';
+      } else {
+        scrubbed[key] = scrubPIIFromObject(value);
+      }
+    }
+    return scrubbed;
+  }
+  return obj;
+}
+
 interface LogEntry {
   level: LogLevel;
   message: string;
@@ -67,23 +120,27 @@ class Logger {
     const timestamp = new Date().toISOString();
     const logId = crypto.randomBytes(4).toString('hex');
 
+    // Scrub PII from message and metadata
+    const scrubbedMessage = scrubPII(message);
+    const scrubbedMeta = meta ? scrubPIIFromObject(meta) : undefined;
+
     const entry: AuditLogEntry = {
       timestamp,
       level,
-      message,
-      meta,
+      message: scrubbedMessage,
+      meta: scrubbedMeta,
       logId,
       service: 'complianceai'
     };
 
     // Build log message with metadata
-    let logMessage = `${timestamp} [${level.toUpperCase()}] ${message}`;
+    let logMessage = `${timestamp} [${level.toUpperCase()}] ${scrubbedMessage}`;
 
-    // Add request info if provided
+    // Add request info if provided (scrub IP addresses in production)
     if (req) {
       const requestId = req.headers?.['x-request-id'];
       const userId = (req as any).user?.claims?.sub;
-      const ip = req.ip;
+      const ip = process.env.NODE_ENV === 'production' ? '[IP_REDACTED]' : req.ip;
 
       if (requestId) logMessage += ` [${requestId}]`;
       if (userId) logMessage += ` [User: ${userId}]`;
@@ -91,8 +148,8 @@ class Logger {
     }
 
     // Add metadata if provided
-    if (meta && Object.keys(meta).length > 0) {
-      logMessage += ` ${JSON.stringify(meta)}`;
+    if (scrubbedMeta && Object.keys(scrubbedMeta).length > 0) {
+      logMessage += ` ${JSON.stringify(scrubbedMeta)}`;
     }
 
     // Console output based on log level
@@ -136,23 +193,27 @@ class Logger {
       const timestamp = new Date().toISOString();
       const logId = crypto.randomBytes(4).toString('hex');
 
+      // Scrub PII from message and metadata
+      const scrubbedMessage = scrubPII(message);
+      const scrubbedMeta = meta ? scrubPIIFromObject(meta) : undefined;
+
       const entry: AuditLogEntry = {
         timestamp,
         level: 'error' as LogLevel, // Explicitly casting to LogLevel
-        message,
-        meta,
+        message: scrubbedMessage,
+        meta: scrubbedMeta,
         logId,
         service: 'complianceai'
       };
 
       // Build log message with metadata
-      let logMessage = `${timestamp} [ERROR] ${message}`;
+      let logMessage = `${timestamp} [ERROR] ${scrubbedMessage}`;
 
-      // Add request info if provided
+      // Add request info if provided (scrub IP addresses in production)
       if (req) {
         const requestId = req.headers?.['x-request-id'];
         const userId = (req as any).user?.claims?.sub;
-        const ip = req.ip;
+        const ip = process.env.NODE_ENV === 'production' ? '[IP_REDACTED]' : req.ip;
 
         if (requestId) logMessage += ` [${requestId}]`;
         if (userId) logMessage += ` [User: ${userId}]`;
@@ -160,8 +221,8 @@ class Logger {
       }
 
       // Add metadata if provided
-      if (meta && Object.keys(meta).length > 0) {
-        logMessage += ` ${JSON.stringify(meta)}`;
+      if (scrubbedMeta && Object.keys(scrubbedMeta).length > 0) {
+        logMessage += ` ${JSON.stringify(scrubbedMeta)}`;
       }
 
       // Console output for errors

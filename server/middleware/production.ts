@@ -126,12 +126,40 @@ class SimpleCache {
     });
   }
 
+  // Invalidate cache entries by pattern (prefix matching)
+  invalidateByPattern(pattern: string): number {
+    let invalidated = 0;
+    for (const key of this.store.keys()) {
+      if (key.includes(pattern)) {
+        this.store.delete(key);
+        invalidated++;
+      }
+    }
+    return invalidated;
+  }
+
+  // Invalidate specific key
+  invalidate(key: string): boolean {
+    return this.store.delete(key);
+  }
+
   clear(): void {
     this.store.clear();
+  }
+
+  // Get cache stats for monitoring
+  getStats(): { size: number; keys: string[] } {
+    return {
+      size: this.store.size,
+      keys: Array.from(this.store.keys())
+    };
   }
 }
 
 const cache = new SimpleCache();
+
+// Export cache for use in routes
+export { cache };
 
 // Health check endpoint
 export function healthCheck(req: Request, res: Response): void {

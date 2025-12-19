@@ -11,6 +11,7 @@ import { validateBody } from '../middleware/routeValidation';
 import { generateDocumentSchema, generateSingleDocumentSchema, createDocumentVersionSchema } from '../validation/schemas';
 import { db } from '../db';
 import { eq, desc } from 'drizzle-orm';
+import { cache } from '../middleware/production';
 
 export async function registerDocumentsRoutes(router: Router) {
   const { requireMFA, enforceMFATimeout } = await import('../middleware/mfa');
@@ -52,6 +53,10 @@ export async function registerDocumentsRoutes(router: Router) {
     try {
       const validatedData = insertDocumentSchema.parse(req.body);
       const document = await storage.createDocument(validatedData);
+      
+      // Invalidate document caches after creation
+      cache.invalidateByPattern('/api/documents');
+      
       res.status(201).json(document);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -68,6 +73,10 @@ export async function registerDocumentsRoutes(router: Router) {
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
       }
+      
+      // Invalidate document caches after update
+      cache.invalidateByPattern('/api/documents');
+      
       res.json(document);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -83,6 +92,10 @@ export async function registerDocumentsRoutes(router: Router) {
       if (!success) {
         return res.status(404).json({ message: "Document not found" });
       }
+      
+      // Invalidate document caches after deletion
+      cache.invalidateByPattern('/api/documents');
+      
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete document" });
