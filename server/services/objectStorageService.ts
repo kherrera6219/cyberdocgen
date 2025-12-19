@@ -32,7 +32,7 @@ export class ObjectStorageService {
 
     try {
       this.client = new Client();
-      await this.client.init();
+      // Client auto-initializes on first use, no need to call init()
       this.initialized = true;
       logger.info('Object storage client initialized successfully');
     } catch (error) {
