@@ -1,7 +1,8 @@
 import { Bell, ChevronDown, Moon, Sun, Settings, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -65,6 +66,12 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80 p-0">
+              <VisuallyHidden>
+                <SheetHeader>
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                  <SheetDescription>Main navigation menu for CyberDocGen application</SheetDescription>
+                </SheetHeader>
+              </VisuallyHidden>
               <MobileSidebar onClose={() => setMobileMenuOpen(false)} />
             </SheetContent>
           </Sheet>

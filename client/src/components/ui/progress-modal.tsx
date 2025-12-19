@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Wand2, FileText, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,9 @@ export function ProgressModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Generating {framework} Documents</DialogTitle>
+          <DialogDescription>
+            AI is generating your compliance documentation. This may take a few minutes.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
