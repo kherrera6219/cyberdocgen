@@ -1,27 +1,29 @@
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
   Building, 
   FileText, 
-  Settings, 
-  Menu, 
-  X,
-  Home,
   Folder
 } from "lucide-react";
+import type { ComponentType } from "react";
 
 interface MobileNavigationProps {
   className?: string;
 }
 
-const navigationItems = [
+interface NavItem {
+  href: string;
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  shortLabel: string;
+}
+
+const navigationItems: NavItem[] = [
   { 
-    href: "/", 
-    icon: Home, 
-    label: "Home",
+    href: "/dashboard", 
+    icon: LayoutDashboard, 
+    label: "Dashboard",
     shortLabel: "Home"
   },
   { 
@@ -48,22 +50,20 @@ export default function MobileNavigation({ className }: MobileNavigationProps) {
   const [location] = useLocation();
 
   const isActive = (href: string) => {
-    if (href === "/") return location === "/";
+    if (href === "/dashboard") return location === "/dashboard" || location === "/";
     return location.startsWith(href);
   };
 
   return (
     <nav className={cn(
       "fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 lg:hidden",
-      "safe-area-inset-bottom", // For devices with home indicators
+      "safe-area-inset-bottom",
       className
     )}>
       <div className="flex items-center justify-around px-2 py-1">
         {navigationItems.map((item) => (
-          <Link key={item.href} href={item.href}>
-            <Button
-              variant="ghost"
-              size="sm"
+          <Link key={item.href} href={item.href} data-testid={`mobile-nav-${item.shortLabel.toLowerCase()}`}>
+            <a
               className={cn(
                 "flex flex-col items-center space-y-1 h-auto py-2 px-3 rounded-lg transition-colors min-w-0",
                 isActive(item.href)
@@ -75,7 +75,7 @@ export default function MobileNavigation({ className }: MobileNavigationProps) {
               <span className="text-xs font-medium truncate max-w-12 sm:max-w-16">
                 {item.shortLabel}
               </span>
-            </Button>
+            </a>
           </Link>
         ))}
       </div>

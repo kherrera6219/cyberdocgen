@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
@@ -10,53 +11,118 @@ import {
   Flag, 
   Lock, 
   Folder, 
-  FolderOutput 
+  FolderOutput,
+  Database,
+  Brain,
+  Upload,
+  Zap,
+  Bot,
+  Sparkles,
+  Wrench,
+  Search,
+  CheckSquare,
+  Eye,
+  History,
+  Cloud,
+  Settings,
+  User
 } from "lucide-react";
 
 interface NavItem {
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   badge?: string;
   badgeColor?: string;
 }
 
 const mainNavItems: NavItem[] = [
-  { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/profile", icon: Building, label: "Company Profile" },
+  { href: "/storage", icon: Database, label: "Object Storage" },
+  { href: "/ai-specialization", icon: Brain, label: "AI Specialization" },
 ];
 
 const frameworkNavItems: NavItem[] = [
-  { href: "/documents?framework=ISO27001", icon: Tag, label: "ISO 27001", badge: "12/14", badgeColor: "bg-accent" },
-  { href: "/documents?framework=SOC2", icon: Shield, label: "SOC 2 Type 2", badge: "8/12", badgeColor: "bg-warning" },
-  { href: "/documents?framework=FedRAMP", icon: Flag, label: "FedRAMP", badge: "0/18", badgeColor: "bg-gray-400" },
-  { href: "/documents?framework=NIST", icon: Lock, label: "NIST CSF", badge: "0/23", badgeColor: "bg-gray-400" },
+  { href: "/iso27001-framework", icon: Tag, label: "ISO 27001", badge: "12/14", badgeColor: "bg-accent" },
+  { href: "/soc2-framework", icon: Shield, label: "SOC 2 Type 2", badge: "8/12", badgeColor: "bg-warning" },
+  { href: "/fedramp-framework", icon: Flag, label: "FedRAMP", badge: "0/18", badgeColor: "bg-gray-400" },
+  { href: "/nist-framework", icon: Lock, label: "NIST CSF", badge: "0/23", badgeColor: "bg-gray-400" },
 ];
 
 const documentNavItems: NavItem[] = [
   { href: "/documents", icon: Folder, label: "All Documents" },
+  { href: "/evidence-ingestion", icon: Upload, label: "Evidence Upload" },
   { href: "/export", icon: FolderOutput, label: "Export Center" },
+];
+
+const aiToolsNavItems: NavItem[] = [
+  { href: "/ai-hub", icon: Zap, label: "AI Hub" },
+  { href: "/ai-assistant", icon: Bot, label: "AI Assistant" },
+  { href: "/ai-doc-generator", icon: Sparkles, label: "AI Doc Generator" },
+  { href: "/mcp-tools", icon: Wrench, label: "MCP Tools" },
+];
+
+const complianceNavItems: NavItem[] = [
+  { href: "/gap-analysis", icon: Search, label: "Gap Analysis" },
+  { href: "/control-approvals", icon: CheckSquare, label: "Control Approvals" },
+  { href: "/auditor-workspace", icon: Eye, label: "Auditor Workspace" },
+  { href: "/audit-trail", icon: History, label: "Audit Trail" },
+];
+
+const settingsNavItems: NavItem[] = [
+  { href: "/cloud-integrations", icon: Cloud, label: "Cloud Integrations" },
+  { href: "/admin", icon: Settings, label: "Admin Settings" },
+  { href: "/profile/settings", icon: User, label: "User Settings" },
 ];
 
 interface MobileSidebarProps {
   onClose: () => void;
 }
 
+interface NavLinkProps {
+  item: NavItem;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+function NavLink({ item, isActive, onClick }: NavLinkProps) {
+  return (
+    <Link href={item.href} data-testid={`mobile-nav-${item.href.replace(/\//g, '-').slice(1) || 'home'}`}>
+      <a 
+        className={cn(
+          "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
+          isActive
+            ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+            : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+        )}
+        onClick={onClick}
+      >
+        <item.icon className="w-5 h-5 mr-3" />
+        <span className="flex-1">{item.label}</span>
+        {item.badge && (
+          <span className={cn(
+            "text-xs text-white px-2 py-1 rounded-full shadow-sm",
+            item.badgeColor
+          )}>
+            {item.badge}
+          </span>
+        )}
+      </a>
+    </Link>
+  );
+}
+
 export default function MobileSidebar({ onClose }: MobileSidebarProps) {
   const [location] = useLocation();
 
   const isActive = (href: string) => {
-    if (href === "/") return location === "/";
+    if (href === "/dashboard") return location === "/dashboard" || location === "/";
     return location.startsWith(href.split("?")[0]);
-  };
-
-  const handleLinkClick = () => {
-    onClose();
   };
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900">
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -66,78 +132,51 @@ export default function MobileSidebar({ onClose }: MobileSidebarProps) {
           </div>
           <h1 className="text-lg font-bold text-gray-900 dark:text-white">CyberDocGen</h1>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
+        <Button variant="ghost" size="icon" onClick={onClose} data-testid="button-close-mobile-sidebar">
           <X className="h-5 w-5" />
         </Button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         <div className="mb-6">
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Main</h2>
           {mainNavItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <div 
-                className={cn(
-                  "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
-                  isActive(item.href)
-                    ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
-                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                )}
-                onClick={handleLinkClick}
-              >
-                <item.icon className="w-5 h-5 mr-3" />
-                {item.label}
-              </div>
-            </Link>
+            <NavLink key={item.href} item={item} isActive={isActive(item.href)} onClick={onClose} />
           ))}
         </div>
         
         <div className="mb-6">
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Compliance Frameworks</h2>
           {frameworkNavItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <div 
-                className={cn(
-                  "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
-                  isActive(item.href)
-                    ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
-                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                )}
-                onClick={handleLinkClick}
-              >
-                <item.icon className="w-5 h-5 mr-3" />
-                <span className="flex-1">{item.label}</span>
-                {item.badge && (
-                  <span className={cn(
-                    "text-xs text-white px-2 py-1 rounded-full shadow-sm",
-                    item.badgeColor
-                  )}>
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-            </Link>
+            <NavLink key={item.href} item={item} isActive={isActive(item.href)} onClick={onClose} />
           ))}
         </div>
         
-        <div>
+        <div className="mb-6">
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Documents</h2>
           {documentNavItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <div 
-                className={cn(
-                  "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
-                  isActive(item.href)
-                    ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
-                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                )}
-                onClick={handleLinkClick}
-              >
-                <item.icon className="w-5 h-5 mr-3" />
-                {item.label}
-              </div>
-            </Link>
+            <NavLink key={item.href} item={item} isActive={isActive(item.href)} onClick={onClose} />
+          ))}
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">AI & Tools</h2>
+          {aiToolsNavItems.map((item) => (
+            <NavLink key={item.href} item={item} isActive={isActive(item.href)} onClick={onClose} />
+          ))}
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Compliance</h2>
+          {complianceNavItems.map((item) => (
+            <NavLink key={item.href} item={item} isActive={isActive(item.href)} onClick={onClose} />
+          ))}
+        </div>
+
+        <div>
+          <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Settings</h2>
+          {settingsNavItems.map((item) => (
+            <NavLink key={item.href} item={item} isActive={isActive(item.href)} onClick={onClose} />
           ))}
         </div>
       </nav>
