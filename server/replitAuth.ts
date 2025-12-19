@@ -73,13 +73,13 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Skip OIDC configuration in test environment
-  if (process.env.NODE_ENV === 'test') {
+  // Skip OIDC configuration in test environment or when REPL_ID is not set
+  if (process.env.NODE_ENV === 'test' || !process.env.REPL_ID) {
     passport.serializeUser((user: Express.User, cb) => cb(null, user));
     passport.deserializeUser((user: Express.User, cb) => cb(null, user));
-    app.get("/api/login", (req, res) => res.json({ message: "Login endpoint (test mode)" }));
+    app.get("/api/login", (req, res) => res.json({ message: "Login endpoint (auth disabled)" }));
     app.get("/api/callback", (req, res) => res.redirect("/"));
-    app.get("/api/logout", (req, res) => res.json({ message: "Logout endpoint (test mode)" }));
+    app.get("/api/logout", (req, res) => res.json({ message: "Logout endpoint (auth disabled)" }));
     return;
   }
 
