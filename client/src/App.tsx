@@ -92,158 +92,64 @@ function DocumentVersionsWrapper() {
 
 function AuthenticatedRouter() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/profile" component={CompanyProfile} />
-      <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
-      <Route path="/workspace" component={WorkspaceWrapper} />
-      <Route path="/documents" component={Documents} />
-      <Route path="/gap-analysis" component={GapAnalysis} />
-      <Route path="/iso27001-framework" component={ISO27001Framework} />
-      <Route path="/soc2-framework" component={SOC2Framework} />
-      <Route path="/fedramp-framework" component={FedRAMPFramework} />
-      <Route path="/nist-framework" component={NISTFramework} />
-      <Route path="/audit-trail" component={AuditTrail} />
-      <Route path="/document-versions/:id" component={DocumentVersionsWrapper} />
-      <Route path="/user-profile" component={UserProfile} />
-      <Route path="/organizations" component={OrganizationSetup} />
-      <Route path="/storage" component={ObjectStorageManager} />
-      <Route path="/ai-specialization" component={IndustrySpecialization} />
-      <Route path="/export" component={ExportCenter} />
-      <Route path="/admin">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AdminSettings />
-        </Suspense>
-      </Route>
-      <Route path="/cloud-integrations">
-        <Suspense fallback={<div>Loading...</div>}>
-          <CloudIntegrations />
-        </Suspense>
-      </Route>
-      <Route path="/audit-trail/complete">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AuditTrailComplete />
-        </Suspense>
-      </Route>
-      <Route path="/profile/settings">
-        <Suspense fallback={<div>Loading...</div>}>
-          <UserProfileNew />
-        </Suspense>
-      </Route>
-      <Route path="/ai-assistant">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AIAssistant />
-        </Suspense>
-      </Route>
-      <Route path="/mcp-tools">
-        <Suspense fallback={<div>Loading...</div>}>
-          <MCPTools />
-        </Suspense>
-      </Route>
-      <Route path="/ai-doc-generator">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AIDocGenerator />
-        </Suspense>
-      </Route>
-      <Route path="/ai-hub">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AIHub />
-        </Suspense>
-      </Route>
-      <Route path="/evidence-ingestion">
-        <Suspense fallback={<div>Loading...</div>}>
-          <EvidenceIngestion />
-        </Suspense>
-      </Route>
-      <Route path="/control-approvals">
-        <Suspense fallback={<div>Loading...</div>}>
-          <ControlApprovals />
-        </Suspense>
-      </Route>
-      <Route path="/auditor-workspace">
-        <Suspense fallback={<div>Loading...</div>}>
-          <AuditorWorkspace />
-        </Suspense>
-      </Route>
-      <Route>
-        <Suspense fallback={<div>Loading...</div>}>
-          <NotFound />
-        </Suspense>
-      </Route>
-    </Switch>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/profile" component={CompanyProfile} />
+        <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
+        <Route path="/workspace" component={WorkspaceWrapper} />
+        <Route path="/documents" component={Documents} />
+        <Route path="/gap-analysis" component={GapAnalysis} />
+        <Route path="/iso27001-framework" component={ISO27001Framework} />
+        <Route path="/soc2-framework" component={SOC2Framework} />
+        <Route path="/fedramp-framework" component={FedRAMPFramework} />
+        <Route path="/nist-framework" component={NISTFramework} />
+        <Route path="/audit-trail" component={AuditTrail} />
+        <Route path="/document-versions/:id" component={DocumentVersionsWrapper} />
+        <Route path="/user-profile" component={UserProfile} />
+        <Route path="/organizations" component={OrganizationSetup} />
+        <Route path="/storage" component={ObjectStorageManager} />
+        <Route path="/ai-specialization" component={IndustrySpecialization} />
+        <Route path="/export" component={ExportCenter} />
+        <Route path="/admin" component={AdminSettings} />
+        <Route path="/cloud-integrations" component={CloudIntegrations} />
+        <Route path="/audit-trail/complete" component={AuditTrailComplete} />
+        <Route path="/profile/settings" component={UserProfileNew} />
+        <Route path="/ai-assistant" component={AIAssistant} />
+        <Route path="/mcp-tools" component={MCPTools} />
+        <Route path="/ai-doc-generator" component={AIDocGenerator} />
+        <Route path="/ai-hub" component={AIHub} />
+        <Route path="/evidence-ingestion" component={EvidenceIngestion} />
+        <Route path="/control-approvals" component={ControlApprovals} />
+        <Route path="/auditor-workspace" component={AuditorWorkspace} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
 function PublicRouter() {
   return (
-    <Switch>
-      <Route path="/">
-        <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
-          <Landing />
-        </Suspense>
-      </Route>
-      <Route path="/login">
-        <Suspense fallback={<div>Loading...</div>}>
-          <EnterpriseLogin />
-        </Suspense>
-      </Route>
-      <Route path="/enterprise-signup">
-        <Suspense fallback={<div>Loading...</div>}>
-          <EnterpriseSignup />
-        </Suspense>
-      </Route>
-      <Route path="/forgot-password">
-        <Suspense fallback={<div>Loading...</div>}>
-          <ForgotPassword />
-        </Suspense>
-      </Route>
-      <Route path="/reset-password">
-        <Suspense fallback={<div>Loading...</div>}>
-          <ResetPassword />
-        </Suspense>
-      </Route>
-      <Route path="/mfa-setup">
-        <Suspense fallback={<div>Loading...</div>}>
-          <MfaSetup />
-        </Suspense>
-      </Route>
-      <Route path="/about">
-        <Suspense fallback={<div>Loading...</div>}>
-          <About />
-        </Suspense>
-      </Route>
-      <Route path="/features">
-        <Suspense fallback={<div>Loading...</div>}>
-          <Features />
-        </Suspense>
-      </Route>
-      <Route path="/pricing">
-        <Suspense fallback={<div>Loading...</div>}>
-          <Pricing />
-        </Suspense>
-      </Route>
-      <Route path="/contact">
-        <Suspense fallback={<div>Loading...</div>}>
-          <Contact />
-        </Suspense>
-      </Route>
-      <Route path="/privacy">
-        <Suspense fallback={<div>Loading...</div>}>
-          <Privacy />
-        </Suspense>
-      </Route>
-      <Route path="/terms">
-        <Suspense fallback={<div>Loading...</div>}>
-          <Terms />
-        </Suspense>
-      </Route>
-      <Route>
-        <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+      <Switch>
+        <Route path="/" component={Landing} />
+        <Route path="/login" component={EnterpriseLogin} />
+        <Route path="/enterprise-signup" component={EnterpriseSignup} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
+        <Route path="/mfa-setup" component={MfaSetup} />
+        <Route path="/about" component={About} />
+        <Route path="/features" component={Features} />
+        <Route path="/pricing" component={Pricing} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/privacy" component={Privacy} />
+        <Route path="/terms" component={Terms} />
+        <Route>
           <NotFound fullScreen />
-        </Suspense>
-      </Route>
-    </Switch>
+        </Route>
+      </Switch>
+    </Suspense>
   );
 }
 
