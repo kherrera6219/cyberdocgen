@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect, useDeferredValue } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -263,6 +263,10 @@ function App() {
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [showLoading, setShowLoading] = useState(true);
+  
+  // Defer authentication state changes to prevent Suspense errors during synchronous updates
+  // This fixes the "A component suspended while responding to synchronous input" error
+  const deferredIsAuthenticated = useDeferredValue(isAuthenticated);
 
   // Timeout the loading state after 2 seconds to prevent infinite loading
   useEffect(() => {
@@ -292,7 +296,7 @@ function AppContent() {
   }
 
   // Not authenticated - show public routes without layout
-  if (!isAuthenticated) {
+  if (!deferredIsAuthenticated) {
     return <PublicRouter />;
   }
 
