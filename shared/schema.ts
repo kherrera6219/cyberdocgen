@@ -37,6 +37,26 @@ export const users = pgTable("users", {
   accountLockedUntil: timestamp("account_locked_until"),
   // Passkey support
   passkeyEnabled: boolean("passkey_enabled").default(false),
+  // Profile preferences
+  profilePreferences: jsonb("profile_preferences").$type<{
+    theme?: 'light' | 'dark' | 'system';
+    language?: string;
+    timezone?: string;
+    dateFormat?: string;
+    dashboardLayout?: 'compact' | 'standard' | 'expanded';
+    defaultFramework?: string;
+    aiAssistantEnabled?: boolean;
+  }>().default({}),
+  // Notification settings
+  notificationSettings: jsonb("notification_settings").$type<{
+    emailNotifications?: boolean;
+    documentUpdates?: boolean;
+    complianceAlerts?: boolean;
+    teamActivity?: boolean;
+    weeklyDigest?: boolean;
+    securityAlerts?: boolean;
+    marketingEmails?: boolean;
+  }>().default({}),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -1411,6 +1431,131 @@ export const insertContactMessageSchema = createInsertSchema(contactMessages).om
 
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;
+
+// Role definitions for RBAC
+export const roles = pgTable("roles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull().unique(), // admin, standard_user, auditor
+  displayName: varchar("display_name").notNull(),
+  description: text("description"),
+  permissions: jsonb("permissions").$type<{
+    documents?: { create?: boolean; read?: boolean; update?: boolean; delete?: boolean; approve?: boolean; };
+    users?: { invite?: boolean; manage?: boolean; view?: boolean; };
+    organization?: { settings?: boolean; billing?: boolean; integrations?: boolean; };
+    compliance?: { view?: boolean; audit?: boolean; manage?: boolean; };
+    ai?: { chat?: boolean; generate?: boolean; finetune?: boolean; };
+    admin?: { full?: boolean; };
+  }>().notNull().default({}),
+  isSystem: boolean("is_system").notNull().default(false), // System roles cannot be deleted
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertRoleSchema = createInsertSchema(roles).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type Role = typeof roles.$inferSelect;
+
+// Role assignments for users within organizations
+export const roleAssignments = pgTable("role_assignments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+  roleId: varchar("role_id").references(() => roles.id).notNull(),
+  assignedBy: varchar("assigned_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  unique().on(table.userId, table.organizationId, table.roleId),
+  index("idx_role_assignment_user").on(table.userId),
+  index("idx_role_assignment_org").on(table.organizationId),
+]);
+
+export const insertRoleAssignmentSchema = createInsertSchema(roleAssignments).omit({ id: true, createdAt: true });
+export type InsertRoleAssignment = z.infer<typeof insertRoleAssignmentSchema>;
+export type RoleAssignment = typeof roleAssignments.$inferSelect;
+
+// Projects for team collaboration
+export const projects = pgTable("projects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  status: varchar("status", { enum: ["active", "archived", "completed"] }).default("active"),
+  framework: varchar("framework"), // Primary compliance framework
+  targetCompletionDate: timestamp("target_completion_date"),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_project_org").on(table.organizationId),
+]);
+
+export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type Project = typeof projects.$inferSelect;
+
+// Project memberships
+export const projectMemberships = pgTable("project_memberships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "cascade" }).notNull(),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  role: varchar("role", { enum: ["owner", "editor", "viewer"] }).default("viewer"),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+}, (table) => [
+  unique().on(table.projectId, table.userId),
+  index("idx_project_member_project").on(table.projectId),
+  index("idx_project_member_user").on(table.userId),
+]);
+
+export const insertProjectMembershipSchema = createInsertSchema(projectMemberships).omit({ id: true, joinedAt: true });
+export type InsertProjectMembership = z.infer<typeof insertProjectMembershipSchema>;
+export type ProjectMembership = typeof projectMemberships.$inferSelect;
+
+// AI Chat Sessions for persistent conversation history
+export const aiSessions = pgTable("ai_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "set null" }),
+  title: varchar("title").notNull().default("New Conversation"),
+  sessionType: varchar("session_type", { enum: ["chat", "document_generation", "analysis", "gap_assessment"] }).default("chat"),
+  context: jsonb("context").$type<{
+    framework?: string;
+    documentId?: string;
+    companyProfileId?: string;
+  }>(),
+  isActive: boolean("is_active").default(true),
+  lastMessageAt: timestamp("last_message_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_ai_session_user").on(table.userId),
+  index("idx_ai_session_org").on(table.organizationId),
+]);
+
+export const insertAiSessionSchema = createInsertSchema(aiSessions).omit({ id: true, createdAt: true });
+export type InsertAiSession = z.infer<typeof insertAiSessionSchema>;
+export type AiSession = typeof aiSessions.$inferSelect;
+
+// AI Chat Messages within sessions
+export const aiMessages = pgTable("ai_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => aiSessions.id, { onDelete: "cascade" }).notNull(),
+  role: varchar("role", { enum: ["user", "assistant", "system"] }).notNull(),
+  content: text("content").notNull(),
+  metadata: jsonb("metadata").$type<{
+    model?: string;
+    tokensUsed?: number;
+    toolCalls?: { name: string; input: any; output: any; }[];
+    citations?: { source: string; reference: string; }[];
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_ai_message_session").on(table.sessionId),
+  index("idx_ai_message_created").on(table.createdAt),
+]);
+
+export const insertAiMessageSchema = createInsertSchema(aiMessages).omit({ id: true, createdAt: true });
+export type InsertAiMessage = z.infer<typeof insertAiMessageSchema>;
+export type AiMessage = typeof aiMessages.$inferSelect;
 
 // Relations for Phase 3 tables
 export const dataResidencyPoliciesRelations = relations(dataResidencyPolicies, ({ one }) => ({

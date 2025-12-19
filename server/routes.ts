@@ -28,6 +28,10 @@ import { registerApprovalsRoutes } from "./routes/approvals";
 import { registerEvidenceRoutes } from "./routes/evidence";
 import { registerControlsRoutes } from "./routes/controls";
 import { registerAuditorRoutes } from "./routes/auditor";
+import userProfileRoutes from "./routes/userProfile";
+import rolesRoutes from "./routes/roles";
+import projectsRoutes from "./routes/projects";
+import aiSessionsRoutes from "./routes/aiSessions";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
@@ -526,6 +530,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin Routes
   const { default: adminRoutes } = await import('./routes/admin');
   app.use('/api/admin', adminRoutes);
+
+  // User Profile Routes
+  app.use('/api/profile', userProfileRoutes);
+
+  // Roles and Permissions Routes
+  app.use('/api/roles', rolesRoutes);
+
+  // Projects Routes
+  app.use('/api/projects', projectsRoutes);
+
+  // AI Sessions Routes
+  app.use('/api/ai-sessions', aiSessionsRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

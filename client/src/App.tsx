@@ -47,6 +47,7 @@ const MfaSetup = lazy(() => import("@/pages/mfa-setup"));
 // Admin and settings
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const UserProfileNew = lazy(() => import("./pages/user-profile-new"));
+const ProfileSettings = lazy(() => import("./pages/profile-settings"));
 
 // AI features
 const AIAssistant = lazy(() => import("@/pages/ai-assistant"));
@@ -115,7 +116,7 @@ function AuthenticatedRouter() {
         <Route path="/admin" component={AdminSettings} />
         <Route path="/cloud-integrations" component={CloudIntegrations} />
         <Route path="/audit-trail/complete" component={AuditTrailComplete} />
-        <Route path="/profile/settings" component={UserProfileNew} />
+        <Route path="/profile/settings" component={ProfileSettings} />
         <Route path="/ai-assistant" component={AIAssistant} />
         <Route path="/mcp-tools" component={MCPTools} />
         <Route path="/ai-doc-generator" component={AIDocGenerator} />
