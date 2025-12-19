@@ -51,7 +51,7 @@ function Header() {
             <TemporaryLoginDialog 
               trigger={
                 <Button data-testid="header-login-button">
-                  Quick Login
+                  Beta Login
                 </Button>
               }
             />
@@ -83,7 +83,7 @@ function Header() {
               </Link>
               <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
                 <TemporaryLoginDialog 
-                  trigger={<Button className="w-full">Quick Login</Button>}
+                  trigger={<Button className="w-full">Beta Login</Button>}
                 />
                 <Link href="/login">
                   <Button variant="outline" className="w-full">Enterprise Login</Button>
