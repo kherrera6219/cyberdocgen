@@ -439,7 +439,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId
       );
 
-      res.json(user);
+      // Include isTemporary flag for temp sessions
+      const isTemporary = req.session?.isTemporary === true || userId.startsWith('temp-');
+      res.json({
+        ...user,
+        isTemporary,
+        displayName: isTemporary ? (req.session?.tempUserName || user.firstName) : (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email),
+      });
     } catch (error: any) {
       logger.error("Error fetching user", { error: error.message, userId: req.user?.claims?.sub || req.user?.id || req.session?.userId }, req);
       res.status(500).json({ message: "Failed to fetch user" });
