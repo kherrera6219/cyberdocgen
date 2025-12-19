@@ -5,6 +5,7 @@ import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
+import { getSession } from "./replitAuth";
 
 declare global {
   namespace Express {
@@ -91,11 +92,11 @@ app.use(securityHeaders);
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
-// CSRF token endpoint - returns session-bound token
-// Note: This must come after session middleware is initialized in registerRoutes
-// For now, provide a temporary endpoint that will be overridden after auth setup
+// Session middleware MUST be initialized BEFORE CSRF protection
+// CSRF requires session to store and validate tokens
+app.use(getSession());
 
-// CSRF protection middleware
+// CSRF protection middleware - now has access to session
 app.use(csrfProtection);
 
 // Security and performance monitoring

@@ -15,6 +15,8 @@ import { metricsCollector } from '../monitoring/metrics';
 import { generationLimiter } from '../middleware/security';
 import { frameworkTemplates } from '../services/openai';
 import { validateBody } from '../middleware/routeValidation';
+import { aiGuardrailsService } from '../services/aiGuardrailsService';
+import crypto from 'crypto';
 import {
   analyzeQualitySchema,
   generateInsightsSchema,
@@ -47,8 +49,33 @@ export function registerAIRoutes(router: Router) {
   router.post("/analyze-quality", isAuthenticated, validateBody(analyzeQualitySchema), async (req: any, res) => {
     try {
       const { content, framework } = req.body;
+      const userId = getUserId(req);
+      const requestId = crypto.randomUUID();
 
-      const analysis = await aiOrchestrator.analyzeQuality(content, framework);
+      // Run guardrails check on user input
+      const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
+        userId: userId || undefined,
+        requestId,
+        modelProvider: 'openai',
+        modelName: 'gpt-4o-mini',
+        ipAddress: req.ip
+      });
+
+      if (!guardrailResult.allowed) {
+        logger.warn("AI request blocked by guardrails", { 
+          userId, 
+          action: guardrailResult.action,
+          severity: guardrailResult.severity 
+        });
+        return res.status(403).json({ 
+          message: "Request blocked for security reasons",
+          action: guardrailResult.action
+        });
+      }
+
+      // Use sanitized content
+      const sanitizedContent = guardrailResult.sanitizedPrompt || content;
+      const analysis = await aiOrchestrator.analyzeQuality(sanitizedContent, framework);
       metricsCollector.trackAIOperation('analysis', true);
       res.json(analysis);
     } catch (error: unknown) {
@@ -229,8 +256,33 @@ export function registerAIRoutes(router: Router) {
   router.post("/analyze-document", isAuthenticated, validateBody(analyzeDocumentSchema), async (req: any, res) => {
     try {
       const { content, filename, framework } = req.body;
+      const userId = getUserId(req);
+      const requestId = crypto.randomUUID();
 
-      const analysis = await documentAnalysisService.analyzeDocument(content, filename, framework);
+      // Run guardrails check on document content
+      const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
+        userId: userId || undefined,
+        requestId,
+        modelProvider: 'openai',
+        modelName: 'gpt-4o-mini',
+        ipAddress: req.ip
+      });
+
+      if (!guardrailResult.allowed) {
+        logger.warn("Document analysis blocked by guardrails", { 
+          userId, 
+          action: guardrailResult.action,
+          severity: guardrailResult.severity 
+        });
+        return res.status(403).json({ 
+          message: "Document content blocked for security reasons",
+          action: guardrailResult.action
+        });
+      }
+
+      // Use sanitized content
+      const sanitizedContent = guardrailResult.sanitizedPrompt || content;
+      const analysis = await documentAnalysisService.analyzeDocument(sanitizedContent, filename, framework);
       
       await auditService.logAction({
         action: "analyze",
@@ -384,9 +436,31 @@ export function registerAIRoutes(router: Router) {
   router.post("/quality-score", isAuthenticated, validateBody(qualityScoreSchema), async (req: any, res) => {
     try {
       const { content, title, framework, documentType } = req.body;
+      const userId = getUserId(req);
+      const requestId = crypto.randomUUID();
+
+      // Run guardrails check on document content
+      const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
+        userId: userId || undefined,
+        requestId,
+        modelProvider: 'openai',
+        modelName: 'gpt-4o-mini',
+        ipAddress: req.ip
+      });
+
+      if (!guardrailResult.allowed) {
+        logger.warn("Quality scoring blocked by guardrails", { 
+          userId, 
+          action: guardrailResult.action,
+          severity: guardrailResult.severity 
+        });
+        return res.status(403).json({ message: "Content blocked for security reasons" });
+      }
+
+      const sanitizedContent = guardrailResult.sanitizedPrompt || content;
 
       const qualityScore = await qualityScoringService.analyzeDocumentQuality(
-        content,
+        sanitizedContent,
         title,
         framework,
         documentType
@@ -413,9 +487,31 @@ export function registerAIRoutes(router: Router) {
   router.post("/framework-alignment", isAuthenticated, validateBody(frameworkAlignmentSchema), async (req: any, res) => {
     try {
       const { content, framework, documentType } = req.body;
+      const userId = getUserId(req);
+      const requestId = crypto.randomUUID();
+
+      // Run guardrails check on document content
+      const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
+        userId: userId || undefined,
+        requestId,
+        modelProvider: 'openai',
+        modelName: 'gpt-4o-mini',
+        ipAddress: req.ip
+      });
+
+      if (!guardrailResult.allowed) {
+        logger.warn("Framework alignment blocked by guardrails", { 
+          userId, 
+          action: guardrailResult.action,
+          severity: guardrailResult.severity 
+        });
+        return res.status(403).json({ message: "Content blocked for security reasons" });
+      }
+
+      const sanitizedContent = guardrailResult.sanitizedPrompt || content;
 
       const alignment = await qualityScoringService.checkFrameworkAlignment(
-        content,
+        sanitizedContent,
         framework,
         documentType
       );

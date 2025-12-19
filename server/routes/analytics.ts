@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
+import crypto from 'crypto';
 import { logger } from '../utils/logger';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getUserId } from '../replitAuth';
 import { validateBody } from '../middleware/routeValidation';
+import { aiGuardrailsService } from '../services/aiGuardrailsService';
 import {
   riskAssessmentRequestSchema,
   complianceAnalysisRequestSchema,
@@ -14,6 +16,34 @@ export function registerAnalyticsRoutes(router: Router) {
   router.post('/risk-assessment', isAuthenticated, validateBody(riskAssessmentRequestSchema), async (req: any, res) => {
     try {
       const { companyProfile } = req.body;
+      const userId = getUserId(req);
+      const requestId = crypto.randomUUID();
+
+      // Build prompt content for guardrails check
+      const promptContent = `Company: ${companyProfile.name}, Industry: ${companyProfile.industry}, Assets: ${companyProfile.assets?.join(', ')}, Threats: ${companyProfile.threats?.join(', ')}`;
+
+      // Run guardrails check
+      const guardrailResult = await aiGuardrailsService.checkGuardrails(promptContent, null, {
+        userId: userId || undefined,
+        requestId,
+        modelProvider: 'anthropic',
+        modelName: 'claude-sonnet-4-20250514',
+        ipAddress: req.ip
+      });
+
+      if (!guardrailResult.allowed) {
+        logger.warn("Risk assessment blocked by guardrails", { 
+          userId, 
+          action: guardrailResult.action,
+          severity: guardrailResult.severity 
+        });
+        return res.status(403).json({ 
+          success: false,
+          error: "Content blocked for security reasons"
+        });
+      }
+
+      const sanitizedContent = guardrailResult.sanitizedPrompt || promptContent;
       
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       
@@ -24,7 +54,7 @@ export function registerAnalyticsRoutes(router: Router) {
         max_tokens: 2000,
         messages: [{
           role: "user", 
-          content: `Analyze cybersecurity risks for: Company: ${companyProfile.name}, Industry: ${companyProfile.industry}, Assets: ${companyProfile.assets?.join(', ')}, Threats: ${companyProfile.threats?.join(', ')}`
+          content: `Analyze cybersecurity risks for: ${sanitizedContent}`
         }],
       });
 
@@ -49,14 +79,39 @@ export function registerAnalyticsRoutes(router: Router) {
   router.post('/compliance-analysis', isAuthenticated, validateBody(complianceAnalysisRequestSchema), async (req: any, res) => {
     try {
       const { framework, currentControls, requirements } = req.body;
+      const userId = getUserId(req);
+      const requestId = crypto.randomUUID();
       
       const prompt = `Analyze compliance gaps for ${framework}. Current controls: ${currentControls.join(', ')}. Requirements: ${requirements.join(', ')}. Provide detailed gap analysis and recommendations.`;
+      
+      // Run guardrails check
+      const guardrailResult = await aiGuardrailsService.checkGuardrails(prompt, null, {
+        userId: userId || undefined,
+        requestId,
+        modelProvider: 'gemini',
+        modelName: 'gemini-2.5-pro',
+        ipAddress: req.ip
+      });
+
+      if (!guardrailResult.allowed) {
+        logger.warn("Compliance analysis blocked by guardrails", { 
+          userId, 
+          action: guardrailResult.action,
+          severity: guardrailResult.severity 
+        });
+        return res.status(403).json({ 
+          success: false,
+          error: "Content blocked for security reasons"
+        });
+      }
+
+      const sanitizedPrompt = guardrailResult.sanitizedPrompt || prompt;
       
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          contents: [{ parts: [{ text: sanitizedPrompt }] }],
           generationConfig: { maxOutputTokens: 2000 }
         })
       });
@@ -79,7 +134,7 @@ export function registerAnalyticsRoutes(router: Router) {
   });
 
   // Compliance gap analysis endpoint
-  router.post('/analyze-compliance-gaps', async (req: any, res) => {
+  router.post('/analyze-compliance-gaps', isAuthenticated, async (req: any, res) => {
     try {
       const { framework, currentControls, requirements } = req.body;
 
@@ -141,10 +196,36 @@ export function registerAnalyticsRoutes(router: Router) {
     }
   });
 
-  // Document quality analysis is public - no auth required
-  router.post('/analyze-document-quality', validateBody(documentQualityAnalysisSchema), async (req: any, res) => {
+  // Document quality analysis requires authentication to prevent abuse of AI credits
+  router.post('/analyze-document-quality', isAuthenticated, validateBody(documentQualityAnalysisSchema), async (req: any, res) => {
     try {
       const { content, framework, documentType } = req.body;
+      const userId = getUserId(req);
+      const requestId = crypto.randomUUID();
+
+      // Run guardrails check on document content
+      const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
+        userId: userId || undefined,
+        requestId,
+        modelProvider: 'anthropic',
+        modelName: 'claude-sonnet-4-20250514',
+        ipAddress: req.ip
+      });
+
+      if (!guardrailResult.allowed) {
+        logger.warn("Document quality analysis blocked by guardrails", { 
+          userId, 
+          action: guardrailResult.action,
+          severity: guardrailResult.severity 
+        });
+        return res.status(403).json({ 
+          success: false,
+          error: "Content blocked for security reasons"
+        });
+      }
+
+      // Use sanitized content
+      const sanitizedContent = guardrailResult.sanitizedPrompt || content;
       
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       
@@ -153,7 +234,7 @@ export function registerAnalyticsRoutes(router: Router) {
         max_tokens: 1500,
         messages: [{
           role: "user",
-          content: `Analyze the quality and completeness of this ${documentType} for ${framework} compliance. Score it 1-100 and provide specific improvement suggestions.\n\nDocument:\n${content.substring(0, 4000)}`
+          content: `Analyze the quality and completeness of this ${documentType} for ${framework} compliance. Score it 1-100 and provide specific improvement suggestions.\n\nDocument:\n${sanitizedContent.substring(0, 4000)}`
         }],
       });
 
@@ -177,6 +258,32 @@ export function registerAnalyticsRoutes(router: Router) {
   router.post('/compliance-chat', isAuthenticated, validateBody(complianceChatRequestSchema), async (req: any, res) => {
     try {
       const { message, context, framework } = req.body;
+      const userId = getUserId(req);
+      const requestId = crypto.randomUUID();
+
+      // Run guardrails check on user message
+      const guardrailResult = await aiGuardrailsService.checkGuardrails(message, null, {
+        userId: userId || undefined,
+        requestId,
+        modelProvider: 'anthropic',
+        modelName: 'claude-sonnet-4-20250514',
+        ipAddress: req.ip
+      });
+
+      if (!guardrailResult.allowed) {
+        logger.warn("Compliance chat blocked by guardrails", { 
+          userId, 
+          action: guardrailResult.action,
+          severity: guardrailResult.severity 
+        });
+        return res.status(403).json({ 
+          success: false,
+          error: "Message blocked for security reasons"
+        });
+      }
+
+      // Use sanitized message
+      const sanitizedMessage = guardrailResult.sanitizedPrompt || message;
       
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       
@@ -188,7 +295,7 @@ export function registerAnalyticsRoutes(router: Router) {
         system: systemPrompt,
         messages: [{
           role: "user",
-          content: message
+          content: sanitizedMessage
         }],
       });
 

@@ -36,7 +36,7 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.post("/", requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.post("/", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
     try {
       const validatedData = insertCompanyProfileSchema.parse(req.body);
       const profile = await storage.createCompanyProfile(validatedData);
@@ -49,7 +49,7 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.put("/:id", requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.put("/:id", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
     try {
       const validatedData = insertCompanyProfileSchema.partial().parse(req.body);
       const profile = await storage.updateCompanyProfile(req.params.id, validatedData);
@@ -82,7 +82,7 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.post("/:id/extract-from-document", requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.post("/:id/extract-from-document", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
     try {
       const { documentContent, documentType, filename } = req.body;
       
@@ -103,7 +103,7 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.post("/:id/extract-from-website", requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.post("/:id/extract-from-website", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
     try {
       const { url } = req.body;
       
@@ -119,7 +119,7 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.post("/:id/research", requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.post("/:id/research", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
     try {
       const profile = await storage.getCompanyProfile(req.params.id);
       if (!profile) {
