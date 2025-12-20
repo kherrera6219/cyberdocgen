@@ -84,3 +84,58 @@ Preferred communication style: Simple, everyday language.
 - `OPENAI_API_KEY` - OpenAI API access (GPT-5.1)
 - `ANTHROPIC_API_KEY` - Anthropic API access (Claude Opus 4.5)
 - `GOOGLE_API_KEY` - Google AI API access (Gemini 3.0 Pro)
+
+## Modernization Progress (7-Phase Plan)
+
+### Phase 1: Navigation & Consistency ✅ Complete
+- PublicHeader component standardized across all public pages
+- Landing page refactored with consistent navigation
+- CTA buttons standardized with proper routing
+
+### Phase 2: Dashboard & Metrics ✅ Complete
+- Dashboard API endpoints created at `/api/dashboard/*`
+- Multi-tenant data isolation implemented (scoped by organizationId)
+- Real-time metrics endpoints: `/api/dashboard/stats`, `/api/dashboard/recent-activity`, `/api/dashboard/compliance-overview`
+- Security fix: Documents filtered via companyProfiles.organizationId relationship using Drizzle's `inArray`
+
+### Phase 3: Framework Pages ✅ Complete
+- Framework control status CRUD endpoints at `/api/framework-control-statuses`
+- Compatibility routes at `/api/frameworks/:framework/control-statuses` for existing frontend
+- Persistent control tracking with database-backed storage
+- Control status updates include notes and last update timestamps
+
+### Phase 4: Security, Supply Chain & Reliability ✅ Complete
+- **Session Risk Scoring** (`server/services/sessionRiskScoringService.ts` - 457 lines)
+  - Contextual MFA with weighted risk factors
+  - Location, device, time, IP, and behavior analysis
+  - Risk levels: low, medium, high, critical with adaptive authentication
+  
+- **Key Rotation** (`server/services/keyRotationService.ts` - 523 lines)
+  - Automated rotation with per-key-type policies
+  - Support for encryption, signing, API, and session keys
+  - Comprehensive audit logging for all rotations
+  
+- **Chaos Testing** (`server/services/chaosTestingService.ts` - 493 lines)
+  - Database and AI service resilience testing
+  - Latency injection, failure simulation, timeout testing
+  - Metrics collection: success rate, latency, error rate
+  
+- **SBOM Generator** (`scripts/generate-sbom.ts` - 420 lines)
+  - CycloneDX and SPDX format output
+  - Vulnerability scanning integration
+  - SHA256 hash verification for integrity
+
+### Phase 5: Compliance Workflows 🔄 Pending
+- Document workflow automation
+- Approval chains and notifications
+- Compliance deadline tracking
+
+### Phase 6: Admin & Settings 🔄 Pending
+- User management interface
+- Organization settings
+- Audit log viewer
+
+### Phase 7: Industry Parity 🔄 Pending
+- Advanced reporting
+- Export capabilities
+- API documentation
