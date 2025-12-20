@@ -125,10 +125,27 @@ Preferred communication style: Simple, everyday language.
   - Vulnerability scanning integration
   - SHA256 hash verification for integrity
 
-### Phase 5: Compliance Workflows 🔄 Pending
-- Document workflow automation
-- Approval chains and notifications
-- Compliance deadline tracking
+### Phase 5: Compliance Workflows ✅ Complete
+- **Document Workflow Service** (`server/services/documentWorkflowService.ts` - 480 lines)
+  - Automated document lifecycle management (draft → review → approved → published → archived)
+  - Configurable workflow transitions with approval gates
+  - Bulk document transitions and workflow status tracking
+  
+- **Approval Chains** (Pre-existing via `server/routes/approvals.ts`)
+  - Document approval request creation and processing
+  - Approval/rejection with comments and audit logging
+  - Notification integration for approvers
+  
+- **Notifications** (Pre-existing via `server/routes/notifications.ts`)
+  - Real-time notification system with read/unread tracking
+  - Workflow event notifications
+  - Support for document, compliance, security, and team notifications
+  
+- **Compliance Deadline Tracking** (`server/services/complianceDeadlineService.ts` - 486 lines)
+  - Deadline creation with framework and control association
+  - Priority levels: low, normal, high, critical
+  - Automatic overdue detection and reminder processing
+  - Deadline statistics and grouping by framework
 
 ### Phase 6: Admin & Settings 🔄 Pending
 - User management interface
