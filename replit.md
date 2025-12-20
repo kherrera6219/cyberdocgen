@@ -197,3 +197,29 @@ Preferred communication style: Simple, everyday language.
   - Comprehensive endpoint documentation
   - Rate limiting documentation
   - Error response formats
+
+## Deployment
+
+### Deployment Configuration
+- **Target**: Autoscale (stateless, runs on demand)
+- **Build**: `npm run build` - Builds Vite frontend and bundles server with esbuild
+- **Run**: `npm run start` - Runs production server from `dist/index.js`
+
+### Health Check Endpoints
+- `/health` - Comprehensive health check with database, memory, and external service status
+- `/ready` - Readiness probe for load balancers (checks database connectivity)
+- `/live` - Liveness probe (always returns 200 if server is running)
+
+### Production Features
+- **Graceful Shutdown**: SIGTERM/SIGINT handlers with 30-second timeout
+- **Code Splitting**: Manual chunks for React, UI components, forms, charts, icons, and utilities
+- **Compression**: Gzip compression enabled in production (level 6, threshold 1024 bytes)
+- **Static File Serving**: Optimized serving from `dist/public` directory
+- **Session Storage**: PostgreSQL-backed sessions for distributed deployments
+
+### Environment Variables (Production)
+- `NODE_ENV=production` - Enables production optimizations
+- `DATABASE_URL` - PostgreSQL connection string (required)
+- `SESSION_SECRET` - Session encryption key (minimum 32 characters, required)
+- `ENCRYPTION_KEY` - 32-byte hex key for data encryption (required)
+- All AI API keys (OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY)
