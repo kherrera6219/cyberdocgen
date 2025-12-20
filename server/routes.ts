@@ -11,6 +11,7 @@ import { aiOrchestrator } from "./services/aiOrchestrator";
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import { generalLimiter, authLimiter, authStrictLimiter, aiLimiter, apiLimiter } from './middleware/rateLimiter';
+import { extractOrganizationContext } from './middleware/multiTenant';
 
 import { insertContactMessageSchema } from "@shared/schema";
 import { registerOrganizationsRoutes } from "./routes/organizations";
@@ -188,6 +189,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware - IMPORTANT: This must come before any authenticated routes
   await setupAuth(app);
+
+  // Multi-tenant context extraction - extracts organization context for authenticated users
+  app.use('/api', extractOrganizationContext);
 
   // CSRF token endpoint - session-bound, must come after auth setup
   app.get('/api/csrf-token', (req: any, res) => {

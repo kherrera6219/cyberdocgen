@@ -32,6 +32,10 @@ Preferred communication style: Simple, everyday language.
 - **Migrations**: Managed via Drizzle Kit (`npm run db:push`)
 
 ### Security Implementation
+- **Multi-Tenant Isolation**: Organization-scoped data access via `extractOrganizationContext` middleware and `requireOrganization` enforcement on all API routes
+  - Document routes: All CRUD, version, history, approval operations validate organization ownership
+  - Cross-tenant access prevention: Returns 404 (not 403) to avoid information disclosure, with warning logs
+  - Ownership helpers: `getDocumentWithOrgCheck`, `getCompanyProfileWithOrgCheck` validate resource-to-org relationships
 - **Encryption**: AES-256-GCM for data at rest with field-level encryption support
 - **MFA**: TOTP and SMS-based multi-factor authentication
 - **Rate Limiting**: Tiered rate limiting for general requests, auth, and AI generation
@@ -43,6 +47,7 @@ Preferred communication style: Simple, everyday language.
 - **Cache Invalidation**: Automatic cache clearing on document and company profile mutations
 - **Graceful Shutdown**: SIGTERM/SIGINT handlers with 30-second timeout for clean shutdown
 - **Environment Validation**: Zod-based validation of all required environment variables at startup
+- **Session Security**: PostgreSQL-backed sessions via connect-pg-simple with httpOnly, secure (prod), sameSite cookies
 
 ### AI Integration
 - **Multi-Model Support**: OpenAI GPT-5.1, Anthropic Claude Opus 4.5, and Google Gemini 3.0 Pro with automatic fallback
