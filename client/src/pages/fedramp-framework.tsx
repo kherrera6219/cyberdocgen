@@ -6,6 +6,8 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Shield,
   Search,
@@ -37,14 +39,33 @@ import {
   ShoppingCart,
   Wifi,
   Bug,
-  Link
+  Link,
+  Unlink,
+  Paperclip,
+  Plus
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
 import { Table as TableIcon } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { CompanyProfile } from "@shared/schema";
+
+// Evidence file interface for type safety (matches ISO 27001 pattern)
+interface EvidenceFile {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  mimeType: string;
+  downloadUrl: string | null;
+  createdAt: string;
+  metadata: {
+    tags?: string[];
+    description?: string;
+  } | null;
+}
 
 type ControlStatus = "not_started" | "in_progress" | "implemented" | "not_applicable";
 type EvidenceStatus = "none" | "partial" | "complete";
@@ -551,9 +572,71 @@ export default function FedRAMPFramework() {
   const [expandedFamilies, setExpandedFamilies] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("controls");
   const [selectedCompanyProfileId, setSelectedCompanyProfileId] = useState<string | null>(null);
+  const [evidenceDialogOpen, setEvidenceDialogOpen] = useState(false);
+  const [selectedControlForEvidence, setSelectedControlForEvidence] = useState<Control | null>(null);
 
   const { data: companyProfiles } = useQuery<CompanyProfile[]>({
     queryKey: ['/api/company-profiles'],
+  });
+
+  // Fetch all evidence for the FedRAMP framework
+  const { data: evidenceData } = useQuery<{ evidence: EvidenceFile[]; count: number }>({
+    queryKey: ['/api/evidence/fedramp'],
+    queryFn: async () => {
+      const response = await fetch('/api/evidence?framework=fedramp', {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch evidence');
+      return response.json();
+    },
+  });
+
+  // Get evidence files linked to a specific control
+  const getControlEvidence = (controlId: string): EvidenceFile[] => {
+    if (!evidenceData?.evidence) return [];
+    return evidenceData.evidence.filter(file => 
+      file.metadata?.tags?.includes(`control:${controlId}`)
+    );
+  };
+
+  // Get available evidence not yet linked to the selected control
+  const getAvailableEvidence = (): EvidenceFile[] => {
+    if (!evidenceData?.evidence || !selectedControlForEvidence) return [];
+    return evidenceData.evidence.filter(file => 
+      !file.metadata?.tags?.includes(`control:${selectedControlForEvidence.id}`)
+    );
+  };
+
+  // Mutation for linking evidence to controls
+  const linkEvidenceMutation = useMutation({
+    mutationFn: async ({ evidenceId, controlId, action }: { 
+      evidenceId: string; 
+      controlId: string; 
+      action: 'add' | 'remove';
+    }) => {
+      return await apiRequest(`/api/evidence/${evidenceId}/controls`, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          controlIds: [controlId], 
+          framework: 'fedramp',
+          action 
+        }),
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/evidence/fedramp'] });
+      toast({
+        title: variables.action === 'add' ? "Evidence Linked" : "Evidence Unlinked",
+        description: `Evidence has been ${variables.action === 'add' ? 'linked to' : 'removed from'} the control`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update evidence",
+        description: error.message || "Could not update evidence linking",
+        variant: "destructive",
+      });
+    }
   });
 
   const allControls = useMemo(() => {
@@ -1006,6 +1089,24 @@ export default function FedRAMPFramework() {
                               <span className="hidden sm:inline">Generate Doc</span>
                               <span className="sm:hidden">Generate</span>
                             </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedControlForEvidence(control);
+                                setEvidenceDialogOpen(true);
+                              }}
+                              data-testid={`button-evidence-${control.id}`}
+                            >
+                              <Paperclip className="h-4 w-4 mr-1" />
+                              Evidence
+                              {getControlEvidence(control.id).length > 0 && (
+                                <Badge variant="secondary" className="ml-1 text-xs">
+                                  {getControlEvidence(control.id).length}
+                                </Badge>
+                              )}
+                            </Button>
                           </div>
                         </div>
 
@@ -1051,6 +1152,123 @@ export default function FedRAMPFramework() {
       )}
         </TabsContent>
       </Tabs>
+
+      {/* Evidence Linking Dialog */}
+      <Dialog open={evidenceDialogOpen} onOpenChange={setEvidenceDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Paperclip className="h-5 w-5" />
+              Manage Evidence for {selectedControlForEvidence?.id}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedControlForEvidence?.name} - Link or unlink evidence files to this control
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Linked Evidence */}
+            <div>
+              <h4 className="text-sm font-medium mb-3">Linked Evidence</h4>
+              {selectedControlForEvidence && getControlEvidence(selectedControlForEvidence.id).length > 0 ? (
+                <ScrollArea className="h-[150px]">
+                  <div className="space-y-2">
+                    {getControlEvidence(selectedControlForEvidence.id).map(evidence => (
+                      <div 
+                        key={evidence.id}
+                        className="flex items-center justify-between p-3 border rounded-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">{evidence.fileName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(evidence.fileSize / 1024).toFixed(1)} KB
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (selectedControlForEvidence) {
+                              linkEvidenceMutation.mutate({
+                                evidenceId: evidence.id,
+                                controlId: selectedControlForEvidence.id,
+                                action: 'remove'
+                              });
+                            }
+                          }}
+                          disabled={linkEvidenceMutation.isPending}
+                          data-testid={`button-unlink-${evidence.id}`}
+                        >
+                          <Unlink className="h-4 w-4 mr-1" />
+                          Unlink
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="p-4 border rounded-md text-center text-muted-foreground">
+                  <Paperclip className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No evidence linked to this control</p>
+                </div>
+              )}
+            </div>
+
+            {/* Available Evidence to Link */}
+            <div>
+              <h4 className="text-sm font-medium mb-3">Available Evidence to Link</h4>
+              {getAvailableEvidence().length > 0 ? (
+                <ScrollArea className="h-[150px]">
+                  <div className="space-y-2">
+                    {getAvailableEvidence().map(evidence => (
+                      <div 
+                        key={evidence.id}
+                        className="flex items-center justify-between p-3 border rounded-md hover-elevate cursor-pointer"
+                        onClick={() => {
+                          if (selectedControlForEvidence) {
+                            linkEvidenceMutation.mutate({
+                              evidenceId: evidence.id,
+                              controlId: selectedControlForEvidence.id,
+                              action: 'add'
+                            });
+                          }
+                        }}
+                        data-testid={`button-link-${evidence.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">{evidence.fileName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(evidence.fileSize / 1024).toFixed(1)} KB
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={linkEvidenceMutation.isPending}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Link
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="p-4 border rounded-md text-center text-muted-foreground">
+                  <FileCheck className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No additional evidence available to link</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
