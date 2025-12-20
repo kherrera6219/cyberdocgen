@@ -16,6 +16,7 @@ import { generationLimiter } from '../middleware/security';
 import { frameworkTemplates } from '../services/openai';
 import { validateBody } from '../middleware/routeValidation';
 import { aiGuardrailsService } from '../services/aiGuardrailsService';
+import { validateAIRequestSize, aiLimiter } from '../middleware/rateLimiter';
 import crypto from 'crypto';
 import {
   analyzeQualitySchema,
@@ -46,7 +47,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/analyze-quality", isAuthenticated, validateBody(analyzeQualitySchema), async (req: any, res) => {
+  router.post("/analyze-quality", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(analyzeQualitySchema), async (req: any, res) => {
     try {
       const { content, framework } = req.body;
       const userId = getUserId(req);
@@ -85,7 +86,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/generate-insights", isAuthenticated, validateBody(generateInsightsSchema), async (req: any, res) => {
+  router.post("/generate-insights", isAuthenticated, aiLimiter, validateBody(generateInsightsSchema), async (req: any, res) => {
     try {
       const { companyProfileId, framework } = req.body;
       const userId = getRequiredUserId(req);
@@ -253,7 +254,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/analyze-document", isAuthenticated, validateBody(analyzeDocumentSchema), async (req: any, res) => {
+  router.post("/analyze-document", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(analyzeDocumentSchema), async (req: any, res) => {
     try {
       const { content, filename, framework } = req.body;
       const userId = getUserId(req);
@@ -301,7 +302,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/extract-profile", isAuthenticated, validateBody(extractProfileSchema), async (req: any, res) => {
+  router.post("/extract-profile", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(extractProfileSchema), async (req: any, res) => {
     try {
       const { content } = req.body;
 
@@ -325,7 +326,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/chat", isAuthenticated, validateBody(chatMessageSchema), async (req: any, res) => {
+  router.post("/chat", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(chatMessageSchema), async (req: any, res) => {
     try {
       const { message, framework, sessionId } = req.body;
 
@@ -366,7 +367,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/risk-assessment", isAuthenticated, validateBody(riskAssessmentSchema), async (req: any, res) => {
+  router.post("/risk-assessment", isAuthenticated, aiLimiter, validateBody(riskAssessmentSchema), async (req: any, res) => {
     try {
       const { frameworks, includeDocuments } = req.body;
       const userId = getRequiredUserId(req);
@@ -406,7 +407,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/threat-analysis", isAuthenticated, validateBody(threatAnalysisSchema), async (req: any, res) => {
+  router.post("/threat-analysis", isAuthenticated, aiLimiter, validateBody(threatAnalysisSchema), async (req: any, res) => {
     try {
       const { industry, companySize, frameworks } = req.body;
 
@@ -433,7 +434,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/quality-score", isAuthenticated, validateBody(qualityScoreSchema), async (req: any, res) => {
+  router.post("/quality-score", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(qualityScoreSchema), async (req: any, res) => {
     try {
       const { content, title, framework, documentType } = req.body;
       const userId = getUserId(req);
@@ -484,7 +485,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/framework-alignment", isAuthenticated, validateBody(frameworkAlignmentSchema), async (req: any, res) => {
+  router.post("/framework-alignment", isAuthenticated, aiLimiter, validateBody(frameworkAlignmentSchema), async (req: any, res) => {
     try {
       const { content, framework, documentType } = req.body;
       const userId = getUserId(req);
@@ -584,7 +585,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/generate-optimized", isAuthenticated, validateBody(generateOptimizedSchema), async (req: any, res) => {
+  router.post("/generate-optimized", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(generateOptimizedSchema), async (req: any, res) => {
     try {
       const { configId, documentType, context } = req.body;
       const userId = getRequiredUserId(req);
@@ -1018,17 +1019,27 @@ export function registerAIRoutes(router: Router) {
         });
       }
 
-      // Get AI-generated documents count for this organization
-      const [aiDocsResult] = await db
-        .select({ count: count() })
-        .from(documents)
-        .where(sql`${documents.aiGenerated} = true AND ${documents.organizationId} = ${organizationId}`);
+      // Get AI-generated documents count for this organization (via companyProfiles)
+      const orgProfiles = await storage.getCompanyProfiles(organizationId);
+      const companyProfileIds = orgProfiles.map((p: { id: string }) => p.id);
+      
+      let aiDocsCount = 0;
+      let totalDocsCount = 0;
+      
+      if (companyProfileIds.length > 0) {
+        const [aiDocsResult] = await db
+          .select({ count: count() })
+          .from(documents)
+          .where(sql`${documents.aiGenerated} = true AND ${documents.companyProfileId} IN (${sql.raw(companyProfileIds.map((id: string) => `'${id}'`).join(','))})`);
+        aiDocsCount = Number(aiDocsResult?.count) || 0;
 
-      // Get total documents for this organization
-      const [totalDocsResult] = await db
-        .select({ count: count() })
-        .from(documents)
-        .where(eq(documents.organizationId, organizationId));
+        // Get total documents for this organization
+        const [totalDocsResult] = await db
+          .select({ count: count() })
+          .from(documents)
+          .where(sql`${documents.companyProfileId} IN (${sql.raw(companyProfileIds.map((id: string) => `'${id}'`).join(','))})`);
+        totalDocsCount = Number(totalDocsResult?.count) || 0;
+      }
 
       // Get framework control statuses for this organization
       const controlStatuses = await db.select().from(frameworkControlStatuses).where(eq(frameworkControlStatuses.organizationId, organizationId));
@@ -1151,8 +1162,8 @@ export function registerAIRoutes(router: Router) {
       res.json({
         success: true,
         stats: {
-          documentsGenerated: aiDocsResult.count,
-          totalDocuments: totalDocsResult.count,
+          documentsGenerated: aiDocsCount,
+          totalDocuments: totalDocsCount,
           gapsIdentified: notStartedControls.length + missingEvidenceControls.length,
           risksAssessed: risks.length,
           complianceScore,
@@ -1192,7 +1203,7 @@ export function registerAIRoutes(router: Router) {
    *       401:
    *         description: Unauthorized
    */
-  router.post("/generate", isAuthenticated, async (req: any, res) => {
+  router.post("/generate", isAuthenticated, aiLimiter, validateAIRequestSize, async (req: any, res) => {
     // Generic AI generation endpoint - redirects to more specific endpoints
     res.status(501).json({ message: 'Please use specific generation endpoints like /generate-compliance-docs' });
   });
@@ -1209,7 +1220,7 @@ export function registerAIRoutes(router: Router) {
    *       401:
    *         description: Unauthorized
    */
-  router.post("/analyze", isAuthenticated, async (req: any, res) => {
+  router.post("/analyze", isAuthenticated, aiLimiter, validateAIRequestSize, async (req: any, res) => {
     // Generic AI analysis endpoint - redirects to more specific endpoints
     res.status(501).json({ message: 'Please use specific analysis endpoints like /analyze-document or /analyze-quality' });
   });

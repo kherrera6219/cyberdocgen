@@ -348,61 +348,503 @@ This SoA is reviewed annually and updated when:
   }
 ];
 
-// SOC 2 Type 2 - Complete 25 Required Policies + Procedures
+// SOC 2 Type 2 - Complete Trust Services Criteria (AICPA 2017 with 2022 Points of Focus)
 export const SOC2Templates: DocumentTemplate[] = [
   {
     id: 'soc2-001',
-    title: 'Security Controls Framework',
-    description: 'Comprehensive security control implementation framework',
+    title: 'SOC 2 Trust Services Criteria Overview',
+    description: 'Comprehensive Trust Services Criteria framework (AICPA 2017 TSC with 2022 Revised Points of Focus)',
     framework: 'SOC2',
     category: 'framework',
     priority: 1,
     documentType: 'framework',
     required: true,
-    templateContent: `# SOC 2 Security Controls Framework
+    templateContent: `# SOC 2 Trust Services Criteria Framework
 
-## 1. Control Environment
-{{company_name}} has established a comprehensive control environment to ensure the security, availability, and confidentiality of customer data and systems.
+## 1. Introduction
+{{company_name}} has implemented controls aligned with the AICPA 2017 Trust Services Criteria (with 2022 Revised Points of Focus) to demonstrate the security, availability, processing integrity, confidentiality, and privacy of our systems.
 
-## 2. Trust Services Criteria
-This framework addresses the following Trust Services Criteria:
-- **Security (CC):** Protection against unauthorized access
-- **Availability (A):** System accessibility for operation and use
-- **Processing Integrity (PI):** System processing completeness and accuracy
-- **Confidentiality (C):** Information designated as confidential
-- **Privacy (P):** Personal information collection, use, retention, and disposal
+## 2. Trust Services Categories
 
-## 3. Control Activities
-### 3.1 Logical and Physical Access Controls
-- Multi-factor authentication for system access
-- Role-based access control implementation
-- Physical security controls for data centers
-- Regular access reviews and deprovisioning
+### 2.1 Security (Common Criteria) - MANDATORY
+The foundational criteria required for all SOC 2 audits, organized into 9 control areas:
 
-### 3.2 System Operations
-- Change management procedures
-- Data backup and recovery processes
-- System monitoring and incident response
-- Vendor management and due diligence
+| Area | Name | Description |
+|------|------|-------------|
+| CC1 | Control Environment | Governance, integrity, ethics, and organizational structure |
+| CC2 | Communication and Information | Internal/external communication and information quality |
+| CC3 | Risk Assessment | Risk identification, analysis, and fraud considerations |
+| CC4 | Monitoring Activities | Ongoing evaluations and deficiency remediation |
+| CC5 | Control Activities | Policies, procedures, and technology controls |
+| CC6 | Logical and Physical Access Controls | Authentication, authorization, and physical security |
+| CC7 | System Operations | Incident detection, response, and recovery |
+| CC8 | Change Management | Infrastructure and software change control |
+| CC9 | Risk Mitigation | Vendor management and business disruption mitigation |
 
-### 3.3 Risk Assessment and Mitigation
-- Annual risk assessments
-- Risk treatment plans
-- Control testing and validation
-- Continuous monitoring and improvement
+### 2.2 Availability (A) - OPTIONAL
+System availability for operation and use as committed.
 
-## 4. Control Implementation
-{{control_implementation_details}}
+### 2.3 Processing Integrity (PI) - OPTIONAL
+System processing is complete, valid, accurate, timely, and authorized.
 
-## 5. Monitoring and Review
-Controls are monitored continuously and reviewed annually for effectiveness.
+### 2.4 Confidentiality (C) - OPTIONAL
+Information designated as confidential is protected.
+
+### 2.5 Privacy (P) - OPTIONAL
+Personal information collection, use, retention, disclosure, and disposal.
+
+## 3. Selected Trust Services Categories
+{{selected_categories}}
+
+## 4. Audit Scope
+- **Type**: SOC 2 Type {{audit_type}}
+- **Audit Period**: {{audit_period}}
+- **Systems in Scope**: {{systems_in_scope}}
 
 **Document Owner:** {{document_owner}}
-**Effective Date:** {{effective_date}}
-**Review Frequency:** Annual`,
+**Effective Date:** {{effective_date}}`,
     templateVariables: {
       company_name: { type: 'text', label: 'Company Name', required: true },
-      control_implementation_details: { type: 'text', label: 'Control Implementation Details', required: true },
+      selected_categories: { type: 'text', label: 'Selected Trust Services Categories', required: true },
+      audit_type: { type: 'select', label: 'Audit Type', required: true, options: ['1', '2'] },
+      audit_period: { type: 'text', label: 'Audit Period', required: true },
+      systems_in_scope: { type: 'text', label: 'Systems in Scope', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-002',
+    title: 'CC1 Control Environment Policy',
+    description: 'Control Environment criteria covering governance, ethics, oversight, and organizational structure',
+    framework: 'SOC2',
+    category: 'CC1-Control-Environment',
+    priority: 2,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC1: Control Environment Policy
+
+## 1. Purpose
+This policy establishes {{company_name}}'s control environment framework per SOC 2 CC1 criteria.
+
+## 2. CC1 Control Criteria
+
+### CC1.1 - COSO Principle 1: Commitment to Integrity and Ethics
+- Code of conduct established and communicated
+- Ethics training for all personnel
+- Whistleblower program in place
+- Regular ethics assessments
+
+### CC1.2 - COSO Principle 2: Board Oversight
+- Board/Audit Committee exercises oversight responsibility
+- Regular security briefings to leadership
+- Independent directors where applicable
+
+### CC1.3 - COSO Principle 3: Authority and Responsibility
+- Organizational structure documented
+- Clear reporting lines established
+- Security roles and responsibilities defined:
+  - **CISO/Security Officer**: {{ciso_name}}
+  - **Compliance Officer**: {{compliance_officer}}
+  - **IT Manager**: {{it_manager}}
+
+### CC1.4 - COSO Principle 4: Commitment to Competence
+- Competency requirements for security roles
+- Background checks for personnel
+- Skills assessment and training programs
+- Performance evaluations include security responsibilities
+
+### CC1.5 - COSO Principle 5: Accountability
+- Accountability for control objectives
+- Performance measures established
+- Incentives aligned with security goals
+- Consequences for policy violations
+
+## 3. Implementation Evidence
+- Code of conduct acknowledgments
+- Organization charts
+- Role descriptions
+- Training completion records
+- Background check documentation
+
+**Approved By:** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      ciso_name: { type: 'text', label: 'CISO/Security Officer Name', required: true },
+      compliance_officer: { type: 'text', label: 'Compliance Officer Name', required: true },
+      it_manager: { type: 'text', label: 'IT Manager Name', required: false },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-003',
+    title: 'CC6 Logical and Physical Access Controls',
+    description: 'Access control criteria covering authentication, authorization, and physical security (CC6.1-CC6.8)',
+    framework: 'SOC2',
+    category: 'CC6-Access-Controls',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC6: Logical and Physical Access Controls
+
+## 1. Overview
+{{company_name}} implements comprehensive access controls per SOC 2 CC6 criteria.
+
+## 2. CC6 Control Criteria
+
+### CC6.1 - Logical Access Security Software
+- Access control software implemented
+- Authentication mechanisms: {{authentication_methods}}
+- Authorization based on roles and responsibilities
+- Access provisioning through formal request process
+
+### CC6.2 - User Registration and Authorization
+- Formal user registration process
+- Access based on job responsibilities
+- Approval workflow for access requests
+- Regular access reviews: {{access_review_frequency}}
+
+### CC6.3 - User Removal
+- Timely removal of access upon termination
+- Access modification upon role change
+- Emergency access revocation procedures
+- Exit interview includes access surrender
+
+### CC6.4 - Authentication Credentials
+- Strong password requirements enforced
+- Multi-factor authentication: {{mfa_implementation}}
+- Credential storage and protection
+- Password reset procedures
+
+### CC6.5 - Access Restriction
+- Least privilege principle applied
+- Role-based access control (RBAC)
+- Privileged access management
+- Service account controls
+
+### CC6.6 - External Access
+- Remote access security controls
+- VPN requirements: {{vpn_solution}}
+- Third-party access controls
+- Customer access management
+
+### CC6.7 - Physical Access Restrictions
+- Data center physical security
+- Visitor management procedures
+- Badge access systems
+- Video surveillance
+
+### CC6.8 - Physical Access Removal
+- Badge deactivation upon termination
+- Physical key return procedures
+- Access log retention
+
+## 3. Implementation Details
+- Identity Provider: {{identity_provider}}
+- MFA Provider: {{mfa_provider}}
+- Access Review Tool: {{access_review_tool}}
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      authentication_methods: { type: 'text', label: 'Authentication Methods', required: true },
+      access_review_frequency: { type: 'select', label: 'Access Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually', 'Annually'] },
+      mfa_implementation: { type: 'text', label: 'MFA Implementation Details', required: true },
+      vpn_solution: { type: 'text', label: 'VPN Solution', required: false },
+      identity_provider: { type: 'text', label: 'Identity Provider', required: true },
+      mfa_provider: { type: 'text', label: 'MFA Provider', required: true },
+      access_review_tool: { type: 'text', label: 'Access Review Tool', required: false },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-004',
+    title: 'CC7 System Operations',
+    description: 'System operations covering incident detection, response, and recovery (CC7.1-CC7.5)',
+    framework: 'SOC2',
+    category: 'CC7-System-Operations',
+    priority: 4,
+    documentType: 'procedure',
+    required: true,
+    templateContent: `# CC7: System Operations
+
+## 1. Purpose
+This document outlines {{company_name}}'s system operations controls per SOC 2 CC7 criteria.
+
+## 2. CC7 Control Criteria
+
+### CC7.1 - Infrastructure and Software Detection
+- Infrastructure monitoring in place
+- Security event logging enabled
+- SIEM Solution: {{siem_solution}}
+- Endpoint Protection: {{endpoint_protection}}
+- Vulnerability scanning: {{vulnerability_scan_frequency}}
+
+### CC7.2 - Security Event Monitoring
+- 24/7 monitoring capabilities
+- Alerting thresholds configured
+- Anomaly detection implemented
+- Log aggregation and correlation
+
+### CC7.3 - Security Incident Evaluation
+- Incident classification criteria
+- Severity levels defined (Critical, High, Medium, Low)
+- Escalation procedures documented
+- Root cause analysis process
+
+### CC7.4 - Security Incident Response
+- Incident response plan documented
+- Response team identified and trained
+- Communication protocols established
+- Evidence preservation procedures
+- Mean Time to Respond (MTTR): {{target_mttr}}
+
+### CC7.5 - Recovery Operations
+- Recovery procedures documented
+- Recovery Time Objective (RTO): {{rto_hours}} hours
+- Recovery Point Objective (RPO): {{rpo_hours}} hours
+- Backup verification testing
+- Business continuity integration
+
+## 3. Monitoring Infrastructure
+| Component | Solution | Coverage |
+|-----------|----------|----------|
+| SIEM | {{siem_solution}} | All production systems |
+| Endpoint | {{endpoint_protection}} | All endpoints |
+| Network | {{network_monitoring}} | All network segments |
+| Cloud | {{cloud_monitoring}} | All cloud resources |
+
+## 4. Incident Response Contacts
+- Security Team Lead: {{security_lead}}
+- On-call Rotation: {{oncall_info}}
+
+**Document Owner:** {{document_owner}}
+**Last Updated:** {{last_updated}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      siem_solution: { type: 'text', label: 'SIEM Solution', required: true },
+      endpoint_protection: { type: 'text', label: 'Endpoint Protection', required: true },
+      vulnerability_scan_frequency: { type: 'select', label: 'Vulnerability Scan Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      target_mttr: { type: 'text', label: 'Target Mean Time to Respond', required: true },
+      rto_hours: { type: 'number', label: 'Recovery Time Objective (hours)', required: true },
+      rpo_hours: { type: 'number', label: 'Recovery Point Objective (hours)', required: true },
+      network_monitoring: { type: 'text', label: 'Network Monitoring Solution', required: false },
+      cloud_monitoring: { type: 'text', label: 'Cloud Monitoring Solution', required: false },
+      security_lead: { type: 'text', label: 'Security Team Lead', required: true },
+      oncall_info: { type: 'text', label: 'On-call Information', required: false },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      last_updated: { type: 'date', label: 'Last Updated', required: true }
+    }
+  },
+  {
+    id: 'soc2-005',
+    title: 'CC8 Change Management',
+    description: 'Change management controls for infrastructure and software changes (CC8.1)',
+    framework: 'SOC2',
+    category: 'CC8-Change-Management',
+    priority: 5,
+    documentType: 'procedure',
+    required: true,
+    templateContent: `# CC8: Change Management
+
+## 1. Purpose
+This procedure establishes {{company_name}}'s change management controls per SOC 2 CC8 criteria.
+
+## 2. CC8.1 - Change Management Controls
+
+### 2.1 Change Request Process
+1. Change request submission with business justification
+2. Impact and risk assessment
+3. Approval workflow based on change type
+4. Implementation scheduling
+5. Testing and validation
+6. Documentation and communication
+
+### 2.2 Change Classification
+| Type | Description | Approval Required |
+|------|-------------|-------------------|
+| Standard | Pre-approved, low-risk changes | Automated/Team Lead |
+| Normal | Assessed changes requiring CAB review | Change Advisory Board |
+| Emergency | Critical changes addressing incidents | Emergency CAB + Post-review |
+
+### 2.3 Change Approval Requirements
+- Development team review and testing
+- Security impact assessment for security-relevant changes
+- Manager approval for normal changes
+- CAB approval for significant infrastructure changes
+- Emergency approval process for critical fixes
+
+### 2.4 Testing Requirements
+- Unit testing in development environment
+- Integration testing in staging
+- User acceptance testing (UAT) where applicable
+- Rollback testing for critical changes
+- Security testing for code changes
+
+### 2.5 Deployment Controls
+- Separation of duties between development and production
+- Deployment automation: {{deployment_tool}}
+- Production access restricted to {{production_access_team}}
+- Change window: {{change_window}}
+- Rollback procedures documented
+
+### 2.6 Post-Implementation Review
+- Change success validation
+- Issue documentation
+- Lessons learned capture
+- Configuration management update
+
+## 3. Change Management Tools
+- Ticketing System: {{ticketing_system}}
+- Version Control: {{version_control}}
+- CI/CD Platform: {{cicd_platform}}
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      deployment_tool: { type: 'text', label: 'Deployment Tool/Platform', required: true },
+      production_access_team: { type: 'text', label: 'Production Access Team', required: true },
+      change_window: { type: 'text', label: 'Standard Change Window', required: true },
+      ticketing_system: { type: 'text', label: 'Ticketing System', required: true },
+      version_control: { type: 'text', label: 'Version Control System', required: true },
+      cicd_platform: { type: 'text', label: 'CI/CD Platform', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-006',
+    title: 'Availability Criteria (A1)',
+    description: 'Availability controls ensuring system uptime commitments (A1.1-A1.3)',
+    framework: 'SOC2',
+    category: 'A-Availability',
+    priority: 6,
+    documentType: 'policy',
+    required: false,
+    templateContent: `# Availability Criteria (A1)
+
+## 1. Purpose
+{{company_name}} commits to maintaining system availability as defined in service level agreements.
+
+## 2. A1 Availability Criteria
+
+### A1.1 - Availability Commitments
+- Service Level Agreement (SLA): {{sla_uptime}}% uptime
+- Availability monitoring in place
+- Capacity planning process established
+- Performance baselines documented
+
+### A1.2 - Environmental Protections
+- Data center redundancy: {{datacenter_redundancy}}
+- Power backup systems (UPS, generators)
+- Environmental controls (HVAC, fire suppression)
+- Network redundancy and failover
+
+### A1.3 - Recovery Operations
+- Disaster Recovery Plan documented
+- Business Continuity Plan maintained
+- Recovery testing frequency: {{dr_test_frequency}}
+- Last DR test: {{last_dr_test}}
+- RTO: {{rto_hours}} hours | RPO: {{rpo_hours}} hours
+
+## 3. SLA Commitments
+| Service | Availability Target | Support Hours |
+|---------|--------------------|--------------
+| Production Systems | {{sla_uptime}}% | {{support_hours}} |
+| API Services | {{api_sla}}% | 24/7 |
+
+## 4. Maintenance Windows
+- Scheduled maintenance: {{maintenance_window}}
+- Customer notification: {{notification_period}} advance notice
+- Emergency maintenance procedures documented
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      sla_uptime: { type: 'text', label: 'SLA Uptime Percentage', required: true },
+      datacenter_redundancy: { type: 'text', label: 'Data Center Redundancy Details', required: true },
+      dr_test_frequency: { type: 'select', label: 'DR Test Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      last_dr_test: { type: 'date', label: 'Last DR Test Date', required: true },
+      rto_hours: { type: 'number', label: 'Recovery Time Objective (hours)', required: true },
+      rpo_hours: { type: 'number', label: 'Recovery Point Objective (hours)', required: true },
+      support_hours: { type: 'text', label: 'Support Hours', required: true },
+      api_sla: { type: 'text', label: 'API SLA Percentage', required: false },
+      maintenance_window: { type: 'text', label: 'Scheduled Maintenance Window', required: true },
+      notification_period: { type: 'text', label: 'Maintenance Notification Period', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-007',
+    title: 'Confidentiality Criteria (C1)',
+    description: 'Confidentiality controls for protecting sensitive information (C1.1-C1.2)',
+    framework: 'SOC2',
+    category: 'C-Confidentiality',
+    priority: 7,
+    documentType: 'policy',
+    required: false,
+    templateContent: `# Confidentiality Criteria (C1)
+
+## 1. Purpose
+{{company_name}} protects confidential information throughout its lifecycle.
+
+## 2. C1 Confidentiality Criteria
+
+### C1.1 - Confidential Information Identification
+- Data classification scheme:
+  - **Public**: Information freely available
+  - **Internal**: For internal use only
+  - **Confidential**: Sensitive business information
+  - **Restricted**: Highly sensitive, limited access
+  
+- Confidential information types:
+  - Customer data
+  - Financial information
+  - Intellectual property
+  - Trade secrets
+  - {{additional_confidential_types}}
+
+### C1.2 - Confidential Information Disposal
+- Secure deletion procedures
+- Media sanitization standards (NIST 800-88)
+- Data retention periods: {{retention_period}}
+- Disposal documentation and verification
+
+## 3. Encryption Controls
+| Data State | Encryption Standard |
+|------------|-------------------|
+| At Rest | {{encryption_at_rest}} |
+| In Transit | {{encryption_in_transit}} |
+| In Use | {{encryption_in_use}} |
+
+## 4. Access Controls
+- Need-to-know access principle
+- Confidential data access logged
+- Annual access reviews for confidential systems
+- DLP controls: {{dlp_solution}}
+
+## 5. Third-Party Confidentiality
+- NDAs required for vendors with data access
+- Vendor security assessments
+- Contract confidentiality provisions
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      additional_confidential_types: { type: 'text', label: 'Additional Confidential Data Types', required: false },
+      retention_period: { type: 'text', label: 'Default Data Retention Period', required: true },
+      encryption_at_rest: { type: 'text', label: 'Encryption at Rest Standard', required: true },
+      encryption_in_transit: { type: 'text', label: 'Encryption in Transit Standard', required: true },
+      encryption_in_use: { type: 'text', label: 'Encryption in Use (if applicable)', required: false },
+      dlp_solution: { type: 'text', label: 'DLP Solution', required: false },
       document_owner: { type: 'text', label: 'Document Owner', required: true },
       effective_date: { type: 'date', label: 'Effective Date', required: true }
     }

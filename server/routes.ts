@@ -193,15 +193,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Multi-tenant context extraction - extracts organization context for authenticated users
   app.use('/api', extractOrganizationContext);
 
-  // CSRF token endpoint - session-bound, must come after auth setup
+  // CSRF token endpoint - session-bound and user-bound for enhanced security
   app.get('/api/csrf-token', (req: any, res) => {
     const session = req.session;
     if (!session) {
       return res.status(500).json({ message: 'Session not available' });
     }
     
-    if (!session.csrfToken) {
-      session.csrfToken = crypto.randomBytes(32).toString('hex');
+    // Get user ID for binding (from authenticated session or temp login)
+    const userId = session.userId || req.user?.claims?.sub || req.user?.id || 'anonymous';
+    
+    // Regenerate CSRF token if user changed or token doesn't exist
+    const shouldRegenerate = !session.csrfToken || 
+                             !session.csrfUserId || 
+                             session.csrfUserId !== userId;
+    
+    if (shouldRegenerate) {
+      // Create user-bound CSRF token using HMAC for integrity
+      const tokenData = `${userId}:${Date.now()}:${crypto.randomBytes(16).toString('hex')}`;
+      session.csrfToken = crypto.createHmac('sha256', process.env.SESSION_SECRET || 'fallback-secret')
+        .update(tokenData)
+        .digest('hex');
+      session.csrfUserId = userId;
+      session.csrfCreatedAt = Date.now();
+      
+      logger.info('CSRF token generated', { userId, sessionId: session.id?.slice(0, 8) });
     }
     
     res.cookie('csrf-token', session.csrfToken, {

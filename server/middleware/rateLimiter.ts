@@ -100,4 +100,92 @@ export function getRateLimitMiddleware(tier: keyof typeof rateLimitConfigs = 'ge
   return createRateLimiter(tier);
 }
 
-export { rateLimitConfigs };
+/**
+ * AI Request Size Limiter Middleware
+ * Validates that AI request payloads don't exceed configured limits
+ * Prevents memory exhaustion and abuse of AI endpoints
+ */
+const AI_REQUEST_LIMITS = {
+  maxPromptLength: 100000, // 100KB max for prompts
+  maxContentLength: 500000, // 500KB max for document content
+  maxContextItems: 50, // Max number of context items
+  maxMetadataSize: 10000, // 10KB max for metadata
+};
+
+export function validateAIRequestSize(req: Request, res: Response, next: Function) {
+  try {
+    const body = req.body;
+    
+    // Skip if no body
+    if (!body || typeof body !== 'object') {
+      return next();
+    }
+    
+    // Validate prompt length
+    if (body.prompt && typeof body.prompt === 'string') {
+      if (body.prompt.length > AI_REQUEST_LIMITS.maxPromptLength) {
+        logger.warn('AI request rejected: prompt too large', {
+          promptLength: body.prompt.length,
+          maxAllowed: AI_REQUEST_LIMITS.maxPromptLength,
+          ip: req.ip,
+        });
+        return res.status(413).json({ 
+          error: 'Request payload too large',
+          detail: `Prompt exceeds maximum length of ${AI_REQUEST_LIMITS.maxPromptLength} characters`,
+        });
+      }
+    }
+    
+    // Validate content length (for document processing)
+    if (body.content && typeof body.content === 'string') {
+      if (body.content.length > AI_REQUEST_LIMITS.maxContentLength) {
+        logger.warn('AI request rejected: content too large', {
+          contentLength: body.content.length,
+          maxAllowed: AI_REQUEST_LIMITS.maxContentLength,
+          ip: req.ip,
+        });
+        return res.status(413).json({ 
+          error: 'Request payload too large',
+          detail: `Content exceeds maximum length of ${AI_REQUEST_LIMITS.maxContentLength} characters`,
+        });
+      }
+    }
+    
+    // Validate documentContent (for extraction services)
+    if (body.documentContent && typeof body.documentContent === 'string') {
+      if (body.documentContent.length > AI_REQUEST_LIMITS.maxContentLength) {
+        logger.warn('AI request rejected: documentContent too large', {
+          contentLength: body.documentContent.length,
+          maxAllowed: AI_REQUEST_LIMITS.maxContentLength,
+          ip: req.ip,
+        });
+        return res.status(413).json({ 
+          error: 'Request payload too large',
+          detail: `Document content exceeds maximum length of ${AI_REQUEST_LIMITS.maxContentLength} characters`,
+        });
+      }
+    }
+    
+    // Validate context array size
+    if (body.context && Array.isArray(body.context)) {
+      if (body.context.length > AI_REQUEST_LIMITS.maxContextItems) {
+        logger.warn('AI request rejected: too many context items', {
+          contextItems: body.context.length,
+          maxAllowed: AI_REQUEST_LIMITS.maxContextItems,
+          ip: req.ip,
+        });
+        return res.status(413).json({ 
+          error: 'Request payload too large',
+          detail: `Context array exceeds maximum of ${AI_REQUEST_LIMITS.maxContextItems} items`,
+        });
+      }
+    }
+    
+    next();
+  } catch (error) {
+    logger.error('Error validating AI request size', { error });
+    next(); // Allow request to proceed on validation error
+  }
+}
+
+export { rateLimitConfigs, AI_REQUEST_LIMITS };

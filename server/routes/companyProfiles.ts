@@ -8,13 +8,15 @@ import { companyDataExtractionService } from '../services/companyDataExtractionS
 import { validateBody } from '../middleware/routeValidation';
 import { extractFromDocumentSchema, extractFromWebsiteSchema } from '../validation/schemas';
 import { cache } from '../middleware/production';
+import { requireOrganization, getCompanyProfileWithOrgCheck, type MultiTenantRequest } from '../middleware/multiTenant';
 
 export async function registerCompanyProfilesRoutes(router: Router) {
   const { requireMFA, enforceMFATimeout } = await import('../middleware/mfa');
 
-  router.get("/", isAuthenticated, async (req: any, res) => {
+  router.get("/", isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
     try {
-      const profiles = await storage.getCompanyProfiles();
+      const organizationId = req.organizationId!;
+      const profiles = await storage.getCompanyProfiles(organizationId);
       res.json(profiles);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -23,12 +25,20 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.get("/:id", isAuthenticated, async (req: any, res) => {
+  router.get("/:id", isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
     try {
-      const profile = await storage.getCompanyProfile(req.params.id);
-      if (!profile) {
+      const organizationId = req.organizationId!;
+      const { profile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
+      
+      if (!authorized || !profile) {
+        logger.warn('Cross-tenant company profile access attempt', {
+          profileId: req.params.id,
+          organizationId,
+          ip: req.ip
+        });
         return res.status(404).json({ message: "Company profile not found" });
       }
+      
       res.json(profile);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -37,12 +47,15 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.post("/", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.post("/", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
     try {
-      const validatedData = insertCompanyProfileSchema.parse(req.body);
+      const organizationId = req.organizationId!;
+      const validatedData = insertCompanyProfileSchema.parse({
+        ...req.body,
+        organizationId
+      });
       const profile = await storage.createCompanyProfile(validatedData);
       
-      // Invalidate company profile caches after creation
       cache.invalidateByPattern('/api/company-profiles');
       
       res.status(201).json(profile);
@@ -54,15 +67,26 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.put("/:id", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.put("/:id", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
     try {
+      const organizationId = req.organizationId!;
+      const { profile: existingProfile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
+      
+      if (!authorized || !existingProfile) {
+        logger.warn('Cross-tenant company profile update attempt', {
+          profileId: req.params.id,
+          organizationId,
+          ip: req.ip
+        });
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+      
       const validatedData = insertCompanyProfileSchema.partial().parse(req.body);
       const profile = await storage.updateCompanyProfile(req.params.id, validatedData);
       if (!profile) {
         return res.status(404).json({ message: "Company profile not found" });
       }
       
-      // Invalidate company profile caches after update
       cache.invalidateByPattern('/api/company-profiles');
       
       res.json(profile);
@@ -74,16 +98,26 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  // PATCH route (same as PUT but standard for partial updates)
-  router.patch("/:id", isAuthenticated, async (req: any, res) => {
+  router.patch("/:id", isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
     try {
+      const organizationId = req.organizationId!;
+      const { profile: existingProfile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
+      
+      if (!authorized || !existingProfile) {
+        logger.warn('Cross-tenant company profile patch attempt', {
+          profileId: req.params.id,
+          organizationId,
+          ip: req.ip
+        });
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+      
       const validatedData = insertCompanyProfileSchema.partial().parse(req.body);
       const profile = await storage.updateCompanyProfile(req.params.id, validatedData);
       if (!profile) {
         return res.status(404).json({ message: "Company profile not found" });
       }
       
-      // Invalidate company profile caches after update
       cache.invalidateByPattern('/api/company-profiles');
       
       res.json(profile);
@@ -95,8 +129,15 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.post("/:id/extract-from-document", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.post("/:id/extract-from-document", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
     try {
+      const organizationId = req.organizationId!;
+      const { profile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
+      
+      if (!authorized || !profile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+      
       const { documentContent, documentType, filename } = req.body;
       
       if (!documentContent || !documentType || !filename) {
@@ -116,8 +157,15 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.post("/:id/extract-from-website", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.post("/:id/extract-from-website", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
     try {
+      const organizationId = req.organizationId!;
+      const { profile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
+      
+      if (!authorized || !profile) {
+        return res.status(404).json({ message: "Company profile not found" });
+      }
+      
       const { url } = req.body;
       
       if (!url) {
@@ -132,10 +180,12 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
   });
 
-  router.post("/:id/research", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
+  router.post("/:id/research", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
     try {
-      const profile = await storage.getCompanyProfile(req.params.id);
-      if (!profile) {
+      const organizationId = req.organizationId!;
+      const { profile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
+      
+      if (!authorized || !profile) {
         return res.status(404).json({ message: "Company profile not found" });
       }
 
