@@ -86,7 +86,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/generate-insights", isAuthenticated, aiLimiter, validateBody(generateInsightsSchema), async (req: any, res) => {
+  router.post("/generate-insights", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(generateInsightsSchema), async (req: any, res) => {
     try {
       const { companyProfileId, framework } = req.body;
       const userId = getRequiredUserId(req);
@@ -117,7 +117,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post('/generate-compliance-docs', isAuthenticated, generationLimiter, validateBody(generateComplianceDocsSchema), async (req: any, res) => {
+  router.post('/generate-compliance-docs', isAuthenticated, generationLimiter, validateAIRequestSize, validateBody(generateComplianceDocsSchema), async (req: any, res) => {
     try {
       const { companyInfo, frameworks, soc2Options, fedrampOptions } = req.body;
       const userId = getRequiredUserId(req);
@@ -367,7 +367,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/risk-assessment", isAuthenticated, aiLimiter, validateBody(riskAssessmentSchema), async (req: any, res) => {
+  router.post("/risk-assessment", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(riskAssessmentSchema), async (req: any, res) => {
     try {
       const { frameworks, includeDocuments } = req.body;
       const userId = getRequiredUserId(req);
@@ -407,7 +407,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/threat-analysis", isAuthenticated, aiLimiter, validateBody(threatAnalysisSchema), async (req: any, res) => {
+  router.post("/threat-analysis", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(threatAnalysisSchema), async (req: any, res) => {
     try {
       const { industry, companySize, frameworks } = req.body;
 
@@ -485,7 +485,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/framework-alignment", isAuthenticated, aiLimiter, validateBody(frameworkAlignmentSchema), async (req: any, res) => {
+  router.post("/framework-alignment", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(frameworkAlignmentSchema), async (req: any, res) => {
     try {
       const { content, framework, documentType } = req.body;
       const userId = getUserId(req);
@@ -554,7 +554,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/fine-tune", isAuthenticated, validateBody(fineTuneSchema), async (req: any, res) => {
+  router.post("/fine-tune", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(fineTuneSchema), async (req: any, res) => {
     try {
       const { industryId, requirements, customInstructions, priority } = req.body;
       const userId = getRequiredUserId(req);
@@ -614,7 +614,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/assess-risks", isAuthenticated, validateBody(assessRisksSchema), async (req: any, res) => {
+  router.post("/assess-risks", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(assessRisksSchema), async (req: any, res) => {
     try {
       const { industryId, organizationContext } = req.body;
       const userId = getRequiredUserId(req);
@@ -639,7 +639,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/analyze-image", isAuthenticated, validateBody(analyzeImageSchema), async (req: any, res) => {
+  router.post("/analyze-image", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(analyzeImageSchema), async (req: any, res) => {
     const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
     
     try {
@@ -719,7 +719,7 @@ export function registerAIRoutes(router: Router) {
     }
   });
 
-  router.post("/multimodal-chat", isAuthenticated, validateBody(multimodalChatSchema), async (req: any, res) => {
+  router.post("/multimodal-chat", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(multimodalChatSchema), async (req: any, res) => {
     const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
     const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB
     
