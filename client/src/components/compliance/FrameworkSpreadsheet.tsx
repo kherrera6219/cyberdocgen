@@ -20,7 +20,9 @@ import {
   Loader2,
   FileText,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Search,
+  Filter
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -62,11 +64,34 @@ export function FrameworkSpreadsheet({ framework, companyProfileId }: FrameworkS
   const [editValue, setEditValue] = useState("");
   const [localUpdates, setLocalUpdates] = useState<Record<string, string>>({});
   const [autofillTemplateId, setAutofillTemplateId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const { data: templates, isLoading, error } = useQuery<SpreadsheetTemplate[]>({
     queryKey: ['/api/frameworks', framework, 'spreadsheet-templates', companyProfileId],
     enabled: !!framework,
   });
+
+  const categories = useMemo(() => {
+    if (!templates) return [];
+    const uniqueCategories = [...new Set(templates.map(t => t.category))];
+    return uniqueCategories.sort();
+  }, [templates]);
+
+  const filteredTemplates = useMemo(() => {
+    if (!templates) return [];
+    return templates.filter(template => {
+      const matchesSearch = searchTerm === "" || 
+        template.templateTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.templateDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.fields.some(f => 
+          f.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          f.variableKey.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      const matchesCategory = categoryFilter === "all" || template.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    });
+  }, [templates, searchTerm, categoryFilter]);
 
   const autofillMutation = useMutation({
     mutationFn: async ({ templateId, emptyFields }: { 
@@ -393,8 +418,78 @@ export function FrameworkSpreadsheet({ framework, companyProfileId }: FrameworkS
         </Card>
       )}
 
+      <Card>
+        <CardContent className="py-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search templates by name, description, or field..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+                data-testid="input-template-search"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-category-filter">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {(searchTerm || categoryFilter !== "all") && (
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <span className="text-sm text-muted-foreground">
+                Showing {filteredTemplates.length} of {templates.length} templates
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setCategoryFilter("all");
+                }}
+                data-testid="button-clear-template-filters"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {filteredTemplates.length === 0 ? (
+        <Card>
+          <CardContent className="py-8">
+            <div className="flex flex-col items-center justify-center gap-2 text-center">
+              <Search className="h-8 w-8 text-muted-foreground" />
+              <p className="text-muted-foreground">No templates match your search criteria</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setCategoryFilter("all");
+                }}
+                data-testid="button-reset-filters"
+              >
+                Reset Filters
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
       <Accordion type="multiple" className="space-y-4">
-        {templates.map((template) => {
+        {filteredTemplates.map((template) => {
           const filledCount = template.fields.filter(f => getFieldValue(f)).length;
           const totalCount = template.fields.length;
           const isAutofilling = autofillTemplateId === template.templateId;
@@ -556,6 +651,7 @@ export function FrameworkSpreadsheet({ framework, companyProfileId }: FrameworkS
           );
         })}
       </Accordion>
+      )}
     </div>
   );
 }
