@@ -2808,12 +2808,6 @@ By accessing this system, you acknowledge and consent to monitoring and recordin
       poster_review_frequency: { type: 'select', label: 'Poster Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually', 'Annually'] }
     }
   }
-];
-
-// Master template registry with complete template sets including operational and certification templates
-export const AllDocumentTemplates: Record<string, DocumentTemplate[]> = {
-  'ISO27001': [...ISO27001Templates, ...AdditionalISO27001Templates],
-  'SOC2': SOC2Templates,
   'FedRAMP-Low': FedRAMPLowTemplates,
   'FedRAMP-Moderate': FedRAMPModerateTemplates,
   'FedRAMP-High': FedRAMPHighTemplates,
