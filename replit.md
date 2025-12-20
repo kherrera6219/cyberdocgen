@@ -34,8 +34,18 @@ Preferred communication style: Simple, everyday language.
 ### Security Implementation
 - **Multi-Tenant Isolation**: Organization-scoped data access via `extractOrganizationContext` middleware and `requireOrganization` enforcement on all API routes
   - Document routes: All CRUD, version, history, approval operations validate organization ownership
+  - Company profile routes: PATCH, extract, and research endpoints enforce organization ownership
+  - Audit trail routes: All endpoints use `requireOrganization` middleware with standardized validation
   - Cross-tenant access prevention: Returns 404 (not 403) to avoid information disclosure, with warning logs
   - Ownership helpers: `getDocumentWithOrgCheck`, `getCompanyProfileWithOrgCheck` validate resource-to-org relationships
+- **CSRF Protection**: User-bound CSRF tokens with HMAC-SHA256 integrity verification
+  - Token format: `${userId}:${timestamp}:${random}` with HMAC signature
+  - Automatic token regeneration when user identity changes
+  - Session binding via `session.csrfUserId` for integrity verification
+- **AI Endpoint Security**: Request size validation and rate limiting on all AI routes
+  - Size limits: 100KB prompts, 500KB content, 50 context items, 10KB metadata
+  - Rate limiting: 20 requests/minute for AI operations, 50 requests/hour for generation
+  - Applied via `validateAIRequestSize` middleware to 11+ AI POST endpoints
 - **Encryption**: AES-256-GCM for data at rest with field-level encryption support
 - **MFA**: TOTP and SMS-based multi-factor authentication
 - **Rate Limiting**: Tiered rate limiting for general requests, auth, and AI generation
