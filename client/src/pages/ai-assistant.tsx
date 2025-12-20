@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,16 +96,54 @@ export default function AIAssistant() {
   const [canvasData, setCanvasData] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("chat");
   
+  const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+  const [displayedContent, setDisplayedContent] = useState<string>("");
+  
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       synthRef.current = window.speechSynthesis;
     }
   }, []);
+
+  useEffect(() => {
+    if (typingMessageId) {
+      const message = messages.find(m => m.id === typingMessageId);
+      if (message && message.content) {
+        let currentIndex = 0;
+        const content = message.content;
+        
+        if (typingIntervalRef.current) {
+          clearInterval(typingIntervalRef.current);
+        }
+        
+        typingIntervalRef.current = setInterval(() => {
+          if (currentIndex < content.length) {
+            const charsToAdd = Math.min(3, content.length - currentIndex);
+            setDisplayedContent(content.substring(0, currentIndex + charsToAdd));
+            currentIndex += charsToAdd;
+          } else {
+            if (typingIntervalRef.current) {
+              clearInterval(typingIntervalRef.current);
+            }
+            setTypingMessageId(null);
+            setDisplayedContent("");
+          }
+        }, 15);
+      }
+    }
+    
+    return () => {
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+      }
+    };
+  }, [typingMessageId, messages]);
 
   const { data: agentsData, isLoading: agentsLoading } = useQuery<{ success: boolean; agents: Agent[] }>({
     queryKey: ["/api/mcp/agents"],
@@ -124,14 +162,18 @@ export default function AIAssistant() {
     },
     onSuccess: (data) => {
       if (data.success && data.response) {
+        const messageId = crypto.randomUUID();
         const assistantMessage: Message = {
-          id: crypto.randomUUID(),
+          id: messageId,
           role: "assistant",
           content: data.response.content,
           timestamp: new Date(),
           toolCalls: data.response.toolCalls,
         };
         setMessages((prev) => [...prev, assistantMessage]);
+        
+        setTypingMessageId(messageId);
+        setDisplayedContent("");
         
         if (voiceEnabled && data.response.content) {
           speakText(data.response.content);
@@ -546,7 +588,16 @@ export default function AIAssistant() {
                                   : "bg-muted"
                               }`}
                             >
-                              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                              <p className="text-sm whitespace-pre-wrap">
+                                {message.id === typingMessageId ? (
+                                  <>
+                                    {displayedContent}
+                                    <span className="inline-block w-2 h-4 bg-current animate-pulse ml-0.5" />
+                                  </>
+                                ) : (
+                                  message.content
+                                )}
+                              </p>
                               {message.toolCalls && message.toolCalls.length > 0 && (
                                 <div className="mt-2 pt-2 border-t border-border/50">
                                   <p className="text-xs font-medium mb-1 flex items-center gap-1">
@@ -575,14 +626,18 @@ export default function AIAssistant() {
                         </div>
                       ))}
                       {executeAgentMutation.isPending && (
-                        <div className="flex gap-3">
+                        <div className="flex gap-3" data-testid="typing-indicator">
                           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Bot className="h-4 w-4 text-primary" />
+                            <Bot className="h-4 w-4 text-primary animate-pulse" />
                           </div>
                           <div className="rounded-lg p-3 bg-muted">
                             <div className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span className="text-sm">Thinking...</span>
+                              <div className="flex gap-1">
+                                <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                              </div>
+                              <span className="text-sm text-muted-foreground">AI is thinking...</span>
                             </div>
                           </div>
                         </div>

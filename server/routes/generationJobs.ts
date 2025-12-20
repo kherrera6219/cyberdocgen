@@ -81,6 +81,7 @@ export function registerGenerateDocumentsRoutes(router: Router) {
               await storage.updateGenerationJob(job.id, {
                 progress: progress.progress,
                 documentsGenerated: progress.completed,
+                currentDocument: progress.currentDocument,
               });
             }
           );

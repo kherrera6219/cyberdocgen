@@ -578,6 +578,7 @@ export const generationJobs = pgTable("generation_jobs", {
   progress: integer("progress").notNull().default(0),
   documentsGenerated: integer("documents_generated").notNull().default(0),
   totalDocuments: integer("total_documents").notNull().default(0),
+  currentDocument: text("current_document"),
   errorMessage: text("error_message"),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
