@@ -1025,6 +1025,26 @@ export type InsertRemediationRecommendation = z.infer<typeof insertRemediationRe
 export type RemediationRecommendation = typeof remediationRecommendations.$inferSelect;
 export type InsertComplianceMaturityAssessment = z.infer<typeof insertComplianceMaturityAssessmentSchema>;
 export type ComplianceMaturityAssessment = typeof complianceMaturityAssessments.$inferSelect;
+
+// Framework Control Status Tracking - for persisting control status on framework pages
+export const frameworkControlStatuses = pgTable("framework_control_statuses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  framework: varchar("framework", { enum: ["iso27001", "soc2", "fedramp", "nist"] }).notNull(),
+  controlId: varchar("control_id").notNull(),
+  status: varchar("status", { enum: ["not_started", "in_progress", "implemented", "not_applicable"] }).default("not_started"),
+  evidenceStatus: varchar("evidence_status", { enum: ["none", "partial", "complete"] }).default("none"),
+  notes: text("notes"),
+  updatedBy: varchar("updated_by"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertFrameworkControlStatusSchema = createInsertSchema(frameworkControlStatuses).omit({
+  id: true,
+  updatedAt: true,
+});
+export type InsertFrameworkControlStatus = z.infer<typeof insertFrameworkControlStatusSchema>;
+export type FrameworkControlStatus = typeof frameworkControlStatuses.$inferSelect;
 export type FineTuningMetric = typeof fineTuningMetrics.$inferSelect;
 export type InsertFineTuningMetric = typeof fineTuningMetrics.$inferInsert;
 export type InsertUser = z.infer<typeof insertUserSchema>;

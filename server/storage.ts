@@ -14,6 +14,7 @@ import {
   documentApprovals,
   roles,
   roleAssignments,
+  frameworkControlStatuses,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -47,6 +48,8 @@ import {
   type InsertUserSession,
   type Role,
   type RoleAssignment,
+  type FrameworkControlStatus,
+  type InsertFrameworkControlStatus,
   userInvitations,
   userSessions
 } from "@shared/schema";
@@ -178,6 +181,10 @@ export interface IStorage {
 
   // Role-based access control
   getUserRoleAssignments(userId: string): Promise<Array<RoleAssignment & { role: Role | null }>>;
+  
+  // Framework Control Status methods
+  getFrameworkControlStatuses(organizationId: string, framework: string): Promise<FrameworkControlStatus[]>;
+  updateFrameworkControlStatus(organizationId: string, framework: string, controlId: string, updates: Partial<InsertFrameworkControlStatus>): Promise<FrameworkControlStatus>;
 }
 
 export class MemStorage implements IStorage {
@@ -187,6 +194,7 @@ export class MemStorage implements IStorage {
   private companyProfiles: Map<string, CompanyProfile>;
   private documents: Map<string, Document>;
   private generationJobs: Map<string, GenerationJob>;
+  private frameworkControlStatusesStore: Map<string, FrameworkControlStatus>;
 
   constructor() {
     this.users = new Map();
@@ -195,6 +203,7 @@ export class MemStorage implements IStorage {
     this.companyProfiles = new Map();
     this.documents = new Map();
     this.generationJobs = new Map();
+    this.frameworkControlStatusesStore = new Map();
   }
 
   // User operations
@@ -923,6 +932,50 @@ export class MemStorage implements IStorage {
     return [];
   }
 
+  // Framework Control Status methods
+  async getFrameworkControlStatuses(organizationId: string, framework: string): Promise<FrameworkControlStatus[]> {
+    return Array.from(this.frameworkControlStatusesStore.values())
+      .filter(s => s.organizationId === organizationId && s.framework === framework);
+  }
+
+  async updateFrameworkControlStatus(
+    organizationId: string, 
+    framework: string, 
+    controlId: string, 
+    updates: Partial<InsertFrameworkControlStatus>
+  ): Promise<FrameworkControlStatus> {
+    const key = `${organizationId}-${framework}-${controlId}`;
+    const existing = this.frameworkControlStatusesStore.get(key);
+    const now = new Date();
+    
+    // Filter out undefined values to prevent overwriting existing data with undefined
+    const filteredUpdates: Partial<FrameworkControlStatus> = {};
+    if (updates.status !== undefined) filteredUpdates.status = updates.status;
+    if (updates.evidenceStatus !== undefined) filteredUpdates.evidenceStatus = updates.evidenceStatus;
+    if (updates.notes !== undefined) filteredUpdates.notes = updates.notes;
+    if (updates.updatedBy !== undefined) filteredUpdates.updatedBy = updates.updatedBy;
+    
+    if (existing) {
+      const updated: FrameworkControlStatus = { ...existing, ...filteredUpdates, updatedAt: now };
+      this.frameworkControlStatusesStore.set(key, updated);
+      return updated;
+    }
+    
+    const newStatus: FrameworkControlStatus = {
+      id: randomUUID(),
+      organizationId,
+      framework: framework as FrameworkControlStatus["framework"],
+      controlId,
+      status: updates.status ?? "not_started",
+      evidenceStatus: updates.evidenceStatus ?? "none",
+      notes: updates.notes ?? null,
+      updatedBy: updates.updatedBy ?? null,
+      updatedAt: now,
+    };
+    this.frameworkControlStatusesStore.set(key, newStatus);
+    return newStatus;
+  }
+
   // Private storage
   private gapAnalysisReports = new Map<string, GapAnalysisReport>();
   private gapAnalysisFindings = new Map<string, GapAnalysisFinding>();
@@ -1640,6 +1693,67 @@ export class DatabaseStorage implements IStorage {
       .where(eq(roleAssignments.userId, userId));
     
     return results;
+  }
+
+  // Framework Control Status methods
+  async getFrameworkControlStatuses(organizationId: string, framework: string): Promise<FrameworkControlStatus[]> {
+    return await db
+      .select()
+      .from(frameworkControlStatuses)
+      .where(
+        and(
+          eq(frameworkControlStatuses.organizationId, organizationId),
+          eq(frameworkControlStatuses.framework, framework as FrameworkControlStatus["framework"])
+        )
+      );
+  }
+
+  async updateFrameworkControlStatus(
+    organizationId: string, 
+    framework: string, 
+    controlId: string, 
+    updates: Partial<InsertFrameworkControlStatus>
+  ): Promise<FrameworkControlStatus> {
+    const [existing] = await db
+      .select()
+      .from(frameworkControlStatuses)
+      .where(
+        and(
+          eq(frameworkControlStatuses.organizationId, organizationId),
+          eq(frameworkControlStatuses.framework, framework as FrameworkControlStatus["framework"]),
+          eq(frameworkControlStatuses.controlId, controlId)
+        )
+      );
+
+    // Filter out undefined values to prevent overwriting existing data with undefined
+    const filteredUpdates: Record<string, unknown> = { updatedAt: new Date() };
+    if (updates.status !== undefined) filteredUpdates.status = updates.status;
+    if (updates.evidenceStatus !== undefined) filteredUpdates.evidenceStatus = updates.evidenceStatus;
+    if (updates.notes !== undefined) filteredUpdates.notes = updates.notes;
+    if (updates.updatedBy !== undefined) filteredUpdates.updatedBy = updates.updatedBy;
+
+    if (existing) {
+      const [updated] = await db
+        .update(frameworkControlStatuses)
+        .set(filteredUpdates)
+        .where(eq(frameworkControlStatuses.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [newStatus] = await db
+      .insert(frameworkControlStatuses)
+      .values({
+        organizationId,
+        framework: framework as FrameworkControlStatus["framework"],
+        controlId,
+        status: updates.status ?? "not_started",
+        evidenceStatus: updates.evidenceStatus ?? "none",
+        notes: updates.notes,
+        updatedBy: updates.updatedBy,
+      })
+      .returning();
+    return newStatus;
   }
 }
 

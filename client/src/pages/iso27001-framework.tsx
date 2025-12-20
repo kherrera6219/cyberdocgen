@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
-import type { CompanyProfile } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { CompanyProfile, FrameworkControlStatus } from "@shared/schema";
 
 type ControlStatus = "not_started" | "in_progress" | "implemented" | "not_applicable";
 type EvidenceStatus = "none" | "partial" | "complete";
@@ -193,6 +194,59 @@ export default function ISO27001Framework() {
     queryKey: ['/api/company-profiles'],
   });
 
+  // Fetch control statuses from the database
+  const { data: savedStatuses, isLoading: statusesLoading } = useQuery<FrameworkControlStatus[]>({
+    queryKey: ['/api/frameworks', 'iso27001', 'control-statuses'],
+  });
+
+  // Mutation for updating control status
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ controlId, status, evidenceStatus, notes }: { 
+      controlId: string; 
+      status?: ControlStatus; 
+      evidenceStatus?: EvidenceStatus;
+      notes?: string;
+    }) => {
+      return await apiRequest(`/api/frameworks/iso27001/control-statuses/${encodeURIComponent(controlId)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status, evidenceStatus, notes }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/frameworks', 'iso27001', 'control-statuses'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to save",
+        description: error.message || "Could not save control status to database",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Merge saved statuses with static control definitions
+  useEffect(() => {
+    if (savedStatuses && savedStatuses.length > 0) {
+      setControlDomains(domains => 
+        domains.map(domain => ({
+          ...domain,
+          controls: domain.controls.map(control => {
+            const saved = savedStatuses.find(s => s.controlId === control.id);
+            if (saved) {
+              return {
+                ...control,
+                status: (saved.status || "not_started") as ControlStatus,
+                evidenceStatus: (saved.evidenceStatus || "none") as EvidenceStatus,
+                lastUpdated: saved.updatedAt ? new Date(saved.updatedAt).toISOString() : null,
+              };
+            }
+            return control;
+          })
+        }))
+      );
+    }
+  }, [savedStatuses]);
+
   const allControls = useMemo(() => {
     return controlDomains.flatMap(domain => 
       domain.controls.map(control => ({ ...control, domainId: domain.id, domainName: domain.name }))
@@ -226,6 +280,13 @@ export default function ISO27001Framework() {
   }, [allControls]);
 
   const updateControlStatus = (controlId: string, newStatus: ControlStatus) => {
+    // Deep clone previous state for rollback (spread only creates shallow copy)
+    const previousDomains = controlDomains.map(domain => ({
+      ...domain,
+      controls: domain.controls.map(control => ({ ...control }))
+    }));
+    
+    // Optimistic update
     setControlDomains(domains => 
       domains.map(domain => ({
         ...domain,
@@ -236,13 +297,33 @@ export default function ISO27001Framework() {
         )
       }))
     );
-    toast({
-      title: "Control Updated",
-      description: `${controlId} status changed to ${newStatus.replace("_", " ")}`,
-    });
+    
+    // Persist to database with rollback on error
+    updateStatusMutation.mutate(
+      { controlId, status: newStatus },
+      {
+        onError: () => {
+          // Rollback on error
+          setControlDomains(previousDomains);
+        },
+        onSuccess: () => {
+          toast({
+            title: "Control Updated",
+            description: `${controlId} status changed to ${newStatus.replace("_", " ")}`,
+          });
+        }
+      }
+    );
   };
 
   const updateEvidenceStatus = (controlId: string, newStatus: EvidenceStatus) => {
+    // Deep clone previous state for rollback (spread only creates shallow copy)
+    const previousDomains = controlDomains.map(domain => ({
+      ...domain,
+      controls: domain.controls.map(control => ({ ...control }))
+    }));
+    
+    // Optimistic update
     setControlDomains(domains => 
       domains.map(domain => ({
         ...domain,
@@ -252,6 +333,17 @@ export default function ISO27001Framework() {
             : control
         )
       }))
+    );
+    
+    // Persist to database with rollback on error
+    updateStatusMutation.mutate(
+      { controlId, evidenceStatus: newStatus },
+      {
+        onError: () => {
+          // Rollback on error
+          setControlDomains(previousDomains);
+        }
+      }
     );
   };
 
