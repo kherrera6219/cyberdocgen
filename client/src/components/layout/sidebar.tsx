@@ -6,7 +6,7 @@ import {
   Building,
   Database,
   Brain,
-  Tag,
+  ShieldCheck,
   Shield,
   Flag,
   Lock,
@@ -14,12 +14,12 @@ import {
   FolderOutput,
   Bot,
   Wrench,
-  Search,
+  Target,
   History,
   Settings,
   Cloud,
   User,
-  Sparkles,
+  Wand2,
   Zap,
   Upload,
   CheckSquare,
@@ -42,7 +42,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 const frameworkNavItems: NavItem[] = [
-  { href: "/iso27001-framework", icon: Tag, label: "ISO 27001", badge: "12/14", badgeColor: "bg-accent" },
+  { href: "/iso27001-framework", icon: ShieldCheck, label: "ISO 27001", badge: "12/14", badgeColor: "bg-accent" },
   { href: "/soc2-framework", icon: Shield, label: "SOC 2 Type 2", badge: "8/12", badgeColor: "bg-warning" },
   { href: "/fedramp-framework", icon: Flag, label: "FedRAMP", badge: "0/18", badgeColor: "bg-gray-400" },
   { href: "/nist-framework", icon: Lock, label: "NIST CSF", badge: "0/23", badgeColor: "bg-gray-400" },
@@ -57,12 +57,12 @@ const documentNavItems: NavItem[] = [
 const aiToolsNavItems: NavItem[] = [
   { href: "/ai-hub", icon: Zap, label: "AI Hub" },
   { href: "/ai-assistant", icon: Bot, label: "AI Assistant" },
-  { href: "/ai-doc-generator", icon: Sparkles, label: "AI Doc Generator" },
+  { href: "/ai-doc-generator", icon: Wand2, label: "AI Doc Generator" },
   { href: "/mcp-tools", icon: Wrench, label: "MCP Tools" },
 ];
 
 const complianceNavItems: NavItem[] = [
-  { href: "/gap-analysis", icon: Search, label: "Gap Analysis" },
+  { href: "/gap-analysis", icon: Target, label: "Gap Analysis" },
   { href: "/control-approvals", icon: CheckSquare, label: "Control Approvals" },
   { href: "/auditor-workspace", icon: Eye, label: "Auditor Workspace" },
   { href: "/audit-trail", icon: History, label: "Audit Trail" },
