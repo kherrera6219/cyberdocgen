@@ -32,6 +32,7 @@ import userProfileRoutes from "./routes/userProfile";
 import rolesRoutes from "./routes/roles";
 import projectsRoutes from "./routes/projects";
 import aiSessionsRoutes from "./routes/aiSessions";
+import { registerNotificationRoutes } from "./routes/notifications";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
@@ -542,6 +543,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // AI Sessions Routes
   app.use('/api/ai-sessions', aiSessionsRoutes);
+
+  // Notification Routes
+  const notificationsRouter = Router();
+  registerNotificationRoutes(notificationsRouter);
+  app.use('/api/notifications', notificationsRouter);
 
   const httpServer = createServer(app);
   return httpServer;

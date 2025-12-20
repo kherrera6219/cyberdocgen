@@ -1224,6 +1224,48 @@ export const documentApprovalsRelations = relations(documentApprovals, ({ one })
   }),
 }));
 
+// In-app notifications table
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id),
+  type: varchar("type", { enum: ["document", "compliance", "security", "team", "system", "ai"] }).notNull(),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  link: varchar("link"),
+  isRead: boolean("is_read").default(false).notNull(),
+  metadata: jsonb("metadata").$type<{
+    entityType?: string;
+    entityId?: string;
+    actionType?: string;
+    severity?: "low" | "medium" | "high" | "critical";
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_notifications_user_id").on(table.userId),
+  index("idx_notifications_is_read").on(table.isRead),
+  index("idx_notifications_created_at").on(table.createdAt),
+]);
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [notifications.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 // ========================================
 // PHASE 3: Data Residency, Privacy & AI Guardrails
 // ========================================

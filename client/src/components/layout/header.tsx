@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Moon, Sun, Settings, Menu } from "lucide-react";
+import { ChevronDown, Moon, Sun, Settings, Menu, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -8,6 +8,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { GlobalSearch } from "@/components/navigation/GlobalSearch";
 import MobileSidebar from "./mobile-sidebar";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 export default function Header() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -105,13 +106,9 @@ export default function Header() {
           </Button>
 
           {/* Notifications - Hidden on mobile */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="hidden sm:flex p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Button>
+          <div className="hidden sm:block">
+            <NotificationDropdown />
+          </div>
 
           {/* User Menu */}
           <DropdownMenu>
