@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Shield,
   Search,
@@ -25,12 +27,32 @@ import {
   Filter,
   FileCheck,
   Calendar,
-  Table as TableIcon
+  Table as TableIcon,
+  Paperclip,
+  Upload,
+  Link2,
+  Trash2,
+  ExternalLink
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { CompanyProfile, FrameworkControlStatus } from "@shared/schema";
+
+// Evidence file type from API response
+interface EvidenceFile {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  mimeType: string;
+  downloadUrl: string | null;
+  createdAt: string;
+  metadata: {
+    tags?: string[];
+    description?: string;
+  } | null;
+}
 
 type ControlStatus = "not_started" | "in_progress" | "implemented" | "not_applicable";
 type EvidenceStatus = "none" | "partial" | "complete";
@@ -190,6 +212,9 @@ export default function ISO27001Framework() {
   const [activeTab, setActiveTab] = useState("controls");
   const [selectedCompanyProfileId, setSelectedCompanyProfileId] = useState<string | null>(null);
 
+  const [evidenceDialogOpen, setEvidenceDialogOpen] = useState(false);
+  const [selectedControlForEvidence, setSelectedControlForEvidence] = useState<Control | null>(null);
+
   const { data: companyProfiles } = useQuery<CompanyProfile[]>({
     queryKey: ['/api/company-profiles'],
   });
@@ -197,6 +222,68 @@ export default function ISO27001Framework() {
   // Fetch control statuses from the database
   const { data: savedStatuses, isLoading: statusesLoading } = useQuery<FrameworkControlStatus[]>({
     queryKey: ['/api/frameworks', 'iso27001', 'control-statuses'],
+  });
+
+  // Fetch all evidence for the ISO 27001 framework (persistent cache for card badges and dialog)
+  // The backend filters by authenticated user's organization for multi-tenant isolation
+  const { data: evidenceData } = useQuery<{ evidence: EvidenceFile[]; count: number }>({
+    queryKey: ['/api/evidence/iso27001'],
+    queryFn: async () => {
+      const response = await fetch('/api/evidence?framework=iso27001', {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch evidence');
+      return response.json();
+    },
+  });
+
+  // Get evidence files linked to a specific control
+  const getControlEvidence = (controlId: string): EvidenceFile[] => {
+    if (!evidenceData?.evidence) return [];
+    return evidenceData.evidence.filter(file => 
+      file.metadata?.tags?.includes(`control:${controlId}`)
+    );
+  };
+
+  // Get available evidence not yet linked to the selected control
+  const getAvailableEvidence = (): EvidenceFile[] => {
+    if (!evidenceData?.evidence || !selectedControlForEvidence) return [];
+    return evidenceData.evidence.filter(file => 
+      !file.metadata?.tags?.includes(`control:${selectedControlForEvidence.id}`)
+    );
+  };
+
+  // Mutation for linking evidence to controls
+  const linkEvidenceMutation = useMutation({
+    mutationFn: async ({ evidenceId, controlId, action }: { 
+      evidenceId: string; 
+      controlId: string; 
+      action: 'add' | 'remove';
+    }) => {
+      return await apiRequest(`/api/evidence/${evidenceId}/controls`, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          controlIds: [controlId], 
+          framework: 'iso27001',
+          action 
+        }),
+      });
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate the framework evidence cache to refresh all evidence lists
+      queryClient.invalidateQueries({ queryKey: ['/api/evidence/iso27001'] });
+      toast({
+        title: variables.action === 'add' ? "Evidence Linked" : "Evidence Unlinked",
+        description: `Evidence has been ${variables.action === 'add' ? 'linked to' : 'removed from'} the control`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update evidence",
+        description: error.message || "Could not update evidence linking",
+        variant: "destructive",
+      });
+    }
   });
 
   // Mutation for updating control status
@@ -685,6 +772,25 @@ export default function ISO27001Framework() {
                               </SelectContent>
                             </Select>
 
+                            {/* Evidence Button */}
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedControlForEvidence(control);
+                                setEvidenceDialogOpen(true);
+                              }}
+                              data-testid={`button-evidence-${control.id}`}
+                            >
+                              <Paperclip className="h-4 w-4 mr-1" />
+                              <span className="hidden sm:inline">Evidence</span>
+                              {getControlEvidence(control.id).length > 0 && (
+                                <Badge variant="secondary" className="ml-1 text-xs">
+                                  {getControlEvidence(control.id).length}
+                                </Badge>
+                              )}
+                            </Button>
+
                             {/* Generate Button */}
                             <Button 
                               variant="outline" 
@@ -698,6 +804,35 @@ export default function ISO27001Framework() {
                             </Button>
                           </div>
                         </div>
+
+                        {/* Linked Evidence Preview */}
+                        {getControlEvidence(control.id).length > 0 && (
+                          <div className="mt-3 pt-3 border-t">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                              <Paperclip className="h-3 w-3" />
+                              <span>Linked Evidence ({getControlEvidence(control.id).length})</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {getControlEvidence(control.id).slice(0, 3).map(evidence => (
+                                <Badge 
+                                  key={evidence.id} 
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  <FileCheck className="h-3 w-3 mr-1" />
+                                  {evidence.fileName.length > 20 
+                                    ? evidence.fileName.substring(0, 20) + '...' 
+                                    : evidence.fileName}
+                                </Badge>
+                              ))}
+                              {getControlEvidence(control.id).length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{getControlEvidence(control.id).length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Last Updated */}
                         {control.lastUpdated && (
@@ -742,6 +877,146 @@ export default function ISO27001Framework() {
       )}
         </TabsContent>
       </Tabs>
+
+      {/* Evidence Dialog */}
+      <Dialog open={evidenceDialogOpen} onOpenChange={setEvidenceDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Paperclip className="h-5 w-5" />
+              Evidence for {selectedControlForEvidence?.id}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedControlForEvidence?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Linked Evidence */}
+            <div>
+              <h4 className="text-sm font-medium mb-3">Linked Evidence Files</h4>
+              {selectedControlForEvidence && getControlEvidence(selectedControlForEvidence.id).length > 0 ? (
+                <ScrollArea className="h-[200px]">
+                  <div className="space-y-2">
+                    {getControlEvidence(selectedControlForEvidence.id).map(evidence => (
+                      <div 
+                        key={evidence.id}
+                        className="flex items-center justify-between p-3 border rounded-md"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <FileCheck className="h-5 w-5 text-muted-foreground shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{evidence.fileName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {evidence.fileType?.toUpperCase()} - {formatFileSize(evidence.fileSize)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {evidence.downloadUrl && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => window.open(evidence.downloadUrl!, '_blank')}
+                              data-testid={`button-download-evidence-${evidence.id}`}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              if (selectedControlForEvidence) {
+                                linkEvidenceMutation.mutate({
+                                  evidenceId: evidence.id,
+                                  controlId: selectedControlForEvidence.id,
+                                  action: 'remove'
+                                });
+                              }
+                            }}
+                            data-testid={`button-unlink-evidence-${evidence.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="text-center py-8 border rounded-md bg-muted/30">
+                  <Paperclip className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">No evidence linked to this control</p>
+                </div>
+              )}
+            </div>
+
+            {/* Available Evidence to Link */}
+            <div>
+              <h4 className="text-sm font-medium mb-3">Available Evidence to Link</h4>
+              {getAvailableEvidence().length > 0 ? (
+                <ScrollArea className="h-[150px]">
+                  <div className="space-y-2">
+                    {getAvailableEvidence().map(evidence => (
+                        <div 
+                          key={evidence.id}
+                          className="flex items-center justify-between p-3 border rounded-md hover-elevate cursor-pointer"
+                          onClick={() => {
+                            if (selectedControlForEvidence) {
+                              linkEvidenceMutation.mutate({
+                                evidenceId: evidence.id,
+                                controlId: selectedControlForEvidence.id,
+                                action: 'add'
+                              });
+                            }
+                          }}
+                          data-testid={`button-link-evidence-${evidence.id}`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">{evidence.fileName}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {evidence.fileType?.toUpperCase()} - {formatFileSize(evidence.fileSize)}
+                              </p>
+                            </div>
+                          </div>
+                          <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                        </div>
+                      ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="text-center py-6 border rounded-md bg-muted/30">
+                  <p className="text-sm text-muted-foreground">
+                    No additional evidence available. Upload evidence files first.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setEvidenceDialogOpen(false)}
+                data-testid="button-close-evidence-dialog"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+}
+
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
