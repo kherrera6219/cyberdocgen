@@ -208,6 +208,14 @@ Preferred communication style: Simple, everyday language.
   - Rate limiting documentation
   - Error response formats
 
+- **Comprehensive Template Coverage** (`server/services/documentTemplates.ts`)
+  - **50 document templates** across all compliance frameworks
+  - **ISO 27001:2022** (14 templates): ISMS Manual, Risk Assessment, SoA, Asset Inventory, Risk Treatment Procedure, Information Security Objectives, Internal Audit Programme, Management Review Record, Nonconformity Tracking, Competence Records, Document Control, Incident Response, Access Control Policy, Business Continuity Plan
+  - **SOC 2** (12 templates): Trust Services Criteria CC1-CC9 coverage including Security (CC1), Communication (CC2), Risk Assessment (CC3), Monitoring (CC4), Control Activities (CC5), Logical Access (CC6), System Operations (CC7), Change Management (CC8), Risk Mitigation (CC9)
+  - **FedRAMP** (7 templates): System Security Plan, Security Assessment Report, POA&M, CIS, Information Security Policies, Rules of Behavior, Contingency Plan, Incident Response Plan
+  - **NIST 800-53** (9 templates): Control family templates for AC, AU, CM, IA, IR, RA, SC, SI families plus Compliance Assessment Matrix
+  - Each template includes: structured content with variable placeholders, variable schemas with types/labels/options, framework-specific metadata, priority classification
+
 ## Deployment
 
 ### Deployment Configuration
