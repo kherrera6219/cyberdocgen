@@ -33,6 +33,8 @@ import rolesRoutes from "./routes/roles";
 import projectsRoutes from "./routes/projects";
 import aiSessionsRoutes from "./routes/aiSessions";
 import { registerNotificationRoutes } from "./routes/notifications";
+import { registerDashboardRoutes } from "./routes/dashboard";
+import { registerFrameworkControlStatusesRoutes } from "./routes/frameworkControlStatuses";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
@@ -548,6 +550,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const notificationsRouter = Router();
   registerNotificationRoutes(notificationsRouter);
   app.use('/api/notifications', notificationsRouter);
+
+  // Dashboard Routes
+  registerDashboardRoutes(app);
+
+  // Framework Control Statuses Routes
+  registerFrameworkControlStatusesRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;

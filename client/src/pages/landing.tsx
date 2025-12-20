@@ -1,101 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Shield, FileText, CheckCircle, Users, ArrowRight, Zap, Globe, Lock, 
-  BarChart3, Clock, Award, Building2, ChevronRight, Menu, X, Sparkles,
+  BarChart3, Clock, Award, Building2, ChevronRight, Sparkles,
   Brain, Cpu, Mail, MapPin
 } from "lucide-react";
 import { TemporaryLoginDialog } from "@/components/TemporaryLoginDialog";
-
-function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/">
-            <div className="flex items-center gap-2 cursor-pointer">
-              <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                CyberDocGen
-              </span>
-              <Badge variant="secondary" className="ml-2 text-xs">Beta</Badge>
-            </div>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/features">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">Features</span>
-            </Link>
-            <Link href="/pricing">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">Pricing</span>
-            </Link>
-            <Link href="/about">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">About</span>
-            </Link>
-            <Link href="/contact">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">Contact</span>
-            </Link>
-          </nav>
-
-          <div className="hidden md:flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="ghost" data-testid="header-enterprise-login">
-                Enterprise Login
-              </Button>
-            </Link>
-            <TemporaryLoginDialog 
-              trigger={
-                <Button data-testid="header-login-button">
-                  Beta Login
-                </Button>
-              }
-            />
-          </div>
-
-          <button 
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            data-testid="mobile-menu-toggle"
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-800">
-            <nav className="flex flex-col gap-3">
-              <Link href="/features">
-                <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Features</span>
-              </Link>
-              <Link href="/pricing">
-                <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Pricing</span>
-              </Link>
-              <Link href="/about">
-                <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">About</span>
-              </Link>
-              <Link href="/contact">
-                <span className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md">Contact</span>
-              </Link>
-              <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
-                <TemporaryLoginDialog 
-                  trigger={<Button className="w-full">Beta Login</Button>}
-                />
-                <Link href="/login">
-                  <Button variant="outline" className="w-full">Enterprise Login</Button>
-                </Link>
-              </div>
-            </nav>
-          </div>
-        )}
-      </div>
-    </header>
-  );
-}
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
 function Footer() {
   return (
@@ -188,7 +102,7 @@ export function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <Header />
+      <PublicHeader />
       
       {/* Hero Section */}
       <div className="relative overflow-hidden pt-24">

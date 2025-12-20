@@ -57,14 +57,14 @@ export function PublicHeader({ showBetaBadge = true }: PublicHeaderProps) {
 
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login">
-              <Button variant="ghost" data-testid="header-enterprise-login">
-                Enterprise Login
+              <Button variant="ghost" data-testid="header-sign-in">
+                Sign In
               </Button>
             </Link>
             <TemporaryLoginDialog 
               trigger={
-                <Button data-testid="header-login-button">
-                  Beta Login
+                <Button data-testid="header-start-free">
+                  Start Free
                 </Button>
               }
             />
@@ -99,10 +99,10 @@ export function PublicHeader({ showBetaBadge = true }: PublicHeaderProps) {
               ))}
               <div className="flex flex-col gap-2 pt-3 border-t border-gray-200 dark:border-gray-800">
                 <TemporaryLoginDialog 
-                  trigger={<Button className="w-full">Beta Login</Button>}
+                  trigger={<Button className="w-full">Start Free</Button>}
                 />
                 <Link href="/login">
-                  <Button variant="outline" className="w-full">Enterprise Login</Button>
+                  <Button variant="outline" className="w-full">Sign In</Button>
                 </Link>
               </div>
             </nav>
