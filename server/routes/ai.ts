@@ -3,7 +3,7 @@ import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { db } from '../db';
-import { aiGuardrailsLogs, aiUsageDisclosures, documents } from '@shared/schema';
+import { aiGuardrailsLogs, aiUsageDisclosures, documents, frameworkControlStatuses, cloudFiles } from '@shared/schema';
 import { eq, desc, count, sql } from 'drizzle-orm';
 import { aiOrchestrator, type AIModel, type GenerationOptions } from '../services/aiOrchestrator';
 import { documentAnalysisService } from '../services/documentAnalysis';
@@ -965,6 +965,218 @@ export function registerAIRoutes(router: Router) {
         error: error instanceof Error ? error.message : String(error)
       });
       res.status(500).json({ message: 'Failed to retrieve AI statistics' });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/ai/hub-insights:
+   *   get:
+   *     tags: [AI]
+   *     summary: Get real-time AI insights based on actual compliance data
+   *     security:
+   *       - sessionAuth: []
+   *     responses:
+   *       200:
+   *         description: AI hub insights retrieved
+   *       401:
+   *         description: Unauthorized
+   */
+  router.get("/hub-insights", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      
+      // Get user's organization
+      const userOrgs = userId ? await storage.getUserOrganizations(userId) : [];
+      const organizationId = userOrgs[0]?.organizationId;
+
+      // If no organization, return empty data with helpful insight
+      if (!organizationId) {
+        return res.json({
+          success: true,
+          stats: {
+            documentsGenerated: 0,
+            totalDocuments: 0,
+            gapsIdentified: 0,
+            risksAssessed: 0,
+            complianceScore: 0,
+            controlsTotal: 0,
+            controlsImplemented: 0,
+            controlsInProgress: 0,
+            controlsNotStarted: 0
+          },
+          insights: [
+            {
+              id: 'no-organization',
+              type: 'recommendation',
+              title: 'Join or Create an Organization',
+              description: 'To get personalized compliance insights, please join or create an organization.',
+              actionUrl: '/settings/organization'
+            }
+          ],
+          risks: []
+        });
+      }
+
+      // Get AI-generated documents count for this organization
+      const [aiDocsResult] = await db
+        .select({ count: count() })
+        .from(documents)
+        .where(sql`${documents.aiGenerated} = true AND ${documents.organizationId} = ${organizationId}`);
+
+      // Get total documents for this organization
+      const [totalDocsResult] = await db
+        .select({ count: count() })
+        .from(documents)
+        .where(eq(documents.organizationId, organizationId));
+
+      // Get framework control statuses for this organization
+      const controlStatuses = await db.select().from(frameworkControlStatuses).where(eq(frameworkControlStatuses.organizationId, organizationId));
+
+      // Calculate insights based on actual data
+      const notStartedControls = controlStatuses.filter(c => c.status === 'not_started');
+      const inProgressControls = controlStatuses.filter(c => c.status === 'in_progress');
+      const implementedControls = controlStatuses.filter(c => c.status === 'implemented');
+      const missingEvidenceControls = controlStatuses.filter(c => c.evidenceStatus === 'none' && c.status !== 'not_applicable');
+      
+      // Calculate compliance score
+      const totalApplicable = controlStatuses.filter(c => c.status !== 'not_applicable').length;
+      const complianceScore = totalApplicable > 0 
+        ? Math.round((implementedControls.length / totalApplicable) * 100) 
+        : 0;
+
+      // Generate dynamic insights based on actual data
+      const insights: Array<{
+        id: string;
+        type: 'recommendation' | 'warning' | 'info';
+        title: string;
+        description: string;
+        framework?: string;
+        actionUrl?: string;
+      }> = [];
+
+      // Add insight for missing evidence
+      if (missingEvidenceControls.length > 0) {
+        const frameworks = [...new Set(missingEvidenceControls.map(c => c.framework))];
+        insights.push({
+          id: 'missing-evidence',
+          type: 'warning',
+          title: `Missing Evidence for ${missingEvidenceControls.length} Controls`,
+          description: `${missingEvidenceControls.length} controls across ${frameworks.join(', ').toUpperCase()} are missing required evidence documentation.`,
+          framework: frameworks[0]?.toUpperCase(),
+          actionUrl: '/evidence-ingestion'
+        });
+      }
+
+      // Add insight for controls not started
+      if (notStartedControls.length > 5) {
+        insights.push({
+          id: 'controls-not-started',
+          type: 'recommendation',
+          title: 'Start Implementing Controls',
+          description: `${notStartedControls.length} controls haven't been started yet. Consider prioritizing critical security controls.`,
+          actionUrl: '/iso27001-framework'
+        });
+      }
+
+      // Add progress insight
+      if (implementedControls.length > 0) {
+        insights.push({
+          id: 'progress-update',
+          type: 'info',
+          title: 'Implementation Progress',
+          description: `${implementedControls.length} controls are fully implemented. ${inProgressControls.length} are in progress.`,
+          framework: 'All'
+        });
+      }
+
+      // Add compliance score insight
+      if (complianceScore >= 70) {
+        insights.push({
+          id: 'compliance-score',
+          type: 'info',
+          title: 'Good Compliance Standing',
+          description: `Your organization has a ${complianceScore}% compliance score. Keep up the great work!`,
+          framework: 'All'
+        });
+      } else if (totalApplicable > 0) {
+        insights.push({
+          id: 'compliance-improvement',
+          type: 'recommendation',
+          title: 'Improve Compliance Score',
+          description: `Current compliance score is ${complianceScore}%. Implement more controls to improve your security posture.`,
+          actionUrl: '/ai-doc-generator'
+        });
+      }
+
+      // Generate risk items based on actual gaps
+      const risks: Array<{
+        id: string;
+        title: string;
+        severity: 'critical' | 'high' | 'medium' | 'low';
+        framework: string;
+        control: string;
+        recommendation: string;
+      }> = [];
+
+      // High-priority risks: controls with no evidence that should be implemented
+      const highRiskControls = controlStatuses.filter(
+        c => c.status === 'implemented' && c.evidenceStatus === 'none'
+      ).slice(0, 3);
+
+      highRiskControls.forEach((control, idx) => {
+        risks.push({
+          id: `risk-${idx + 1}`,
+          title: `Missing Evidence for ${control.controlId}`,
+          severity: 'high',
+          framework: control.framework.toUpperCase(),
+          control: control.controlId,
+          recommendation: 'Upload supporting evidence to demonstrate control implementation.'
+        });
+      });
+
+      // Medium risks: controls stuck in progress for too long
+      const staleControls = inProgressControls.slice(0, 2);
+      staleControls.forEach((control, idx) => {
+        risks.push({
+          id: `stale-${idx + 1}`,
+          title: `Control ${control.controlId} In Progress`,
+          severity: 'medium',
+          framework: control.framework.toUpperCase(),
+          control: control.controlId,
+          recommendation: 'Complete implementation and gather required evidence.'
+        });
+      });
+
+      res.json({
+        success: true,
+        stats: {
+          documentsGenerated: aiDocsResult.count,
+          totalDocuments: totalDocsResult.count,
+          gapsIdentified: notStartedControls.length + missingEvidenceControls.length,
+          risksAssessed: risks.length,
+          complianceScore,
+          controlsTotal: controlStatuses.length,
+          controlsImplemented: implementedControls.length,
+          controlsInProgress: inProgressControls.length,
+          controlsNotStarted: notStartedControls.length
+        },
+        insights: insights.length > 0 ? insights : [
+          {
+            id: 'get-started',
+            type: 'info',
+            title: 'Get Started with Compliance',
+            description: 'Begin by setting up your company profile and selecting compliance frameworks.',
+            actionUrl: '/ai-doc-generator'
+          }
+        ],
+        risks: risks.length > 0 ? risks : []
+      });
+    } catch (error) {
+      logger.error('Failed to retrieve AI hub insights', {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      res.status(500).json({ message: 'Failed to retrieve AI hub insights' });
     }
   });
 

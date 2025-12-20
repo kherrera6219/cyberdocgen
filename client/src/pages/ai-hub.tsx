@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Sparkles, 
   FileText, 
@@ -36,70 +37,34 @@ interface RiskItem {
   recommendation: string;
 }
 
-export default function AIHub() {
-  const [activeTab, setActiveTab] = useState("insights");
-
-  const { data: stats } = useQuery<{
+interface HubInsightsResponse {
+  success: boolean;
+  stats: {
     documentsGenerated: number;
+    totalDocuments: number;
     gapsIdentified: number;
     risksAssessed: number;
     complianceScore: number;
-  }>({
-    queryKey: ["/api/ai/stats"],
+    controlsTotal: number;
+    controlsImplemented: number;
+    controlsInProgress: number;
+    controlsNotStarted: number;
+  };
+  insights: AIInsight[];
+  risks: RiskItem[];
+}
+
+export default function AIHub() {
+  const [activeTab, setActiveTab] = useState("insights");
+
+  // Fetch real data from the hub-insights endpoint
+  const { data: hubData, isLoading } = useQuery<HubInsightsResponse>({
+    queryKey: ["/api/ai/hub-insights"],
   });
 
-  const mockInsights: AIInsight[] = [
-    {
-      id: "1",
-      type: "recommendation",
-      title: "Update Access Control Policy",
-      description: "Your access control policy hasn't been reviewed in 90 days. Consider updating it to align with ISO 27001:2022 requirements.",
-      framework: "ISO 27001",
-      actionUrl: "/ai-doc-generator"
-    },
-    {
-      id: "2", 
-      type: "warning",
-      title: "Missing SOC 2 Evidence",
-      description: "3 SOC 2 controls are missing required evidence documentation. Upload evidence to maintain compliance.",
-      framework: "SOC 2",
-      actionUrl: "/evidence-ingestion"
-    },
-    {
-      id: "3",
-      type: "info",
-      title: "Compliance Score Improved",
-      description: "Your overall compliance score increased by 8% this month after implementing recommended changes.",
-      framework: "All"
-    }
-  ];
-
-  const mockRisks: RiskItem[] = [
-    {
-      id: "1",
-      title: "Incomplete Encryption at Rest",
-      severity: "high",
-      framework: "SOC 2",
-      control: "CC6.1",
-      recommendation: "Implement AES-256 encryption for all stored data assets."
-    },
-    {
-      id: "2",
-      title: "Expired Security Certificates",
-      severity: "critical",
-      framework: "ISO 27001",
-      control: "A.10.1",
-      recommendation: "Renew SSL certificates before expiration date."
-    },
-    {
-      id: "3",
-      title: "Access Review Overdue",
-      severity: "medium",
-      framework: "FedRAMP",
-      control: "AC-2",
-      recommendation: "Complete quarterly user access review within 14 days."
-    }
-  ];
+  const stats = hubData?.stats;
+  const insights = hubData?.insights || [];
+  const risks = hubData?.risks || [];
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -144,7 +109,11 @@ export default function AIHub() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Documents Generated</p>
-                <p className="text-2xl font-bold" data-testid="text-stat-documents">{stats?.documentsGenerated ?? 24}</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-12" />
+                ) : (
+                  <p className="text-2xl font-bold" data-testid="text-stat-documents">{stats?.documentsGenerated ?? 0}</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -158,7 +127,11 @@ export default function AIHub() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Gaps Identified</p>
-                <p className="text-2xl font-bold" data-testid="text-stat-gaps">{stats?.gapsIdentified ?? 12}</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-12" />
+                ) : (
+                  <p className="text-2xl font-bold" data-testid="text-stat-gaps">{stats?.gapsIdentified ?? 0}</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -172,7 +145,11 @@ export default function AIHub() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Risks Assessed</p>
-                <p className="text-2xl font-bold" data-testid="text-stat-risks">{stats?.risksAssessed ?? 8}</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-12" />
+                ) : (
+                  <p className="text-2xl font-bold" data-testid="text-stat-risks">{stats?.risksAssessed ?? 0}</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -186,7 +163,11 @@ export default function AIHub() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Compliance Score</p>
-                <p className="text-2xl font-bold" data-testid="text-stat-score">{stats?.complianceScore ?? 78}%</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-12" />
+                ) : (
+                  <p className="text-2xl font-bold" data-testid="text-stat-score">{stats?.complianceScore ?? 0}%</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -262,32 +243,51 @@ export default function AIHub() {
               <CardDescription>Automated recommendations based on your compliance data</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {mockInsights.map((insight) => (
-                <div 
-                  key={insight.id} 
-                  className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg"
-                  data-testid={`insight-item-${insight.id}`}
-                >
-                  {getInsightIcon(insight.type)}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-medium">{insight.title}</h4>
-                      {insight.framework && (
-                        <Badge variant="secondary">{insight.framework}</Badge>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
+                      <Skeleton className="w-5 h-5 rounded" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : insights.length > 0 ? (
+                insights.map((insight) => (
+                  <div 
+                    key={insight.id} 
+                    className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg"
+                    data-testid={`insight-item-${insight.id}`}
+                  >
+                    {getInsightIcon(insight.type)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-medium">{insight.title}</h4>
+                        {insight.framework && (
+                          <Badge variant="secondary">{insight.framework}</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
+                      {insight.actionUrl && (
+                        <Link href={insight.actionUrl}>
+                          <Button variant="link" className="p-0 h-auto mt-2" data-testid={`button-insight-action-${insight.id}`}>
+                            Take Action
+                            <ArrowRight className="w-3 h-3 ml-1" />
+                          </Button>
+                        </Link>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
-                    {insight.actionUrl && (
-                      <Link href={insight.actionUrl}>
-                        <Button variant="link" className="p-0 h-auto mt-2" data-testid={`button-insight-action-${insight.id}`}>
-                          Take Action
-                          <ArrowRight className="w-3 h-3 ml-1" />
-                        </Button>
-                      </Link>
-                    )}
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Brain className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                  <p>No insights available yet. Start by configuring your compliance frameworks.</p>
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -299,27 +299,47 @@ export default function AIHub() {
               <CardDescription>AI-identified compliance risks requiring attention</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {mockRisks.map((risk) => (
-                <div 
-                  key={risk.id} 
-                  className="flex items-start gap-3 p-4 border rounded-lg"
-                  data-testid={`risk-item-${risk.id}`}
-                >
-                  <div className={`w-2 h-full min-h-[60px] rounded-full ${getSeverityColor(risk.severity)}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-medium">{risk.title}</h4>
-                      <Badge className={getSeverityColor(risk.severity)}>
-                        {risk.severity.toUpperCase()}
-                      </Badge>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-start gap-3 p-4 border rounded-lg">
+                      <Skeleton className="w-2 h-16 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-1/3" />
+                        <Skeleton className="h-3 w-1/4" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {risk.framework} - {risk.control}
-                    </p>
-                    <p className="text-sm mt-2">{risk.recommendation}</p>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              ) : risks.length > 0 ? (
+                risks.map((risk) => (
+                  <div 
+                    key={risk.id} 
+                    className="flex items-start gap-3 p-4 border rounded-lg"
+                    data-testid={`risk-item-${risk.id}`}
+                  >
+                    <div className={`w-2 h-full min-h-[60px] rounded-full ${getSeverityColor(risk.severity)}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-medium">{risk.title}</h4>
+                        <Badge className={getSeverityColor(risk.severity)}>
+                          {risk.severity.toUpperCase()}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {risk.framework} - {risk.control}
+                      </p>
+                      <p className="text-sm mt-2">{risk.recommendation}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CheckCircle2 className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                  <p>No risks identified. Your compliance posture looks good!</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

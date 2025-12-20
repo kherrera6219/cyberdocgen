@@ -49,6 +49,7 @@ Preferred communication style: Simple, everyday language.
 - **Model Selection**: Intelligent routing based on task complexity and provider availability
 - **Services**: Document generation, compliance analysis, gap analysis, risk assessment, quality scoring
 - **AI Guardrails**: Prompt shields, PII redaction, output classifiers
+- **AI Hub Insights**: Real-time analytics endpoint (`/api/ai/hub-insights`) that provides organization-scoped compliance insights, dynamic risk identification, and control status analysis based on actual database data
 
 ### Key Directories
 - `client/` - React frontend application
