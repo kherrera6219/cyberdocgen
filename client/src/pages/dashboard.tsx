@@ -22,7 +22,7 @@ import {
   FileText,
   Layers,
   Clock,
-  Tag,
+  ShieldCheck,
   Shield,
   Flag,
   Lock,
@@ -485,7 +485,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gradient-to-r from-accent/10 to-accent/20 rounded-xl flex items-center justify-center shadow-sm">
-                      <Tag className="w-6 h-6 text-accent" />
+                      <ShieldCheck className="w-6 h-6 text-accent" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">ISO 27001</h3>
