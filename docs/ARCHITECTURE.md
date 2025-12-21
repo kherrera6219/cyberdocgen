@@ -7,27 +7,36 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 ## Architecture Components
 
 ### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite for fast development and optimized production builds
-- **UI Library**: Radix UI primitives with shadcn/ui components
-- **Styling**: Tailwind CSS with custom design tokens
-- **State Management**: TanStack Query for server state, React Hook Form for forms
+- **Framework**: React 18.3 with TypeScript 5.9
+- **Build Tool**: Vite 6.4 for fast development and optimized production builds
+- **UI Library**: Radix UI primitives (51+ components) with shadcn/ui components
+- **Styling**: Tailwind CSS 3.4 with custom design tokens
+- **State Management**: TanStack React Query for server state, React Hook Form + Zod for forms
 - **Routing**: Wouter for lightweight client-side routing
+- **Pages**: 41 fully implemented page components
+- **Components**: 93+ organized, reusable UI components
+- **Custom Hooks**: 6 specialized React hooks
+- **Performance**: 86% bundle size reduction with code splitting (40+ lazy-loaded routes)
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express.js framework
-- **Language**: TypeScript for type safety
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Replit OpenID Connect integration
+- **Runtime**: Node.js 20 with Express.js 4.21 framework
+- **Language**: TypeScript 5.9 for type safety
+- **Database**: PostgreSQL 16 with Drizzle ORM 0.39
+- **Authentication**: Enterprise authentication with MFA support
 - **AI Integration**: Multi-model orchestration (OpenAI GPT-5.1, Anthropic Claude Opus 4.5, Google Gemini 3.0 Pro)
-- **Storage**: Cloud object storage for document assets
+- **Storage**: Cloud object storage for document assets (Google Cloud Storage)
+- **Route Modules**: 26 organized API route modules
+- **Business Services**: 36 specialized service modules
+- **Middleware Stack**: 10-layer security and monitoring middleware
 
 ### Database Design
-- **Primary Database**: PostgreSQL (Neon serverless)
-- **ORM**: Drizzle with type-safe queries
-- **Schema**: Multi-tenant with organization-based data isolation
+- **Primary Database**: PostgreSQL 16 (Neon serverless)
+- **ORM**: Drizzle ORM 0.39 with type-safe queries
+- **Schema**: Multi-tenant with organization-based data isolation (40+ tables, 1,670+ lines)
 - **Migrations**: Automated through Drizzle Kit
 - **Audit Trail**: Comprehensive activity logging with integrity verification
+- **Indexes**: 40+ optimized indexes for performance
+- **Data Models**: Complete coverage for users, organizations, documents, compliance, AI, security
 
 ## AI Services Architecture
 

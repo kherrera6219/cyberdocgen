@@ -286,37 +286,46 @@ export function requireAuditor(): RequestHandler {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  // Check for Enterprise auth session first (email/password login)
-  const session = req.session as any;
-  if (session?.userId) {
-    return next();
-  }
-
-  // Check for Replit OAuth
-  const user = req.user as any;
-
-  if (!req.isAuthenticated() || !user?.expires_at) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
-    return next();
-  }
-
-  const refreshToken = user.refresh_token;
-  if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
-  }
-
   try {
-    const config = await getOidcConfig();
-    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
-    return next();
+    // Check for Enterprise auth session first (email/password login)
+    const session = req.session as any;
+    if (session?.userId) {
+      return next();
+    }
+
+    // Check for Replit OAuth
+    const user = req.user as any;
+
+    // Check if isAuthenticated method exists and is a function
+    const isAuthenticatedMethod = typeof req.isAuthenticated === 'function'
+      ? req.isAuthenticated()
+      : false;
+
+    if (!isAuthenticatedMethod || !user?.expires_at) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    if (now <= user.expires_at) {
+      return next();
+    }
+
+    const refreshToken = user.refresh_token;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const config = await getOidcConfig();
+      const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
+      updateUserSession(user, tokenResponse);
+      return next();
+    } catch (error) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
   } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    // If any error occurs in authentication check, return 401
+    logger.error('Authentication middleware error', { error });
+    return res.status(401).json({ message: "Unauthorized" });
   }
 };
