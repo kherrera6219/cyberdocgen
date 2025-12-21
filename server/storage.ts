@@ -247,6 +247,8 @@ export class MemStorage implements IStorage {
       failedLoginAttempts: user.failedLoginAttempts ?? 0,
       accountLockedUntil: user.accountLockedUntil ?? null,
       passkeyEnabled: user.passkeyEnabled ?? false,
+      profilePreferences: user.profilePreferences ?? null,
+      notificationSettings: user.notificationSettings ?? null,
       createdAt: now,
       updatedAt: now,
     };
@@ -523,6 +525,7 @@ export class MemStorage implements IStorage {
       progress: insertJob.progress || 0,
       documentsGenerated: insertJob.documentsGenerated || 0,
       totalDocuments: insertJob.totalDocuments || 0,
+      currentDocument: insertJob.currentDocument ?? null,
       errorMessage: insertJob.errorMessage || null,
       completedAt: insertJob.completedAt || null,
       createdAt: now,
@@ -1007,6 +1010,9 @@ export class MemStorage implements IStorage {
     const newNotification: Notification = {
       ...notification,
       id,
+      link: notification.link ?? null,
+      metadata: notification.metadata ?? null,
+      organizationId: notification.organizationId ?? null,
       isRead: notification.isRead ?? false,
       createdAt: new Date(),
     };

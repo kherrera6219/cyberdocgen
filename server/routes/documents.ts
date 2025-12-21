@@ -340,7 +340,7 @@ Category: ${category}`;
         entityType: "document",
         entityId: documentId,
         userId: userId,
-        ipAddress: req.ip,
+        ipAddress: req.ip || 'unknown',
         userAgent: req.get('User-Agent'),
         sessionId: req.sessionID,
         metadata: { viewAction: "view_versions", versionCount: versions.length }
@@ -390,10 +390,10 @@ Category: ${category}`;
         entityType: "document",
         entityId: documentId,
         userId: userId,
-        ipAddress: req.ip,
+        ipAddress: req.ip || 'unknown',
         userAgent: req.get('User-Agent'),
         sessionId: req.sessionID,
-        oldValues: { version: document.version },
+        oldValues: { version: existingDoc.version },
         newValues: { version: version.versionNumber, changes, changeType },
         metadata: { versionId: version.id, changeType, automated: false }
       });
@@ -428,21 +428,21 @@ Category: ${category}`;
         return res.status(404).json({ message: "Document not found" });
       }
 
-      const restoredVersion = await versionService.restoreVersion(documentId, versionId, userId);
+      const restoredVersion = await versionService.restoreVersion(documentId, parseInt(versionId), userId);
 
       await auditService.logAction({
         action: "update",
         entityType: "document",
         entityId: documentId,
         userId: userId,
-        ipAddress: req.ip,
+        ipAddress: req.ip || 'unknown',
         userAgent: req.get('User-Agent'),
         sessionId: req.sessionID,
         oldValues: { version: document.version },
         newValues: { version: restoredVersion.versionNumber, restoredFromVersion: versionId },
-        metadata: { 
-          action: "version_restore", 
-          versionId: versionId, 
+        metadata: {
+          action: "version_restore",
+          versionId: versionId,
           restoredVersionNumber: restoredVersion.versionNumber
         }
       });
@@ -470,19 +470,19 @@ Category: ${category}`;
         return res.status(404).json({ message: "Document not found" });
       }
 
-      const comparison = await versionService.compareVersions(documentId, version1, version2);
+      const comparison = await versionService.compareVersions(documentId, parseInt(version1), parseInt(version2));
 
       await auditService.logAction({
         action: "view",
         entityType: "document",
         entityId: documentId,
         userId: userId,
-        ipAddress: req.ip,
+        ipAddress: req.ip || 'unknown',
         userAgent: req.get('User-Agent'),
         sessionId: req.sessionID,
-        metadata: { 
-          action: "version_compare", 
-          version1, 
+        metadata: {
+          action: "version_compare",
+          version1,
           version2,
           diffCount: comparison.diff.added.length + comparison.diff.removed.length + comparison.diff.modified.length
         }
