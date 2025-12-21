@@ -25,7 +25,7 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 - **Authentication**: Enterprise authentication with MFA support
 - **AI Integration**: Multi-model orchestration (OpenAI GPT-5.1, Anthropic Claude Opus 4.5, Google Gemini 3.0 Pro)
 - **Storage**: Cloud object storage for document assets (Google Cloud Storage)
-- **Route Modules**: 25 organized API route modules
+- **Route Modules**: 26 organized API route modules
 - **Business Services**: 36 specialized service modules
 - **Middleware Stack**: 10-layer security and monitoring middleware
 
