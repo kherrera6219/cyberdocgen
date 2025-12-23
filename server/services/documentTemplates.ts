@@ -6789,6 +6789,600 @@ Based on the analysis above, is a PIA required?
       approved_by: { type: 'text', label: 'Approved By', required: true },
       approval_date: { type: 'date', label: 'Approval Date', required: true }
     }
+  },
+  {
+    id: 'fedramp-att-4',
+    title: 'FedRAMP Privacy Impact Assessment (PIA)',
+    description: 'Attachment 4 - Privacy Impact Assessment per E-Government Act',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 4,
+    documentType: 'assessment',
+    required: true,
+    templateContent: `# Privacy Impact Assessment (PIA)
+## FedRAMP SSP Attachment 4
+
+### System Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**PIA Date:** {{pia_date}}
+**PIA ID:** {{pia_id}}
+
+## 1. System Overview
+**Purpose:** {{system_purpose}}
+**Authority:** {{legal_authority}}
+**Scope:** {{system_scope}}
+
+## 2. Information Collected
+**PII Types:** {{pii_types}}
+**Data Sources:** {{data_sources}}
+**Collection Method:** {{collection_method}}
+**Volume:** {{data_volume}}
+
+## 3. Uses of Information
+**Primary Use:** {{primary_use}}
+**Secondary Uses:** {{secondary_uses}}
+**Internal Sharing:** {{internal_sharing}}
+**External Sharing:** {{external_sharing}}
+
+## 4. Notice and Consent
+**Notice Provided:** {{notice_provided}}
+**Consent Obtained:** {{consent_obtained}}
+**Opt-Out Available:** {{opt_out}}
+
+## 5. Access and Security
+**Access Controls:** {{access_controls}}
+**Encryption:** {{encryption}}
+**Audit Logging:** {{audit_logging}}
+**Retention:** {{retention_period}}
+
+## 6. Privacy Risks
+**Risk 1:** {{risk_1}}
+**Mitigation 1:** {{mitigation_1}}
+
+**Risk 2:** {{risk_2}}
+**Mitigation 2:** {{mitigation_2}}
+
+## 7. SORN
+**SORN Required:** {{sorn_required}}
+**SORN Number:** {{sorn_number}}
+
+**Completed By:** {{completed_by}}
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      pia_date: { type: 'date', label: 'PIA Date', required: true },
+      pia_id: { type: 'text', label: 'PIA ID', required: true },
+      system_purpose: { type: 'text', label: 'System Purpose', required: true },
+      legal_authority: { type: 'text', label: 'Legal Authority', required: true },
+      system_scope: { type: 'text', label: 'System Scope', required: true },
+      pii_types: { type: 'text', label: 'PII Types Collected', required: true },
+      data_sources: { type: 'text', label: 'Data Sources', required: true },
+      collection_method: { type: 'text', label: 'Collection Method', required: true },
+      data_volume: { type: 'text', label: 'Data Volume', required: true },
+      primary_use: { type: 'text', label: 'Primary Use', required: true },
+      secondary_uses: { type: 'text', label: 'Secondary Uses', required: false },
+      internal_sharing: { type: 'text', label: 'Internal Sharing', required: true },
+      external_sharing: { type: 'text', label: 'External Sharing', required: true },
+      notice_provided: { type: 'select', label: 'Notice Provided?', required: true, options: ['Yes', 'No'] },
+      consent_obtained: { type: 'select', label: 'Consent Obtained?', required: true, options: ['Yes', 'No', 'N/A'] },
+      opt_out: { type: 'select', label: 'Opt-Out Available?', required: true, options: ['Yes', 'No'] },
+      access_controls: { type: 'text', label: 'Access Controls', required: true },
+      encryption: { type: 'text', label: 'Encryption Methods', required: true },
+      audit_logging: { type: 'text', label: 'Audit Logging', required: true },
+      retention_period: { type: 'text', label: 'Retention Period', required: true },
+      risk_1: { type: 'text', label: 'Privacy Risk 1', required: true },
+      mitigation_1: { type: 'text', label: 'Risk 1 Mitigation', required: true },
+      risk_2: { type: 'text', label: 'Privacy Risk 2', required: false },
+      mitigation_2: { type: 'text', label: 'Risk 2 Mitigation', required: false },
+      sorn_required: { type: 'select', label: 'SORN Required?', required: true, options: ['Yes', 'No'] },
+      sorn_number: { type: 'text', label: 'SORN Number', required: false },
+      completed_by: { type: 'text', label: 'Completed By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-7',
+    title: 'FedRAMP Laws and Regulations',
+    description: 'Attachment 7 - Applicable laws, regulations, and standards',
+    framework: 'FedRAMP-Moderate',
+    category: 'compliance',
+    priority: 7,
+    documentType: 'reference',
+    required: true,
+    templateContent: `# Laws, Regulations, and Standards
+## FedRAMP SSP Attachment 7
+
+### System Information
+**System Name:** {{system_name}}
+**Date:** {{document_date}}
+
+## 1. Federal Laws
+| Law | Applicability | Controls |
+|-----|---------------|----------|
+| Federal Information Security Management Act (FISMA) | {{fisma_applicable}} | {{fisma_controls}} |
+| Privacy Act of 1974 | {{privacy_act}} | {{privacy_controls}} |
+| E-Government Act of 2002 | {{egov_act}} | {{egov_controls}} |
+| {{custom_law_1}} | {{custom_law_1_applicable}} | {{custom_law_1_controls}} |
+
+## 2. Federal Regulations
+| Regulation | Citation | Requirements |
+|------------|----------|--------------|
+| OMB Circular A-130 | {{omb_a130}} | {{omb_a130_req}} |
+| {{custom_reg_1}} | {{custom_reg_1_cite}} | {{custom_reg_1_req}} |
+
+## 3. Standards
+| Standard | Version | Application |
+|----------|---------|-------------|
+| NIST 800-53 | Rev 5 | Security controls baseline |
+| NIST 800-63 | Rev 3 | Digital identity |
+| FIPS 199 | Current | Security categorization |
+| FIPS 200 | Current | Minimum security requirements |
+| {{custom_std_1}} | {{custom_std_1_ver}} | {{custom_std_1_app}} |
+
+## 4. Industry Standards (if applicable)
+**PCI DSS:** {{pci_applicable}}
+**HIPAA:** {{hipaa_applicable}}
+**SOX:** {{sox_applicable}}
+
+## 5. Compliance Monitoring
+**Review Frequency:** {{review_freq}}
+**Responsible Party:** {{compliance_owner}}
+
+**Document Owner:** {{document_owner}}
+**Last Updated:** {{last_updated}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      fisma_applicable: { type: 'select', label: 'FISMA Applicable?', required: true, options: ['Yes', 'No'] },
+      fisma_controls: { type: 'text', label: 'FISMA Controls', required: false },
+      privacy_act: { type: 'select', label: 'Privacy Act Applicable?', required: true, options: ['Yes', 'No'] },
+      privacy_controls: { type: 'text', label: 'Privacy Controls', required: false },
+      egov_act: { type: 'select', label: 'E-Gov Act Applicable?', required: true, options: ['Yes', 'No'] },
+      egov_controls: { type: 'text', label: 'E-Gov Controls', required: false },
+      custom_law_1: { type: 'text', label: 'Additional Law 1', required: false },
+      custom_law_1_applicable: { type: 'select', label: 'Custom Law 1 Applicable?', required: false, options: ['Yes', 'No', 'N/A'] },
+      custom_law_1_controls: { type: 'text', label: 'Custom Law 1 Controls', required: false },
+      omb_a130: { type: 'select', label: 'OMB A-130 Applicable?', required: true, options: ['Yes', 'No'] },
+      omb_a130_req: { type: 'text', label: 'OMB A-130 Requirements', required: false },
+      custom_reg_1: { type: 'text', label: 'Additional Regulation 1', required: false },
+      custom_reg_1_cite: { type: 'text', label: 'Regulation 1 Citation', required: false },
+      custom_reg_1_req: { type: 'text', label: 'Regulation 1 Requirements', required: false },
+      custom_std_1: { type: 'text', label: 'Additional Standard 1', required: false },
+      custom_std_1_ver: { type: 'text', label: 'Standard 1 Version', required: false },
+      custom_std_1_app: { type: 'text', label: 'Standard 1 Application', required: false },
+      pci_applicable: { type: 'select', label: 'PCI DSS Applicable?', required: false, options: ['Yes', 'No', 'N/A'] },
+      hipaa_applicable: { type: 'select', label: 'HIPAA Applicable?', required: false, options: ['Yes', 'No', 'N/A'] },
+      sox_applicable: { type: 'select', label: 'SOX Applicable?', required: false, options: ['Yes', 'No', 'N/A'] },
+      review_freq: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      compliance_owner: { type: 'text', label: 'Compliance Owner', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      last_updated: { type: 'date', label: 'Last Updated', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-9',
+    title: 'FedRAMP Control Implementation Summary Workbook',
+    description: 'Attachment 9 - Simplified CIS workbook reference (see FedRAMP CIS core document for full version)',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 9,
+    documentType: 'worksheet',
+    required: true,
+    templateContent: `# Control Implementation Summary (CIS) Workbook
+## FedRAMP SSP Attachment 9
+
+**Note:** This attachment references the full Control Implementation Summary available in the FedRAMP Core Documents (fedramp-cis).
+
+### System Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**Assessment Date:** {{assessment_date}}
+
+## Quick Reference
+**Total Controls:** {{total_controls}}
+**Implemented:** {{implemented_count}}
+**Partially Implemented:** {{partial_count}}
+**Not Implemented:** {{not_implemented_count}}
+
+## Control Family Summary
+| Family | Total | Implemented | Partial | Not Implemented |
+|--------|-------|-------------|---------|-----------------|
+| AC | {{ac_total}} | {{ac_impl}} | {{ac_partial}} | {{ac_not}} |
+| AU | {{au_total}} | {{au_impl}} | {{au_partial}} | {{au_not}} |
+| SC | {{sc_total}} | {{sc_impl}} | {{sc_partial}} | {{sc_not}} |
+
+**For complete CIS details, see:** FedRAMP Control Implementation Summary (fedramp-cis)
+
+**Prepared By:** {{prepared_by}}
+**Date:** {{prep_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      assessment_date: { type: 'date', label: 'Assessment Date', required: true },
+      total_controls: { type: 'number', label: 'Total Controls', required: true },
+      implemented_count: { type: 'number', label: 'Implemented Count', required: true },
+      partial_count: { type: 'number', label: 'Partially Implemented Count', required: true },
+      not_implemented_count: { type: 'number', label: 'Not Implemented Count', required: true },
+      ac_total: { type: 'number', label: 'AC Total', required: false },
+      ac_impl: { type: 'number', label: 'AC Implemented', required: false },
+      ac_partial: { type: 'number', label: 'AC Partial', required: false },
+      ac_not: { type: 'number', label: 'AC Not Implemented', required: false },
+      au_total: { type: 'number', label: 'AU Total', required: false },
+      au_impl: { type: 'number', label: 'AU Implemented', required: false },
+      au_partial: { type: 'number', label: 'AU Partial', required: false },
+      au_not: { type: 'number', label: 'AU Not Implemented', required: false },
+      sc_total: { type: 'number', label: 'SC Total', required: false },
+      sc_impl: { type: 'number', label: 'SC Implemented', required: false },
+      sc_partial: { type: 'number', label: 'SC Partial', required: false },
+      sc_not: { type: 'number', label: 'SC Not Implemented', required: false },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      prep_date: { type: 'date', label: 'Preparation Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-10',
+    title: 'FedRAMP FIPS 199 Security Categorization',
+    description: 'Attachment 10 - FIPS 199 system security categorization',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 10,
+    documentType: 'assessment',
+    required: true,
+    templateContent: `# FIPS 199 Security Categorization
+## FedRAMP SSP Attachment 10
+
+### System Information
+**System Name:** {{system_name}}
+**System Abbreviation:** {{system_abbr}}
+**System Owner:** {{system_owner}}
+**Categorization Date:** {{cat_date}}
+
+## 1. Security Objectives
+
+### 1.1 Confidentiality
+**Impact Level:** {{confidentiality_impact}}
+**Justification:** {{confidentiality_justification}}
+
+### 1.2 Integrity
+**Impact Level:** {{integrity_impact}}
+**Justification:** {{integrity_justification}}
+
+### 1.3 Availability
+**Impact Level:** {{availability_impact}}
+**Justification:** {{availability_justification}}
+
+## 2. Information Types
+
+### 2.1 Primary Information Type
+**Type:** {{info_type_1}}
+**NIST SP 800-60 Category:** {{nist_category_1}}
+**Confidentiality:** {{type_1_conf}}
+**Integrity:** {{type_1_int}}
+**Availability:** {{type_1_avail}}
+
+### 2.2 Additional Information Types
+**Type:** {{info_type_2}}
+**Category:** {{nist_category_2}}
+
+## 3. Overall System Categorization
+
+**Formula:** SC system = {(confidentiality, impact), (integrity, impact), (availability, impact)}
+
+**System Categorization:**
+SC {{system_name}} = {(confidentiality, {{confidentiality_impact}}), (integrity, {{integrity_impact}}), (availability, {{availability_impact}})}
+
+**Overall Impact Level:** {{overall_impact}}
+
+## 4. Rationale
+{{categorization_rationale}}
+
+## 5. FedRAMP Baseline
+**Applicable Baseline:** {{fedramp_baseline}}
+**Control Tailoring:** {{tailoring_applied}}
+
+## 6. Approval
+
+**Categorization Performed By:** {{performed_by}}
+**Date:** {{performed_date}}
+
+**Reviewed By:** {{reviewed_by}}
+**Date:** {{reviewed_date}}
+
+**Approved By (Authorizing Official):** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      system_abbr: { type: 'text', label: 'System Abbreviation', required: true },
+      system_owner: { type: 'text', label: 'System Owner', required: true },
+      cat_date: { type: 'date', label: 'Categorization Date', required: true },
+      confidentiality_impact: { type: 'select', label: 'Confidentiality Impact', required: true, options: ['Low', 'Moderate', 'High'] },
+      confidentiality_justification: { type: 'text', label: 'Confidentiality Justification', required: true },
+      integrity_impact: { type: 'select', label: 'Integrity Impact', required: true, options: ['Low', 'Moderate', 'High'] },
+      integrity_justification: { type: 'text', label: 'Integrity Justification', required: true },
+      availability_impact: { type: 'select', label: 'Availability Impact', required: true, options: ['Low', 'Moderate', 'High'] },
+      availability_justification: { type: 'text', label: 'Availability Justification', required: true },
+      info_type_1: { type: 'text', label: 'Primary Information Type', required: true },
+      nist_category_1: { type: 'text', label: 'NIST SP 800-60 Category 1', required: true },
+      type_1_conf: { type: 'select', label: 'Type 1 Confidentiality', required: true, options: ['Low', 'Moderate', 'High'] },
+      type_1_int: { type: 'select', label: 'Type 1 Integrity', required: true, options: ['Low', 'Moderate', 'High'] },
+      type_1_avail: { type: 'select', label: 'Type 1 Availability', required: true, options: ['Low', 'Moderate', 'High'] },
+      info_type_2: { type: 'text', label: 'Additional Information Type', required: false },
+      nist_category_2: { type: 'text', label: 'NIST Category 2', required: false },
+      overall_impact: { type: 'select', label: 'Overall Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      categorization_rationale: { type: 'text', label: 'Categorization Rationale', required: true },
+      fedramp_baseline: { type: 'select', label: 'FedRAMP Baseline', required: true, options: ['Low', 'Moderate', 'High'] },
+      tailoring_applied: { type: 'select', label: 'Control Tailoring Applied?', required: true, options: ['Yes', 'No'] },
+      performed_by: { type: 'text', label: 'Performed By', required: true },
+      performed_date: { type: 'date', label: 'Performed Date', required: true },
+      reviewed_by: { type: 'text', label: 'Reviewed By', required: true },
+      reviewed_date: { type: 'date', label: 'Reviewed Date', required: true },
+      approved_by: { type: 'text', label: 'Approved By (AO)', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-11',
+    title: 'FedRAMP Separation of Duties Matrix',
+    description: 'Attachment 11 - Separation of duties and responsibilities matrix',
+    framework: 'FedRAMP-Moderate',
+    category: 'policy',
+    priority: 11,
+    documentType: 'matrix',
+    required: true,
+    templateContent: `# Separation of Duties Matrix
+## FedRAMP SSP Attachment 11
+
+### System Information
+**System Name:** {{system_name}}
+**Date:** {{document_date}}
+**Version:** {{version}}
+
+## 1. Purpose
+This matrix defines separation of duties to prevent conflicts of interest and reduce fraud risk per NIST 800-53 AC-5.
+
+## 2. Key Roles and Responsibilities
+
+| Function | System Admin | Security Admin | Developer | Manager | Auditor |
+|----------|--------------|----------------|-----------|---------|---------|
+| **User Account Management** |
+| Create accounts | {{admin_create}} | - | - | Approve | Review |
+| Modify privileges | - | {{sec_modify}} | - | Approve | Review |
+| Delete accounts | {{admin_delete}} | {{sec_delete}} | - | - | Review |
+| **Security Controls** |
+| Configure firewalls | - | {{sec_firewall}} | - | - | Review |
+| IDS/IPS management | - | {{sec_ids}} | - | - | Review |
+| Security monitoring | - | {{sec_monitor}} | - | - | - |
+| **System Changes** |
+| Code development | - | - | {{dev_code}} | - | - |
+| Code review | - | {{sec_review}} | - | {{mgr_review}} | - |
+| Deploy to production | {{admin_deploy}} | - | - | Approve | - |
+| **Access Controls** |
+| Grant admin access | - | - | - | {{mgr_grant}} | Review |
+| Access reviews | - | {{sec_access_review}} | - | {{mgr_access_review}} | Audit |
+| **Audit Functions** |
+| Configure logging | - | {{sec_log_config}} | - | - | - |
+| Review logs | - | {{sec_log_review}} | - | - | {{audit_log_review}} |
+| Audit controls | - | - | - | - | {{audit_controls}} |
+
+## 3. Segregation Rules
+
+### 3.1 Prohibited Combinations
+1. **Cannot combine:** Development + Production Deployment
+2. **Cannot combine:** Security Administration + Audit Functions
+3. **Cannot combine:** Access Provisioning + Access Approval
+4. **Cannot combine:** {{custom_prohibition_1}}
+
+### 3.2 Required Approvals
+| Action | Requires Approval From |
+|--------|----------------------|
+| Privileged access grant | {{priv_access_approver}} |
+| Security configuration changes | {{sec_config_approver}} |
+| Production deployments | {{prod_deploy_approver}} |
+| User termination | {{term_approver}} |
+
+## 4. Compensating Controls
+**Small Team Adjustments:** {{small_team_controls}}
+**Monitoring:** {{monitoring_controls}}
+**Management Review:** {{mgmt_review_freq}}
+
+## 5. Exceptions
+| Exception | Justification | Compensating Control | Approved By |
+|-----------|---------------|---------------------|-------------|
+| {{exception_1}} | {{exception_1_just}} | {{exception_1_control}} | {{exception_1_approver}} |
+
+**Document Owner:** {{document_owner}}
+**Last Review:** {{last_review}}
+**Next Review:** {{next_review}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      admin_create: { type: 'select', label: 'Admin Can Create Accounts?', required: true, options: ['Yes', 'No', 'With Approval'] },
+      sec_modify: { type: 'select', label: 'Security Can Modify Privileges?', required: true, options: ['Yes', 'No'] },
+      admin_delete: { type: 'select', label: 'Admin Can Delete Accounts?', required: true, options: ['Yes', 'No'] },
+      sec_delete: { type: 'select', label: 'Security Can Delete Accounts?', required: true, options: ['Yes', 'No'] },
+      sec_firewall: { type: 'select', label: 'Security Configures Firewalls?', required: true, options: ['Yes', 'No'] },
+      sec_ids: { type: 'select', label: 'Security Manages IDS/IPS?', required: true, options: ['Yes', 'No'] },
+      sec_monitor: { type: 'select', label: 'Security Monitors?', required: true, options: ['Yes', 'No'] },
+      dev_code: { type: 'select', label: 'Developer Writes Code?', required: true, options: ['Yes', 'No'] },
+      sec_review: { type: 'select', label: 'Security Reviews Code?', required: true, options: ['Yes', 'No'] },
+      mgr_review: { type: 'select', label: 'Manager Reviews Code?', required: true, options: ['Yes', 'No'] },
+      admin_deploy: { type: 'select', label: 'Admin Deploys?', required: true, options: ['Yes', 'No', 'With Approval'] },
+      mgr_grant: { type: 'select', label: 'Manager Grants Admin Access?', required: true, options: ['Yes', 'No'] },
+      sec_access_review: { type: 'select', label: 'Security Reviews Access?', required: true, options: ['Yes', 'No'] },
+      mgr_access_review: { type: 'select', label: 'Manager Reviews Access?', required: true, options: ['Yes', 'No'] },
+      sec_log_config: { type: 'select', label: 'Security Configures Logging?', required: true, options: ['Yes', 'No'] },
+      sec_log_review: { type: 'select', label: 'Security Reviews Logs?', required: true, options: ['Yes', 'No'] },
+      audit_log_review: { type: 'select', label: 'Auditor Reviews Logs?', required: true, options: ['Yes', 'No'] },
+      audit_controls: { type: 'select', label: 'Auditor Audits Controls?', required: true, options: ['Yes', 'No'] },
+      custom_prohibition_1: { type: 'text', label: 'Additional Prohibition', required: false },
+      priv_access_approver: { type: 'text', label: 'Privileged Access Approver', required: true },
+      sec_config_approver: { type: 'text', label: 'Security Config Approver', required: true },
+      prod_deploy_approver: { type: 'text', label: 'Production Deployment Approver', required: true },
+      term_approver: { type: 'text', label: 'Termination Approver', required: true },
+      small_team_controls: { type: 'text', label: 'Small Team Controls', required: false },
+      monitoring_controls: { type: 'text', label: 'Monitoring Controls', required: true },
+      mgmt_review_freq: { type: 'select', label: 'Management Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually'] },
+      exception_1: { type: 'text', label: 'Exception 1', required: false },
+      exception_1_just: { type: 'text', label: 'Exception 1 Justification', required: false },
+      exception_1_control: { type: 'text', label: 'Exception 1 Compensating Control', required: false },
+      exception_1_approver: { type: 'text', label: 'Exception 1 Approved By', required: false },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      last_review: { type: 'date', label: 'Last Review Date', required: true },
+      next_review: { type: 'date', label: 'Next Review Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-12',
+    title: 'FedRAMP Security Assessment Plan (SAP)',
+    description: 'Attachment 12 - Security Assessment Plan template',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 12,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Security Assessment Plan (SAP)
+## FedRAMP SSP Attachment 12
+
+### System Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**SAP Version:** {{sap_version}}
+**SAP Date:** {{sap_date}}
+
+## 1. Assessment Overview
+**Purpose:** {{assessment_purpose}}
+**Scope:** {{assessment_scope}}
+**Timeline:** {{assessment_timeline}}
+
+## 2. Assessment Team
+**Lead Assessor:** {{lead_assessor}}
+**3PAO:** {{three_pao}}
+**Team Members:** {{team_members}}
+
+## 3. Assessment Approach
+**Methodology:** {{methodology}}
+**Testing Types:**
+- Interviews: {{interviews}}
+- Document Review: {{doc_review}}
+- Technical Testing: {{tech_testing}}
+- Penetration Testing: {{pentest}}
+
+## 4. Control Selection
+**Baseline:** {{control_baseline}}
+**Total Controls:** {{total_controls}}
+**Assessment Focus Areas:** {{focus_areas}}
+
+## 5. Assessment Schedule
+**Kickoff:** {{kickoff_date}}
+**Interviews:** {{interview_dates}}
+**Testing:** {{testing_dates}}
+**Report Draft:** {{draft_date}}
+**Final Report:** {{final_date}}
+
+## 6. Deliverables
+- Security Assessment Report (SAR)
+- POA&M
+- Test Results
+- {{custom_deliverable}}
+
+**Prepared By:** {{prepared_by}}
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      sap_version: { type: 'text', label: 'SAP Version', required: true },
+      sap_date: { type: 'date', label: 'SAP Date', required: true },
+      assessment_purpose: { type: 'text', label: 'Assessment Purpose', required: true },
+      assessment_scope: { type: 'text', label: 'Assessment Scope', required: true },
+      assessment_timeline: { type: 'text', label: 'Assessment Timeline', required: true },
+      lead_assessor: { type: 'text', label: 'Lead Assessor', required: true },
+      three_pao: { type: 'text', label: '3PAO Organization', required: true },
+      team_members: { type: 'text', label: 'Team Members', required: true },
+      methodology: { type: 'text', label: 'Assessment Methodology', required: true },
+      interviews: { type: 'select', label: 'Includes Interviews?', required: true, options: ['Yes', 'No'] },
+      doc_review: { type: 'select', label: 'Includes Document Review?', required: true, options: ['Yes', 'No'] },
+      tech_testing: { type: 'select', label: 'Includes Technical Testing?', required: true, options: ['Yes', 'No'] },
+      pentest: { type: 'select', label: 'Includes Penetration Testing?', required: true, options: ['Yes', 'No'] },
+      control_baseline: { type: 'select', label: 'Control Baseline', required: true, options: ['FedRAMP Low', 'FedRAMP Moderate', 'FedRAMP High'] },
+      total_controls: { type: 'number', label: 'Total Controls to Assess', required: true },
+      focus_areas: { type: 'text', label: 'Assessment Focus Areas', required: true },
+      kickoff_date: { type: 'date', label: 'Kickoff Date', required: true },
+      interview_dates: { type: 'text', label: 'Interview Dates', required: true },
+      testing_dates: { type: 'text', label: 'Testing Dates', required: true },
+      draft_date: { type: 'date', label: 'Draft Report Date', required: true },
+      final_date: { type: 'date', label: 'Final Report Date', required: true },
+      custom_deliverable: { type: 'text', label: 'Additional Deliverable', required: false },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-13',
+    title: 'FedRAMP Integrated Inventory Workbook Reference',
+    description: 'Attachment 13 - Reference to integrated inventory (see fedramp-inventory for full version)',
+    framework: 'FedRAMP-Moderate',
+    category: 'inventory',
+    priority: 13,
+    documentType: 'worksheet',
+    required: true,
+    templateContent: `# Integrated Inventory Workbook
+## FedRAMP SSP Attachment 13
+
+**Note:** This attachment references the full Integrated Inventory Workbook available in the FedRAMP Core Documents (fedramp-inventory).
+
+### System Information
+**System Name:** {{system_name}}
+**Inventory Date:** {{inventory_date}}
+**Version:** {{version}}
+
+## Quick Summary
+**Hardware Assets:** {{hardware_count}}
+**Software Assets:** {{software_count}}
+**Network Devices:** {{network_count}}
+**Virtual Assets:** {{virtual_count}}
+**Cloud Services:** {{cloud_count}}
+
+## Key Components
+1. Hardware inventory with serial numbers and locations
+2. Software inventory with versions and licenses
+3. Network diagram and device inventory
+4. Virtual machine inventory
+5. Cloud service inventory
+6. Data flow diagrams
+
+**For complete inventory details, see:** FedRAMP Integrated Inventory Workbook (fedramp-inventory)
+
+## Inventory Management
+**Update Frequency:** {{update_frequency}}
+**Responsible Party:** {{inventory_owner}}
+**Last Updated:** {{last_updated}}
+
+**Prepared By:** {{prepared_by}}
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      inventory_date: { type: 'date', label: 'Inventory Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      hardware_count: { type: 'number', label: 'Hardware Asset Count', required: true },
+      software_count: { type: 'number', label: 'Software Asset Count', required: true },
+      network_count: { type: 'number', label: 'Network Device Count', required: true },
+      virtual_count: { type: 'number', label: 'Virtual Asset Count', required: true },
+      cloud_count: { type: 'number', label: 'Cloud Service Count', required: true },
+      update_frequency: { type: 'select', label: 'Update Frequency', required: true, options: ['Real-time', 'Daily', 'Weekly', 'Monthly'] },
+      inventory_owner: { type: 'text', label: 'Inventory Owner', required: true },
+      last_updated: { type: 'date', label: 'Last Updated', required: true },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
   }
 ];
 
