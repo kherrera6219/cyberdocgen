@@ -1262,6 +1262,523 @@ All Moderate SC controls PLUS:
   }
 ];
 
+// FedRAMP Core Required Documents
+export const FedRAMPCoreTemplates: DocumentTemplate[] = [
+  {
+    id: 'fedramp-rob',
+    title: 'Rules of Behavior (RoB)',
+    description: 'FedRAMP required Rules of Behavior for system users',
+    framework: 'FedRAMP',
+    category: 'policy',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Rules of Behavior (RoB)
+## {{system_name}}
+
+### System Information
+**System Name:** {{system_name}}
+**System Owner:** {{system_owner}}
+**Effective Date:** {{effective_date}}
+
+## 1. Purpose
+These Rules of Behavior establish responsibilities and expected behavior for all users of {{system_name}}. All users must read, understand, and acknowledge these rules before being granted access.
+
+## 2. Scope
+These rules apply to:
+- Federal employees
+- Contractors
+- Third-party users
+- Anyone granted access to {{system_name}}
+
+## 3. General Responsibilities
+
+### 3.1 Authorized Use
+Users are granted access solely for authorized government business purposes. Personal use is prohibited unless specifically authorized.
+
+### 3.2 Account Security
+- **Password Requirements:** {{password_requirements}}
+- **MFA Required:** {{mfa_required}}
+- **Account Sharing:** Strictly prohibited
+- **Session Timeout:** {{session_timeout}} minutes
+
+### 3.3 Data Handling
+**Data Classification Levels:**
+- Public
+- Internal Use Only
+- Sensitive
+- Classified (if applicable)
+
+**Handling Requirements:**
+{{data_handling_requirements}}
+
+## 4. Acceptable Use Policies
+
+### 4.1 Permitted Activities
+- Accessing information required for job duties
+- Communication for business purposes
+- Using approved software and tools
+- {{additional_permitted_activities}}
+
+### 4.2 Prohibited Activities
+- Unauthorized access attempts
+- Sharing credentials
+- Installing unauthorized software
+- Bypassing security controls
+- Personal use of government resources
+- Downloading/uploading unauthorized files
+- Connecting unauthorized devices
+- {{additional_prohibited_activities}}
+
+## 5. Security Requirements
+
+### 5.1 Physical Security
+- Lock workstations when unattended
+- Secure paper documents containing sensitive information
+- Report lost/stolen devices immediately
+- {{physical_security_requirements}}
+
+### 5.2 Information Security
+- Use encryption for sensitive data: {{encryption_requirements}}
+- Report security incidents within {{incident_reporting_time}}
+- Complete security awareness training: {{training_frequency}}
+- Follow clean desk policy: {{clean_desk_policy}}
+
+### 5.3 Remote Access
+**Remote Access Requirements:**
+- VPN required: {{vpn_required}}
+- Approved devices only: {{approved_devices}}
+- Secure network connections: {{secure_network_requirements}}
+
+## 6. Monitoring and Privacy
+
+**System Monitoring:**
+Users have no expectation of privacy when using {{system_name}}. All activities may be monitored, recorded, and audited for:
+- Security purposes
+- Performance monitoring
+- Compliance verification
+- Investigation of policy violations
+
+**Monitoring Includes:**
+- Network traffic
+- Email communications
+- File access and transfers
+- System commands
+- Authentication attempts
+
+## 7. Incident Reporting
+
+**Report Immediately:**
+- Suspected security incidents
+- Lost or stolen devices
+- Unauthorized access attempts
+- Malware infections
+- Data breaches
+- Policy violations
+
+**Reporting Contact:** {{incident_contact}}
+**Reporting Method:** {{reporting_method}}
+
+## 8. Consequences of Violations
+
+Violations may result in:
+- Access revocation
+- Administrative action
+- Disciplinary action
+- Criminal prosecution
+- Civil penalties
+
+## 9. Privacy Act Statement
+
+{{privacy_act_statement}}
+
+## 10. User Acknowledgment
+
+I acknowledge that I have read, understand, and agree to comply with these Rules of Behavior. I understand that violations may result in disciplinary action, including termination of access privileges and potential legal action.
+
+**User Name:** _________________________________
+
+**Signature:** _________________________________
+
+**Date:** _________________________________
+
+**Supervisor Approval:** _________________________________
+
+**Effective Date:** {{effective_date}}
+**Review Date:** {{review_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      system_owner: { type: 'text', label: 'System Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      password_requirements: { type: 'text', label: 'Password Requirements', required: true },
+      mfa_required: { type: 'select', label: 'MFA Required', required: true, options: ['Yes', 'No'] },
+      session_timeout: { type: 'number', label: 'Session Timeout (minutes)', required: true },
+      data_handling_requirements: { type: 'text', label: 'Data Handling Requirements', required: true },
+      encryption_requirements: { type: 'text', label: 'Encryption Requirements', required: true },
+      incident_reporting_time: { type: 'text', label: 'Incident Reporting Time', required: true },
+      training_frequency: { type: 'select', label: 'Training Frequency', required: true, options: ['Annually', 'Semi-annually', 'Upon hire'] },
+      vpn_required: { type: 'select', label: 'VPN Required', required: true, options: ['Yes', 'No'] },
+      incident_contact: { type: 'text', label: 'Incident Contact', required: true },
+      reporting_method: { type: 'text', label: 'Reporting Method', required: true },
+      privacy_act_statement: { type: 'text', label: 'Privacy Act Statement', required: true },
+      review_date: { type: 'date', label: 'Review Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-iscp',
+    title: 'Information System Contingency Plan (ISCP)',
+    description: 'FedRAMP required contingency plan for system recovery',
+    framework: 'FedRAMP',
+    category: 'plan',
+    priority: 1,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Information System Contingency Plan (ISCP)
+## {{system_name}}
+
+### Document Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**Date:** {{plan_date}}
+**Version:** {{version}}
+
+## 1. Executive Summary
+This Information System Contingency Plan provides procedures for recovery of {{system_name}} in the event of a system disruption or disaster.
+
+**Recovery Objectives:**
+- **Recovery Time Objective (RTO):** {{rto}}
+- **Recovery Point Objective (RPO):** {{rpo}}
+- **Maximum Tolerable Downtime (MTD):** {{mtd}}
+
+## 2. System Overview
+
+### 2.1 System Description
+{{system_description}}
+
+### 2.2 System Criticality
+**Criticality Level:** {{criticality_level}}
+**Business Impact:** {{business_impact}}
+
+### 2.3 System Architecture
+{{system_architecture}}
+
+## 3. Contingency Planning Team
+
+**Contingency Plan Coordinator:** {{coordinator_name}}
+**Contact:** {{coordinator_contact}}
+
+### 3.1 Team Members
+| Role | Name | Contact | Responsibilities |
+|------|------|---------|-----------------|
+| Team Lead | {{team_lead}} | {{lead_contact}} | Overall coordination |
+| Technical Lead | {{tech_lead}} | {{tech_contact}} | Technical recovery |
+| Communications | {{comm_lead}} | {{comm_contact}} | Stakeholder communication |
+| Security | {{security_lead}} | {{security_contact}} | Security verification |
+
+## 4. Backup Procedures
+
+### 4.1 Backup Strategy
+**Backup Type:** {{backup_type}}
+**Backup Frequency:** {{backup_frequency}}
+**Backup Location:** {{backup_location}}
+**Retention Period:** {{retention_period}}
+
+### 4.2 Data Backup
+- **User Data:** {{user_data_backup}}
+- **System Data:** {{system_data_backup}}
+- **Configuration:** {{config_backup}}
+- **Databases:** {{database_backup}}
+
+### 4.3 Backup Verification
+**Testing Frequency:** {{backup_test_frequency}}
+**Last Test Date:** {{last_test_date}}
+**Next Test Date:** {{next_test_date}}
+
+## 5. Alternate Processing Site
+
+**Primary Site:** {{primary_site}}
+**Alternate Site:** {{alternate_site}}
+**Geographic Separation:** {{geo_separation}}
+
+### 5.1 Alternate Site Capabilities
+{{alternate_site_capabilities}}
+
+### 5.2 Data Synchronization
+**Synchronization Method:** {{sync_method}}
+**Synchronization Frequency:** {{sync_frequency}}
+
+## 6. Recovery Procedures
+
+### 6.1 Activation and Notification
+
+**Activation Criteria:**
+{{activation_criteria}}
+
+**Notification Procedure:**
+1. Assess situation severity
+2. Notify Contingency Plan Coordinator
+3. Activate contingency team
+4. Begin recovery procedures
+
+**Notification List:**
+{{notification_list}}
+
+### 6.2 Recovery Steps
+
+#### Phase 1: Assessment (0-2 hours)
+1. Assess extent of disruption
+2. Determine recovery approach
+3. Activate contingency team
+4. Notify stakeholders
+
+#### Phase 2: Activation (2-8 hours)
+1. Activate alternate processing site
+2. Restore from backups
+3. Verify data integrity
+4. Test system functionality
+
+#### Phase 3: Recovery (8-24 hours)
+1. Restore full system operations
+2. Verify all services operational
+3. Monitor system performance
+4. Document recovery actions
+
+#### Phase 4: Reconstitution (24-72 hours)
+1. Return to primary site (if applicable)
+2. Validate full functionality
+3. Resume normal operations
+4. Conduct lessons learned
+
+### 6.3 System Recovery Procedures
+{{system_recovery_procedures}}
+
+### 6.4 Application Recovery
+{{application_recovery_procedures}}
+
+### 6.5 Database Recovery
+{{database_recovery_procedures}}
+
+## 7. Testing and Exercises
+
+### 7.1 Testing Schedule
+**Tabletop Exercises:** {{tabletop_frequency}}
+**Functional Tests:** {{functional_test_frequency}}
+**Full Recovery Test:** {{full_test_frequency}}
+
+### 7.2 Test Documentation
+{{test_documentation_requirements}}
+
+## 8. Plan Maintenance
+
+**Review Frequency:** {{plan_review_frequency}}
+**Update Triggers:**
+- Significant system changes
+- Organizational changes
+- Test results
+- Actual activation
+
+**Last Review:** {{last_review_date}}
+**Next Review:** {{next_review_date}}
+
+## 9. Appendices
+
+### Appendix A: Contact Lists
+{{contact_lists}}
+
+### Appendix B: System Inventory
+{{system_inventory}}
+
+### Appendix C: Vendor Contacts
+{{vendor_contacts}}
+
+### Appendix D: Recovery Forms
+{{recovery_forms}}
+
+## 10. Approval
+
+**Prepared By:** {{prepared_by}}
+**Reviewed By:** {{reviewed_by}}
+**Approved By:** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      plan_date: { type: 'date', label: 'Plan Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      rto: { type: 'text', label: 'Recovery Time Objective (RTO)', required: true },
+      rpo: { type: 'text', label: 'Recovery Point Objective (RPO)', required: true },
+      mtd: { type: 'text', label: 'Maximum Tolerable Downtime (MTD)', required: true },
+      system_description: { type: 'text', label: 'System Description', required: true },
+      criticality_level: { type: 'select', label: 'Criticality Level', required: true, options: ['Mission Critical', 'Critical', 'Important', 'Non-Critical'] },
+      coordinator_name: { type: 'text', label: 'Coordinator Name', required: true },
+      coordinator_contact: { type: 'text', label: 'Coordinator Contact', required: true },
+      backup_type: { type: 'select', label: 'Backup Type', required: true, options: ['Full', 'Incremental', 'Differential', 'Continuous'] },
+      backup_frequency: { type: 'select', label: 'Backup Frequency', required: true, options: ['Real-time', 'Hourly', 'Daily', 'Weekly'] },
+      backup_location: { type: 'text', label: 'Backup Location', required: true },
+      alternate_site: { type: 'text', label: 'Alternate Processing Site', required: true },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-cis',
+    title: 'Control Implementation Summary (CIS)',
+    description: 'FedRAMP Control Implementation Summary and customer responsibilities',
+    framework: 'FedRAMP',
+    category: 'assessment',
+    priority: 1,
+    documentType: 'standard',
+    required: true,
+    templateContent: `# Control Implementation Summary (CIS)
+## {{system_name}}
+
+### Document Information
+**System Name:** {{system_name}}
+**FedRAMP Baseline:** {{fedramp_baseline}}
+**Date:** {{document_date}}
+**Version:** {{version}}
+
+## 1. Introduction
+This Control Implementation Summary (CIS) provides a summary of how {{system_name}} implements FedRAMP security controls and identifies customer responsibilities.
+
+## 2. Control Implementation Status
+
+### Legend:
+- **CSP** - Cloud Service Provider Responsibility
+- **Customer** - Customer Responsibility
+- **Shared** - Shared Responsibility
+- **Inherited** - Inherited from infrastructure
+
+## 3. Control Summary by Family
+
+### 3.1 Access Control (AC) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| AC-1 | Implemented | CSP | Access control policy maintained by CSP |
+| AC-2 | Implemented | Shared | CSP manages infrastructure accounts; Customer manages application accounts |
+| AC-3 | Implemented | Shared | {{ac3_implementation}} |
+| AC-4 | Implemented | CSP | {{ac4_implementation}} |
+| AC-5 | Implemented | Shared | {{ac5_implementation}} |
+| AC-6 | Implemented | Shared | {{ac6_implementation}} |
+| AC-7 | Implemented | Customer | {{ac7_implementation}} |
+| AC-17 | Implemented | Shared | {{ac17_implementation}} |
+
+### 3.2 Audit and Accountability (AU) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| AU-1 | Implemented | CSP | Audit policy maintained by CSP |
+| AU-2 | Implemented | Shared | {{au2_implementation}} |
+| AU-3 | Implemented | CSP | {{au3_implementation}} |
+| AU-6 | Implemented | Shared | {{au6_implementation}} |
+| AU-9 | Implemented | CSP | {{au9_implementation}} |
+
+### 3.3 Configuration Management (CM) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| CM-1 | Implemented | CSP | Configuration management policy maintained by CSP |
+| CM-2 | Implemented | Shared | {{cm2_implementation}} |
+| CM-3 | Implemented | Shared | {{cm3_implementation}} |
+| CM-6 | Implemented | Shared | {{cm6_implementation}} |
+| CM-8 | Implemented | CSP | {{cm8_implementation}} |
+
+### 3.4 Contingency Planning (CP) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| CP-1 | Implemented | CSP | Contingency planning policy maintained by CSP |
+| CP-2 | Implemented | Shared | {{cp2_implementation}} |
+| CP-9 | Implemented | CSP | {{cp9_implementation}} |
+| CP-10 | Implemented | CSP | {{cp10_implementation}} |
+
+### 3.5 Identification and Authentication (IA) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| IA-1 | Implemented | CSP | I&A policy maintained by CSP |
+| IA-2 | Implemented | Shared | {{ia2_implementation}} |
+| IA-5 | Implemented | Shared | {{ia5_implementation}} |
+
+### 3.6 Incident Response (IR) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| IR-1 | Implemented | CSP | Incident response policy maintained by CSP |
+| IR-4 | Implemented | Shared | {{ir4_implementation}} |
+| IR-6 | Implemented | Shared | {{ir6_implementation}} |
+
+### 3.7 System and Communications Protection (SC) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| SC-1 | Implemented | CSP | System protection policy maintained by CSP |
+| SC-7 | Implemented | CSP | {{sc7_implementation}} |
+| SC-8 | Implemented | CSP | {{sc8_implementation}} |
+| SC-12 | Implemented | CSP | {{sc12_implementation}} |
+| SC-13 | Implemented | CSP | {{sc13_implementation}} |
+
+### 3.8 System and Information Integrity (SI) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| SI-1 | Implemented | CSP | System integrity policy maintained by CSP |
+| SI-2 | Implemented | Shared | {{si2_implementation}} |
+| SI-3 | Implemented | Shared | {{si3_implementation}} |
+| SI-4 | Implemented | CSP | {{si4_implementation}} |
+
+## 4. Customer Responsibilities
+
+### 4.1 Account Management
+Customers are responsible for:
+{{customer_account_responsibilities}}
+
+### 4.2 Data Protection
+Customers are responsible for:
+{{customer_data_responsibilities}}
+
+### 4.3 Application Security
+Customers are responsible for:
+{{customer_application_responsibilities}}
+
+### 4.4 Compliance and Monitoring
+Customers are responsible for:
+{{customer_compliance_responsibilities}}
+
+## 5. Shared Responsibilities
+
+### 5.1 Security Monitoring
+{{shared_monitoring}}
+
+### 5.2 Incident Response
+{{shared_incident_response}}
+
+### 5.3 Patch Management
+{{shared_patch_management}}
+
+## 6. Inherited Controls
+
+The following controls are fully inherited from the infrastructure provider:
+{{inherited_controls}}
+
+## 7. Implementation Notes
+
+{{implementation_notes}}
+
+## 8. Approval
+
+**Prepared By:** {{prepared_by}}
+**Reviewed By:** {{reviewed_by}}
+**Approved By:** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      fedramp_baseline: { type: 'select', label: 'FedRAMP Baseline', required: true, options: ['Low', 'Moderate', 'High'] },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      customer_account_responsibilities: { type: 'text', label: 'Customer Account Responsibilities', required: true },
+      customer_data_responsibilities: { type: 'text', label: 'Customer Data Responsibilities', required: true },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  }
+];
+
 // NIST 800-53 Rev 5.1.1 Templates
 export const NIST80053Templates: DocumentTemplate[] = [
   {
