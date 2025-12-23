@@ -1510,6 +1510,415 @@ All controls subject to continuous monitoring with annual assessment and real-ti
       approved_by: { type: 'text', label: 'Approved By', required: true },
       effective_date: { type: 'date', label: 'Effective Date', required: true }
     }
+  },
+  {
+    id: 'nist-002',
+    title: 'Plan of Action and Milestones (POA&M)',
+    description: 'Tracks security weaknesses and remediation plans (NIST 800-53 Rev 5)',
+    framework: 'NIST-800-53',
+    category: 'assessment',
+    priority: 1,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Plan of Action and Milestones (POA&M)
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**POA&M Date:** {{poam_date}}
+**POA&M ID:** {{poam_id}}
+
+## 1. Executive Summary
+This POA&M identifies security weaknesses discovered during assessment of {{system_name}} and documents the planned remediation actions, resources, and milestones for addressing each weakness.
+
+**Total Weaknesses Identified:** {{total_weaknesses}}
+**Critical:** {{critical_count}} | **High:** {{high_count}} | **Moderate:** {{moderate_count}} | **Low:** {{low_count}}
+
+## 2. POA&M Items
+
+### Item 1: {{weakness_1_title}}
+**Weakness ID:** {{weakness_1_id}}
+**Control:** {{weakness_1_control}}
+**Risk Level:** {{weakness_1_risk}}
+**Status:** {{weakness_1_status}}
+
+**Description:**
+{{weakness_1_description}}
+
+**Remediation Plan:**
+{{weakness_1_remediation}}
+
+**Resources Required:**
+{{weakness_1_resources}}
+
+**Milestones:**
+- Milestone 1: {{weakness_1_milestone_1}} - Target: {{weakness_1_date_1}}
+- Milestone 2: {{weakness_1_milestone_2}} - Target: {{weakness_1_date_2}}
+- Milestone 3: {{weakness_1_milestone_3}} - Target: {{weakness_1_date_3}}
+
+**Completion Date:** {{weakness_1_completion}}
+**Point of Contact:** {{weakness_1_poc}}
+
+---
+
+### Item 2: {{weakness_2_title}}
+**Weakness ID:** {{weakness_2_id}}
+**Control:** {{weakness_2_control}}
+**Risk Level:** {{weakness_2_risk}}
+**Status:** {{weakness_2_status}}
+
+**Description:**
+{{weakness_2_description}}
+
+**Remediation Plan:**
+{{weakness_2_remediation}}
+
+**Resources Required:**
+{{weakness_2_resources}}
+
+**Milestones:**
+- Milestone 1: {{weakness_2_milestone_1}} - Target: {{weakness_2_date_1}}
+- Milestone 2: {{weakness_2_milestone_2}} - Target: {{weakness_2_date_2}}
+
+**Completion Date:** {{weakness_2_completion}}
+**Point of Contact:** {{weakness_2_poc}}
+
+---
+
+## 3. Completion Tracking
+POA&M items will be reviewed {{review_frequency}} and updated as remediation progresses.
+
+**Next Review Date:** {{next_review_date}}
+**Authorizing Official:** {{authorizing_official}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      poam_date: { type: 'date', label: 'POA&M Date', required: true },
+      poam_id: { type: 'text', label: 'POA&M ID', required: true },
+      total_weaknesses: { type: 'number', label: 'Total Weaknesses', required: true },
+      critical_count: { type: 'number', label: 'Critical Count', required: false },
+      high_count: { type: 'number', label: 'High Count', required: false },
+      moderate_count: { type: 'number', label: 'Moderate Count', required: false },
+      low_count: { type: 'number', label: 'Low Count', required: false },
+      weakness_1_title: { type: 'text', label: 'Weakness 1 Title', required: false },
+      weakness_1_id: { type: 'text', label: 'Weakness 1 ID', required: false },
+      weakness_1_control: { type: 'text', label: 'Weakness 1 Control', required: false },
+      weakness_1_risk: { type: 'select', label: 'Weakness 1 Risk Level', required: false, options: ['Critical', 'High', 'Moderate', 'Low'] },
+      weakness_1_status: { type: 'select', label: 'Weakness 1 Status', required: false, options: ['Open', 'In Progress', 'Completed', 'Risk Accepted'] },
+      weakness_1_description: { type: 'text', label: 'Weakness 1 Description', required: false },
+      weakness_1_remediation: { type: 'text', label: 'Weakness 1 Remediation', required: false },
+      weakness_1_resources: { type: 'text', label: 'Weakness 1 Resources', required: false },
+      weakness_1_completion: { type: 'date', label: 'Weakness 1 Completion Date', required: false },
+      weakness_1_poc: { type: 'text', label: 'Weakness 1 POC', required: false },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      next_review_date: { type: 'date', label: 'Next Review Date', required: true },
+      authorizing_official: { type: 'text', label: 'Authorizing Official', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-003',
+    title: 'Security Assessment Report (SAR)',
+    description: 'Documents security control assessment results (NIST 800-53 Rev 5)',
+    framework: 'NIST-800-53',
+    category: 'assessment',
+    priority: 1,
+    documentType: 'report',
+    required: true,
+    templateContent: `# Security Assessment Report (SAR)
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**Assessment Date:** {{assessment_date}}
+**Assessor:** {{assessor_name}}
+**Assessment Type:** {{assessment_type}}
+
+## 1. Executive Summary
+This Security Assessment Report documents the assessment of security controls for {{system_name}} conducted in accordance with NIST SP 800-53A Rev 5 assessment procedures.
+
+**Assessment Period:** {{assessment_start}} to {{assessment_end}}
+**Overall Assessment Result:** {{overall_result}}
+
+### Summary of Findings
+- **Total Controls Assessed:** {{total_controls}}
+- **Satisfied:** {{satisfied_count}}
+- **Other than Satisfied:** {{other_than_satisfied}}
+- **Not Applicable:** {{not_applicable}}
+
+## 2. Assessment Methodology
+**Assessment Methods Used:**
+- Examine: {{examine_details}}
+- Interview: {{interview_details}}
+- Test: {{test_details}}
+
+**Assessment Team:**
+{{assessment_team}}
+
+## 3. System Characterization
+**System Description:** {{system_description}}
+**System Boundaries:** {{system_boundaries}}
+**Authorization Boundary:** {{auth_boundary}}
+
+**System Components:**
+{{system_components}}
+
+**Security Impact Level:**
+- Confidentiality: {{confidentiality_level}}
+- Integrity: {{integrity_level}}
+- Availability: {{availability_level}}
+
+## 4. Control Assessment Results
+
+### 4.1 Access Control (AC) Family
+**Controls Assessed:** {{ac_controls_assessed}}
+**Result:** {{ac_result}}
+**Findings:** {{ac_findings}}
+
+### 4.2 Audit and Accountability (AU) Family
+**Controls Assessed:** {{au_controls_assessed}}
+**Result:** {{au_result}}
+**Findings:** {{au_findings}}
+
+### 4.3 Contingency Planning (CP) Family
+**Controls Assessed:** {{cp_controls_assessed}}
+**Result:** {{cp_result}}
+**Findings:** {{cp_findings}}
+
+### 4.4 Identification and Authentication (IA) Family
+**Controls Assessed:** {{ia_controls_assessed}}
+**Result:** {{ia_result}}
+**Findings:** {{ia_findings}}
+
+### 4.5 Incident Response (IR) Family
+**Controls Assessed:** {{ir_controls_assessed}}
+**Result:** {{ir_result}}
+**Findings:** {{ir_findings}}
+
+### 4.6 System and Communications Protection (SC) Family
+**Controls Assessed:** {{sc_controls_assessed}}
+**Result:** {{sc_result}}
+**Findings:** {{sc_findings}}
+
+## 5. Risk Summary
+**High Risk Items:** {{high_risk_count}}
+{{high_risk_items}}
+
+**Moderate Risk Items:** {{moderate_risk_count}}
+{{moderate_risk_items}}
+
+**Low Risk Items:** {{low_risk_count}}
+{{low_risk_items}}
+
+## 6. Recommendations
+{{recommendations}}
+
+## 7. Conclusion
+{{conclusion}}
+
+**Assessment Lead:** {{assessment_lead}}
+**Authorizing Official:** {{authorizing_official}}
+**Date:** {{report_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      assessment_date: { type: 'date', label: 'Assessment Date', required: true },
+      assessor_name: { type: 'text', label: 'Assessor Name', required: true },
+      assessment_type: { type: 'select', label: 'Assessment Type', required: true, options: ['Initial', 'Annual', 'Continuous Monitoring'] },
+      assessment_start: { type: 'date', label: 'Assessment Start Date', required: true },
+      assessment_end: { type: 'date', label: 'Assessment End Date', required: true },
+      overall_result: { type: 'select', label: 'Overall Result', required: true, options: ['Satisfactory', 'Unsatisfactory', 'Conditional'] },
+      total_controls: { type: 'number', label: 'Total Controls Assessed', required: true },
+      satisfied_count: { type: 'number', label: 'Satisfied Controls', required: true },
+      other_than_satisfied: { type: 'number', label: 'Other Than Satisfied', required: true },
+      not_applicable: { type: 'number', label: 'Not Applicable', required: false },
+      system_description: { type: 'text', label: 'System Description', required: true },
+      confidentiality_level: { type: 'select', label: 'Confidentiality Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      integrity_level: { type: 'select', label: 'Integrity Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      availability_level: { type: 'select', label: 'Availability Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      assessment_lead: { type: 'text', label: 'Assessment Lead', required: true },
+      authorizing_official: { type: 'text', label: 'Authorizing Official', required: true },
+      report_date: { type: 'date', label: 'Report Date', required: true }
+    }
+  },
+  {
+    id: 'nist-004',
+    title: 'Privacy Impact Assessment (PIA)',
+    description: 'Analyzes privacy implications and compliance (NIST 800-53 Rev 5)',
+    framework: 'NIST-800-53',
+    category: 'assessment',
+    priority: 2,
+    documentType: 'assessment',
+    required: true,
+    templateContent: `# Privacy Impact Assessment (PIA)
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**PIA Date:** {{pia_date}}
+**Privacy Officer:** {{privacy_officer}}
+
+## 1. Executive Summary
+This Privacy Impact Assessment evaluates the privacy implications of {{system_name}} and ensures compliance with applicable privacy requirements and NIST SP 800-53 Rev 5 privacy controls.
+
+**System Owner:** {{system_owner}}
+**Privacy Impact Rating:** {{privacy_impact_rating}}
+
+## 2. System Description
+**System Purpose:** {{system_purpose}}
+
+**System Functions:** {{system_functions}}
+
+**User Population:** {{user_population}}
+
+## 3. Personally Identifiable Information (PII)
+
+### 3.1 PII Collected
+**Types of PII Collected:**
+{{pii_types}}
+
+**Volume of Records:** {{record_volume}}
+
+### 3.2 Sources of PII
+{{pii_sources}}
+
+### 3.3 Purpose of PII Collection
+{{pii_purpose}}
+
+### 3.4 PII Sharing
+**Internal Sharing:** {{internal_sharing}}
+
+**External Sharing:** {{external_sharing}}
+
+**Third Parties:** {{third_parties}}
+
+## 4. Privacy Risk Analysis
+
+### 4.1 Information Sharing Risks
+**Risk Level:** {{sharing_risk}}
+**Description:** {{sharing_risk_desc}}
+**Mitigation:** {{sharing_mitigation}}
+
+### 4.2 Data Quality and Integrity Risks
+**Risk Level:** {{quality_risk}}
+**Description:** {{quality_risk_desc}}
+**Mitigation:** {{quality_mitigation}}
+
+### 4.3 Individual Participation Risks
+**Risk Level:** {{participation_risk}}
+**Description:** {{participation_risk_desc}}
+**Mitigation:** {{participation_mitigation}}
+
+### 4.4 Security Risks
+**Risk Level:** {{security_risk}}
+**Description:** {{security_risk_desc}}
+**Mitigation:** {{security_mitigation}}
+
+## 5. Privacy Controls Implementation
+
+### PT-1: Policy and Procedures
+{{pt1_implementation}}
+
+### PT-2: Authority to Collect
+**Legal Authority:** {{collection_authority}}
+
+### PT-3: PII Processing Purposes
+**Documented Purposes:** {{processing_purposes}}
+
+### PT-4: Consent
+**Consent Mechanism:** {{consent_mechanism}}
+
+### PT-5: Privacy Notice
+**Notice Provided:** {{privacy_notice}}
+
+### PT-6: System of Records Notice (SORN)
+{{sorn_status}}
+
+### PT-7: Specific Categories of PII
+**Special Categories:** {{special_categories}}
+**Handling:** {{special_handling}}
+
+### PT-8: Computer Matching Requirements
+{{computer_matching}}
+
+## 6. Data Lifecycle Management
+
+**Collection:** {{collection_practices}}
+
+**Retention:** {{retention_period}}
+
+**Disposal:** {{disposal_method}}
+
+**Minimization:** {{minimization_practices}}
+
+## 7. Individual Rights
+
+**Access Rights:** {{access_rights}}
+
+**Correction Rights:** {{correction_rights}}
+
+**Deletion Rights:** {{deletion_rights}}
+
+**Objection Rights:** {{objection_rights}}
+
+## 8. Privacy Training
+{{privacy_training}}
+
+## 9. Privacy Incidents
+**Incident Response Plan:** {{incident_plan}}
+**Notification Procedures:** {{notification_procedures}}
+
+## 10. Compliance Assessment
+**NIST 800-53 Privacy Controls:** {{controls_compliant}}
+**Privacy Act Compliance:** {{privacy_act_compliant}}
+**GDPR Applicability:** {{gdpr_applicable}}
+**Other Regulations:** {{other_regulations}}
+
+## 11. Recommendations
+{{recommendations}}
+
+## 12. Approval
+
+**Privacy Officer:** {{privacy_officer}}
+**System Owner:** {{system_owner}}
+**Authorizing Official:** {{authorizing_official}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      pia_date: { type: 'date', label: 'PIA Date', required: true },
+      privacy_officer: { type: 'text', label: 'Privacy Officer', required: true },
+      system_owner: { type: 'text', label: 'System Owner', required: true },
+      privacy_impact_rating: { type: 'select', label: 'Privacy Impact Rating', required: true, options: ['Low', 'Moderate', 'High'] },
+      system_purpose: { type: 'text', label: 'System Purpose', required: true },
+      pii_types: { type: 'text', label: 'Types of PII Collected', required: true },
+      record_volume: { type: 'text', label: 'Volume of Records', required: true },
+      pii_sources: { type: 'text', label: 'Sources of PII', required: true },
+      pii_purpose: { type: 'text', label: 'Purpose of PII Collection', required: true },
+      internal_sharing: { type: 'text', label: 'Internal Sharing', required: true },
+      external_sharing: { type: 'text', label: 'External Sharing', required: true },
+      sharing_risk: { type: 'select', label: 'Information Sharing Risk Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      quality_risk: { type: 'select', label: 'Data Quality Risk Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      participation_risk: { type: 'select', label: 'Participation Risk Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      security_risk: { type: 'select', label: 'Security Risk Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      collection_authority: { type: 'text', label: 'Legal Authority to Collect', required: true },
+      processing_purposes: { type: 'text', label: 'Processing Purposes', required: true },
+      consent_mechanism: { type: 'text', label: 'Consent Mechanism', required: true },
+      privacy_notice: { type: 'text', label: 'Privacy Notice', required: true },
+      retention_period: { type: 'text', label: 'Retention Period', required: true },
+      disposal_method: { type: 'text', label: 'Disposal Method', required: true },
+      authorizing_official: { type: 'text', label: 'Authorizing Official', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
   }
 ];
 
@@ -5198,6 +5607,1130 @@ Memory protection: {{memory_protection}}
       integrity_monitoring: { type: 'text', label: 'Integrity Monitoring', required: true },
       input_validation: { type: 'text', label: 'Input Validation Methods', required: true },
       retention_policy: { type: 'text', label: 'Retention Policy', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-at',
+    title: 'Awareness and Training (AT) Family',
+    description: 'NIST 800-53 Rev 5 Awareness and Training family documentation',
+    framework: 'NIST-800-53',
+    category: 'AT',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Awareness and Training (AT) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## AT-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates security awareness and training policy.
+
+**Policy Review:** {{policy_review_freq}}
+**Procedure Review:** {{procedure_review_freq}}
+
+## AT-2 Literacy Training and Awareness
+**Training Frequency:** {{training_frequency}}
+**Training Topics:**
+- Security roles and responsibilities
+- Proper email and internet usage
+- Password management
+- Social engineering awareness
+- Incident reporting
+- {{additional_topics}}
+
+**Training Methods:** {{training_methods}}
+**Completion Tracking:** {{completion_tracking}}
+
+## AT-3 Role-Based Training
+**Training by Role:**
+- System Administrators: {{admin_training}}
+- Developers: {{developer_training}}
+- Privileged Users: {{privileged_training}}
+- General Users: {{general_training}}
+
+**Training Before Access:** {{before_access_training}}
+**Annual Refresher:** {{annual_refresher}}
+
+## AT-4 Training Records
+**Record Retention:** {{record_retention}}
+**Records Include:** Individual training, training dates, training types completed
+
+## AT-5 Contacts with Security Groups
+**External Contacts:**
+{{security_groups}}
+
+**Information Sharing:** {{info_sharing}}
+
+## AT-6 Training Feedback
+**Feedback Mechanisms:** {{feedback_methods}}
+**Training Improvements:** {{improvements}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      policy_review_freq: { type: 'select', label: 'Policy Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      procedure_review_freq: { type: 'select', label: 'Procedure Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      training_frequency: { type: 'select', label: 'Training Frequency', required: true, options: ['Annually', 'Semi-annually', 'Upon Hire'] },
+      training_methods: { type: 'text', label: 'Training Methods', required: true },
+      completion_tracking: { type: 'text', label: 'Completion Tracking System', required: true },
+      record_retention: { type: 'text', label: 'Record Retention Period', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-ca',
+    title: 'Assessment, Authorization, and Monitoring (CA) Family',
+    description: 'NIST 800-53 Rev 5 Assessment, Authorization, and Monitoring family documentation',
+    framework: 'NIST-800-53',
+    category: 'CA',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Assessment, Authorization, and Monitoring (CA) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## CA-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates assessment, authorization, and monitoring policy.
+
+## CA-2 Control Assessments
+**Assessment Frequency:** {{assessment_frequency}}
+**Assessment Scope:** {{assessment_scope}}
+**Independent Assessor:** {{independent_assessor}}
+**Assessment Methods:** Examine, Interview, Test
+
+## CA-3 Information Exchange
+**Interconnection Agreements:** {{interconnection_agreements}}
+**Data Exchange Requirements:** {{exchange_requirements}}
+
+## CA-5 Plan of Action and Milestones (POA&M)
+**POA&M Updates:** {{poam_update_freq}}
+**Tracking System:** {{tracking_system}}
+
+## CA-6 Authorization
+**Authorizing Official:** {{authorizing_official}}
+**Authorization Type:** {{authorization_type}}
+**Reauthorization:** {{reauth_frequency}}
+
+## CA-7 Continuous Monitoring
+**Monitoring Strategy:** {{monitoring_strategy}}
+**Monitoring Frequency:** {{monitoring_frequency}}
+
+**Metrics Monitored:**
+- Security control effectiveness
+- Changes to system
+- Compliance status
+- {{additional_metrics}}
+
+**Reporting:** {{reporting_frequency}}
+
+## CA-8 Penetration Testing
+**Testing Frequency:** {{pentest_frequency}}
+**Testing Scope:** {{pentest_scope}}
+**Tester Qualifications:** {{tester_quals}}
+
+## CA-9 Internal System Connections
+**Authorized Connections:** {{authorized_connections}}
+**Connection Reviews:** {{connection_review_freq}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      assessment_frequency: { type: 'select', label: 'Assessment Frequency', required: true, options: ['Annually', 'Every 3 years', 'Continuously'] },
+      independent_assessor: { type: 'select', label: 'Independent Assessor', required: true, options: ['Yes', 'No', 'Planned'] },
+      authorizing_official: { type: 'text', label: 'Authorizing Official', required: true },
+      authorization_type: { type: 'select', label: 'Authorization Type', required: true, options: ['ATO', 'IATT', 'IATO'] },
+      reauth_frequency: { type: 'select', label: 'Reauthorization Frequency', required: true, options: ['Every 3 years', 'Annually', 'As needed'] },
+      monitoring_strategy: { type: 'text', label: 'Continuous Monitoring Strategy', required: true },
+      monitoring_frequency: { type: 'select', label: 'Monitoring Frequency', required: true, options: ['Continuous', 'Daily', 'Weekly', 'Monthly'] },
+      pentest_frequency: { type: 'select', label: 'Penetration Testing Frequency', required: true, options: ['Annually', 'Bi-annually', 'As needed'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-cp',
+    title: 'Contingency Planning (CP) Family',
+    description: 'NIST 800-53 Rev 5 Contingency Planning family documentation',
+    framework: 'NIST-800-53',
+    category: 'CP',
+    priority: 2,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Contingency Planning (CP) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## CP-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates contingency planning policy.
+
+## CP-2 Contingency Plan
+**Plan Review:** {{plan_review_freq}}
+**Plan Testing:** {{plan_test_freq}}
+**Plan Distribution:** {{plan_distribution}}
+
+**Key Personnel:**
+- Contingency Plan Coordinator: {{coordinator}}
+- Emergency Response Team: {{response_team}}
+
+## CP-3 Contingency Training
+**Training Frequency:** {{training_frequency}}
+**Training Audience:** {{training_audience}}
+
+## CP-4 Contingency Plan Testing
+**Test Frequency:** {{test_frequency}}
+**Test Types:**
+- Tabletop exercises
+- Functional tests
+- Full-scale exercises
+- {{additional_tests}}
+
+**Test Documentation:** {{test_documentation}}
+
+## CP-6 Alternate Storage Site
+**Alternate Site:** {{alternate_site}}
+**Geographic Separation:** {{geo_separation}}
+**Readiness:** {{site_readiness}}
+
+## CP-7 Alternate Processing Site
+**Processing Site:** {{processing_site}}
+**Transfer Time:** {{transfer_time}}
+**Data Synchronization:** {{data_sync}}
+
+## CP-8 Telecommunications Services
+**Primary Provider:** {{primary_telecom}}
+**Alternate Provider:** {{alternate_telecom}}
+
+## CP-9 System Backup
+**Backup Frequency:**
+- User data: {{user_backup_freq}}
+- System data: {{system_backup_freq}}
+- Configuration: {{config_backup_freq}}
+
+**Backup Location:** {{backup_location}}
+**Backup Testing:** {{backup_test_freq}}
+
+## CP-10 System Recovery and Reconstitution
+**Recovery Time Objective (RTO):** {{rto}}
+**Recovery Point Objective (RPO):** {{rpo}}
+
+**Recovery Procedures:**
+{{recovery_procedures}}
+
+**Restoration Priority:** {{restoration_priority}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      plan_review_freq: { type: 'select', label: 'Plan Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      plan_test_freq: { type: 'select', label: 'Plan Testing Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      coordinator: { type: 'text', label: 'Contingency Plan Coordinator', required: true },
+      test_frequency: { type: 'select', label: 'Test Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      alternate_site: { type: 'text', label: 'Alternate Storage Site', required: true },
+      processing_site: { type: 'text', label: 'Alternate Processing Site', required: true },
+      user_backup_freq: { type: 'select', label: 'User Data Backup Frequency', required: true, options: ['Real-time', 'Daily', 'Weekly'] },
+      system_backup_freq: { type: 'select', label: 'System Data Backup Frequency', required: true, options: ['Real-time', 'Daily', 'Weekly'] },
+      rto: { type: 'text', label: 'Recovery Time Objective (RTO)', required: true },
+      rpo: { type: 'text', label: 'Recovery Point Objective (RPO)', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-ma',
+    title: 'Maintenance (MA) Family',
+    description: 'NIST 800-53 Rev 5 Maintenance family documentation',
+    framework: 'NIST-800-53',
+    category: 'MA',
+    priority: 5,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Maintenance (MA) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## MA-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates system maintenance policy.
+
+## MA-2 Controlled Maintenance
+**Maintenance Schedule:** {{maintenance_schedule}}
+**Maintenance Windows:** {{maintenance_windows}}
+**Approval Required:** {{approval_required}}
+
+**Maintenance Activities:**
+- Scheduled maintenance
+- Preventive maintenance
+- Corrective maintenance
+- Emergency maintenance
+
+**Documentation:** {{maintenance_documentation}}
+
+## MA-3 Maintenance Tools
+**Authorized Tools:** {{authorized_tools}}
+**Tool Inspection:** {{tool_inspection}}
+**Tool Removal:** {{tool_removal}}
+
+## MA-4 Nonlocal Maintenance
+**Remote Maintenance:** {{remote_maintenance_allowed}}
+**Remote Access Methods:** {{remote_methods}}
+**MFA Required:** {{mfa_required}}
+**Session Logging:** {{session_logging}}
+
+**Authorization:** {{maintenance_authorization}}
+
+## MA-5 Maintenance Personnel
+**Authorized Personnel:** {{authorized_personnel}}
+**Escort Requirements:** {{escort_requirements}}
+
+**Personnel Screening:**
+{{personnel_screening}}
+
+## MA-6 Timely Maintenance
+**Mean Time to Repair (MTTR):** {{mttr}}
+**Spare Parts:** {{spare_parts}}
+**Vendor Support:** {{vendor_support}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      maintenance_schedule: { type: 'text', label: 'Maintenance Schedule', required: true },
+      maintenance_windows: { type: 'text', label: 'Maintenance Windows', required: true },
+      approval_required: { type: 'select', label: 'Approval Required', required: true, options: ['Yes', 'For critical systems only', 'No'] },
+      authorized_tools: { type: 'text', label: 'Authorized Maintenance Tools', required: true },
+      remote_maintenance_allowed: { type: 'select', label: 'Remote Maintenance Allowed', required: true, options: ['Yes', 'With approval', 'No'] },
+      mfa_required: { type: 'select', label: 'MFA Required for Remote', required: true, options: ['Yes', 'No'] },
+      escort_requirements: { type: 'select', label: 'Escort Requirements', required: true, options: ['Required', 'Not required', 'Situational'] },
+      mttr: { type: 'text', label: 'Mean Time to Repair (MTTR)', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-mp',
+    title: 'Media Protection (MP) Family',
+    description: 'NIST 800-53 Rev 5 Media Protection family documentation',
+    framework: 'NIST-800-53',
+    category: 'MP',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Media Protection (MP) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## MP-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates media protection policy.
+
+## MP-2 Media Access
+**Access Authorization:** {{access_authorization}}
+**Media Library:** {{media_library}}
+
+**Access Controls:**
+{{access_controls}}
+
+## MP-3 Media Marking
+**Marking Requirements:**
+- Classification level
+- Distribution limitations
+- Handling caveats
+- {{additional_markings}}
+
+**Labeling Methods:** {{labeling_methods}}
+
+## MP-4 Media Storage
+**Storage Locations:** {{storage_locations}}
+**Storage Controls:** {{storage_controls}}
+**Environmental Controls:** {{environmental_controls}}
+
+## MP-5 Media Transport
+**Transport Authorization:** {{transport_authorization}}
+**Courier Requirements:** {{courier_requirements}}
+**Encryption Required:** {{encryption_required}}
+**Chain of Custody:** {{chain_of_custody}}
+
+## MP-6 Media Sanitization
+**Sanitization Methods:**
+- Clear: {{clear_method}}
+- Purge: {{purge_method}}
+- Destroy: {{destroy_method}}
+
+**Sanitization Tools:** {{sanitization_tools}}
+**Verification:** {{sanitization_verification}}
+**Documentation:** {{sanitization_documentation}}
+
+## MP-7 Media Use
+**Authorized Use:** {{authorized_use}}
+**Prohibited Use:** {{prohibited_use}}
+**Removable Media:** {{removable_media_policy}}
+
+## MP-8 Media Downgrading
+**Downgrading Process:** {{downgrading_process}}
+**Authorization:** {{downgrading_authorization}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      access_authorization: { type: 'text', label: 'Access Authorization Process', required: true },
+      labeling_methods: { type: 'text', label: 'Labeling Methods', required: true },
+      storage_locations: { type: 'text', label: 'Storage Locations', required: true },
+      storage_controls: { type: 'text', label: 'Storage Controls', required: true },
+      transport_authorization: { type: 'text', label: 'Transport Authorization', required: true },
+      encryption_required: { type: 'select', label: 'Encryption Required for Transport', required: true, options: ['Yes', 'For sensitive only', 'No'] },
+      clear_method: { type: 'text', label: 'Clear Method', required: true },
+      purge_method: { type: 'text', label: 'Purge Method', required: true },
+      destroy_method: { type: 'text', label: 'Destroy Method', required: true },
+      removable_media_policy: { type: 'select', label: 'Removable Media Policy', required: true, options: ['Prohibited', 'Allowed with approval', 'Allowed'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-pe',
+    title: 'Physical and Environmental Protection (PE) Family',
+    description: 'NIST 800-53 Rev 5 Physical and Environmental Protection family documentation',
+    framework: 'NIST-800-53',
+    category: 'PE',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Physical and Environmental Protection (PE) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**Facility:** {{facility_name}}
+
+## PE-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates physical and environmental protection policy.
+
+## PE-2 Physical Access Authorizations
+**Authorization Process:** {{authorization_process}}
+**Access List Review:** {{access_review_freq}}
+**Visitor Management:** {{visitor_management}}
+
+## PE-3 Physical Access Control
+**Access Control Methods:**
+- {{access_method_1}}
+- {{access_method_2}}
+- {{access_method_3}}
+
+**Badge System:** {{badge_system}}
+**Entry Points:** {{entry_points}}
+**24/7 Monitoring:** {{monitoring_247}}
+
+## PE-4 Access Control for Transmission
+**Physical access controls for transmission and distribution systems:**
+{{transmission_controls}}
+
+## PE-5 Access Control for Output Devices
+**Output Device Controls:** {{output_controls}}
+**Printer Security:** {{printer_security}}
+
+## PE-6 Monitoring Physical Access
+**Monitoring Systems:**
+- CCTV: {{cctv_system}}
+- Intrusion Detection: {{intrusion_detection}}
+- Guard Services: {{guard_services}}
+
+**Recording Retention:** {{recording_retention}}
+**Review Frequency:** {{review_frequency}}
+
+## PE-8 Visitor Access Records
+**Visitor Log:** {{visitor_log_system}}
+**Escort Requirements:** {{escort_required}}
+**Badge Issuance:** {{visitor_badges}}
+**Record Retention:** {{visitor_record_retention}}
+
+## PE-9 Power Equipment and Cabling
+**UPS:** {{ups_system}}
+**Generator:** {{generator}}
+**Power Redundancy:** {{power_redundancy}}
+
+## PE-10 Emergency Shutoff
+**Shutoff Locations:** {{shutoff_locations}}
+**Emergency Power Off (EPO):** {{epo_system}}
+
+## PE-11 Emergency Power
+**Emergency Power Source:** {{emergency_power}}
+**Transition Time:** {{transition_time}}
+**Fuel Supply:** {{fuel_supply}}
+
+## PE-12 Emergency Lighting
+**Emergency Lighting:** {{emergency_lighting}}
+**Coverage Areas:** {{coverage_areas}}
+
+## PE-13 Fire Protection
+**Fire Suppression:** {{fire_suppression}}
+**Fire Detection:** {{fire_detection}}
+**Inspection Frequency:** {{fire_inspection_freq}}
+
+## PE-14 Environmental Controls
+**Temperature Range:** {{temp_range}}
+**Humidity Range:** {{humidity_range}}
+**Monitoring System:** {{environmental_monitoring}}
+
+## PE-15 Water Damage Protection
+**Water Detection:** {{water_detection}}
+**Shutoff Valves:** {{shutoff_valves}}
+
+## PE-16 Delivery and Removal
+**Loading Dock Controls:** {{loading_dock_controls}}
+**Inspection Process:** {{inspection_process}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      facility_name: { type: 'text', label: 'Facility Name', required: true },
+      authorization_process: { type: 'text', label: 'Authorization Process', required: true },
+      access_review_freq: { type: 'select', label: 'Access Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      badge_system: { type: 'text', label: 'Badge System', required: true },
+      monitoring_247: { type: 'select', label: '24/7 Monitoring', required: true, options: ['Yes', 'No', 'Business hours only'] },
+      cctv_system: { type: 'text', label: 'CCTV System', required: true },
+      escort_required: { type: 'select', label: 'Escort Required for Visitors', required: true, options: ['Yes', 'For restricted areas', 'No'] },
+      ups_system: { type: 'text', label: 'UPS System', required: true },
+      emergency_power: { type: 'text', label: 'Emergency Power Source', required: true },
+      fire_suppression: { type: 'text', label: 'Fire Suppression System', required: true },
+      temp_range: { type: 'text', label: 'Temperature Range', required: true },
+      humidity_range: { type: 'text', label: 'Humidity Range', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-pl',
+    title: 'Planning (PL) Family',
+    description: 'NIST 800-53 Rev 5 Planning family documentation',
+    framework: 'NIST-800-53',
+    category: 'PL',
+    priority: 2,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Planning (PL) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## PL-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates security and privacy planning policy.
+
+## PL-2 System Security and Privacy Plans
+**Plan Review:** {{plan_review_freq}}
+**Plan Distribution:** {{plan_distribution}}
+
+**System Security Plan (SSP) Includes:**
+- System identification and authorization boundary
+- Operational environment
+- Security control implementation
+- Relationships with other systems
+
+## PL-4 Rules of Behavior
+**Rules of Behavior Include:**
+- Acceptable use of system resources
+- Expected behavior regarding information and system usage
+- Consequences of inconsistent behavior
+- Acknowledgment requirements
+
+**Distribution:** {{rules_distribution}}
+**Acknowledgment:** {{acknowledgment_process}}
+
+## PL-7 Concept of Operations
+**System Purpose:** {{system_purpose}}
+**Mission Functions:** {{mission_functions}}
+**System Capabilities:** {{system_capabilities}}
+
+## PL-8 Security and Privacy Architectures
+**Architecture Description:** {{architecture_description}}
+**Security Architecture:** {{security_architecture}}
+**Privacy Architecture:** {{privacy_architecture}}
+
+**Architectural Principles:**
+{{architectural_principles}}
+
+## PL-9 Central Management
+**Centrally Managed Controls:**
+{{centrally_managed_controls}}
+
+## PL-10 Baseline Selection
+**Security Baseline:** {{security_baseline}}
+**Tailoring Actions:** {{tailoring_actions}}
+
+## PL-11 Baseline Tailoring
+**Tailoring Criteria:**
+{{tailoring_criteria}}
+
+**Compensating Controls:**
+{{compensating_controls}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      plan_review_freq: { type: 'select', label: 'Plan Review Frequency', required: true, options: ['Annually', 'Every 3 years', 'As needed'] },
+      plan_distribution: { type: 'text', label: 'Plan Distribution', required: true },
+      rules_distribution: { type: 'text', label: 'Rules of Behavior Distribution', required: true },
+      acknowledgment_process: { type: 'text', label: 'Acknowledgment Process', required: true },
+      system_purpose: { type: 'text', label: 'System Purpose', required: true },
+      security_baseline: { type: 'select', label: 'Security Baseline', required: true, options: ['Low', 'Moderate', 'High'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-pm',
+    title: 'Program Management (PM) Family',
+    description: 'NIST 800-53 Rev 5 Program Management family documentation',
+    framework: 'NIST-800-53',
+    category: 'PM',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Program Management (PM) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+
+## PM-1 Information Security Program Plan
+**Program Goals:** {{program_goals}}
+**Program Objectives:** {{program_objectives}}
+
+**Organizational Structure:**
+{{organizational_structure}}
+
+**Roles and Responsibilities:**
+- Chief Information Security Officer (CISO): {{ciso_name}}
+- Privacy Officer: {{privacy_officer}}
+- System Owners: {{system_owners}}
+
+## PM-2 Information Security Program Leadership Role
+**Senior Information Security Officer:** {{senior_iso}}
+**Reporting Structure:** {{reporting_structure}}
+
+## PM-3 Information Security and Privacy Resources
+**Budget:** {{security_budget}}
+**Staffing:** {{security_staffing}}
+**Resources Allocation:** {{resources_allocation}}
+
+## PM-4 Plan of Action and Milestones Process
+**POA&M Review:** {{poam_review_freq}}
+**Remediation Tracking:** {{remediation_tracking}}
+
+## PM-5 System Inventory
+**System Inventory:** {{system_inventory}}
+**Inventory Updates:** {{inventory_update_freq}}
+
+## PM-6 Measures of Performance
+**Security Metrics:**
+{{security_metrics}}
+
+**Performance Indicators:**
+{{performance_indicators}}
+
+**Reporting:** {{metrics_reporting_freq}}
+
+## PM-7 Enterprise Architecture
+**Architecture Framework:** {{architecture_framework}}
+**Security Integration:** {{security_integration}}
+
+## PM-9 Risk Management Strategy
+**Risk Framing:** {{risk_framing}}
+**Risk Assessment Process:** {{risk_assessment_process}}
+**Risk Response:** {{risk_response}}
+**Risk Monitoring:** {{risk_monitoring}}
+
+## PM-10 Authorization Process
+**Authorization Workflow:** {{authorization_workflow}}
+**Authorizing Officials:** {{authorizing_officials}}
+
+## PM-11 Mission and Business Process Definition
+**Mission Functions:** {{mission_functions}}
+**Business Processes:** {{business_processes}}
+
+## PM-15 Security and Privacy Groups and Associations
+**Professional Memberships:**
+{{professional_memberships}}
+
+**Information Sharing:** {{info_sharing}}
+
+## PM-16 Threat Awareness Program
+**Threat Intelligence Sources:** {{threat_intel_sources}}
+**Dissemination:** {{threat_dissemination}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      ciso_name: { type: 'text', label: 'CISO Name', required: true },
+      privacy_officer: { type: 'text', label: 'Privacy Officer', required: true },
+      senior_iso: { type: 'text', label: 'Senior Information Security Officer', required: true },
+      security_budget: { type: 'text', label: 'Security Budget', required: true },
+      poam_review_freq: { type: 'select', label: 'POA&M Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      inventory_update_freq: { type: 'select', label: 'Inventory Update Frequency', required: true, options: ['Real-time', 'Monthly', 'Quarterly'] },
+      metrics_reporting_freq: { type: 'select', label: 'Metrics Reporting Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-ps',
+    title: 'Personnel Security (PS) Family',
+    description: 'NIST 800-53 Rev 5 Personnel Security family documentation',
+    framework: 'NIST-800-53',
+    category: 'PS',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Personnel Security (PS) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## PS-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates personnel security policy.
+
+## PS-2 Position Risk Designation
+**Risk Designations:**
+- High Risk: {{high_risk_positions}}
+- Moderate Risk: {{moderate_risk_positions}}
+- Low Risk: {{low_risk_positions}}
+
+**Review Frequency:** {{designation_review_freq}}
+
+## PS-3 Personnel Screening
+**Screening Requirements by Position:**
+- Background Check: {{background_check_requirements}}
+- Reference Checks: {{reference_checks}}
+- Employment Verification: {{employment_verification}}
+- Education Verification: {{education_verification}}
+- Credit Check: {{credit_check}}
+
+**Rescreening:** {{rescreening_frequency}}
+
+## PS-4 Personnel Termination
+**Termination Procedures:**
+1. Access revocation: {{access_revocation_timeline}}
+2. Property return: {{property_return_process}}
+3. Exit interview: {{exit_interview}}
+4. Knowledge transfer: {{knowledge_transfer}}
+
+**Final Access Review:** {{final_access_review}}
+
+## PS-5 Personnel Transfer
+**Transfer Procedures:**
+- Access review and modification
+- Role change documentation
+- Supervisor notification
+- Training updates
+
+**Notification Timeline:** {{transfer_notification}}
+
+## PS-6 Access Agreements
+**Agreement Types:**
+- Acceptable Use Policy (AUP)
+- Nondisclosure Agreement (NDA)
+- Rules of Behavior
+- {{additional_agreements}}
+
+**Review Frequency:** {{agreement_review_freq}}
+**Reacknowledgment:** {{reacknowledgment_freq}}
+
+## PS-7 External Personnel Security
+**Contractor Requirements:**
+{{contractor_requirements}}
+
+**Third-Party Security:** {{third_party_security}}
+
+## PS-8 Personnel Sanctions
+**Sanctions Process:** {{sanctions_process}}
+**Violation Examples:** {{violation_examples}}
+**Appeal Process:** {{appeal_process}}
+
+## PS-9 Position Descriptions
+**Security Roles in Job Descriptions:**
+{{security_roles}}
+
+**Security Responsibilities:**
+{{security_responsibilities}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      designation_review_freq: { type: 'select', label: 'Risk Designation Review Frequency', required: true, options: ['Annually', 'Every 3 years', 'As needed'] },
+      background_check_requirements: { type: 'text', label: 'Background Check Requirements', required: true },
+      rescreening_frequency: { type: 'select', label: 'Rescreening Frequency', required: true, options: ['Annually', 'Every 3 years', 'Every 5 years', 'Not required'] },
+      access_revocation_timeline: { type: 'text', label: 'Access Revocation Timeline', required: true },
+      agreement_review_freq: { type: 'select', label: 'Agreement Review Frequency', required: true, options: ['Annually', 'Every 3 years', 'At hire only'] },
+      sanctions_process: { type: 'text', label: 'Sanctions Process', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-pt',
+    title: 'Privacy Controls (PT) Family',
+    description: 'NIST 800-53 Rev 5 Privacy Controls family documentation',
+    framework: 'NIST-800-53',
+    category: 'PT',
+    priority: 2,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Privacy Controls (PT) Family
+## NIST 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**Privacy Officer:** {{privacy_officer}}
+
+## PT-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates privacy policy.
+
+**Policy Review:** {{policy_review_freq}}
+**Procedure Review:** {{procedure_review_freq}}
+
+## PT-2 Authority to Collect
+**Legal Authority:** {{legal_authority}}
+**Collection Justification:** {{collection_justification}}
+
+## PT-3 Personally Identifiable Information Processing Purposes
+**Processing Purposes:**
+{{processing_purposes}}
+
+**Purpose Limitation:** {{purpose_limitation}}
+
+## PT-4 Consent
+**Consent Mechanism:** {{consent_mechanism}}
+**Consent Type:** {{consent_type}}
+**Withdrawal Process:** {{withdrawal_process}}
+
+## PT-5 Privacy Notice
+**Notice Content:**
+- Types of PII collected
+- Purpose of collection
+- How PII is used and shared
+- Individual rights
+- Contact information
+
+**Notice Delivery:** {{notice_delivery}}
+**Notice Updates:** {{notice_update_freq}}
+
+## PT-6 System of Records Notice and Privacy Act Statements
+**System of Records Notice (SORN):** {{sorn_status}}
+**Privacy Act Statement:** {{privacy_act_statement}}
+
+## PT-7 Specific Categories of Personally Identifiable Information
+**Special Categories:**
+- {{special_category_1}}
+- {{special_category_2}}
+- {{special_category_3}}
+
+**Additional Protections:** {{additional_protections}}
+
+## PT-8 Computer Matching Requirements
+**Matching Agreements:** {{matching_agreements}}
+**Matching Notices:** {{matching_notices}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      privacy_officer: { type: 'text', label: 'Privacy Officer', required: true },
+      policy_review_freq: { type: 'select', label: 'Policy Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      procedure_review_freq: { type: 'select', label: 'Procedure Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      legal_authority: { type: 'text', label: 'Legal Authority to Collect', required: true },
+      processing_purposes: { type: 'text', label: 'PII Processing Purposes', required: true },
+      consent_mechanism: { type: 'text', label: 'Consent Mechanism', required: true },
+      consent_type: { type: 'select', label: 'Consent Type', required: true, options: ['Opt-in', 'Opt-out', 'Explicit'] },
+      notice_delivery: { type: 'select', label: 'Notice Delivery', required: true, options: ['Website', 'Email', 'Physical', 'Multiple methods'] },
+      notice_update_freq: { type: 'select', label: 'Notice Update Frequency', required: true, options: ['As needed', 'Annually', 'Quarterly'] },
+      sorn_status: { type: 'select', label: 'SORN Status', required: true, options: ['Published', 'In progress', 'Not applicable'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-sa',
+    title: 'System and Services Acquisition (SA) Family',
+    description: 'NIST 800-53 Rev 5 System and Services Acquisition family documentation',
+    framework: 'NIST-800-53',
+    category: 'SA',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# System and Services Acquisition (SA) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## SA-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates system and services acquisition policy.
+
+## SA-2 Allocation of Resources
+**Budget Allocation:** {{budget_allocation}}
+**Security Requirements in Budget:** {{security_in_budget}}
+
+## SA-3 System Development Life Cycle
+**SDLC Methodology:** {{sdlc_methodology}}
+
+**Phases:**
+1. Initiation
+2. Development/Acquisition
+3. Implementation
+4. Operations/Maintenance
+5. Disposition
+
+**Security Integration:** {{security_integration}}
+
+## SA-4 Acquisition Process
+**Security Requirements in Contracts:**
+{{security_requirements}}
+
+**Vendor Security Assessment:** {{vendor_assessment}}
+
+## SA-5 System Documentation
+**Required Documentation:**
+- System architecture
+- Configuration settings
+- Operational procedures
+- Security procedures
+- {{additional_documentation}}
+
+**Documentation Review:** {{documentation_review_freq}}
+
+## SA-8 Security and Privacy Engineering Principles
+**Design Principles:**
+{{design_principles}}
+
+**Security by Design:** {{security_by_design}}
+
+## SA-9 External System Services
+**Service Level Agreements (SLAs):** {{sla_requirements}}
+**Vendor Management:** {{vendor_management}}
+**Service Monitoring:** {{service_monitoring}}
+
+## SA-10 Developer Configuration Management
+**Configuration Management:** {{config_management}}
+**Version Control:** {{version_control}}
+**Change Control:** {{change_control}}
+
+## SA-11 Developer Testing and Evaluation
+**Testing Requirements:**
+- Unit testing
+- Integration testing
+- System testing
+- Security testing
+- {{additional_testing}}
+
+**Test Coverage:** {{test_coverage}}
+
+## SA-15 Development Process, Standards, and Tools
+**Development Standards:** {{development_standards}}
+**Coding Standards:** {{coding_standards}}
+**Development Tools:** {{development_tools}}
+
+## SA-16 Developer-Provided Training
+**Training Requirements:** {{training_requirements}}
+**Training Delivery:** {{training_delivery}}
+
+## SA-17 Developer Security and Privacy Architecture and Design
+**Security Architecture Review:** {{architecture_review}}
+**Threat Modeling:** {{threat_modeling}}
+
+## SA-22 Unsupported System Components
+**Unsupported Components:** {{unsupported_components}}
+**Justification:** {{unsupported_justification}}
+**Compensating Controls:** {{compensating_controls}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      sdlc_methodology: { type: 'select', label: 'SDLC Methodology', required: true, options: ['Waterfall', 'Agile', 'DevSecOps', 'Hybrid'] },
+      security_requirements: { type: 'text', label: 'Security Requirements in Contracts', required: true },
+      vendor_assessment: { type: 'text', label: 'Vendor Security Assessment Process', required: true },
+      documentation_review_freq: { type: 'select', label: 'Documentation Review Frequency', required: true, options: ['Annually', 'With each release', 'Quarterly'] },
+      version_control: { type: 'text', label: 'Version Control System', required: true },
+      test_coverage: { type: 'text', label: 'Test Coverage Requirements', required: true },
+      development_standards: { type: 'text', label: 'Development Standards', required: true },
+      threat_modeling: { type: 'select', label: 'Threat Modeling', required: true, options: ['Required', 'For critical systems', 'Not performed'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-sr',
+    title: 'Supply Chain Risk Management (SR) Family',
+    description: 'NIST 800-53 Rev 5 Supply Chain Risk Management family documentation',
+    framework: 'NIST-800-53',
+    category: 'SR',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Supply Chain Risk Management (SR) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## SR-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates supply chain risk management policy.
+
+**Policy Review:** {{policy_review_freq}}
+**Procedure Review:** {{procedure_review_freq}}
+
+## SR-2 Supply Chain Risk Management Plan
+**Plan Components:**
+- Risk identification
+- Risk assessment
+- Risk mitigation
+- Risk monitoring
+
+**Plan Review:** {{plan_review_freq}}
+**Plan Updates:** {{plan_update_process}}
+
+## SR-3 Supply Chain Controls and Processes
+**Supplier Selection Criteria:**
+{{supplier_criteria}}
+
+**Vendor Assessment:** {{vendor_assessment_process}}
+**Onboarding Process:** {{vendor_onboarding}}
+
+## SR-4 Provenance
+**Component Provenance Tracking:**
+{{provenance_tracking}}
+
+**Chain of Custody:** {{chain_of_custody}}
+
+## SR-5 Acquisition Strategies, Tools, and Methods
+**Acquisition Strategy:** {{acquisition_strategy}}
+
+**Risk Mitigation Strategies:**
+- Multiple sourcing
+- Diverse suppliers
+- Trusted suppliers
+- {{additional_strategies}}
+
+## SR-6 Supplier Assessments and Reviews
+**Assessment Frequency:** {{assessment_frequency}}
+**Assessment Criteria:**
+{{assessment_criteria}}
+
+**Review Process:** {{review_process}}
+
+## SR-7 Supply Chain Operations Security
+**OPSEC Practices:**
+{{opsec_practices}}
+
+**Information Sharing Controls:** {{info_sharing_controls}}
+
+## SR-8 Notification Agreements
+**Incident Notification:** {{incident_notification}}
+**Notification Timeline:** {{notification_timeline}}
+**Escalation Process:** {{escalation_process}}
+
+## SR-9 Tamper Resistance and Detection
+**Tamper Protection:** {{tamper_protection}}
+**Tamper Detection:** {{tamper_detection}}
+
+## SR-10 Inspection of Systems or Components
+**Inspection Process:** {{inspection_process}}
+**Inspection Frequency:** {{inspection_frequency}}
+**Inspection Documentation:** {{inspection_documentation}}
+
+## SR-11 Component Authenticity
+**Authenticity Verification:**
+{{authenticity_verification}}
+
+**Anti-Counterfeit Measures:** {{anticounterfeit_measures}}
+
+## SR-12 Component Disposal
+**Disposal Process:** {{disposal_process}}
+**Data Sanitization:** {{data_sanitization}}
+**Environmental Compliance:** {{environmental_compliance}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      policy_review_freq: { type: 'select', label: 'Policy Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      procedure_review_freq: { type: 'select', label: 'Procedure Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      plan_review_freq: { type: 'select', label: 'Plan Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      supplier_criteria: { type: 'text', label: 'Supplier Selection Criteria', required: true },
+      vendor_assessment_process: { type: 'text', label: 'Vendor Assessment Process', required: true },
+      acquisition_strategy: { type: 'text', label: 'Acquisition Strategy', required: true },
+      assessment_frequency: { type: 'select', label: 'Assessment Frequency', required: true, options: ['Annually', 'Bi-annually', 'Quarterly'] },
+      incident_notification: { type: 'text', label: 'Incident Notification Requirements', required: true },
+      notification_timeline: { type: 'text', label: 'Notification Timeline', required: true },
+      inspection_frequency: { type: 'select', label: 'Inspection Frequency', required: true, options: ['Upon receipt', 'Annually', 'Random sampling'] },
+      disposal_process: { type: 'text', label: 'Component Disposal Process', required: true },
       document_owner: { type: 'text', label: 'Document Owner', required: true },
       approved_by: { type: 'text', label: 'Approved By', required: true },
       effective_date: { type: 'date', label: 'Effective Date', required: true }
