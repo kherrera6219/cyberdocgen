@@ -5927,6 +5927,230 @@ This document outlines {{company_name}}'s risk mitigation controls per SOC 2 CC9
       document_owner: { type: 'text', label: 'Document Owner', required: true },
       effective_date: { type: 'date', label: 'Effective Date', required: true }
     }
+  },
+  {
+    id: 'iso-015',
+    title: 'Risk Treatment Plan',
+    description: 'ISO 27001:2022 Clause 6.1.3 - Risk treatment decisions and implementation plan',
+    framework: 'ISO27001',
+    category: 'risk',
+    priority: 2,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Risk Treatment Plan
+## ISO/IEC 27001:2022 - Clause 6.1.3
+
+**Document Owner:** {{document_owner}}
+**Version:** {{version}}
+**Date:** {{document_date}}
+
+## 1. Risk Treatment Objectives
+{{treatment_objectives}}
+
+## 2. Risk Treatment Options
+For each identified risk, one of the following treatments must be selected:
+- Avoid: Eliminate the risk source
+- Reduce: Implement controls to mitigate
+- Transfer: Share or transfer to third party
+- Accept: Acknowledge and accept residual risk
+
+## 3. Risk Treatment Decisions
+
+| Risk ID | Risk Description | Risk Level | Treatment Option | Controls | Owner | Timeline |
+|---------|------------------|------------|------------------|----------|-------|----------|
+| {{risk_1_id}} | {{risk_1_desc}} | {{risk_1_level}} | {{risk_1_treatment}} | {{risk_1_controls}} | {{risk_1_owner}} | {{risk_1_timeline}} |
+
+## 4. Implementation Plan
+**Phase 1:** {{phase_1}}
+**Phase 2:** {{phase_2}}
+**Completion Target:** {{completion_target}}
+
+## 5. Residual Risk Acceptance
+**Accepted Residual Risks:** {{residual_risks}}
+**Acceptance Authority:** {{acceptance_authority}}
+
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      treatment_objectives: { type: 'text', label: 'Treatment Objectives', required: true },
+      risk_1_id: { type: 'text', label: 'Risk 1 ID', required: true },
+      risk_1_desc: { type: 'text', label: 'Risk 1 Description', required: true },
+      risk_1_level: { type: 'select', label: 'Risk 1 Level', required: true, options: ['Low', 'Medium', 'High', 'Critical'] },
+      risk_1_treatment: { type: 'select', label: 'Risk 1 Treatment', required: true, options: ['Avoid', 'Reduce', 'Transfer', 'Accept'] },
+      risk_1_controls: { type: 'text', label: 'Risk 1 Controls', required: true },
+      risk_1_owner: { type: 'text', label: 'Risk 1 Owner', required: true },
+      risk_1_timeline: { type: 'text', label: 'Risk 1 Timeline', required: true },
+      phase_1: { type: 'text', label: 'Phase 1 Description', required: true },
+      phase_2: { type: 'text', label: 'Phase 2 Description', required: true },
+      completion_target: { type: 'date', label: 'Completion Target', required: true },
+      residual_risks: { type: 'text', label: 'Residual Risks', required: true },
+      acceptance_authority: { type: 'text', label: 'Risk Acceptance Authority', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'iso-016',
+    title: 'Risk Register',
+    description: 'ISO 27001:2022 Clause 6.1.2 - Central register of information security risks',
+    framework: 'ISO27001',
+    category: 'risk',
+    priority: 2,
+    documentType: 'register',
+    required: true,
+    templateContent: `# Information Security Risk Register
+## ISO/IEC 27001:2022 - Clause 6.1.2
+
+**Organization:** {{company_name}}
+**ISMS Scope:** {{isms_scope}}
+**Register Date:** {{register_date}}
+**Version:** {{version}}
+
+## Risk Assessment Summary
+**Total Risks Identified:** {{total_risks}}
+**High/Critical:** {{high_risks}}
+**Medium:** {{medium_risks}}
+**Low:** {{low_risks}}
+
+## Risk Register
+
+| ID | Asset | Threat | Vulnerability | Likelihood | Impact | Risk Level | Treatment | Status | Owner |
+|----|-------|--------|---------------|------------|--------|------------|-----------|--------|-------|
+| R-001 | {{asset_1}} | {{threat_1}} | {{vuln_1}} | {{likelihood_1}} | {{impact_1}} | {{level_1}} | {{treatment_1}} | {{status_1}} | {{owner_1}} |
+
+## Risk Matrix
+**Likelihood Scale:** {{likelihood_scale}}
+**Impact Scale:** {{impact_scale}}
+
+## Review Schedule
+**Review Frequency:** {{review_frequency}}
+**Next Review:** {{next_review}}
+**Risk Owner:** {{risk_owner}}
+
+**Maintained By:** {{maintained_by}}
+**Last Updated:** {{last_updated}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      isms_scope: { type: 'text', label: 'ISMS Scope', required: true },
+      register_date: { type: 'date', label: 'Register Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      total_risks: { type: 'number', label: 'Total Risks', required: true },
+      high_risks: { type: 'number', label: 'High/Critical Risks', required: true },
+      medium_risks: { type: 'number', label: 'Medium Risks', required: true },
+      low_risks: { type: 'number', label: 'Low Risks', required: true },
+      asset_1: { type: 'text', label: 'Asset 1', required: true },
+      threat_1: { type: 'text', label: 'Threat 1', required: true },
+      vuln_1: { type: 'text', label: 'Vulnerability 1', required: true },
+      likelihood_1: { type: 'select', label: 'Likelihood 1', required: true, options: ['Rare', 'Unlikely', 'Possible', 'Likely', 'Almost Certain'] },
+      impact_1: { type: 'select', label: 'Impact 1', required: true, options: ['Insignificant', 'Minor', 'Moderate', 'Major', 'Catastrophic'] },
+      level_1: { type: 'select', label: 'Risk Level 1', required: true, options: ['Low', 'Medium', 'High', 'Critical'] },
+      treatment_1: { type: 'select', label: 'Treatment 1', required: true, options: ['Avoid', 'Reduce', 'Transfer', 'Accept'] },
+      status_1: { type: 'select', label: 'Status 1', required: true, options: ['Open', 'In Progress', 'Mitigated', 'Accepted'] },
+      owner_1: { type: 'text', label: 'Risk Owner 1', required: true },
+      likelihood_scale: { type: 'text', label: 'Likelihood Scale Definition', required: true },
+      impact_scale: { type: 'text', label: 'Impact Scale Definition', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually', 'Annually'] },
+      next_review: { type: 'date', label: 'Next Review Date', required: true },
+      risk_owner: { type: 'text', label: 'Risk Owner', required: true },
+      maintained_by: { type: 'text', label: 'Maintained By', required: true },
+      last_updated: { type: 'date', label: 'Last Updated', required: true }
+    }
+  },
+  {
+    id: 'iso-017',
+    title: 'Internal Audit Program',
+    description: 'ISO 27001:2022 Clause 9.2 - ISMS internal audit program and procedures',
+    framework: 'ISO27001',
+    category: 'audit',
+    priority: 1,
+    documentType: 'program',
+    required: true,
+    templateContent: `# Internal Audit Program
+## ISO/IEC 27001:2022 - Clause 9.2
+
+**Organization:** {{company_name}}
+**Program Year:** {{program_year}}
+**Version:** {{version}}
+
+## 1. Audit Objectives
+- Verify ISMS conformity to ISO 27001:2022
+- Assess effectiveness of implemented controls
+- Identify improvement opportunities
+- Ensure compliance with organizational requirements
+
+## 2. Audit Scope
+**ISMS Scope:** {{isms_scope}}
+**Locations:** {{audit_locations}}
+**Processes:** {{audit_processes}}
+
+## 3. Audit Schedule
+
+| Quarter | Audit Focus | Clauses | Controls | Auditor | Dates |
+|---------|-------------|---------|----------|---------|-------|
+| Q1 | {{q1_focus}} | {{q1_clauses}} | {{q1_controls}} | {{q1_auditor}} | {{q1_dates}} |
+| Q2 | {{q2_focus}} | {{q2_clauses}} | {{q2_controls}} | {{q2_auditor}} | {{q2_dates}} |
+
+## 4. Audit Criteria
+- ISO/IEC 27001:2022 requirements
+- Organizational policies and procedures
+- Applicable legal and regulatory requirements
+- {{custom_criteria}}
+
+## 5. Audit Team
+**Lead Auditor:** {{lead_auditor}}
+**Auditors:** {{auditors}}
+**Competence Requirements:** {{competence_requirements}}
+
+## 6. Audit Process
+1. **Planning:** Audit plan development
+2. **Preparation:** Document review, checklists
+3. **Execution:** Opening meeting, interviews, evidence collection
+4. **Reporting:** Findings, nonconformities, observations
+5. **Follow-up:** Corrective actions verification
+
+## 7. Reporting
+**Audit Report Recipients:** {{report_recipients}}
+**Report Timeline:** {{report_timeline}}
+**Findings Classification:** {{findings_classification}}
+
+## 8. Independence
+**Auditor Independence:** {{independence_requirements}}
+
+**Program Owner:** {{program_owner}}
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      program_year: { type: 'text', label: 'Program Year', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      isms_scope: { type: 'text', label: 'ISMS Scope', required: true },
+      audit_locations: { type: 'text', label: 'Audit Locations', required: true },
+      audit_processes: { type: 'text', label: 'Audit Processes', required: true },
+      q1_focus: { type: 'text', label: 'Q1 Focus Area', required: true },
+      q1_clauses: { type: 'text', label: 'Q1 Clauses', required: true },
+      q1_controls: { type: 'text', label: 'Q1 Controls', required: true },
+      q1_auditor: { type: 'text', label: 'Q1 Auditor', required: true },
+      q1_dates: { type: 'text', label: 'Q1 Dates', required: true },
+      q2_focus: { type: 'text', label: 'Q2 Focus Area', required: true },
+      q2_clauses: { type: 'text', label: 'Q2 Clauses', required: true },
+      q2_controls: { type: 'text', label: 'Q2 Controls', required: true },
+      q2_auditor: { type: 'text', label: 'Q2 Auditor', required: true },
+      q2_dates: { type: 'text', label: 'Q2 Dates', required: true },
+      custom_criteria: { type: 'text', label: 'Additional Criteria', required: false },
+      lead_auditor: { type: 'text', label: 'Lead Auditor', required: true },
+      auditors: { type: 'text', label: 'Audit Team Members', required: true },
+      competence_requirements: { type: 'text', label: 'Competence Requirements', required: true },
+      report_recipients: { type: 'text', label: 'Report Recipients', required: true },
+      report_timeline: { type: 'select', label: 'Report Timeline', required: true, options: ['Within 1 week', 'Within 2 weeks', 'Within 1 month'] },
+      findings_classification: { type: 'text', label: 'Findings Classification', required: true },
+      independence_requirements: { type: 'text', label: 'Independence Requirements', required: true },
+      program_owner: { type: 'text', label: 'Program Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
   }
 ];
 
