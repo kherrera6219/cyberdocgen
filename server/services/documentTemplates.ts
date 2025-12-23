@@ -6151,6 +6151,323 @@ For each identified risk, one of the following treatments must be selected:
       approved_by: { type: 'text', label: 'Approved By', required: true },
       approval_date: { type: 'date', label: 'Approval Date', required: true }
     }
+  },
+  {
+    id: 'iso-018',
+    title: 'Management Review Records',
+    description: 'ISO 27001:2022 Clause 9.3 - Top management ISMS review documentation',
+    framework: 'ISO27001',
+    category: 'governance',
+    priority: 1,
+    documentType: 'minutes',
+    required: true,
+    templateContent: `# Management Review Meeting
+## ISO/IEC 27001:2022 - Clause 9.3
+
+**Meeting Date:** {{meeting_date}}
+**Chairperson:** {{chairperson}}
+
+## 1. Review Inputs
+**Previous Actions:** {{previous_actions}}
+**External/Internal Changes:** {{changes}}
+**Security Incidents:** {{incidents}}
+**Audit Results:** {{audit_results}}
+**Risk Assessment:** {{risk_results}}
+
+## 2. Review Outputs
+**Improvement Decisions:** {{improvements}}
+**ISMS Changes:** {{isms_changes}}
+**Resources:** {{resources}}
+
+## 3. Actions
+| Action | Owner | Due Date |
+|--------|-------|----------|
+| {{action_1}} | {{owner_1}} | {{due_1}} |
+
+**Approved By:** {{approved_by}}`,
+    templateVariables: {
+      meeting_date: { type: 'date', label: 'Meeting Date', required: true },
+      chairperson: { type: 'text', label: 'Chairperson', required: true },
+      previous_actions: { type: 'text', label: 'Previous Actions', required: true },
+      changes: { type: 'text', label: 'Changes', required: true },
+      incidents: { type: 'text', label: 'Incidents', required: true },
+      audit_results: { type: 'text', label: 'Audit Results', required: true },
+      risk_results: { type: 'text', label: 'Risk Results', required: true },
+      improvements: { type: 'text', label: 'Improvements', required: true },
+      isms_changes: { type: 'text', label: 'ISMS Changes', required: true },
+      resources: { type: 'text', label: 'Resources', required: true },
+      action_1: { type: 'text', label: 'Action 1', required: true },
+      owner_1: { type: 'text', label: 'Owner 1', required: true },
+      due_1: { type: 'date', label: 'Due Date 1', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true }
+    }
+  },
+  {
+    id: 'iso-019',
+    title: 'Nonconformity and Corrective Action',
+    description: 'ISO 27001:2022 Clause 10.1 - Procedure for handling nonconformities',
+    framework: 'ISO27001',
+    category: 'process',
+    priority: 1,
+    documentType: 'procedure',
+    required: true,
+    templateContent: `# Nonconformity and Corrective Action Procedure
+## ISO/IEC 27001:2022 - Clause 10.1
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Nonconformity Documentation
+**NC Number:** {{nc_number}}
+**Description:** {{nc_description}}
+**Severity:** {{nc_severity}}
+
+## 2. Immediate Actions
+**Actions:** {{immediate_actions}}
+**Owner:** {{action_owner}}
+
+## 3. Root Cause Analysis
+**Method:** {{rca_method}}
+**Root Causes:** {{root_causes}}
+
+## 4. Corrective Action
+**Action:** {{corrective_action}}
+**Owner:** {{ca_owner}}
+**Target Date:** {{ca_target}}
+
+## 5. Effectiveness Review
+**Review Date:** {{review_date}}
+**Effective:** {{is_effective}}
+
+**Procedure Owner:** {{procedure_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      nc_number: { type: 'text', label: 'NC Number', required: true },
+      nc_description: { type: 'text', label: 'NC Description', required: true },
+      nc_severity: { type: 'select', label: 'Severity', required: true, options: ['Critical', 'High', 'Medium', 'Low'] },
+      immediate_actions: { type: 'text', label: 'Immediate Actions', required: true },
+      action_owner: { type: 'text', label: 'Action Owner', required: true },
+      rca_method: { type: 'select', label: 'RCA Method', required: true, options: ['5 Whys', 'Fishbone', 'Fault Tree'] },
+      root_causes: { type: 'text', label: 'Root Causes', required: true },
+      corrective_action: { type: 'text', label: 'Corrective Action', required: true },
+      ca_owner: { type: 'text', label: 'CA Owner', required: true },
+      ca_target: { type: 'date', label: 'Target Date', required: true },
+      review_date: { type: 'date', label: 'Review Date', required: true },
+      is_effective: { type: 'select', label: 'Effective?', required: true, options: ['Yes', 'No', 'Pending'] },
+      procedure_owner: { type: 'text', label: 'Procedure Owner', required: true }
+    }
+  },
+  {
+    id: 'iso-020',
+    title: 'Business Continuity Plan',
+    description: 'ISO 27001:2022 Annex A.5.29/A.5.30 - Business continuity and disaster recovery',
+    framework: 'ISO27001',
+    category: 'continuity',
+    priority: 1,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Business Continuity Plan
+## ISO/IEC 27001:2022 - Annex A.5.29, A.5.30
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Critical Functions
+| Function | RTO | RPO | Owner |
+|----------|-----|-----|-------|
+| {{function_1}} | {{rto_1}} | {{rpo_1}} | {{owner_1}} |
+
+## 2. Recovery Strategies
+**Primary Site:** {{primary_site}}
+**Backup Site:** {{backup_site}}
+**Data Backup:** {{backup_strategy}}
+
+## 3. Activation
+**Trigger:** {{trigger_events}}
+**Authority:** {{declaration_authority}}
+
+## 4. Recovery Phases
+**Phase 1 (0-4h):** {{phase_1}}
+**Phase 2 (4-24h):** {{phase_2}}
+**Phase 3 (24-72h):** {{phase_3}}
+
+## 5. Testing
+**Frequency:** {{test_frequency}}
+**Last Test:** {{last_test}}
+
+**Plan Owner:** {{plan_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      function_1: { type: 'text', label: 'Critical Function', required: true },
+      rto_1: { type: 'text', label: 'RTO', required: true },
+      rpo_1: { type: 'text', label: 'RPO', required: true },
+      owner_1: { type: 'text', label: 'Owner', required: true },
+      primary_site: { type: 'text', label: 'Primary Site', required: true },
+      backup_site: { type: 'text', label: 'Backup Site', required: true },
+      backup_strategy: { type: 'text', label: 'Backup Strategy', required: true },
+      trigger_events: { type: 'text', label: 'Trigger Events', required: true },
+      declaration_authority: { type: 'text', label: 'Declaration Authority', required: true },
+      phase_1: { type: 'text', label: 'Phase 1', required: true },
+      phase_2: { type: 'text', label: 'Phase 2', required: true },
+      phase_3: { type: 'text', label: 'Phase 3', required: true },
+      test_frequency: { type: 'select', label: 'Test Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      last_test: { type: 'date', label: 'Last Test', required: true },
+      plan_owner: { type: 'text', label: 'Plan Owner', required: true }
+    }
+  },
+  {
+    id: 'iso-021',
+    title: 'Access Control Policy',
+    description: 'ISO 27001:2022 Annex A.5.15-A.5.18 - Access control and authentication',
+    framework: 'ISO27001',
+    category: 'policy',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Access Control Policy
+## ISO/IEC 27001:2022 - Annex A.5.15-A.5.18
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. User Access Management
+**Provisioning:** {{provisioning_process}}
+**Approval:** {{approval_required}}
+**Removal:** {{removal_timeline}}
+
+## 2. Authentication
+**Password Length:** {{password_length}}
+**Complexity:** {{password_complexity}}
+**MFA Required:** {{mfa_required}}
+
+## 3. Access Review
+**Frequency:** {{review_frequency}}
+**Owner:** {{review_owner}}
+
+## 4. Remote Access
+**Method:** {{remote_method}}
+**Security:** {{remote_security}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      provisioning_process: { type: 'text', label: 'Provisioning Process', required: true },
+      approval_required: { type: 'text', label: 'Approval Required', required: true },
+      removal_timeline: { type: 'select', label: 'Removal Timeline', required: true, options: ['Immediate', '24 hours', '48 hours'] },
+      password_length: { type: 'number', label: 'Min Password Length', required: true },
+      password_complexity: { type: 'text', label: 'Complexity Requirements', required: true },
+      mfa_required: { type: 'select', label: 'MFA Required?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      review_owner: { type: 'text', label: 'Review Owner', required: true },
+      remote_method: { type: 'text', label: 'Remote Access Method', required: true },
+      remote_security: { type: 'text', label: 'Remote Security', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'iso-022',
+    title: 'Asset Management Policy',
+    description: 'ISO 27001:2022 Annex A.5.9-A.5.14 - Information asset management',
+    framework: 'ISO27001',
+    category: 'policy',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Asset Management Policy
+## ISO/IEC 27001:2022 - Annex A.5.9-A.5.14
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Asset Inventory
+**Register:** {{asset_register}}
+**Update Frequency:** {{update_frequency}}
+
+## 2. Classification
+**Public:** {{public_def}}
+**Internal:** {{internal_def}}
+**Confidential:** {{confidential_def}}
+**Restricted:** {{restricted_def}}
+
+## 3. Handling
+**Storage:** {{storage_req}}
+**Transmission:** {{transmission_req}}
+**Disposal:** {{disposal_req}}
+
+## 4. Media Handling
+**Removable Media:** {{removable_policy}}
+**Encryption:** {{media_encryption}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      asset_register: { type: 'text', label: 'Asset Register Location', required: true },
+      update_frequency: { type: 'select', label: 'Update Frequency', required: true, options: ['Real-time', 'Weekly', 'Monthly'] },
+      public_def: { type: 'text', label: 'Public Definition', required: true },
+      internal_def: { type: 'text', label: 'Internal Definition', required: true },
+      confidential_def: { type: 'text', label: 'Confidential Definition', required: true },
+      restricted_def: { type: 'text', label: 'Restricted Definition', required: true },
+      storage_req: { type: 'text', label: 'Storage Requirements', required: true },
+      transmission_req: { type: 'text', label: 'Transmission Requirements', required: true },
+      disposal_req: { type: 'text', label: 'Disposal Requirements', required: true },
+      removable_policy: { type: 'text', label: 'Removable Media Policy', required: true },
+      media_encryption: { type: 'select', label: 'Media Encryption?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'iso-023',
+    title: 'Communication Plan',
+    description: 'ISO 27001:2022 Clause 7.4 - Internal and external ISMS communication',
+    framework: 'ISO27001',
+    category: 'plan',
+    priority: 2,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# ISMS Communication Plan
+## ISO/IEC 27001:2022 - Clause 7.4
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Internal Communications
+**Staff:** {{staff_comms}}
+**Management:** {{mgmt_comms}}
+**Frequency:** {{internal_frequency}}
+
+## 2. External Communications
+**Customers:** {{customer_comms}}
+**Suppliers:** {{supplier_comms}}
+**Regulators:** {{regulator_comms}}
+
+## 3. Incident Communications
+**Process:** {{incident_process}}
+**Spokesperson:** {{spokesperson}}
+
+## 4. Tools
+**Primary:** {{primary_tool}}
+**Backup:** {{backup_tool}}
+
+**Plan Owner:** {{plan_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      staff_comms: { type: 'text', label: 'Staff Communications', required: true },
+      mgmt_comms: { type: 'text', label: 'Management Communications', required: true },
+      internal_frequency: { type: 'select', label: 'Internal Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      customer_comms: { type: 'text', label: 'Customer Communications', required: true },
+      supplier_comms: { type: 'text', label: 'Supplier Communications', required: true },
+      regulator_comms: { type: 'text', label: 'Regulator Communications', required: true },
+      incident_process: { type: 'text', label: 'Incident Process', required: true },
+      spokesperson: { type: 'text', label: 'Spokesperson', required: true },
+      primary_tool: { type: 'text', label: 'Primary Tool', required: true },
+      backup_tool: { type: 'text', label: 'Backup Tool', required: true },
+      plan_owner: { type: 'text', label: 'Plan Owner', required: true }
+    }
   }
 ];
 
