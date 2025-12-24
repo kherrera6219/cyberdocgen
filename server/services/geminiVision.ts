@@ -1,12 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { logger } from "../utils/logger";
-
-const getGeminiClient = () => {
-  if (!process.env.GOOGLE_API_KEY) {
-    throw new Error("GOOGLE_API_KEY environment variable is not set");
-  }
-  return new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
-};
+import { getGeminiClient } from "./aiClients";
 
 export interface ImageAnalysisResult {
   analysis: string;

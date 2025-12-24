@@ -1,8 +1,12 @@
 # CyberDocGen - Complete Codebase Overview
 
-**Last Updated:** December 20, 2025
+**Last Updated:** December 24, 2025
 **Version:** 1.0.0 (Production Ready)
 **Status:** ✅ 100% Core Features Complete
+
+> **📊 New Documentation Available:**
+> - **[Comprehensive Codebase Documentation](COMPREHENSIVE_CODEBASE_DOCUMENTATION.md)** - Detailed analysis of all components, services, and duplicate code patterns
+> - **[Duplicate Code Report](../DUPLICATE_CODE_REPORT.md)** - Complete audit identifying 5,000-7,000+ lines of duplicate code with refactoring recommendations
 
 ---
 
