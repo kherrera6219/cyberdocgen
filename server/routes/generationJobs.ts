@@ -3,7 +3,7 @@ import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { aiOrchestrator, type AIModel, type GenerationOptions } from '../services/aiOrchestrator';
-import { frameworkTemplates } from '../services/openai';
+import { DocumentTemplateService } from '../services/documentTemplates';
 import { generationLimiter } from '../middleware/security';
 import { validateBody } from '../middleware/routeValidation';
 import { generationJobCreateSchema } from '../validation/requestSchemas';
@@ -50,8 +50,8 @@ export function registerGenerateDocumentsRoutes(router: Router) {
         return res.status(404).json({ message: "Company profile not found" });
       }
 
-      const templates = frameworkTemplates[framework];
-      if (!templates) {
+      const templates = DocumentTemplateService.getTemplatesByFramework(framework);
+      if (!templates || templates.length === 0) {
         return res.status(400).json({ message: `Invalid framework: ${framework}` });
       }
 

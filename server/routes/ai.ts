@@ -13,7 +13,6 @@ import { qualityScoringService } from '../services/qualityScoring';
 import { auditService } from '../services/auditService';
 import { metricsCollector } from '../monitoring/metrics';
 import { generationLimiter } from '../middleware/security';
-import { frameworkTemplates } from '../services/openai';
 import { validateBody } from '../middleware/routeValidation';
 import { aiGuardrailsService } from '../services/aiGuardrailsService';
 import { validateAIRequestSize, aiLimiter } from '../middleware/rateLimiter';

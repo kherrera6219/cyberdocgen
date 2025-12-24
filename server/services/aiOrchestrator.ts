@@ -1,5 +1,6 @@
 import { type CompanyProfile } from "@shared/schema";
-import { generateDocument as generateWithOpenAI, generateComplianceDocuments as generateBatchWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
+import { generateDocument as generateWithOpenAI, generateComplianceDocuments as generateBatchWithOpenAI, type DocumentTemplate } from "./openai";
+import { DocumentTemplateService } from "./documentTemplates";
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
 import { aiGuardrailsService, type GuardrailCheckResult } from "./aiGuardrailsService";
 import { getOpenAIClient, getAnthropicClient } from "./aiClients";
@@ -203,11 +204,14 @@ export class AIOrchestrator {
   ): Promise<DocumentGenerationResult[]> {
     const { model = 'auto', includeQualityAnalysis = false, enableCrossValidation = false } = options;
 
-    // Use actual templates if available, otherwise fallback for tests
-    const templateSource = frameworkTemplates || fallbackFrameworkTemplates;
-    const templates = templateSource[framework];
-    if (!templates) {
-      throw new Error(`No templates found for framework: ${framework}`);
+    // Use DocumentTemplateService as primary source, fallback for tests
+    let templates = DocumentTemplateService.getTemplatesByFramework(framework);
+    if (!templates || templates.length === 0) {
+      const fallbackTemplates = fallbackFrameworkTemplates[framework];
+      if (!fallbackTemplates) {
+        throw new Error(`No templates found for framework: ${framework}`);
+      }
+      templates = fallbackTemplates;
     }
     
     const results: DocumentGenerationResult[] = [];

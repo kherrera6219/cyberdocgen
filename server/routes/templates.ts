@@ -104,7 +104,7 @@ export function registerFrameworksRoutes(router: Router) {
   router.get("/:framework/stats", isAuthenticated, async (req: any, res) => {
     try {
       const { storage } = await import('../storage');
-      const { frameworkTemplates } = await import('../services/openai');
+      const { DocumentTemplateService } = await import('../services/documentTemplates');
       const { framework } = req.params;
       const { companyProfileId } = req.query;
 
@@ -114,7 +114,7 @@ export function registerFrameworksRoutes(router: Router) {
 
       const documents = await storage.getDocumentsByCompanyProfile(companyProfileId as string);
       const frameworkDocs = documents.filter(doc => doc.framework === framework);
-      const templates = frameworkTemplates[framework] || [];
+      const templates = DocumentTemplateService.getTemplatesByFramework(framework);
       
       const completedDocs = frameworkDocs.filter(doc => doc.status === 'complete').length;
       const totalDocs = templates.length;
