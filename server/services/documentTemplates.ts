@@ -6468,6 +6468,520 @@ For each identified risk, one of the following treatments must be selected:
       backup_tool: { type: 'text', label: 'Backup Tool', required: true },
       plan_owner: { type: 'text', label: 'Plan Owner', required: true }
     }
+  },
+  {
+    id: 'soc2-cc6-1',
+    title: 'Logical Access Control Policy',
+    description: 'SOC 2 CC6 - Logical access controls and user management',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Logical Access Control Policy
+## SOC 2 Trust Services - CC6
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Access Management
+**Provisioning:** {{provisioning_process}}
+**Approval:** {{approval_required}}
+**Deprovisioning:** {{deprovisioning_timeline}}
+
+## 2. Authentication
+**Password Minimum:** {{password_min}} characters
+**MFA:** {{mfa_required}}
+**Session Timeout:** {{session_timeout}}
+
+## 3. Access Review
+**Frequency:** {{review_frequency}}
+**Owner:** {{review_owner}}
+
+**Policy Owner:** {{policy_owner}}
+**Effective:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      provisioning_process: { type: 'text', label: 'Provisioning Process', required: true },
+      approval_required: { type: 'text', label: 'Approval Required', required: true },
+      deprovisioning_timeline: { type: 'select', label: 'Deprovisioning Timeline', required: true, options: ['Immediate', '24 hours', '48 hours'] },
+      password_min: { type: 'number', label: 'Minimum Password Length', required: true },
+      mfa_required: { type: 'select', label: 'MFA Required?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      session_timeout: { type: 'select', label: 'Session Timeout', required: true, options: ['15 minutes', '30 minutes', '1 hour', '2 hours'] },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      review_owner: { type: 'text', label: 'Review Owner', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-a1',
+    title: 'System Availability Policy',
+    description: 'SOC 2 Availability - System uptime and capacity planning',
+    framework: 'SOC2',
+    category: 'availability',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# System Availability Policy
+## SOC 2 - Availability (A1)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Availability Target
+**SLA:** {{availability_sla}}%
+**Monitoring:** {{monitoring_tool}}
+**Alerting:** {{alerting_method}}
+
+## 2. Capacity Planning
+**Review Frequency:** {{capacity_review}}
+**Threshold:** {{capacity_threshold}}%
+
+## 3. Incident Management
+**Response Time:** {{response_time}}
+**Escalation:** {{escalation_process}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      availability_sla: { type: 'number', label: 'Availability SLA %', required: true },
+      monitoring_tool: { type: 'text', label: 'Monitoring Tool', required: true },
+      alerting_method: { type: 'text', label: 'Alerting Method', required: true },
+      capacity_review: { type: 'select', label: 'Capacity Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      capacity_threshold: { type: 'number', label: 'Capacity Alert Threshold %', required: true },
+      response_time: { type: 'select', label: 'Incident Response Time', required: true, options: ['15 minutes', '1 hour', '4 hours'] },
+      escalation_process: { type: 'text', label: 'Escalation Process', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-pi1',
+    title: 'Data Processing Integrity Policy',
+    description: 'SOC 2 Processing Integrity - Data accuracy and completeness',
+    framework: 'SOC2',
+    category: 'processing-integrity',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Data Processing Integrity Policy
+## SOC 2 - Processing Integrity (PI1)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Data Quality
+**Validation:** {{validation_controls}}
+**Error Handling:** {{error_handling}}
+**Completeness Checks:** {{completeness_checks}}
+
+## 2. Processing Controls
+**Reconciliation:** {{reconciliation_freq}}
+**Audit Trail:** {{audit_trail}}
+
+## 3. Quality Monitoring
+**KPIs:** {{quality_kpis}}
+**Review:** {{quality_review}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      validation_controls: { type: 'text', label: 'Validation Controls', required: true },
+      error_handling: { type: 'text', label: 'Error Handling', required: true },
+      completeness_checks: { type: 'text', label: 'Completeness Checks', required: true },
+      reconciliation_freq: { type: 'select', label: 'Reconciliation Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      audit_trail: { type: 'select', label: 'Audit Trail Enabled?', required: true, options: ['Yes', 'No'] },
+      quality_kpis: { type: 'text', label: 'Quality KPIs', required: true },
+      quality_review: { type: 'select', label: 'Quality Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-c1',
+    title: 'Data Confidentiality Policy',
+    description: 'SOC 2 Confidentiality - Protecting confidential information',
+    framework: 'SOC2',
+    category: 'confidentiality',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Data Confidentiality Policy
+## SOC 2 - Confidentiality (C1)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Classification
+**Confidential Data:** {{confidential_def}}
+**Handling:** {{handling_requirements}}
+**Storage:** {{storage_requirements}}
+
+## 2. Protection
+**Encryption at Rest:** {{encryption_rest}}
+**Encryption in Transit:** {{encryption_transit}}
+**Access Controls:** {{access_controls}}
+
+## 3. Disclosure
+**Authorization:** {{disclosure_auth}}
+**NDAs Required:** {{nda_required}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      confidential_def: { type: 'text', label: 'Confidential Data Definition', required: true },
+      handling_requirements: { type: 'text', label: 'Handling Requirements', required: true },
+      storage_requirements: { type: 'text', label: 'Storage Requirements', required: true },
+      encryption_rest: { type: 'select', label: 'Encryption at Rest?', required: true, options: ['Yes', 'No'] },
+      encryption_transit: { type: 'select', label: 'Encryption in Transit?', required: true, options: ['Yes', 'No'] },
+      access_controls: { type: 'text', label: 'Access Controls', required: true },
+      disclosure_auth: { type: 'text', label: 'Disclosure Authorization', required: true },
+      nda_required: { type: 'select', label: 'NDA Required?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-p1',
+    title: 'Privacy Policy',
+    description: 'SOC 2 Privacy - Personal information handling and privacy rights',
+    framework: 'SOC2',
+    category: 'privacy',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Privacy Policy
+## SOC 2 - Privacy (P1-P8)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Personal Information
+**Types Collected:** {{pi_types}}
+**Collection Purpose:** {{collection_purpose}}
+**Legal Basis:** {{legal_basis}}
+
+## 2. Notice and Consent
+**Privacy Notice:** {{notice_provided}}
+**Consent:** {{consent_obtained}}
+**Opt-Out:** {{opt_out_available}}
+
+## 3. Use and Retention
+**Use Limitation:** {{use_limitation}}
+**Retention Period:** {{retention_period}}
+**Disposal:** {{disposal_method}}
+
+## 4. Individual Rights
+**Access:** {{access_rights}}
+**Correction:** {{correction_rights}}
+**Deletion:** {{deletion_rights}}
+
+## 5. Disclosure
+**Third Parties:** {{third_party_sharing}}
+**International:** {{international_transfers}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      pi_types: { type: 'text', label: 'PI Types Collected', required: true },
+      collection_purpose: { type: 'text', label: 'Collection Purpose', required: true },
+      legal_basis: { type: 'text', label: 'Legal Basis', required: true },
+      notice_provided: { type: 'select', label: 'Privacy Notice Provided?', required: true, options: ['Yes', 'No'] },
+      consent_obtained: { type: 'select', label: 'Consent Obtained?', required: true, options: ['Yes', 'No', 'Not Required'] },
+      opt_out_available: { type: 'select', label: 'Opt-Out Available?', required: true, options: ['Yes', 'No'] },
+      use_limitation: { type: 'text', label: 'Use Limitation', required: true },
+      retention_period: { type: 'text', label: 'Retention Period', required: true },
+      disposal_method: { type: 'text', label: 'Disposal Method', required: true },
+      access_rights: { type: 'select', label: 'Access Rights Provided?', required: true, options: ['Yes', 'No'] },
+      correction_rights: { type: 'select', label: 'Correction Rights?', required: true, options: ['Yes', 'No'] },
+      deletion_rights: { type: 'select', label: 'Deletion Rights?', required: true, options: ['Yes', 'No'] },
+      third_party_sharing: { type: 'text', label: 'Third Party Sharing', required: true },
+      international_transfers: { type: 'text', label: 'International Transfers', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-change',
+    title: 'Change Management Policy',
+    description: 'SOC 2 CC8 - System change control procedures',
+    framework: 'SOC2',
+    category: 'operations',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Change Management Policy
+## SOC 2 - CC8
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Change Types
+**Standard:** {{standard_change}}
+**Emergency:** {{emergency_change}}
+**Normal:** {{normal_change}}
+
+## 2. Change Process
+**Request:** {{change_request_process}}
+**Approval:** {{approval_process}}
+**Testing:** {{testing_requirements}}
+**Implementation:** {{implementation_process}}
+
+## 3. Change Review Board
+**Members:** {{crb_members}}
+**Meeting Frequency:** {{crb_frequency}}
+
+## 4. Rollback
+**Rollback Plan:** {{rollback_required}}
+**Testing:** {{rollback_testing}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      standard_change: { type: 'text', label: 'Standard Change Definition', required: true },
+      emergency_change: { type: 'text', label: 'Emergency Change Definition', required: true },
+      normal_change: { type: 'text', label: 'Normal Change Definition', required: true },
+      change_request_process: { type: 'text', label: 'Change Request Process', required: true },
+      approval_process: { type: 'text', label: 'Approval Process', required: true },
+      testing_requirements: { type: 'text', label: 'Testing Requirements', required: true },
+      implementation_process: { type: 'text', label: 'Implementation Process', required: true },
+      crb_members: { type: 'text', label: 'Change Review Board Members', required: true },
+      crb_frequency: { type: 'select', label: 'CRB Meeting Frequency', required: true, options: ['Weekly', 'Bi-weekly', 'Monthly'] },
+      rollback_required: { type: 'select', label: 'Rollback Plan Required?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      rollback_testing: { type: 'text', label: 'Rollback Testing', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-incident',
+    title: 'Incident Response Policy',
+    description: 'SOC 2 CC7 - Security incident response procedures',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Incident Response Policy
+## SOC 2 - CC7
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Incident Classification
+**Critical:** {{critical_def}}
+**High:** {{high_def}}
+**Medium:** {{medium_def}}
+**Low:** {{low_def}}
+
+## 2. Response Process
+**Detection:** {{detection_methods}}
+**Containment:** {{containment_process}}
+**Eradication:** {{eradication_process}}
+**Recovery:** {{recovery_process}}
+
+## 3. Response Team
+**IR Lead:** {{ir_lead}}
+**Team Members:** {{team_members}}
+**On-Call:** {{oncall_schedule}}
+
+## 4. Communication
+**Internal:** {{internal_comms}}
+**Customer:** {{customer_notification}}
+**Timeline:** {{notification_timeline}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      critical_def: { type: 'text', label: 'Critical Incident Definition', required: true },
+      high_def: { type: 'text', label: 'High Incident Definition', required: true },
+      medium_def: { type: 'text', label: 'Medium Incident Definition', required: true },
+      low_def: { type: 'text', label: 'Low Incident Definition', required: true },
+      detection_methods: { type: 'text', label: 'Detection Methods', required: true },
+      containment_process: { type: 'text', label: 'Containment Process', required: true },
+      eradication_process: { type: 'text', label: 'Eradication Process', required: true },
+      recovery_process: { type: 'text', label: 'Recovery Process', required: true },
+      ir_lead: { type: 'text', label: 'IR Lead', required: true },
+      team_members: { type: 'text', label: 'Team Members', required: true },
+      oncall_schedule: { type: 'text', label: 'On-Call Schedule', required: true },
+      internal_comms: { type: 'text', label: 'Internal Communications', required: true },
+      customer_notification: { type: 'text', label: 'Customer Notification', required: true },
+      notification_timeline: { type: 'select', label: 'Notification Timeline', required: true, options: ['Immediately', '24 hours', '72 hours'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-backup',
+    title: 'Backup and Recovery Policy',
+    description: 'SOC 2 CC2/A1 - Data backup and recovery procedures',
+    framework: 'SOC2',
+    category: 'availability',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Backup and Recovery Policy
+## SOC 2 - CC2, A1
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Backup Schedule
+**Full Backup:** {{full_backup_freq}}
+**Incremental:** {{incremental_freq}}
+**Retention:** {{backup_retention}}
+
+## 2. Backup Storage
+**Primary:** {{primary_location}}
+**Offsite:** {{offsite_location}}
+**Encryption:** {{backup_encryption}}
+
+## 3. Recovery
+**RTO:** {{rto}}
+**RPO:** {{rpo}}
+**Testing:** {{recovery_test_freq}}
+
+## 4. Verification
+**Integrity Check:** {{integrity_check}}
+**Test Restore:** {{test_restore_freq}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      full_backup_freq: { type: 'select', label: 'Full Backup Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      incremental_freq: { type: 'select', label: 'Incremental Frequency', required: true, options: ['Hourly', 'Every 6 hours', 'Daily'] },
+      backup_retention: { type: 'select', label: 'Backup Retention', required: true, options: ['30 days', '90 days', '1 year', '7 years'] },
+      primary_location: { type: 'text', label: 'Primary Backup Location', required: true },
+      offsite_location: { type: 'text', label: 'Offsite Backup Location', required: true },
+      backup_encryption: { type: 'select', label: 'Backup Encryption?', required: true, options: ['Yes', 'No'] },
+      rto: { type: 'text', label: 'Recovery Time Objective', required: true },
+      rpo: { type: 'text', label: 'Recovery Point Objective', required: true },
+      recovery_test_freq: { type: 'select', label: 'Recovery Test Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      integrity_check: { type: 'select', label: 'Integrity Check Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      test_restore_freq: { type: 'select', label: 'Test Restore Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-logging',
+    title: 'Log Management and Retention Policy',
+    description: 'SOC 2 CC4/CC7 - Security logging and monitoring',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Log Management and Retention Policy
+## SOC 2 - CC4, CC7
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Logging Requirements
+**Systems:** {{systems_logged}}
+**Events:** {{events_logged}}
+**Detail Level:** {{log_detail}}
+
+## 2. Log Collection
+**Centralization:** {{centralized_logging}}
+**SIEM:** {{siem_tool}}
+**Real-time:** {{realtime_collection}}
+
+## 3. Log Retention
+**Security Logs:** {{security_retention}}
+**Audit Logs:** {{audit_retention}}
+**Application Logs:** {{app_retention}}
+
+## 4. Log Review
+**Frequency:** {{review_frequency}}
+**Automated Alerts:** {{automated_alerts}}
+**Responsible:** {{review_responsible}}
+
+## 5. Protection
+**Integrity:** {{log_integrity}}
+**Access Control:** {{log_access}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      systems_logged: { type: 'text', label: 'Systems Logged', required: true },
+      events_logged: { type: 'text', label: 'Events Logged', required: true },
+      log_detail: { type: 'select', label: 'Log Detail Level', required: true, options: ['Basic', 'Standard', 'Detailed'] },
+      centralized_logging: { type: 'select', label: 'Centralized Logging?', required: true, options: ['Yes', 'No'] },
+      siem_tool: { type: 'text', label: 'SIEM Tool', required: true },
+      realtime_collection: { type: 'select', label: 'Real-time Collection?', required: true, options: ['Yes', 'No'] },
+      security_retention: { type: 'select', label: 'Security Log Retention', required: true, options: ['90 days', '1 year', '7 years'] },
+      audit_retention: { type: 'select', label: 'Audit Log Retention', required: true, options: ['90 days', '1 year', '7 years'] },
+      app_retention: { type: 'select', label: 'Application Log Retention', required: true, options: ['30 days', '90 days', '1 year'] },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      automated_alerts: { type: 'select', label: 'Automated Alerts Enabled?', required: true, options: ['Yes', 'No'] },
+      review_responsible: { type: 'text', label: 'Review Responsible Party', required: true },
+      log_integrity: { type: 'text', label: 'Log Integrity Protection', required: true },
+      log_access: { type: 'text', label: 'Log Access Controls', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-vulnerability',
+    title: 'Vulnerability Management Policy',
+    description: 'SOC 2 CC7 - Vulnerability assessment and remediation',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Vulnerability Management Policy
+## SOC 2 - CC7
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Vulnerability Scanning
+**Frequency:** {{scan_frequency}}
+**Scope:** {{scan_scope}}
+**Scanner:** {{scan_tool}}
+
+## 2. Assessment
+**Authenticated Scans:** {{authenticated_scans}}
+**Penetration Testing:** {{pentest_frequency}}
+
+## 3. Remediation
+**Critical:** Within {{critical_timeline}}
+**High:** Within {{high_timeline}}
+**Medium:** Within {{medium_timeline}}
+**Low:** Within {{low_timeline}}
+
+## 4. Exceptions
+**Process:** {{exception_process}}
+**Approval:** {{exception_approval}}
+
+## 5. Reporting
+**Frequency:** {{report_frequency}}
+**Recipients:** {{report_recipients}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      scan_frequency: { type: 'select', label: 'Scan Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      scan_scope: { type: 'text', label: 'Scan Scope', required: true },
+      scan_tool: { type: 'text', label: 'Scanning Tool', required: true },
+      authenticated_scans: { type: 'select', label: 'Authenticated Scans?', required: true, options: ['Yes', 'No'] },
+      pentest_frequency: { type: 'select', label: 'Penetration Test Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      critical_timeline: { type: 'select', label: 'Critical Timeline', required: true, options: ['24 hours', '48 hours', '1 week'] },
+      high_timeline: { type: 'select', label: 'High Timeline', required: true, options: ['1 week', '2 weeks', '30 days'] },
+      medium_timeline: { type: 'select', label: 'Medium Timeline', required: true, options: ['30 days', '60 days', '90 days'] },
+      low_timeline: { type: 'select', label: 'Low Timeline', required: true, options: ['90 days', '180 days', 'Next cycle'] },
+      exception_process: { type: 'text', label: 'Exception Process', required: true },
+      exception_approval: { type: 'text', label: 'Exception Approval Authority', required: true },
+      report_frequency: { type: 'select', label: 'Report Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      report_recipients: { type: 'text', label: 'Report Recipients', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
   }
 ];
 
