@@ -38,6 +38,12 @@
 - [Support](#-support)
 - [License](#-license)
 
+## 📊 Latest Updates
+
+**December 24, 2025** - Complete codebase documentation and duplicate code analysis completed:
+- ✅ [Comprehensive Codebase Documentation](docs/COMPREHENSIVE_CODEBASE_DOCUMENTATION.md) - Complete analysis of all components, services, and architecture
+- ⚠️ [Duplicate Code Report](DUPLICATE_CODE_REPORT.md) - Identified 5,000-7,000+ lines of duplicate code with refactoring recommendations
+
 ## Overview
 
 CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management platform that automates the generation, analysis, and management of compliance documentation. Built for enterprise use, it supports multiple compliance frameworks including ISO 27001, SOC 2, FedRAMP, and NIST 800-53.

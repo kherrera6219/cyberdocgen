@@ -1,18 +1,7 @@
 import OpenAI from "openai";
 import { logger } from "../utils/logger";
 import { type CompanyProfile } from "@shared/schema";
-
-let openaiClient: OpenAI | null = null;
-
-function getOpenAIClient(): OpenAI {
-  if (!openaiClient) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY environment variable is not set");
-    }
-    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  }
-  return openaiClient;
-}
+import { getOpenAIClient } from "./aiClients";
 
 export interface DocumentTemplate {
   title: string;
