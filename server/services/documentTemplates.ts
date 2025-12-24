@@ -1262,6 +1262,1468 @@ All Moderate SC controls PLUS:
   }
 ];
 
+// FedRAMP Core Required Documents
+export const FedRAMPCoreTemplates: DocumentTemplate[] = [
+  {
+    id: 'fedramp-rob',
+    title: 'Rules of Behavior (RoB)',
+    description: 'FedRAMP required Rules of Behavior for system users',
+    framework: 'FedRAMP',
+    category: 'policy',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Rules of Behavior (RoB)
+## {{system_name}}
+
+### System Information
+**System Name:** {{system_name}}
+**System Owner:** {{system_owner}}
+**Effective Date:** {{effective_date}}
+
+## 1. Purpose
+These Rules of Behavior establish responsibilities and expected behavior for all users of {{system_name}}. All users must read, understand, and acknowledge these rules before being granted access.
+
+## 2. Scope
+These rules apply to:
+- Federal employees
+- Contractors
+- Third-party users
+- Anyone granted access to {{system_name}}
+
+## 3. General Responsibilities
+
+### 3.1 Authorized Use
+Users are granted access solely for authorized government business purposes. Personal use is prohibited unless specifically authorized.
+
+### 3.2 Account Security
+- **Password Requirements:** {{password_requirements}}
+- **MFA Required:** {{mfa_required}}
+- **Account Sharing:** Strictly prohibited
+- **Session Timeout:** {{session_timeout}} minutes
+
+### 3.3 Data Handling
+**Data Classification Levels:**
+- Public
+- Internal Use Only
+- Sensitive
+- Classified (if applicable)
+
+**Handling Requirements:**
+{{data_handling_requirements}}
+
+## 4. Acceptable Use Policies
+
+### 4.1 Permitted Activities
+- Accessing information required for job duties
+- Communication for business purposes
+- Using approved software and tools
+- {{additional_permitted_activities}}
+
+### 4.2 Prohibited Activities
+- Unauthorized access attempts
+- Sharing credentials
+- Installing unauthorized software
+- Bypassing security controls
+- Personal use of government resources
+- Downloading/uploading unauthorized files
+- Connecting unauthorized devices
+- {{additional_prohibited_activities}}
+
+## 5. Security Requirements
+
+### 5.1 Physical Security
+- Lock workstations when unattended
+- Secure paper documents containing sensitive information
+- Report lost/stolen devices immediately
+- {{physical_security_requirements}}
+
+### 5.2 Information Security
+- Use encryption for sensitive data: {{encryption_requirements}}
+- Report security incidents within {{incident_reporting_time}}
+- Complete security awareness training: {{training_frequency}}
+- Follow clean desk policy: {{clean_desk_policy}}
+
+### 5.3 Remote Access
+**Remote Access Requirements:**
+- VPN required: {{vpn_required}}
+- Approved devices only: {{approved_devices}}
+- Secure network connections: {{secure_network_requirements}}
+
+## 6. Monitoring and Privacy
+
+**System Monitoring:**
+Users have no expectation of privacy when using {{system_name}}. All activities may be monitored, recorded, and audited for:
+- Security purposes
+- Performance monitoring
+- Compliance verification
+- Investigation of policy violations
+
+**Monitoring Includes:**
+- Network traffic
+- Email communications
+- File access and transfers
+- System commands
+- Authentication attempts
+
+## 7. Incident Reporting
+
+**Report Immediately:**
+- Suspected security incidents
+- Lost or stolen devices
+- Unauthorized access attempts
+- Malware infections
+- Data breaches
+- Policy violations
+
+**Reporting Contact:** {{incident_contact}}
+**Reporting Method:** {{reporting_method}}
+
+## 8. Consequences of Violations
+
+Violations may result in:
+- Access revocation
+- Administrative action
+- Disciplinary action
+- Criminal prosecution
+- Civil penalties
+
+## 9. Privacy Act Statement
+
+{{privacy_act_statement}}
+
+## 10. User Acknowledgment
+
+I acknowledge that I have read, understand, and agree to comply with these Rules of Behavior. I understand that violations may result in disciplinary action, including termination of access privileges and potential legal action.
+
+**User Name:** _________________________________
+
+**Signature:** _________________________________
+
+**Date:** _________________________________
+
+**Supervisor Approval:** _________________________________
+
+**Effective Date:** {{effective_date}}
+**Review Date:** {{review_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      system_owner: { type: 'text', label: 'System Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      password_requirements: { type: 'text', label: 'Password Requirements', required: true },
+      mfa_required: { type: 'select', label: 'MFA Required', required: true, options: ['Yes', 'No'] },
+      session_timeout: { type: 'number', label: 'Session Timeout (minutes)', required: true },
+      data_handling_requirements: { type: 'text', label: 'Data Handling Requirements', required: true },
+      encryption_requirements: { type: 'text', label: 'Encryption Requirements', required: true },
+      incident_reporting_time: { type: 'text', label: 'Incident Reporting Time', required: true },
+      training_frequency: { type: 'select', label: 'Training Frequency', required: true, options: ['Annually', 'Semi-annually', 'Upon hire'] },
+      vpn_required: { type: 'select', label: 'VPN Required', required: true, options: ['Yes', 'No'] },
+      incident_contact: { type: 'text', label: 'Incident Contact', required: true },
+      reporting_method: { type: 'text', label: 'Reporting Method', required: true },
+      privacy_act_statement: { type: 'text', label: 'Privacy Act Statement', required: true },
+      review_date: { type: 'date', label: 'Review Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-iscp',
+    title: 'Information System Contingency Plan (ISCP)',
+    description: 'FedRAMP required contingency plan for system recovery',
+    framework: 'FedRAMP',
+    category: 'plan',
+    priority: 1,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Information System Contingency Plan (ISCP)
+## {{system_name}}
+
+### Document Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**Date:** {{plan_date}}
+**Version:** {{version}}
+
+## 1. Executive Summary
+This Information System Contingency Plan provides procedures for recovery of {{system_name}} in the event of a system disruption or disaster.
+
+**Recovery Objectives:**
+- **Recovery Time Objective (RTO):** {{rto}}
+- **Recovery Point Objective (RPO):** {{rpo}}
+- **Maximum Tolerable Downtime (MTD):** {{mtd}}
+
+## 2. System Overview
+
+### 2.1 System Description
+{{system_description}}
+
+### 2.2 System Criticality
+**Criticality Level:** {{criticality_level}}
+**Business Impact:** {{business_impact}}
+
+### 2.3 System Architecture
+{{system_architecture}}
+
+## 3. Contingency Planning Team
+
+**Contingency Plan Coordinator:** {{coordinator_name}}
+**Contact:** {{coordinator_contact}}
+
+### 3.1 Team Members
+| Role | Name | Contact | Responsibilities |
+|------|------|---------|-----------------|
+| Team Lead | {{team_lead}} | {{lead_contact}} | Overall coordination |
+| Technical Lead | {{tech_lead}} | {{tech_contact}} | Technical recovery |
+| Communications | {{comm_lead}} | {{comm_contact}} | Stakeholder communication |
+| Security | {{security_lead}} | {{security_contact}} | Security verification |
+
+## 4. Backup Procedures
+
+### 4.1 Backup Strategy
+**Backup Type:** {{backup_type}}
+**Backup Frequency:** {{backup_frequency}}
+**Backup Location:** {{backup_location}}
+**Retention Period:** {{retention_period}}
+
+### 4.2 Data Backup
+- **User Data:** {{user_data_backup}}
+- **System Data:** {{system_data_backup}}
+- **Configuration:** {{config_backup}}
+- **Databases:** {{database_backup}}
+
+### 4.3 Backup Verification
+**Testing Frequency:** {{backup_test_frequency}}
+**Last Test Date:** {{last_test_date}}
+**Next Test Date:** {{next_test_date}}
+
+## 5. Alternate Processing Site
+
+**Primary Site:** {{primary_site}}
+**Alternate Site:** {{alternate_site}}
+**Geographic Separation:** {{geo_separation}}
+
+### 5.1 Alternate Site Capabilities
+{{alternate_site_capabilities}}
+
+### 5.2 Data Synchronization
+**Synchronization Method:** {{sync_method}}
+**Synchronization Frequency:** {{sync_frequency}}
+
+## 6. Recovery Procedures
+
+### 6.1 Activation and Notification
+
+**Activation Criteria:**
+{{activation_criteria}}
+
+**Notification Procedure:**
+1. Assess situation severity
+2. Notify Contingency Plan Coordinator
+3. Activate contingency team
+4. Begin recovery procedures
+
+**Notification List:**
+{{notification_list}}
+
+### 6.2 Recovery Steps
+
+#### Phase 1: Assessment (0-2 hours)
+1. Assess extent of disruption
+2. Determine recovery approach
+3. Activate contingency team
+4. Notify stakeholders
+
+#### Phase 2: Activation (2-8 hours)
+1. Activate alternate processing site
+2. Restore from backups
+3. Verify data integrity
+4. Test system functionality
+
+#### Phase 3: Recovery (8-24 hours)
+1. Restore full system operations
+2. Verify all services operational
+3. Monitor system performance
+4. Document recovery actions
+
+#### Phase 4: Reconstitution (24-72 hours)
+1. Return to primary site (if applicable)
+2. Validate full functionality
+3. Resume normal operations
+4. Conduct lessons learned
+
+### 6.3 System Recovery Procedures
+{{system_recovery_procedures}}
+
+### 6.4 Application Recovery
+{{application_recovery_procedures}}
+
+### 6.5 Database Recovery
+{{database_recovery_procedures}}
+
+## 7. Testing and Exercises
+
+### 7.1 Testing Schedule
+**Tabletop Exercises:** {{tabletop_frequency}}
+**Functional Tests:** {{functional_test_frequency}}
+**Full Recovery Test:** {{full_test_frequency}}
+
+### 7.2 Test Documentation
+{{test_documentation_requirements}}
+
+## 8. Plan Maintenance
+
+**Review Frequency:** {{plan_review_frequency}}
+**Update Triggers:**
+- Significant system changes
+- Organizational changes
+- Test results
+- Actual activation
+
+**Last Review:** {{last_review_date}}
+**Next Review:** {{next_review_date}}
+
+## 9. Appendices
+
+### Appendix A: Contact Lists
+{{contact_lists}}
+
+### Appendix B: System Inventory
+{{system_inventory}}
+
+### Appendix C: Vendor Contacts
+{{vendor_contacts}}
+
+### Appendix D: Recovery Forms
+{{recovery_forms}}
+
+## 10. Approval
+
+**Prepared By:** {{prepared_by}}
+**Reviewed By:** {{reviewed_by}}
+**Approved By:** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      plan_date: { type: 'date', label: 'Plan Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      rto: { type: 'text', label: 'Recovery Time Objective (RTO)', required: true },
+      rpo: { type: 'text', label: 'Recovery Point Objective (RPO)', required: true },
+      mtd: { type: 'text', label: 'Maximum Tolerable Downtime (MTD)', required: true },
+      system_description: { type: 'text', label: 'System Description', required: true },
+      criticality_level: { type: 'select', label: 'Criticality Level', required: true, options: ['Mission Critical', 'Critical', 'Important', 'Non-Critical'] },
+      coordinator_name: { type: 'text', label: 'Coordinator Name', required: true },
+      coordinator_contact: { type: 'text', label: 'Coordinator Contact', required: true },
+      backup_type: { type: 'select', label: 'Backup Type', required: true, options: ['Full', 'Incremental', 'Differential', 'Continuous'] },
+      backup_frequency: { type: 'select', label: 'Backup Frequency', required: true, options: ['Real-time', 'Hourly', 'Daily', 'Weekly'] },
+      backup_location: { type: 'text', label: 'Backup Location', required: true },
+      alternate_site: { type: 'text', label: 'Alternate Processing Site', required: true },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-cis',
+    title: 'Control Implementation Summary (CIS)',
+    description: 'FedRAMP Control Implementation Summary and customer responsibilities',
+    framework: 'FedRAMP',
+    category: 'assessment',
+    priority: 1,
+    documentType: 'standard',
+    required: true,
+    templateContent: `# Control Implementation Summary (CIS)
+## {{system_name}}
+
+### Document Information
+**System Name:** {{system_name}}
+**FedRAMP Baseline:** {{fedramp_baseline}}
+**Date:** {{document_date}}
+**Version:** {{version}}
+
+## 1. Introduction
+This Control Implementation Summary (CIS) provides a summary of how {{system_name}} implements FedRAMP security controls and identifies customer responsibilities.
+
+## 2. Control Implementation Status
+
+### Legend:
+- **CSP** - Cloud Service Provider Responsibility
+- **Customer** - Customer Responsibility
+- **Shared** - Shared Responsibility
+- **Inherited** - Inherited from infrastructure
+
+## 3. Control Summary by Family
+
+### 3.1 Access Control (AC) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| AC-1 | Implemented | CSP | Access control policy maintained by CSP |
+| AC-2 | Implemented | Shared | CSP manages infrastructure accounts; Customer manages application accounts |
+| AC-3 | Implemented | Shared | {{ac3_implementation}} |
+| AC-4 | Implemented | CSP | {{ac4_implementation}} |
+| AC-5 | Implemented | Shared | {{ac5_implementation}} |
+| AC-6 | Implemented | Shared | {{ac6_implementation}} |
+| AC-7 | Implemented | Customer | {{ac7_implementation}} |
+| AC-17 | Implemented | Shared | {{ac17_implementation}} |
+
+### 3.2 Audit and Accountability (AU) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| AU-1 | Implemented | CSP | Audit policy maintained by CSP |
+| AU-2 | Implemented | Shared | {{au2_implementation}} |
+| AU-3 | Implemented | CSP | {{au3_implementation}} |
+| AU-6 | Implemented | Shared | {{au6_implementation}} |
+| AU-9 | Implemented | CSP | {{au9_implementation}} |
+
+### 3.3 Configuration Management (CM) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| CM-1 | Implemented | CSP | Configuration management policy maintained by CSP |
+| CM-2 | Implemented | Shared | {{cm2_implementation}} |
+| CM-3 | Implemented | Shared | {{cm3_implementation}} |
+| CM-6 | Implemented | Shared | {{cm6_implementation}} |
+| CM-8 | Implemented | CSP | {{cm8_implementation}} |
+
+### 3.4 Contingency Planning (CP) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| CP-1 | Implemented | CSP | Contingency planning policy maintained by CSP |
+| CP-2 | Implemented | Shared | {{cp2_implementation}} |
+| CP-9 | Implemented | CSP | {{cp9_implementation}} |
+| CP-10 | Implemented | CSP | {{cp10_implementation}} |
+
+### 3.5 Identification and Authentication (IA) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| IA-1 | Implemented | CSP | I&A policy maintained by CSP |
+| IA-2 | Implemented | Shared | {{ia2_implementation}} |
+| IA-5 | Implemented | Shared | {{ia5_implementation}} |
+
+### 3.6 Incident Response (IR) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| IR-1 | Implemented | CSP | Incident response policy maintained by CSP |
+| IR-4 | Implemented | Shared | {{ir4_implementation}} |
+| IR-6 | Implemented | Shared | {{ir6_implementation}} |
+
+### 3.7 System and Communications Protection (SC) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| SC-1 | Implemented | CSP | System protection policy maintained by CSP |
+| SC-7 | Implemented | CSP | {{sc7_implementation}} |
+| SC-8 | Implemented | CSP | {{sc8_implementation}} |
+| SC-12 | Implemented | CSP | {{sc12_implementation}} |
+| SC-13 | Implemented | CSP | {{sc13_implementation}} |
+
+### 3.8 System and Information Integrity (SI) Family
+| Control | Implementation Status | Responsibility | Implementation Summary |
+|---------|----------------------|----------------|------------------------|
+| SI-1 | Implemented | CSP | System integrity policy maintained by CSP |
+| SI-2 | Implemented | Shared | {{si2_implementation}} |
+| SI-3 | Implemented | Shared | {{si3_implementation}} |
+| SI-4 | Implemented | CSP | {{si4_implementation}} |
+
+## 4. Customer Responsibilities
+
+### 4.1 Account Management
+Customers are responsible for:
+{{customer_account_responsibilities}}
+
+### 4.2 Data Protection
+Customers are responsible for:
+{{customer_data_responsibilities}}
+
+### 4.3 Application Security
+Customers are responsible for:
+{{customer_application_responsibilities}}
+
+### 4.4 Compliance and Monitoring
+Customers are responsible for:
+{{customer_compliance_responsibilities}}
+
+## 5. Shared Responsibilities
+
+### 5.1 Security Monitoring
+{{shared_monitoring}}
+
+### 5.2 Incident Response
+{{shared_incident_response}}
+
+### 5.3 Patch Management
+{{shared_patch_management}}
+
+## 6. Inherited Controls
+
+The following controls are fully inherited from the infrastructure provider:
+{{inherited_controls}}
+
+## 7. Implementation Notes
+
+{{implementation_notes}}
+
+## 8. Approval
+
+**Prepared By:** {{prepared_by}}
+**Reviewed By:** {{reviewed_by}}
+**Approved By:** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      fedramp_baseline: { type: 'select', label: 'FedRAMP Baseline', required: true, options: ['Low', 'Moderate', 'High'] },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      customer_account_responsibilities: { type: 'text', label: 'Customer Account Responsibilities', required: true },
+      customer_data_responsibilities: { type: 'text', label: 'Customer Data Responsibilities', required: true },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-crm',
+    title: 'Customer Responsibility Matrix (CRM)',
+    description: 'FedRAMP Customer Responsibility Matrix defining CSP and customer responsibilities',
+    framework: 'FedRAMP',
+    category: 'assessment',
+    priority: 1,
+    documentType: 'standard',
+    required: true,
+    templateContent: `# Customer Responsibility Matrix (CRM)
+## {{system_name}}
+
+**FedRAMP Baseline:** {{fedramp_baseline}}
+**Version:** {{version}}
+**Date:** {{document_date}}
+
+## 1. Responsibility Legend
+- **CSP** - Cloud Service Provider responsible
+- **Customer** - Customer responsible
+- **Shared** - Shared responsibility
+- **Inherited** - Customer inherits from CSP
+
+## 2. Control Responsibilities Summary
+
+Customer must understand their responsibilities for {{system_name}} security controls.
+
+### Access Control
+Customer responsible for: Application user management, role assignment, access reviews.
+CSP responsible for: Infrastructure access, platform authentication, account provisioning.
+
+### Audit and Accountability
+Customer responsible for: Application audit configuration, log review.
+CSP responsible for: Infrastructure logging, log retention, SIEM integration.
+
+### Configuration Management
+Customer responsible for: Application configuration, change management for custom code.
+CSP responsible for: Platform configuration baselines, infrastructure change control.
+
+**Customer Actions Required:** {{customer_actions}}
+
+**CSP Services Provided:** {{csp_services}}
+
+**Approval:** {{approved_by}} on {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      fedramp_baseline: { type: 'select', label: 'FedRAMP Baseline', required: true, options: ['Low', 'Moderate', 'High'] },
+      version: { type: 'text', label: 'Version', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      customer_actions: { type: 'text', label: 'Customer Actions Required', required: true },
+      csp_services: { type: 'text', label: 'CSP Services Provided', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-inventory',
+    title: 'Integrated Inventory Workbook',
+    description: 'FedRAMP integrated inventory of all system components',
+    framework: 'FedRAMP',
+    category: 'documentation',
+    priority: 1,
+    documentType: 'standard',
+    required: true,
+    templateContent: `# Integrated Inventory Workbook
+## {{system_name}}
+
+**Inventory Date:** {{inventory_date}}
+**Version:** {{version}}
+
+## 1. Inventory Summary
+**Total Components:** {{total_components}}
+**Update Frequency:** {{update_frequency}}
+
+## 2. Hardware Inventory
+| Asset Tag | Hostname | Type | Location | IP Address | OS | Status |
+|-----------|----------|------|----------|------------|----|--------|
+| {{asset_1}} | {{host_1}} | {{type_1}} | {{loc_1}} | {{ip_1}} | {{os_1}} | Active |
+
+## 3. Software Inventory
+| Application | Version | Vendor | Purpose | License |
+|-------------|---------|--------|---------|---------|
+| {{app_1}} | {{ver_1}} | {{vendor_1}} | {{purpose_1}} | {{license_1}} |
+
+## 4. Network Devices
+| Device | Model | Location | Firmware | Purpose |
+|--------|-------|----------|----------|---------|
+| {{device_1}} | {{model_1}} | {{location_1}} | {{fw_1}} | {{dev_purpose_1}} |
+
+## 5. Cloud Services
+| Service | Provider | Type | Region |
+|---------|----------|------|--------|
+| {{service_1}} | {{provider_1}} | {{svc_type_1}} | {{region_1}} |
+
+**Last Audit:** {{last_audit}}
+**Next Audit:** {{next_audit}}
+**Approved By:** {{approved_by}} on {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      inventory_date: { type: 'date', label: 'Inventory Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      total_components: { type: 'number', label: 'Total Components', required: true },
+      update_frequency: { type: 'select', label: 'Update Frequency', required: true, options: ['Real-time', 'Weekly', 'Monthly', 'Quarterly'] },
+      last_audit: { type: 'date', label: 'Last Audit Date', required: true },
+      next_audit: { type: 'date', label: 'Next Audit Date', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-crypto',
+    title: 'Cryptographic Modules Table',
+    description: 'FedRAMP cryptographic modules and FIPS 140-2/140-3 validation',
+    framework: 'FedRAMP',
+    category: 'security',
+    priority: 1,
+    documentType: 'standard',
+    required: true,
+    templateContent: `# Cryptographic Modules Table
+## {{system_name}}
+
+**Date:** {{document_date}}
+**Version:** {{version}}
+
+## 1. FIPS 140-2/140-3 Requirement
+All cryptographic modules must be FIPS validated per FedRAMP requirements.
+
+## 2. Cryptographic Modules Inventory
+
+### 2.1 System Modules
+| Module Name | Vendor | Purpose | FIPS Status | Certificate # | Level |
+|-------------|--------|---------|-------------|---------------|-------|
+| {{mod_1}} | {{vendor_1}} | {{purpose_1}} | {{fips_1}} | {{cert_1}} | {{level_1}} |
+
+### 2.2 Application Modules
+| Application | Crypto Module | FIPS Status | Certificate # | Algorithm |
+|-------------|---------------|-------------|---------------|-----------|
+| {{app_1}} | {{app_mod_1}} | {{app_fips_1}} | {{app_cert_1}} | {{algo_1}} |
+
+## 3. Approved Algorithms
+| Algorithm | Key Length | Use Case | FIPS Approved |
+|-----------|------------|----------|---------------|
+| AES | {{aes_length}} | Encryption | Yes |
+| SHA-256 | 256-bit | Hashing | Yes |
+| RSA | {{rsa_length}} | Signatures | Yes |
+
+## 4. Key Management
+**Key Generation:** {{key_gen}}
+**Key Storage:** {{key_storage}}
+**Key Rotation:** {{rotation_freq}}
+
+## 5. TLS Configuration
+**TLS Version:** {{tls_version}}
+**Minimum Version:** {{min_tls}}
+**Cipher Suites:** {{ciphers}}
+
+**Last Review:** {{last_review}}
+**Approved By:** {{approved_by}} on {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      aes_length: { type: 'select', label: 'AES Key Length', required: true, options: ['128-bit', '192-bit', '256-bit'] },
+      rsa_length: { type: 'select', label: 'RSA Key Length', required: true, options: ['2048-bit', '3072-bit', '4096-bit'] },
+      key_gen: { type: 'text', label: 'Key Generation Method', required: true },
+      key_storage: { type: 'text', label: 'Key Storage Method', required: true },
+      rotation_freq: { type: 'select', label: 'Rotation Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      tls_version: { type: 'select', label: 'TLS Version', required: true, options: ['TLS 1.3', 'TLS 1.2'] },
+      min_tls: { type: 'select', label: 'Minimum TLS', required: true, options: ['TLS 1.2', 'TLS 1.3'] },
+      ciphers: { type: 'text', label: 'Cipher Suites', required: true },
+      last_review: { type: 'date', label: 'Last FIPS Review', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-cmp',
+    title: 'Configuration Management Plan (CMP)',
+    description: 'FedRAMP required Configuration Management Plan for baseline and change control',
+    framework: 'FedRAMP',
+    category: 'plan',
+    priority: 1,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Configuration Management Plan (CMP)
+**System:** {{system_name}}
+**Date:** {{document_date}}
+**Version:** {{version}}
+
+## 1. Purpose
+This Configuration Management Plan (CMP) defines processes for managing {{system_name}} baseline configurations, change control, and configuration audits per FedRAMP requirements (NIST 800-53 CM family).
+
+## 2. Scope
+**Systems Covered:** {{systems_covered}}
+**Components:** Hardware, Software, Network, Documentation
+
+## 3. Configuration Management Roles
+| Role | Responsibility | Name |
+|------|----------------|------|
+| CM Manager | Overall CM oversight | {{cm_manager}} |
+| Change Control Board | Approve changes | {{ccb_members}} |
+| System Administrator | Implement changes | {{sys_admin}} |
+| Security Officer | Security review | {{security_officer}} |
+
+## 4. Configuration Baseline
+
+### 4.1 Hardware Baseline
+**Baseline ID:** {{hw_baseline_id}}
+**Last Updated:** {{hw_baseline_date}}
+
+Maintained in: {{hw_baseline_location}}
+
+### 4.2 Software Baseline
+**Baseline ID:** {{sw_baseline_id}}
+**Last Updated:** {{sw_baseline_date}}
+
+Components:
+- Operating Systems: {{os_list}}
+- Applications: {{app_list}}
+- Security Tools: {{security_tools}}
+
+### 4.3 Network Baseline
+**Baseline ID:** {{net_baseline_id}}
+**Network Diagrams:** {{network_diagram_location}}
+**Boundary Diagrams:** {{boundary_diagram_location}}
+
+### 4.4 Security Baseline
+**Security Configuration:** {{security_baseline}}
+**Standards:** {{config_standards}}
+**Templates:** {{config_templates}}
+
+## 5. Change Control Process
+
+### 5.1 Change Request Process
+1. **Initiate:** Submit change request form
+2. **Assess:** Security and operational impact analysis
+3. **Approve:** CCB review and approval/rejection
+4. **Implement:** Scheduled implementation
+5. **Verify:** Post-implementation testing
+6. **Document:** Update baseline and close request
+
+### 5.2 Change Categories
+| Category | Approval Level | Timeline |
+|----------|----------------|----------|
+| Emergency | {{emergency_approval}} | Immediate |
+| Standard | CCB Approval | {{standard_timeline}} |
+| Minor | {{minor_approval}} | {{minor_timeline}} |
+
+### 5.3 Emergency Changes
+**Authorization:** {{emergency_auth}}
+**Documentation:** Within {{emergency_doc_timeline}}
+**Post-Implementation Review:** Within {{post_review_timeline}}
+
+## 6. Configuration Control Board (CCB)
+
+### 6.1 Membership
+**Chair:** {{ccb_chair}}
+**Members:** {{ccb_members}}
+**Quorum:** {{ccb_quorum}}
+
+### 6.2 Meeting Schedule
+**Regular Meetings:** {{ccb_meeting_freq}}
+**Emergency Meetings:** As needed within {{emergency_meeting_timeline}}
+
+### 6.3 Voting Process
+**Approval Threshold:** {{approval_threshold}}
+**Tie-Breaking:** {{tie_breaker}}
+
+## 7. Configuration Audits
+
+### 7.1 Audit Schedule
+**Automated Scans:** {{auto_scan_freq}}
+**Manual Reviews:** {{manual_review_freq}}
+**Comprehensive Audits:** {{comprehensive_audit_freq}}
+
+### 7.2 Audit Tools
+**Configuration Scanner:** {{config_scanner}}
+**Vulnerability Scanner:** {{vuln_scanner}}
+**Compliance Tool:** {{compliance_tool}}
+
+### 7.3 Deviation Management
+**Unauthorized Changes:** {{unauthorized_process}}
+**Remediation Timeline:** {{remediation_timeline}}
+**Exception Process:** {{exception_process}}
+
+## 8. Configuration Management Database (CMDB)
+
+### 8.1 CMDB Tool
+**System:** {{cmdb_tool}}
+**Location:** {{cmdb_location}}
+**Access Controls:** {{cmdb_access}}
+
+### 8.2 Data Elements
+- Configuration Items (CIs)
+- CI relationships and dependencies
+- Change history
+- Baseline versions
+- Asset ownership
+- Compliance status
+
+### 8.3 CMDB Updates
+**Frequency:** {{cmdb_update_freq}}
+**Responsible Party:** {{cmdb_owner}}
+**Validation:** {{cmdb_validation_freq}}
+
+## 9. Version Control
+
+### 9.1 Code Repository
+**Repository:** {{code_repo}}
+**Branching Strategy:** {{branch_strategy}}
+**Merge Approval:** {{merge_approval}}
+
+### 9.2 Documentation Versioning
+**Document Repository:** {{doc_repo}}
+**Versioning Scheme:** {{version_scheme}}
+**Archive Process:** {{archive_process}}
+
+### 9.3 Build Management
+**Build Tool:** {{build_tool}}
+**Build Frequency:** {{build_freq}}
+**Artifact Storage:** {{artifact_storage}}
+
+## 10. Security Configuration Management
+
+### 10.1 Security Hardening
+**Standards Applied:** {{hardening_standards}}
+**Validation:** {{hardening_validation}}
+**Exception Process:** {{security_exceptions}}
+
+### 10.2 Patch Management
+**Patch Cycle:** {{patch_cycle}}
+**Testing:** {{patch_testing}}
+**Emergency Patches:** Within {{emergency_patch_timeline}}
+
+### 10.3 Least Functionality
+**Unnecessary Services:** Disabled per {{service_baseline}}
+**Prohibited Software:** {{prohibited_software}}
+**Enforcement:** {{enforcement_method}}
+
+## 11. Monitoring and Reporting
+
+### 11.1 CM Metrics
+- Unauthorized change detections
+- Change success rate
+- Mean time to implement changes
+- Configuration drift incidents
+- Audit findings
+
+### 11.2 Reporting
+**Monthly Reports:** To {{monthly_report_recipients}}
+**Quarterly Reviews:** CCB and management
+**Annual Assessment:** Full CM program effectiveness
+
+### 11.3 Continuous Monitoring
+**Real-time Alerts:** {{cm_alerts}}
+**Dashboard:** {{cm_dashboard}}
+**Integration:** {{monitoring_integration}}
+
+## 12. Training and Awareness
+
+### 12.1 CM Training
+**CM Team:** {{cm_training_freq}}
+**System Administrators:** {{admin_training_freq}}
+**All Personnel:** Annual CM awareness
+
+### 12.2 Training Topics
+- Change control procedures
+- CMDB usage
+- Security configuration
+- Incident reporting
+- Audit cooperation
+
+## 13. Related Documents
+- System Security Plan (SSP)
+- Incident Response Plan (IRP)
+- Contingency Plan (ISCP)
+- Security Assessment Report (SAR)
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}
+**Next Review:** {{next_review}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      systems_covered: { type: 'text', label: 'Systems Covered', required: true },
+      cm_manager: { type: 'text', label: 'CM Manager Name', required: true },
+      ccb_members: { type: 'text', label: 'CCB Members', required: true },
+      sys_admin: { type: 'text', label: 'System Administrator', required: true },
+      security_officer: { type: 'text', label: 'Security Officer', required: true },
+      hw_baseline_id: { type: 'text', label: 'Hardware Baseline ID', required: true },
+      hw_baseline_date: { type: 'date', label: 'Hardware Baseline Date', required: true },
+      hw_baseline_location: { type: 'text', label: 'Hardware Baseline Location', required: true },
+      sw_baseline_id: { type: 'text', label: 'Software Baseline ID', required: true },
+      sw_baseline_date: { type: 'date', label: 'Software Baseline Date', required: true },
+      os_list: { type: 'text', label: 'Operating Systems', required: true },
+      app_list: { type: 'text', label: 'Applications', required: true },
+      security_tools: { type: 'text', label: 'Security Tools', required: true },
+      net_baseline_id: { type: 'text', label: 'Network Baseline ID', required: true },
+      network_diagram_location: { type: 'text', label: 'Network Diagram Location', required: true },
+      boundary_diagram_location: { type: 'text', label: 'Boundary Diagram Location', required: true },
+      security_baseline: { type: 'text', label: 'Security Configuration Baseline', required: true },
+      config_standards: { type: 'text', label: 'Configuration Standards', required: true },
+      config_templates: { type: 'text', label: 'Configuration Templates', required: true },
+      emergency_approval: { type: 'text', label: 'Emergency Change Approver', required: true },
+      standard_timeline: { type: 'select', label: 'Standard Change Timeline', required: true, options: ['24 hours', '48 hours', '72 hours', '1 week'] },
+      minor_approval: { type: 'text', label: 'Minor Change Approver', required: true },
+      minor_timeline: { type: 'select', label: 'Minor Change Timeline', required: true, options: ['4 hours', '8 hours', '24 hours'] },
+      emergency_auth: { type: 'text', label: 'Emergency Authorization Authority', required: true },
+      emergency_doc_timeline: { type: 'select', label: 'Emergency Documentation Timeline', required: true, options: ['24 hours', '48 hours', '72 hours'] },
+      post_review_timeline: { type: 'select', label: 'Post-Implementation Review Timeline', required: true, options: ['48 hours', '1 week', '2 weeks'] },
+      ccb_chair: { type: 'text', label: 'CCB Chair', required: true },
+      ccb_quorum: { type: 'text', label: 'CCB Quorum Requirement', required: true },
+      ccb_meeting_freq: { type: 'select', label: 'CCB Meeting Frequency', required: true, options: ['Weekly', 'Bi-weekly', 'Monthly'] },
+      emergency_meeting_timeline: { type: 'select', label: 'Emergency Meeting Timeline', required: true, options: ['4 hours', '8 hours', '24 hours'] },
+      approval_threshold: { type: 'text', label: 'Approval Threshold', required: true },
+      tie_breaker: { type: 'text', label: 'Tie-Breaking Process', required: true },
+      auto_scan_freq: { type: 'select', label: 'Automated Scan Frequency', required: true, options: ['Continuous', 'Daily', 'Weekly'] },
+      manual_review_freq: { type: 'select', label: 'Manual Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      comprehensive_audit_freq: { type: 'select', label: 'Comprehensive Audit Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      config_scanner: { type: 'text', label: 'Configuration Scanner Tool', required: true },
+      vuln_scanner: { type: 'text', label: 'Vulnerability Scanner', required: true },
+      compliance_tool: { type: 'text', label: 'Compliance Monitoring Tool', required: true },
+      unauthorized_process: { type: 'text', label: 'Unauthorized Change Process', required: true },
+      remediation_timeline: { type: 'select', label: 'Remediation Timeline', required: true, options: ['Immediate', '24 hours', '48 hours', '1 week'] },
+      exception_process: { type: 'text', label: 'Exception Request Process', required: true },
+      cmdb_tool: { type: 'text', label: 'CMDB Tool/System', required: true },
+      cmdb_location: { type: 'text', label: 'CMDB Location', required: true },
+      cmdb_access: { type: 'text', label: 'CMDB Access Controls', required: true },
+      cmdb_update_freq: { type: 'select', label: 'CMDB Update Frequency', required: true, options: ['Real-time', 'Daily', 'Weekly'] },
+      cmdb_owner: { type: 'text', label: 'CMDB Owner', required: true },
+      cmdb_validation_freq: { type: 'select', label: 'CMDB Validation Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually'] },
+      code_repo: { type: 'text', label: 'Code Repository', required: true },
+      branch_strategy: { type: 'text', label: 'Branching Strategy', required: true },
+      merge_approval: { type: 'text', label: 'Merge Approval Process', required: true },
+      doc_repo: { type: 'text', label: 'Documentation Repository', required: true },
+      version_scheme: { type: 'text', label: 'Versioning Scheme', required: true },
+      archive_process: { type: 'text', label: 'Archive Process', required: true },
+      build_tool: { type: 'text', label: 'Build Tool', required: true },
+      build_freq: { type: 'select', label: 'Build Frequency', required: true, options: ['Continuous', 'Daily', 'Weekly', 'Per Release'] },
+      artifact_storage: { type: 'text', label: 'Artifact Storage Location', required: true },
+      hardening_standards: { type: 'text', label: 'Hardening Standards (e.g., CIS, DISA STIG)', required: true },
+      hardening_validation: { type: 'text', label: 'Hardening Validation Method', required: true },
+      security_exceptions: { type: 'text', label: 'Security Exception Process', required: true },
+      patch_cycle: { type: 'select', label: 'Patch Management Cycle', required: true, options: ['Monthly', 'Bi-weekly', 'As Released'] },
+      patch_testing: { type: 'text', label: 'Patch Testing Process', required: true },
+      emergency_patch_timeline: { type: 'select', label: 'Emergency Patch Timeline', required: true, options: ['24 hours', '48 hours', '72 hours'] },
+      service_baseline: { type: 'text', label: 'Service Baseline Document', required: true },
+      prohibited_software: { type: 'text', label: 'Prohibited Software List', required: true },
+      enforcement_method: { type: 'text', label: 'Enforcement Method', required: true },
+      monthly_report_recipients: { type: 'text', label: 'Monthly Report Recipients', required: true },
+      cm_alerts: { type: 'text', label: 'CM Alert System', required: true },
+      cm_dashboard: { type: 'text', label: 'CM Dashboard URL/Location', required: true },
+      monitoring_integration: { type: 'text', label: 'Monitoring System Integration', required: true },
+      cm_training_freq: { type: 'select', label: 'CM Team Training Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      admin_training_freq: { type: 'select', label: 'Admin Training Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      next_review: { type: 'date', label: 'Next Review Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-irp',
+    title: 'Incident Response Plan (IRP)',
+    description: 'FedRAMP required Incident Response Plan for security incident handling',
+    framework: 'FedRAMP',
+    category: 'plan',
+    priority: 1,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Incident Response Plan (IRP)
+**System:** {{system_name}}
+**Date:** {{document_date}}
+**Version:** {{version}}
+
+## 1. Purpose
+This Incident Response Plan (IRP) establishes procedures for detecting, responding to, and recovering from security incidents affecting {{system_name}} per FedRAMP requirements (NIST 800-53 IR family).
+
+## 2. Scope
+**Systems Covered:** {{systems_covered}}
+**Incident Types:** Security breaches, data loss, service disruptions, unauthorized access
+
+## 3. Incident Response Team (IRT)
+
+### 3.1 Team Structure
+| Role | Name | Contact | Backup |
+|------|------|---------|--------|
+| IR Manager | {{ir_manager}} | {{ir_manager_contact}} | {{ir_manager_backup}} |
+| Security Lead | {{security_lead}} | {{security_contact}} | {{security_backup}} |
+| Technical Lead | {{tech_lead}} | {{tech_contact}} | {{tech_backup}} |
+| Communications | {{comms_lead}} | {{comms_contact}} | {{comms_backup}} |
+| Legal Counsel | {{legal_contact}} | {{legal_phone}} | {{legal_backup}} |
+
+### 3.2 Escalation Contacts
+**Executive:** {{executive_contact}} - {{executive_phone}}
+**FedRAMP PMO:** incident@fedramp.gov
+**US-CERT:** us-cert@cisa.dhs.gov
+
+### 3.3 On-Call Rotation
+**Schedule:** {{oncall_schedule}}
+**Response Time:** {{response_time_requirement}}
+
+## 4. Incident Categories and Severity Levels
+
+### 4.1 Severity Definitions
+| Level | Description | Response Time | Escalation |
+|-------|-------------|---------------|------------|
+| Critical | Data breach, system compromise | {{critical_response}} | Immediate |
+| High | Significant security event | {{high_response}} | Within 2 hours |
+| Medium | Potential security incident | {{medium_response}} | Within 8 hours |
+| Low | Security anomaly | {{low_response}} | Next business day |
+
+### 4.2 FedRAMP Reportable Incidents
+Per FedRAMP policy, report within 1 hour of discovery:
+- Confirmed or suspected data breach
+- Confirmed or suspected system compromise
+- Denial of Service affecting FedRAMP system
+- Any incident requiring law enforcement notification
+
+## 5. Incident Response Process
+
+### 5.1 Phase 1: Preparation
+**Status:** Ongoing
+
+Activities:
+- Maintain incident response tools and capabilities
+- Conduct IR training ({{ir_training_freq}})
+- Run tabletop exercises ({{tabletop_freq}})
+- Update contact lists and procedures
+- Review threat intelligence
+
+**IR Tools:**
+- SIEM: {{siem_tool}}
+- Forensics: {{forensics_tools}}
+- Communication: {{ir_comm_platform}}
+- Ticketing: {{ir_ticketing}}
+
+### 5.2 Phase 2: Detection and Analysis
+**Detection Sources:**
+- Security monitoring alerts: {{monitoring_system}}
+- User reports: {{user_report_method}}
+- Threat intelligence feeds: {{threat_feeds}}
+- External notifications: {{external_notification_process}}
+
+**Initial Analysis:**
+1. Verify the incident (eliminate false positives)
+2. Categorize incident type
+3. Assign severity level
+4. Document initial findings
+5. Notify IRT members
+
+**Analysis Timeline:**
+- Initial triage: Within {{triage_timeline}}
+- Preliminary assessment: Within {{assessment_timeline}}
+- Full analysis: Within {{analysis_timeline}}
+
+### 5.3 Phase 3: Containment
+
+#### Short-term Containment
+**Objective:** Stop incident spread immediately
+
+Actions:
+- Isolate affected systems: {{isolation_method}}
+- Block malicious IPs/domains: {{blocking_method}}
+- Disable compromised accounts: {{account_disable_process}}
+- Preserve evidence: {{evidence_preservation}}
+
+**Authority:** {{containment_authority}}
+**Timeline:** Within {{containment_timeline}}
+
+#### Long-term Containment
+**Objective:** Maintain operations while preparing recovery
+
+Actions:
+- Deploy temporary fixes: {{temp_fix_process}}
+- Implement additional monitoring: {{enhanced_monitoring}}
+- Apply security patches: {{emergency_patching}}
+- Rebuild compromised systems: {{rebuild_process}}
+
+### 5.4 Phase 4: Eradication
+**Objective:** Remove threat and vulnerabilities
+
+Activities:
+1. Identify and remove malware: {{malware_removal_tools}}
+2. Close attack vectors: {{vulnerability_remediation}}
+3. Improve defenses: {{defense_improvements}}
+4. Update security configurations: {{config_updates}}
+
+**Validation:**
+- Malware scan: {{scan_tool}}
+- Vulnerability assessment: {{vuln_assessment_tool}}
+- Configuration review: {{config_review_process}}
+
+**Sign-off Required:** {{eradication_approver}}
+
+### 5.5 Phase 5: Recovery
+**Objective:** Restore normal operations
+
+Recovery Steps:
+1. Restore from clean backups: {{backup_restoration}}
+2. Rebuild affected systems: {{rebuild_procedure}}
+3. Apply security hardening: {{hardening_standards}}
+4. Verify system integrity: {{integrity_verification}}
+5. Monitor for recurrence: {{post_recovery_monitoring}}
+
+**Recovery Timeline:** {{recovery_timeline}}
+**Validation Period:** {{validation_period}}
+
+**Return to Production:**
+- Testing: {{recovery_testing}}
+- Approval: {{recovery_approver}}
+- Gradual restoration: {{phased_recovery}}
+
+### 5.6 Phase 6: Post-Incident Activity
+
+#### Lessons Learned Meeting
+**Timing:** Within {{lessons_learned_timeline}} of incident closure
+**Attendees:** IRT, management, stakeholders
+**Facilitator:** {{lessons_learned_facilitator}}
+
+**Discussion Topics:**
+- What happened?
+- What was done well?
+- What could be improved?
+- What actions should be taken?
+
+#### Post-Incident Report
+**Due:** Within {{pir_timeline}}
+**Recipients:** {{pir_recipients}}
+
+**Report Contents:**
+- Executive summary
+- Incident timeline
+- Impact assessment
+- Response actions
+- Root cause analysis
+- Improvement recommendations
+- Cost analysis
+
+#### Follow-up Actions
+- Update security controls: {{control_update_process}}
+- Revise procedures: {{procedure_revision_owner}}
+- Implement improvements: {{improvement_owner}}
+- Track metrics: {{metrics_tracking}}
+
+## 6. Communication Protocols
+
+### 6.1 Internal Communications
+**IRT Communications:** {{irt_comm_channel}}
+**Management Updates:** {{mgmt_update_freq}}
+**All-Staff Notification:** {{staff_notification_method}}
+
+### 6.2 External Communications
+
+#### FedRAMP Reporting
+**Initial Report:** Within 1 hour to incident@fedramp.gov
+**Updates:** {{fedramp_update_freq}}
+**Final Report:** Within {{fedramp_final_timeline}}
+
+#### Customer Notification
+**Threshold:** {{customer_notification_threshold}}
+**Timeline:** {{customer_notification_timeline}}
+**Method:** {{customer_notification_method}}
+**Spokesperson:** {{customer_spokesperson}}
+
+#### Law Enforcement
+**When to Report:** {{law_enforcement_threshold}}
+**Contact:** {{law_enforcement_contact}}
+**Coordination:** {{le_coordination_process}}
+
+#### Public/Media
+**Approval Required:** {{media_approval_authority}}
+**Spokesperson:** {{media_spokesperson}}
+**Messaging:** {{media_messaging_process}}
+
+### 6.3 Communication Templates
+- Initial incident notification
+- Status update template
+- FedRAMP incident report
+- Customer breach notification
+- Post-incident summary
+
+**Location:** {{template_location}}
+
+## 7. Evidence Collection and Handling
+
+### 7.1 Digital Evidence
+**Collection Tools:** {{evidence_collection_tools}}
+**Chain of Custody:** {{custody_process}}
+**Storage:** {{evidence_storage}}
+**Retention:** {{evidence_retention}}
+
+### 7.2 Forensic Analysis
+**Forensic Team:** {{forensic_team}}
+**Analysis Tools:** {{forensic_tools}}
+**Write Protection:** {{write_protection_method}}
+**Hash Verification:** {{hash_algorithm}}
+
+### 7.3 Legal Considerations
+**Legal Hold:** {{legal_hold_process}}
+**Privilege:** {{privilege_considerations}}
+**Disclosure:** {{disclosure_requirements}}
+
+## 8. Coordination with External Parties
+
+### 8.1 US-CERT
+**Contact:** us-cert@cisa.dhs.gov
+**Reporting:** For federal incidents per {{reporting_requirement}}
+
+### 8.2 FedRAMP PMO
+**Contact:** incident@fedramp.gov
+**Required Reporting:** All FedRAMP incidents within 1 hour
+
+### 8.3 Cloud Service Providers
+**AWS:** {{aws_incident_contact}}
+**Azure:** {{azure_incident_contact}}
+**GCP:** {{gcp_incident_contact}}
+
+### 8.4 Third-Party Vendors
+**Security Vendors:** {{security_vendor_contacts}}
+**Managed Services:** {{msp_contacts}}
+**Forensics:** {{forensics_vendor}}
+
+## 9. Training and Exercises
+
+### 9.1 IRT Training
+**Frequency:** {{irt_training_freq}}
+**Topics:**
+- IR procedures and tools
+- FedRAMP requirements
+- Evidence handling
+- Communication protocols
+- New threats and tactics
+
+### 9.2 Tabletop Exercises
+**Frequency:** {{tabletop_freq}}
+**Scenarios:** Data breach, ransomware, insider threat, DDoS
+**Participants:** IRT, management, key stakeholders
+
+### 9.3 Full-Scale Exercises
+**Frequency:** {{fullscale_freq}}
+**Scope:** End-to-end incident simulation
+**After-Action:** Required within {{aar_timeline}}
+
+## 10. Metrics and Reporting
+
+### 10.1 IR Metrics
+- Mean Time to Detect (MTTD): {{mttd_target}}
+- Mean Time to Respond (MTTR): {{mttr_target}}
+- Mean Time to Contain (MTTC): {{mttc_target}}
+- Mean Time to Recover: {{recovery_target}}
+- False positive rate
+- Incident recurrence rate
+
+### 10.2 Monthly IR Report
+**Recipients:** {{monthly_report_recipients}}
+**Contents:**
+- Incident summary
+- Metrics and trends
+- Improvement status
+- Training completed
+
+### 10.3 Annual IR Assessment
+**Timing:** {{annual_assessment_date}}
+**Scope:** Full IR capability review
+**Auditor:** {{ir_auditor}}
+
+## 11. Plan Maintenance
+
+### 11.1 Review Schedule
+**Quarterly:** Contact lists and procedures
+**Annually:** Full plan review and update
+**Post-Incident:** Update based on lessons learned
+
+### 11.2 Change Management
+**Change Requests:** {{change_request_process}}
+**Approval:** {{plan_change_approver}}
+**Distribution:** {{plan_distribution_method}}
+
+### 11.3 Version Control
+**Current Version:** {{version}}
+**Previous Versions:** {{archive_location}}
+**Approval History:** {{approval_history}}
+
+## 12. Related Documents
+- System Security Plan (SSP)
+- Contingency Plan (ISCP)
+- Configuration Management Plan (CMP)
+- Rules of Behavior (RoB)
+- Privacy Incident Response Procedures
+
+## 13. Appendices
+
+### Appendix A: Contact Lists
+**Location:** {{contact_list_location}}
+**Update Frequency:** Monthly
+
+### Appendix B: Incident Classification Matrix
+**Location:** {{classification_matrix}}
+
+### Appendix C: Response Playbooks
+**Location:** {{playbook_location}}
+**Scenarios:** Ransomware, Data Breach, DDoS, Insider Threat, Supply Chain
+
+### Appendix D: Communication Templates
+**Location:** {{template_location}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}
+**Next Review:** {{next_review}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      systems_covered: { type: 'text', label: 'Systems Covered', required: true },
+      ir_manager: { type: 'text', label: 'IR Manager Name', required: true },
+      ir_manager_contact: { type: 'text', label: 'IR Manager Contact', required: true },
+      ir_manager_backup: { type: 'text', label: 'IR Manager Backup', required: true },
+      security_lead: { type: 'text', label: 'Security Lead Name', required: true },
+      security_contact: { type: 'text', label: 'Security Lead Contact', required: true },
+      security_backup: { type: 'text', label: 'Security Lead Backup', required: true },
+      tech_lead: { type: 'text', label: 'Technical Lead Name', required: true },
+      tech_contact: { type: 'text', label: 'Technical Lead Contact', required: true },
+      tech_backup: { type: 'text', label: 'Technical Lead Backup', required: true },
+      comms_lead: { type: 'text', label: 'Communications Lead', required: true },
+      comms_contact: { type: 'text', label: 'Communications Contact', required: true },
+      comms_backup: { type: 'text', label: 'Communications Backup', required: true },
+      legal_contact: { type: 'text', label: 'Legal Counsel Name', required: true },
+      legal_phone: { type: 'text', label: 'Legal Phone', required: true },
+      legal_backup: { type: 'text', label: 'Legal Backup', required: true },
+      executive_contact: { type: 'text', label: 'Executive Contact', required: true },
+      executive_phone: { type: 'text', label: 'Executive Phone', required: true },
+      oncall_schedule: { type: 'text', label: 'On-Call Schedule Location', required: true },
+      response_time_requirement: { type: 'select', label: 'Response Time Requirement', required: true, options: ['15 minutes', '30 minutes', '1 hour'] },
+      critical_response: { type: 'select', label: 'Critical Incident Response Time', required: true, options: ['15 minutes', '30 minutes', '1 hour'] },
+      high_response: { type: 'select', label: 'High Incident Response Time', required: true, options: ['1 hour', '2 hours', '4 hours'] },
+      medium_response: { type: 'select', label: 'Medium Incident Response Time', required: true, options: ['4 hours', '8 hours', '24 hours'] },
+      low_response: { type: 'select', label: 'Low Incident Response Time', required: true, options: ['Next business day', '48 hours', '1 week'] },
+      ir_training_freq: { type: 'select', label: 'IR Training Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually'] },
+      tabletop_freq: { type: 'select', label: 'Tabletop Exercise Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      siem_tool: { type: 'text', label: 'SIEM Tool', required: true },
+      forensics_tools: { type: 'text', label: 'Forensics Tools', required: true },
+      ir_comm_platform: { type: 'text', label: 'IR Communication Platform', required: true },
+      ir_ticketing: { type: 'text', label: 'IR Ticketing System', required: true },
+      monitoring_system: { type: 'text', label: 'Security Monitoring System', required: true },
+      user_report_method: { type: 'text', label: 'User Reporting Method', required: true },
+      threat_feeds: { type: 'text', label: 'Threat Intelligence Feeds', required: true },
+      external_notification_process: { type: 'text', label: 'External Notification Process', required: true },
+      triage_timeline: { type: 'select', label: 'Triage Timeline', required: true, options: ['15 minutes', '30 minutes', '1 hour'] },
+      assessment_timeline: { type: 'select', label: 'Assessment Timeline', required: true, options: ['1 hour', '2 hours', '4 hours'] },
+      analysis_timeline: { type: 'select', label: 'Full Analysis Timeline', required: true, options: ['4 hours', '8 hours', '24 hours'] },
+      isolation_method: { type: 'text', label: 'System Isolation Method', required: true },
+      blocking_method: { type: 'text', label: 'IP/Domain Blocking Method', required: true },
+      account_disable_process: { type: 'text', label: 'Account Disable Process', required: true },
+      evidence_preservation: { type: 'text', label: 'Evidence Preservation Method', required: true },
+      containment_authority: { type: 'text', label: 'Containment Authority', required: true },
+      containment_timeline: { type: 'select', label: 'Containment Timeline', required: true, options: ['1 hour', '2 hours', '4 hours', '8 hours'] },
+      temp_fix_process: { type: 'text', label: 'Temporary Fix Process', required: true },
+      enhanced_monitoring: { type: 'text', label: 'Enhanced Monitoring Method', required: true },
+      emergency_patching: { type: 'text', label: 'Emergency Patching Process', required: true },
+      rebuild_process: { type: 'text', label: 'System Rebuild Process', required: true },
+      malware_removal_tools: { type: 'text', label: 'Malware Removal Tools', required: true },
+      vulnerability_remediation: { type: 'text', label: 'Vulnerability Remediation Process', required: true },
+      defense_improvements: { type: 'text', label: 'Defense Improvement Process', required: true },
+      config_updates: { type: 'text', label: 'Configuration Update Process', required: true },
+      scan_tool: { type: 'text', label: 'Malware Scan Tool', required: true },
+      vuln_assessment_tool: { type: 'text', label: 'Vulnerability Assessment Tool', required: true },
+      config_review_process: { type: 'text', label: 'Configuration Review Process', required: true },
+      eradication_approver: { type: 'text', label: 'Eradication Sign-off Authority', required: true },
+      backup_restoration: { type: 'text', label: 'Backup Restoration Process', required: true },
+      rebuild_procedure: { type: 'text', label: 'Rebuild Procedure', required: true },
+      hardening_standards: { type: 'text', label: 'Security Hardening Standards', required: true },
+      integrity_verification: { type: 'text', label: 'Integrity Verification Method', required: true },
+      post_recovery_monitoring: { type: 'text', label: 'Post-Recovery Monitoring Period', required: true },
+      recovery_timeline: { type: 'text', label: 'Recovery Timeline Target', required: true },
+      validation_period: { type: 'select', label: 'Validation Period', required: true, options: ['24 hours', '48 hours', '72 hours', '1 week'] },
+      recovery_testing: { type: 'text', label: 'Recovery Testing Process', required: true },
+      recovery_approver: { type: 'text', label: 'Recovery Approval Authority', required: true },
+      phased_recovery: { type: 'text', label: 'Phased Recovery Approach', required: true },
+      lessons_learned_timeline: { type: 'select', label: 'Lessons Learned Timeline', required: true, options: ['1 week', '2 weeks', '30 days'] },
+      lessons_learned_facilitator: { type: 'text', label: 'Lessons Learned Facilitator', required: true },
+      pir_timeline: { type: 'select', label: 'Post-Incident Report Due', required: true, options: ['1 week', '2 weeks', '30 days'] },
+      pir_recipients: { type: 'text', label: 'PIR Recipients', required: true },
+      control_update_process: { type: 'text', label: 'Security Control Update Process', required: true },
+      procedure_revision_owner: { type: 'text', label: 'Procedure Revision Owner', required: true },
+      improvement_owner: { type: 'text', label: 'Improvement Implementation Owner', required: true },
+      metrics_tracking: { type: 'text', label: 'Metrics Tracking System', required: true },
+      irt_comm_channel: { type: 'text', label: 'IRT Communication Channel', required: true },
+      mgmt_update_freq: { type: 'select', label: 'Management Update Frequency', required: true, options: ['Hourly', 'Every 4 hours', 'Daily'] },
+      staff_notification_method: { type: 'text', label: 'Staff Notification Method', required: true },
+      fedramp_update_freq: { type: 'select', label: 'FedRAMP Update Frequency', required: true, options: ['Every 4 hours', 'Every 8 hours', 'Daily'] },
+      fedramp_final_timeline: { type: 'select', label: 'FedRAMP Final Report Timeline', required: true, options: ['7 days', '14 days', '30 days'] },
+      customer_notification_threshold: { type: 'text', label: 'Customer Notification Threshold', required: true },
+      customer_notification_timeline: { type: 'select', label: 'Customer Notification Timeline', required: true, options: ['24 hours', '48 hours', '72 hours'] },
+      customer_notification_method: { type: 'text', label: 'Customer Notification Method', required: true },
+      customer_spokesperson: { type: 'text', label: 'Customer Spokesperson', required: true },
+      law_enforcement_threshold: { type: 'text', label: 'Law Enforcement Reporting Threshold', required: true },
+      law_enforcement_contact: { type: 'text', label: 'Law Enforcement Contact', required: true },
+      le_coordination_process: { type: 'text', label: 'LE Coordination Process', required: true },
+      media_approval_authority: { type: 'text', label: 'Media Statement Approval Authority', required: true },
+      media_spokesperson: { type: 'text', label: 'Media Spokesperson', required: true },
+      media_messaging_process: { type: 'text', label: 'Media Messaging Process', required: true },
+      template_location: { type: 'text', label: 'Communication Templates Location', required: true },
+      evidence_collection_tools: { type: 'text', label: 'Evidence Collection Tools', required: true },
+      custody_process: { type: 'text', label: 'Chain of Custody Process', required: true },
+      evidence_storage: { type: 'text', label: 'Evidence Storage Location', required: true },
+      evidence_retention: { type: 'select', label: 'Evidence Retention Period', required: true, options: ['1 year', '3 years', '7 years'] },
+      forensic_team: { type: 'text', label: 'Forensic Team/Vendor', required: true },
+      write_protection_method: { type: 'text', label: 'Write Protection Method', required: true },
+      hash_algorithm: { type: 'select', label: 'Hash Algorithm', required: true, options: ['SHA-256', 'SHA-512', 'MD5+SHA-256'] },
+      legal_hold_process: { type: 'text', label: 'Legal Hold Process', required: true },
+      privilege_considerations: { type: 'text', label: 'Privilege Considerations', required: true },
+      disclosure_requirements: { type: 'text', label: 'Disclosure Requirements', required: true },
+      reporting_requirement: { type: 'text', label: 'US-CERT Reporting Requirement', required: true },
+      aws_incident_contact: { type: 'text', label: 'AWS Incident Contact', required: true },
+      azure_incident_contact: { type: 'text', label: 'Azure Incident Contact', required: true },
+      gcp_incident_contact: { type: 'text', label: 'GCP Incident Contact', required: true },
+      security_vendor_contacts: { type: 'text', label: 'Security Vendor Contacts', required: true },
+      msp_contacts: { type: 'text', label: 'Managed Service Provider Contacts', required: true },
+      forensics_vendor: { type: 'text', label: 'Forensics Vendor Contact', required: true },
+      fullscale_freq: { type: 'select', label: 'Full-Scale Exercise Frequency', required: true, options: ['Annually', 'Bi-annually'] },
+      aar_timeline: { type: 'select', label: 'After-Action Report Timeline', required: true, options: ['1 week', '2 weeks', '30 days'] },
+      mttd_target: { type: 'text', label: 'MTTD Target', required: true },
+      mttr_target: { type: 'text', label: 'MTTR Target', required: true },
+      mttc_target: { type: 'text', label: 'MTTC Target', required: true },
+      recovery_target: { type: 'text', label: 'Recovery Time Target', required: true },
+      monthly_report_recipients: { type: 'text', label: 'Monthly Report Recipients', required: true },
+      annual_assessment_date: { type: 'text', label: 'Annual Assessment Date', required: true },
+      ir_auditor: { type: 'text', label: 'IR Auditor', required: true },
+      change_request_process: { type: 'text', label: 'Change Request Process', required: true },
+      plan_change_approver: { type: 'text', label: 'Plan Change Approver', required: true },
+      plan_distribution_method: { type: 'text', label: 'Plan Distribution Method', required: true },
+      archive_location: { type: 'text', label: 'Archive Location', required: true },
+      approval_history: { type: 'text', label: 'Approval History Location', required: true },
+      contact_list_location: { type: 'text', label: 'Contact List Location', required: true },
+      classification_matrix: { type: 'text', label: 'Classification Matrix Location', required: true },
+      playbook_location: { type: 'text', label: 'Response Playbooks Location', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      next_review: { type: 'date', label: 'Next Review Date', required: true }
+    }
+  }
+];
+
 // NIST 800-53 Rev 5.1.1 Templates
 export const NIST80053Templates: DocumentTemplate[] = [
   {
@@ -1509,6 +2971,415 @@ All controls subject to continuous monitoring with annual assessment and real-ti
       company_name: { type: 'text', label: 'Company Name', required: true },
       approved_by: { type: 'text', label: 'Approved By', required: true },
       effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-002',
+    title: 'Plan of Action and Milestones (POA&M)',
+    description: 'Tracks security weaknesses and remediation plans (NIST 800-53 Rev 5)',
+    framework: 'NIST-800-53',
+    category: 'assessment',
+    priority: 1,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Plan of Action and Milestones (POA&M)
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**POA&M Date:** {{poam_date}}
+**POA&M ID:** {{poam_id}}
+
+## 1. Executive Summary
+This POA&M identifies security weaknesses discovered during assessment of {{system_name}} and documents the planned remediation actions, resources, and milestones for addressing each weakness.
+
+**Total Weaknesses Identified:** {{total_weaknesses}}
+**Critical:** {{critical_count}} | **High:** {{high_count}} | **Moderate:** {{moderate_count}} | **Low:** {{low_count}}
+
+## 2. POA&M Items
+
+### Item 1: {{weakness_1_title}}
+**Weakness ID:** {{weakness_1_id}}
+**Control:** {{weakness_1_control}}
+**Risk Level:** {{weakness_1_risk}}
+**Status:** {{weakness_1_status}}
+
+**Description:**
+{{weakness_1_description}}
+
+**Remediation Plan:**
+{{weakness_1_remediation}}
+
+**Resources Required:**
+{{weakness_1_resources}}
+
+**Milestones:**
+- Milestone 1: {{weakness_1_milestone_1}} - Target: {{weakness_1_date_1}}
+- Milestone 2: {{weakness_1_milestone_2}} - Target: {{weakness_1_date_2}}
+- Milestone 3: {{weakness_1_milestone_3}} - Target: {{weakness_1_date_3}}
+
+**Completion Date:** {{weakness_1_completion}}
+**Point of Contact:** {{weakness_1_poc}}
+
+---
+
+### Item 2: {{weakness_2_title}}
+**Weakness ID:** {{weakness_2_id}}
+**Control:** {{weakness_2_control}}
+**Risk Level:** {{weakness_2_risk}}
+**Status:** {{weakness_2_status}}
+
+**Description:**
+{{weakness_2_description}}
+
+**Remediation Plan:**
+{{weakness_2_remediation}}
+
+**Resources Required:**
+{{weakness_2_resources}}
+
+**Milestones:**
+- Milestone 1: {{weakness_2_milestone_1}} - Target: {{weakness_2_date_1}}
+- Milestone 2: {{weakness_2_milestone_2}} - Target: {{weakness_2_date_2}}
+
+**Completion Date:** {{weakness_2_completion}}
+**Point of Contact:** {{weakness_2_poc}}
+
+---
+
+## 3. Completion Tracking
+POA&M items will be reviewed {{review_frequency}} and updated as remediation progresses.
+
+**Next Review Date:** {{next_review_date}}
+**Authorizing Official:** {{authorizing_official}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      poam_date: { type: 'date', label: 'POA&M Date', required: true },
+      poam_id: { type: 'text', label: 'POA&M ID', required: true },
+      total_weaknesses: { type: 'number', label: 'Total Weaknesses', required: true },
+      critical_count: { type: 'number', label: 'Critical Count', required: false },
+      high_count: { type: 'number', label: 'High Count', required: false },
+      moderate_count: { type: 'number', label: 'Moderate Count', required: false },
+      low_count: { type: 'number', label: 'Low Count', required: false },
+      weakness_1_title: { type: 'text', label: 'Weakness 1 Title', required: false },
+      weakness_1_id: { type: 'text', label: 'Weakness 1 ID', required: false },
+      weakness_1_control: { type: 'text', label: 'Weakness 1 Control', required: false },
+      weakness_1_risk: { type: 'select', label: 'Weakness 1 Risk Level', required: false, options: ['Critical', 'High', 'Moderate', 'Low'] },
+      weakness_1_status: { type: 'select', label: 'Weakness 1 Status', required: false, options: ['Open', 'In Progress', 'Completed', 'Risk Accepted'] },
+      weakness_1_description: { type: 'text', label: 'Weakness 1 Description', required: false },
+      weakness_1_remediation: { type: 'text', label: 'Weakness 1 Remediation', required: false },
+      weakness_1_resources: { type: 'text', label: 'Weakness 1 Resources', required: false },
+      weakness_1_completion: { type: 'date', label: 'Weakness 1 Completion Date', required: false },
+      weakness_1_poc: { type: 'text', label: 'Weakness 1 POC', required: false },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      next_review_date: { type: 'date', label: 'Next Review Date', required: true },
+      authorizing_official: { type: 'text', label: 'Authorizing Official', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-003',
+    title: 'Security Assessment Report (SAR)',
+    description: 'Documents security control assessment results (NIST 800-53 Rev 5)',
+    framework: 'NIST-800-53',
+    category: 'assessment',
+    priority: 1,
+    documentType: 'report',
+    required: true,
+    templateContent: `# Security Assessment Report (SAR)
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**Assessment Date:** {{assessment_date}}
+**Assessor:** {{assessor_name}}
+**Assessment Type:** {{assessment_type}}
+
+## 1. Executive Summary
+This Security Assessment Report documents the assessment of security controls for {{system_name}} conducted in accordance with NIST SP 800-53A Rev 5 assessment procedures.
+
+**Assessment Period:** {{assessment_start}} to {{assessment_end}}
+**Overall Assessment Result:** {{overall_result}}
+
+### Summary of Findings
+- **Total Controls Assessed:** {{total_controls}}
+- **Satisfied:** {{satisfied_count}}
+- **Other than Satisfied:** {{other_than_satisfied}}
+- **Not Applicable:** {{not_applicable}}
+
+## 2. Assessment Methodology
+**Assessment Methods Used:**
+- Examine: {{examine_details}}
+- Interview: {{interview_details}}
+- Test: {{test_details}}
+
+**Assessment Team:**
+{{assessment_team}}
+
+## 3. System Characterization
+**System Description:** {{system_description}}
+**System Boundaries:** {{system_boundaries}}
+**Authorization Boundary:** {{auth_boundary}}
+
+**System Components:**
+{{system_components}}
+
+**Security Impact Level:**
+- Confidentiality: {{confidentiality_level}}
+- Integrity: {{integrity_level}}
+- Availability: {{availability_level}}
+
+## 4. Control Assessment Results
+
+### 4.1 Access Control (AC) Family
+**Controls Assessed:** {{ac_controls_assessed}}
+**Result:** {{ac_result}}
+**Findings:** {{ac_findings}}
+
+### 4.2 Audit and Accountability (AU) Family
+**Controls Assessed:** {{au_controls_assessed}}
+**Result:** {{au_result}}
+**Findings:** {{au_findings}}
+
+### 4.3 Contingency Planning (CP) Family
+**Controls Assessed:** {{cp_controls_assessed}}
+**Result:** {{cp_result}}
+**Findings:** {{cp_findings}}
+
+### 4.4 Identification and Authentication (IA) Family
+**Controls Assessed:** {{ia_controls_assessed}}
+**Result:** {{ia_result}}
+**Findings:** {{ia_findings}}
+
+### 4.5 Incident Response (IR) Family
+**Controls Assessed:** {{ir_controls_assessed}}
+**Result:** {{ir_result}}
+**Findings:** {{ir_findings}}
+
+### 4.6 System and Communications Protection (SC) Family
+**Controls Assessed:** {{sc_controls_assessed}}
+**Result:** {{sc_result}}
+**Findings:** {{sc_findings}}
+
+## 5. Risk Summary
+**High Risk Items:** {{high_risk_count}}
+{{high_risk_items}}
+
+**Moderate Risk Items:** {{moderate_risk_count}}
+{{moderate_risk_items}}
+
+**Low Risk Items:** {{low_risk_count}}
+{{low_risk_items}}
+
+## 6. Recommendations
+{{recommendations}}
+
+## 7. Conclusion
+{{conclusion}}
+
+**Assessment Lead:** {{assessment_lead}}
+**Authorizing Official:** {{authorizing_official}}
+**Date:** {{report_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      assessment_date: { type: 'date', label: 'Assessment Date', required: true },
+      assessor_name: { type: 'text', label: 'Assessor Name', required: true },
+      assessment_type: { type: 'select', label: 'Assessment Type', required: true, options: ['Initial', 'Annual', 'Continuous Monitoring'] },
+      assessment_start: { type: 'date', label: 'Assessment Start Date', required: true },
+      assessment_end: { type: 'date', label: 'Assessment End Date', required: true },
+      overall_result: { type: 'select', label: 'Overall Result', required: true, options: ['Satisfactory', 'Unsatisfactory', 'Conditional'] },
+      total_controls: { type: 'number', label: 'Total Controls Assessed', required: true },
+      satisfied_count: { type: 'number', label: 'Satisfied Controls', required: true },
+      other_than_satisfied: { type: 'number', label: 'Other Than Satisfied', required: true },
+      not_applicable: { type: 'number', label: 'Not Applicable', required: false },
+      system_description: { type: 'text', label: 'System Description', required: true },
+      confidentiality_level: { type: 'select', label: 'Confidentiality Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      integrity_level: { type: 'select', label: 'Integrity Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      availability_level: { type: 'select', label: 'Availability Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      assessment_lead: { type: 'text', label: 'Assessment Lead', required: true },
+      authorizing_official: { type: 'text', label: 'Authorizing Official', required: true },
+      report_date: { type: 'date', label: 'Report Date', required: true }
+    }
+  },
+  {
+    id: 'nist-004',
+    title: 'Privacy Impact Assessment (PIA)',
+    description: 'Analyzes privacy implications and compliance (NIST 800-53 Rev 5)',
+    framework: 'NIST-800-53',
+    category: 'assessment',
+    priority: 2,
+    documentType: 'assessment',
+    required: true,
+    templateContent: `# Privacy Impact Assessment (PIA)
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**PIA Date:** {{pia_date}}
+**Privacy Officer:** {{privacy_officer}}
+
+## 1. Executive Summary
+This Privacy Impact Assessment evaluates the privacy implications of {{system_name}} and ensures compliance with applicable privacy requirements and NIST SP 800-53 Rev 5 privacy controls.
+
+**System Owner:** {{system_owner}}
+**Privacy Impact Rating:** {{privacy_impact_rating}}
+
+## 2. System Description
+**System Purpose:** {{system_purpose}}
+
+**System Functions:** {{system_functions}}
+
+**User Population:** {{user_population}}
+
+## 3. Personally Identifiable Information (PII)
+
+### 3.1 PII Collected
+**Types of PII Collected:**
+{{pii_types}}
+
+**Volume of Records:** {{record_volume}}
+
+### 3.2 Sources of PII
+{{pii_sources}}
+
+### 3.3 Purpose of PII Collection
+{{pii_purpose}}
+
+### 3.4 PII Sharing
+**Internal Sharing:** {{internal_sharing}}
+
+**External Sharing:** {{external_sharing}}
+
+**Third Parties:** {{third_parties}}
+
+## 4. Privacy Risk Analysis
+
+### 4.1 Information Sharing Risks
+**Risk Level:** {{sharing_risk}}
+**Description:** {{sharing_risk_desc}}
+**Mitigation:** {{sharing_mitigation}}
+
+### 4.2 Data Quality and Integrity Risks
+**Risk Level:** {{quality_risk}}
+**Description:** {{quality_risk_desc}}
+**Mitigation:** {{quality_mitigation}}
+
+### 4.3 Individual Participation Risks
+**Risk Level:** {{participation_risk}}
+**Description:** {{participation_risk_desc}}
+**Mitigation:** {{participation_mitigation}}
+
+### 4.4 Security Risks
+**Risk Level:** {{security_risk}}
+**Description:** {{security_risk_desc}}
+**Mitigation:** {{security_mitigation}}
+
+## 5. Privacy Controls Implementation
+
+### PT-1: Policy and Procedures
+{{pt1_implementation}}
+
+### PT-2: Authority to Collect
+**Legal Authority:** {{collection_authority}}
+
+### PT-3: PII Processing Purposes
+**Documented Purposes:** {{processing_purposes}}
+
+### PT-4: Consent
+**Consent Mechanism:** {{consent_mechanism}}
+
+### PT-5: Privacy Notice
+**Notice Provided:** {{privacy_notice}}
+
+### PT-6: System of Records Notice (SORN)
+{{sorn_status}}
+
+### PT-7: Specific Categories of PII
+**Special Categories:** {{special_categories}}
+**Handling:** {{special_handling}}
+
+### PT-8: Computer Matching Requirements
+{{computer_matching}}
+
+## 6. Data Lifecycle Management
+
+**Collection:** {{collection_practices}}
+
+**Retention:** {{retention_period}}
+
+**Disposal:** {{disposal_method}}
+
+**Minimization:** {{minimization_practices}}
+
+## 7. Individual Rights
+
+**Access Rights:** {{access_rights}}
+
+**Correction Rights:** {{correction_rights}}
+
+**Deletion Rights:** {{deletion_rights}}
+
+**Objection Rights:** {{objection_rights}}
+
+## 8. Privacy Training
+{{privacy_training}}
+
+## 9. Privacy Incidents
+**Incident Response Plan:** {{incident_plan}}
+**Notification Procedures:** {{notification_procedures}}
+
+## 10. Compliance Assessment
+**NIST 800-53 Privacy Controls:** {{controls_compliant}}
+**Privacy Act Compliance:** {{privacy_act_compliant}}
+**GDPR Applicability:** {{gdpr_applicable}}
+**Other Regulations:** {{other_regulations}}
+
+## 11. Recommendations
+{{recommendations}}
+
+## 12. Approval
+
+**Privacy Officer:** {{privacy_officer}}
+**System Owner:** {{system_owner}}
+**Authorizing Official:** {{authorizing_official}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      pia_date: { type: 'date', label: 'PIA Date', required: true },
+      privacy_officer: { type: 'text', label: 'Privacy Officer', required: true },
+      system_owner: { type: 'text', label: 'System Owner', required: true },
+      privacy_impact_rating: { type: 'select', label: 'Privacy Impact Rating', required: true, options: ['Low', 'Moderate', 'High'] },
+      system_purpose: { type: 'text', label: 'System Purpose', required: true },
+      pii_types: { type: 'text', label: 'Types of PII Collected', required: true },
+      record_volume: { type: 'text', label: 'Volume of Records', required: true },
+      pii_sources: { type: 'text', label: 'Sources of PII', required: true },
+      pii_purpose: { type: 'text', label: 'Purpose of PII Collection', required: true },
+      internal_sharing: { type: 'text', label: 'Internal Sharing', required: true },
+      external_sharing: { type: 'text', label: 'External Sharing', required: true },
+      sharing_risk: { type: 'select', label: 'Information Sharing Risk Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      quality_risk: { type: 'select', label: 'Data Quality Risk Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      participation_risk: { type: 'select', label: 'Participation Risk Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      security_risk: { type: 'select', label: 'Security Risk Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      collection_authority: { type: 'text', label: 'Legal Authority to Collect', required: true },
+      processing_purposes: { type: 'text', label: 'Processing Purposes', required: true },
+      consent_mechanism: { type: 'text', label: 'Consent Mechanism', required: true },
+      privacy_notice: { type: 'text', label: 'Privacy Notice', required: true },
+      retention_period: { type: 'text', label: 'Retention Period', required: true },
+      disposal_method: { type: 'text', label: 'Disposal Method', required: true },
+      authorizing_official: { type: 'text', label: 'Authorizing Official', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
     }
   }
 ];
@@ -4056,6 +5927,2270 @@ This document outlines {{company_name}}'s risk mitigation controls per SOC 2 CC9
       document_owner: { type: 'text', label: 'Document Owner', required: true },
       effective_date: { type: 'date', label: 'Effective Date', required: true }
     }
+  },
+  {
+    id: 'iso-015',
+    title: 'Risk Treatment Plan',
+    description: 'ISO 27001:2022 Clause 6.1.3 - Risk treatment decisions and implementation plan',
+    framework: 'ISO27001',
+    category: 'risk',
+    priority: 2,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Risk Treatment Plan
+## ISO/IEC 27001:2022 - Clause 6.1.3
+
+**Document Owner:** {{document_owner}}
+**Version:** {{version}}
+**Date:** {{document_date}}
+
+## 1. Risk Treatment Objectives
+{{treatment_objectives}}
+
+## 2. Risk Treatment Options
+For each identified risk, one of the following treatments must be selected:
+- Avoid: Eliminate the risk source
+- Reduce: Implement controls to mitigate
+- Transfer: Share or transfer to third party
+- Accept: Acknowledge and accept residual risk
+
+## 3. Risk Treatment Decisions
+
+| Risk ID | Risk Description | Risk Level | Treatment Option | Controls | Owner | Timeline |
+|---------|------------------|------------|------------------|----------|-------|----------|
+| {{risk_1_id}} | {{risk_1_desc}} | {{risk_1_level}} | {{risk_1_treatment}} | {{risk_1_controls}} | {{risk_1_owner}} | {{risk_1_timeline}} |
+
+## 4. Implementation Plan
+**Phase 1:** {{phase_1}}
+**Phase 2:** {{phase_2}}
+**Completion Target:** {{completion_target}}
+
+## 5. Residual Risk Acceptance
+**Accepted Residual Risks:** {{residual_risks}}
+**Acceptance Authority:** {{acceptance_authority}}
+
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      treatment_objectives: { type: 'text', label: 'Treatment Objectives', required: true },
+      risk_1_id: { type: 'text', label: 'Risk 1 ID', required: true },
+      risk_1_desc: { type: 'text', label: 'Risk 1 Description', required: true },
+      risk_1_level: { type: 'select', label: 'Risk 1 Level', required: true, options: ['Low', 'Medium', 'High', 'Critical'] },
+      risk_1_treatment: { type: 'select', label: 'Risk 1 Treatment', required: true, options: ['Avoid', 'Reduce', 'Transfer', 'Accept'] },
+      risk_1_controls: { type: 'text', label: 'Risk 1 Controls', required: true },
+      risk_1_owner: { type: 'text', label: 'Risk 1 Owner', required: true },
+      risk_1_timeline: { type: 'text', label: 'Risk 1 Timeline', required: true },
+      phase_1: { type: 'text', label: 'Phase 1 Description', required: true },
+      phase_2: { type: 'text', label: 'Phase 2 Description', required: true },
+      completion_target: { type: 'date', label: 'Completion Target', required: true },
+      residual_risks: { type: 'text', label: 'Residual Risks', required: true },
+      acceptance_authority: { type: 'text', label: 'Risk Acceptance Authority', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'iso-016',
+    title: 'Risk Register',
+    description: 'ISO 27001:2022 Clause 6.1.2 - Central register of information security risks',
+    framework: 'ISO27001',
+    category: 'risk',
+    priority: 2,
+    documentType: 'register',
+    required: true,
+    templateContent: `# Information Security Risk Register
+## ISO/IEC 27001:2022 - Clause 6.1.2
+
+**Organization:** {{company_name}}
+**ISMS Scope:** {{isms_scope}}
+**Register Date:** {{register_date}}
+**Version:** {{version}}
+
+## Risk Assessment Summary
+**Total Risks Identified:** {{total_risks}}
+**High/Critical:** {{high_risks}}
+**Medium:** {{medium_risks}}
+**Low:** {{low_risks}}
+
+## Risk Register
+
+| ID | Asset | Threat | Vulnerability | Likelihood | Impact | Risk Level | Treatment | Status | Owner |
+|----|-------|--------|---------------|------------|--------|------------|-----------|--------|-------|
+| R-001 | {{asset_1}} | {{threat_1}} | {{vuln_1}} | {{likelihood_1}} | {{impact_1}} | {{level_1}} | {{treatment_1}} | {{status_1}} | {{owner_1}} |
+
+## Risk Matrix
+**Likelihood Scale:** {{likelihood_scale}}
+**Impact Scale:** {{impact_scale}}
+
+## Review Schedule
+**Review Frequency:** {{review_frequency}}
+**Next Review:** {{next_review}}
+**Risk Owner:** {{risk_owner}}
+
+**Maintained By:** {{maintained_by}}
+**Last Updated:** {{last_updated}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      isms_scope: { type: 'text', label: 'ISMS Scope', required: true },
+      register_date: { type: 'date', label: 'Register Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      total_risks: { type: 'number', label: 'Total Risks', required: true },
+      high_risks: { type: 'number', label: 'High/Critical Risks', required: true },
+      medium_risks: { type: 'number', label: 'Medium Risks', required: true },
+      low_risks: { type: 'number', label: 'Low Risks', required: true },
+      asset_1: { type: 'text', label: 'Asset 1', required: true },
+      threat_1: { type: 'text', label: 'Threat 1', required: true },
+      vuln_1: { type: 'text', label: 'Vulnerability 1', required: true },
+      likelihood_1: { type: 'select', label: 'Likelihood 1', required: true, options: ['Rare', 'Unlikely', 'Possible', 'Likely', 'Almost Certain'] },
+      impact_1: { type: 'select', label: 'Impact 1', required: true, options: ['Insignificant', 'Minor', 'Moderate', 'Major', 'Catastrophic'] },
+      level_1: { type: 'select', label: 'Risk Level 1', required: true, options: ['Low', 'Medium', 'High', 'Critical'] },
+      treatment_1: { type: 'select', label: 'Treatment 1', required: true, options: ['Avoid', 'Reduce', 'Transfer', 'Accept'] },
+      status_1: { type: 'select', label: 'Status 1', required: true, options: ['Open', 'In Progress', 'Mitigated', 'Accepted'] },
+      owner_1: { type: 'text', label: 'Risk Owner 1', required: true },
+      likelihood_scale: { type: 'text', label: 'Likelihood Scale Definition', required: true },
+      impact_scale: { type: 'text', label: 'Impact Scale Definition', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually', 'Annually'] },
+      next_review: { type: 'date', label: 'Next Review Date', required: true },
+      risk_owner: { type: 'text', label: 'Risk Owner', required: true },
+      maintained_by: { type: 'text', label: 'Maintained By', required: true },
+      last_updated: { type: 'date', label: 'Last Updated', required: true }
+    }
+  },
+  {
+    id: 'iso-017',
+    title: 'Internal Audit Program',
+    description: 'ISO 27001:2022 Clause 9.2 - ISMS internal audit program and procedures',
+    framework: 'ISO27001',
+    category: 'audit',
+    priority: 1,
+    documentType: 'program',
+    required: true,
+    templateContent: `# Internal Audit Program
+## ISO/IEC 27001:2022 - Clause 9.2
+
+**Organization:** {{company_name}}
+**Program Year:** {{program_year}}
+**Version:** {{version}}
+
+## 1. Audit Objectives
+- Verify ISMS conformity to ISO 27001:2022
+- Assess effectiveness of implemented controls
+- Identify improvement opportunities
+- Ensure compliance with organizational requirements
+
+## 2. Audit Scope
+**ISMS Scope:** {{isms_scope}}
+**Locations:** {{audit_locations}}
+**Processes:** {{audit_processes}}
+
+## 3. Audit Schedule
+
+| Quarter | Audit Focus | Clauses | Controls | Auditor | Dates |
+|---------|-------------|---------|----------|---------|-------|
+| Q1 | {{q1_focus}} | {{q1_clauses}} | {{q1_controls}} | {{q1_auditor}} | {{q1_dates}} |
+| Q2 | {{q2_focus}} | {{q2_clauses}} | {{q2_controls}} | {{q2_auditor}} | {{q2_dates}} |
+
+## 4. Audit Criteria
+- ISO/IEC 27001:2022 requirements
+- Organizational policies and procedures
+- Applicable legal and regulatory requirements
+- {{custom_criteria}}
+
+## 5. Audit Team
+**Lead Auditor:** {{lead_auditor}}
+**Auditors:** {{auditors}}
+**Competence Requirements:** {{competence_requirements}}
+
+## 6. Audit Process
+1. **Planning:** Audit plan development
+2. **Preparation:** Document review, checklists
+3. **Execution:** Opening meeting, interviews, evidence collection
+4. **Reporting:** Findings, nonconformities, observations
+5. **Follow-up:** Corrective actions verification
+
+## 7. Reporting
+**Audit Report Recipients:** {{report_recipients}}
+**Report Timeline:** {{report_timeline}}
+**Findings Classification:** {{findings_classification}}
+
+## 8. Independence
+**Auditor Independence:** {{independence_requirements}}
+
+**Program Owner:** {{program_owner}}
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      program_year: { type: 'text', label: 'Program Year', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      isms_scope: { type: 'text', label: 'ISMS Scope', required: true },
+      audit_locations: { type: 'text', label: 'Audit Locations', required: true },
+      audit_processes: { type: 'text', label: 'Audit Processes', required: true },
+      q1_focus: { type: 'text', label: 'Q1 Focus Area', required: true },
+      q1_clauses: { type: 'text', label: 'Q1 Clauses', required: true },
+      q1_controls: { type: 'text', label: 'Q1 Controls', required: true },
+      q1_auditor: { type: 'text', label: 'Q1 Auditor', required: true },
+      q1_dates: { type: 'text', label: 'Q1 Dates', required: true },
+      q2_focus: { type: 'text', label: 'Q2 Focus Area', required: true },
+      q2_clauses: { type: 'text', label: 'Q2 Clauses', required: true },
+      q2_controls: { type: 'text', label: 'Q2 Controls', required: true },
+      q2_auditor: { type: 'text', label: 'Q2 Auditor', required: true },
+      q2_dates: { type: 'text', label: 'Q2 Dates', required: true },
+      custom_criteria: { type: 'text', label: 'Additional Criteria', required: false },
+      lead_auditor: { type: 'text', label: 'Lead Auditor', required: true },
+      auditors: { type: 'text', label: 'Audit Team Members', required: true },
+      competence_requirements: { type: 'text', label: 'Competence Requirements', required: true },
+      report_recipients: { type: 'text', label: 'Report Recipients', required: true },
+      report_timeline: { type: 'select', label: 'Report Timeline', required: true, options: ['Within 1 week', 'Within 2 weeks', 'Within 1 month'] },
+      findings_classification: { type: 'text', label: 'Findings Classification', required: true },
+      independence_requirements: { type: 'text', label: 'Independence Requirements', required: true },
+      program_owner: { type: 'text', label: 'Program Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'iso-018',
+    title: 'Management Review Records',
+    description: 'ISO 27001:2022 Clause 9.3 - Top management ISMS review documentation',
+    framework: 'ISO27001',
+    category: 'governance',
+    priority: 1,
+    documentType: 'minutes',
+    required: true,
+    templateContent: `# Management Review Meeting
+## ISO/IEC 27001:2022 - Clause 9.3
+
+**Meeting Date:** {{meeting_date}}
+**Chairperson:** {{chairperson}}
+
+## 1. Review Inputs
+**Previous Actions:** {{previous_actions}}
+**External/Internal Changes:** {{changes}}
+**Security Incidents:** {{incidents}}
+**Audit Results:** {{audit_results}}
+**Risk Assessment:** {{risk_results}}
+
+## 2. Review Outputs
+**Improvement Decisions:** {{improvements}}
+**ISMS Changes:** {{isms_changes}}
+**Resources:** {{resources}}
+
+## 3. Actions
+| Action | Owner | Due Date |
+|--------|-------|----------|
+| {{action_1}} | {{owner_1}} | {{due_1}} |
+
+**Approved By:** {{approved_by}}`,
+    templateVariables: {
+      meeting_date: { type: 'date', label: 'Meeting Date', required: true },
+      chairperson: { type: 'text', label: 'Chairperson', required: true },
+      previous_actions: { type: 'text', label: 'Previous Actions', required: true },
+      changes: { type: 'text', label: 'Changes', required: true },
+      incidents: { type: 'text', label: 'Incidents', required: true },
+      audit_results: { type: 'text', label: 'Audit Results', required: true },
+      risk_results: { type: 'text', label: 'Risk Results', required: true },
+      improvements: { type: 'text', label: 'Improvements', required: true },
+      isms_changes: { type: 'text', label: 'ISMS Changes', required: true },
+      resources: { type: 'text', label: 'Resources', required: true },
+      action_1: { type: 'text', label: 'Action 1', required: true },
+      owner_1: { type: 'text', label: 'Owner 1', required: true },
+      due_1: { type: 'date', label: 'Due Date 1', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true }
+    }
+  },
+  {
+    id: 'iso-019',
+    title: 'Nonconformity and Corrective Action',
+    description: 'ISO 27001:2022 Clause 10.1 - Procedure for handling nonconformities',
+    framework: 'ISO27001',
+    category: 'process',
+    priority: 1,
+    documentType: 'procedure',
+    required: true,
+    templateContent: `# Nonconformity and Corrective Action Procedure
+## ISO/IEC 27001:2022 - Clause 10.1
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Nonconformity Documentation
+**NC Number:** {{nc_number}}
+**Description:** {{nc_description}}
+**Severity:** {{nc_severity}}
+
+## 2. Immediate Actions
+**Actions:** {{immediate_actions}}
+**Owner:** {{action_owner}}
+
+## 3. Root Cause Analysis
+**Method:** {{rca_method}}
+**Root Causes:** {{root_causes}}
+
+## 4. Corrective Action
+**Action:** {{corrective_action}}
+**Owner:** {{ca_owner}}
+**Target Date:** {{ca_target}}
+
+## 5. Effectiveness Review
+**Review Date:** {{review_date}}
+**Effective:** {{is_effective}}
+
+**Procedure Owner:** {{procedure_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      nc_number: { type: 'text', label: 'NC Number', required: true },
+      nc_description: { type: 'text', label: 'NC Description', required: true },
+      nc_severity: { type: 'select', label: 'Severity', required: true, options: ['Critical', 'High', 'Medium', 'Low'] },
+      immediate_actions: { type: 'text', label: 'Immediate Actions', required: true },
+      action_owner: { type: 'text', label: 'Action Owner', required: true },
+      rca_method: { type: 'select', label: 'RCA Method', required: true, options: ['5 Whys', 'Fishbone', 'Fault Tree'] },
+      root_causes: { type: 'text', label: 'Root Causes', required: true },
+      corrective_action: { type: 'text', label: 'Corrective Action', required: true },
+      ca_owner: { type: 'text', label: 'CA Owner', required: true },
+      ca_target: { type: 'date', label: 'Target Date', required: true },
+      review_date: { type: 'date', label: 'Review Date', required: true },
+      is_effective: { type: 'select', label: 'Effective?', required: true, options: ['Yes', 'No', 'Pending'] },
+      procedure_owner: { type: 'text', label: 'Procedure Owner', required: true }
+    }
+  },
+  {
+    id: 'iso-020',
+    title: 'Business Continuity Plan',
+    description: 'ISO 27001:2022 Annex A.5.29/A.5.30 - Business continuity and disaster recovery',
+    framework: 'ISO27001',
+    category: 'continuity',
+    priority: 1,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Business Continuity Plan
+## ISO/IEC 27001:2022 - Annex A.5.29, A.5.30
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Critical Functions
+| Function | RTO | RPO | Owner |
+|----------|-----|-----|-------|
+| {{function_1}} | {{rto_1}} | {{rpo_1}} | {{owner_1}} |
+
+## 2. Recovery Strategies
+**Primary Site:** {{primary_site}}
+**Backup Site:** {{backup_site}}
+**Data Backup:** {{backup_strategy}}
+
+## 3. Activation
+**Trigger:** {{trigger_events}}
+**Authority:** {{declaration_authority}}
+
+## 4. Recovery Phases
+**Phase 1 (0-4h):** {{phase_1}}
+**Phase 2 (4-24h):** {{phase_2}}
+**Phase 3 (24-72h):** {{phase_3}}
+
+## 5. Testing
+**Frequency:** {{test_frequency}}
+**Last Test:** {{last_test}}
+
+**Plan Owner:** {{plan_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      function_1: { type: 'text', label: 'Critical Function', required: true },
+      rto_1: { type: 'text', label: 'RTO', required: true },
+      rpo_1: { type: 'text', label: 'RPO', required: true },
+      owner_1: { type: 'text', label: 'Owner', required: true },
+      primary_site: { type: 'text', label: 'Primary Site', required: true },
+      backup_site: { type: 'text', label: 'Backup Site', required: true },
+      backup_strategy: { type: 'text', label: 'Backup Strategy', required: true },
+      trigger_events: { type: 'text', label: 'Trigger Events', required: true },
+      declaration_authority: { type: 'text', label: 'Declaration Authority', required: true },
+      phase_1: { type: 'text', label: 'Phase 1', required: true },
+      phase_2: { type: 'text', label: 'Phase 2', required: true },
+      phase_3: { type: 'text', label: 'Phase 3', required: true },
+      test_frequency: { type: 'select', label: 'Test Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      last_test: { type: 'date', label: 'Last Test', required: true },
+      plan_owner: { type: 'text', label: 'Plan Owner', required: true }
+    }
+  },
+  {
+    id: 'iso-021',
+    title: 'Access Control Policy',
+    description: 'ISO 27001:2022 Annex A.5.15-A.5.18 - Access control and authentication',
+    framework: 'ISO27001',
+    category: 'policy',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Access Control Policy
+## ISO/IEC 27001:2022 - Annex A.5.15-A.5.18
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. User Access Management
+**Provisioning:** {{provisioning_process}}
+**Approval:** {{approval_required}}
+**Removal:** {{removal_timeline}}
+
+## 2. Authentication
+**Password Length:** {{password_length}}
+**Complexity:** {{password_complexity}}
+**MFA Required:** {{mfa_required}}
+
+## 3. Access Review
+**Frequency:** {{review_frequency}}
+**Owner:** {{review_owner}}
+
+## 4. Remote Access
+**Method:** {{remote_method}}
+**Security:** {{remote_security}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      provisioning_process: { type: 'text', label: 'Provisioning Process', required: true },
+      approval_required: { type: 'text', label: 'Approval Required', required: true },
+      removal_timeline: { type: 'select', label: 'Removal Timeline', required: true, options: ['Immediate', '24 hours', '48 hours'] },
+      password_length: { type: 'number', label: 'Min Password Length', required: true },
+      password_complexity: { type: 'text', label: 'Complexity Requirements', required: true },
+      mfa_required: { type: 'select', label: 'MFA Required?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      review_owner: { type: 'text', label: 'Review Owner', required: true },
+      remote_method: { type: 'text', label: 'Remote Access Method', required: true },
+      remote_security: { type: 'text', label: 'Remote Security', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'iso-022',
+    title: 'Asset Management Policy',
+    description: 'ISO 27001:2022 Annex A.5.9-A.5.14 - Information asset management',
+    framework: 'ISO27001',
+    category: 'policy',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Asset Management Policy
+## ISO/IEC 27001:2022 - Annex A.5.9-A.5.14
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Asset Inventory
+**Register:** {{asset_register}}
+**Update Frequency:** {{update_frequency}}
+
+## 2. Classification
+**Public:** {{public_def}}
+**Internal:** {{internal_def}}
+**Confidential:** {{confidential_def}}
+**Restricted:** {{restricted_def}}
+
+## 3. Handling
+**Storage:** {{storage_req}}
+**Transmission:** {{transmission_req}}
+**Disposal:** {{disposal_req}}
+
+## 4. Media Handling
+**Removable Media:** {{removable_policy}}
+**Encryption:** {{media_encryption}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      asset_register: { type: 'text', label: 'Asset Register Location', required: true },
+      update_frequency: { type: 'select', label: 'Update Frequency', required: true, options: ['Real-time', 'Weekly', 'Monthly'] },
+      public_def: { type: 'text', label: 'Public Definition', required: true },
+      internal_def: { type: 'text', label: 'Internal Definition', required: true },
+      confidential_def: { type: 'text', label: 'Confidential Definition', required: true },
+      restricted_def: { type: 'text', label: 'Restricted Definition', required: true },
+      storage_req: { type: 'text', label: 'Storage Requirements', required: true },
+      transmission_req: { type: 'text', label: 'Transmission Requirements', required: true },
+      disposal_req: { type: 'text', label: 'Disposal Requirements', required: true },
+      removable_policy: { type: 'text', label: 'Removable Media Policy', required: true },
+      media_encryption: { type: 'select', label: 'Media Encryption?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'iso-023',
+    title: 'Communication Plan',
+    description: 'ISO 27001:2022 Clause 7.4 - Internal and external ISMS communication',
+    framework: 'ISO27001',
+    category: 'plan',
+    priority: 2,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# ISMS Communication Plan
+## ISO/IEC 27001:2022 - Clause 7.4
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Internal Communications
+**Staff:** {{staff_comms}}
+**Management:** {{mgmt_comms}}
+**Frequency:** {{internal_frequency}}
+
+## 2. External Communications
+**Customers:** {{customer_comms}}
+**Suppliers:** {{supplier_comms}}
+**Regulators:** {{regulator_comms}}
+
+## 3. Incident Communications
+**Process:** {{incident_process}}
+**Spokesperson:** {{spokesperson}}
+
+## 4. Tools
+**Primary:** {{primary_tool}}
+**Backup:** {{backup_tool}}
+
+**Plan Owner:** {{plan_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      staff_comms: { type: 'text', label: 'Staff Communications', required: true },
+      mgmt_comms: { type: 'text', label: 'Management Communications', required: true },
+      internal_frequency: { type: 'select', label: 'Internal Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      customer_comms: { type: 'text', label: 'Customer Communications', required: true },
+      supplier_comms: { type: 'text', label: 'Supplier Communications', required: true },
+      regulator_comms: { type: 'text', label: 'Regulator Communications', required: true },
+      incident_process: { type: 'text', label: 'Incident Process', required: true },
+      spokesperson: { type: 'text', label: 'Spokesperson', required: true },
+      primary_tool: { type: 'text', label: 'Primary Tool', required: true },
+      backup_tool: { type: 'text', label: 'Backup Tool', required: true },
+      plan_owner: { type: 'text', label: 'Plan Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-cc6-1',
+    title: 'Logical Access Control Policy',
+    description: 'SOC 2 CC6 - Logical access controls and user management',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Logical Access Control Policy
+## SOC 2 Trust Services - CC6
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Access Management
+**Provisioning:** {{provisioning_process}}
+**Approval:** {{approval_required}}
+**Deprovisioning:** {{deprovisioning_timeline}}
+
+## 2. Authentication
+**Password Minimum:** {{password_min}} characters
+**MFA:** {{mfa_required}}
+**Session Timeout:** {{session_timeout}}
+
+## 3. Access Review
+**Frequency:** {{review_frequency}}
+**Owner:** {{review_owner}}
+
+**Policy Owner:** {{policy_owner}}
+**Effective:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      provisioning_process: { type: 'text', label: 'Provisioning Process', required: true },
+      approval_required: { type: 'text', label: 'Approval Required', required: true },
+      deprovisioning_timeline: { type: 'select', label: 'Deprovisioning Timeline', required: true, options: ['Immediate', '24 hours', '48 hours'] },
+      password_min: { type: 'number', label: 'Minimum Password Length', required: true },
+      mfa_required: { type: 'select', label: 'MFA Required?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      session_timeout: { type: 'select', label: 'Session Timeout', required: true, options: ['15 minutes', '30 minutes', '1 hour', '2 hours'] },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      review_owner: { type: 'text', label: 'Review Owner', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-a1',
+    title: 'System Availability Policy',
+    description: 'SOC 2 Availability - System uptime and capacity planning',
+    framework: 'SOC2',
+    category: 'availability',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# System Availability Policy
+## SOC 2 - Availability (A1)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Availability Target
+**SLA:** {{availability_sla}}%
+**Monitoring:** {{monitoring_tool}}
+**Alerting:** {{alerting_method}}
+
+## 2. Capacity Planning
+**Review Frequency:** {{capacity_review}}
+**Threshold:** {{capacity_threshold}}%
+
+## 3. Incident Management
+**Response Time:** {{response_time}}
+**Escalation:** {{escalation_process}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      availability_sla: { type: 'number', label: 'Availability SLA %', required: true },
+      monitoring_tool: { type: 'text', label: 'Monitoring Tool', required: true },
+      alerting_method: { type: 'text', label: 'Alerting Method', required: true },
+      capacity_review: { type: 'select', label: 'Capacity Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      capacity_threshold: { type: 'number', label: 'Capacity Alert Threshold %', required: true },
+      response_time: { type: 'select', label: 'Incident Response Time', required: true, options: ['15 minutes', '1 hour', '4 hours'] },
+      escalation_process: { type: 'text', label: 'Escalation Process', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-pi1',
+    title: 'Data Processing Integrity Policy',
+    description: 'SOC 2 Processing Integrity - Data accuracy and completeness',
+    framework: 'SOC2',
+    category: 'processing-integrity',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Data Processing Integrity Policy
+## SOC 2 - Processing Integrity (PI1)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Data Quality
+**Validation:** {{validation_controls}}
+**Error Handling:** {{error_handling}}
+**Completeness Checks:** {{completeness_checks}}
+
+## 2. Processing Controls
+**Reconciliation:** {{reconciliation_freq}}
+**Audit Trail:** {{audit_trail}}
+
+## 3. Quality Monitoring
+**KPIs:** {{quality_kpis}}
+**Review:** {{quality_review}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      validation_controls: { type: 'text', label: 'Validation Controls', required: true },
+      error_handling: { type: 'text', label: 'Error Handling', required: true },
+      completeness_checks: { type: 'text', label: 'Completeness Checks', required: true },
+      reconciliation_freq: { type: 'select', label: 'Reconciliation Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      audit_trail: { type: 'select', label: 'Audit Trail Enabled?', required: true, options: ['Yes', 'No'] },
+      quality_kpis: { type: 'text', label: 'Quality KPIs', required: true },
+      quality_review: { type: 'select', label: 'Quality Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-c1',
+    title: 'Data Confidentiality Policy',
+    description: 'SOC 2 Confidentiality - Protecting confidential information',
+    framework: 'SOC2',
+    category: 'confidentiality',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Data Confidentiality Policy
+## SOC 2 - Confidentiality (C1)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Classification
+**Confidential Data:** {{confidential_def}}
+**Handling:** {{handling_requirements}}
+**Storage:** {{storage_requirements}}
+
+## 2. Protection
+**Encryption at Rest:** {{encryption_rest}}
+**Encryption in Transit:** {{encryption_transit}}
+**Access Controls:** {{access_controls}}
+
+## 3. Disclosure
+**Authorization:** {{disclosure_auth}}
+**NDAs Required:** {{nda_required}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      confidential_def: { type: 'text', label: 'Confidential Data Definition', required: true },
+      handling_requirements: { type: 'text', label: 'Handling Requirements', required: true },
+      storage_requirements: { type: 'text', label: 'Storage Requirements', required: true },
+      encryption_rest: { type: 'select', label: 'Encryption at Rest?', required: true, options: ['Yes', 'No'] },
+      encryption_transit: { type: 'select', label: 'Encryption in Transit?', required: true, options: ['Yes', 'No'] },
+      access_controls: { type: 'text', label: 'Access Controls', required: true },
+      disclosure_auth: { type: 'text', label: 'Disclosure Authorization', required: true },
+      nda_required: { type: 'select', label: 'NDA Required?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-p1',
+    title: 'Privacy Policy',
+    description: 'SOC 2 Privacy - Personal information handling and privacy rights',
+    framework: 'SOC2',
+    category: 'privacy',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Privacy Policy
+## SOC 2 - Privacy (P1-P8)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Personal Information
+**Types Collected:** {{pi_types}}
+**Collection Purpose:** {{collection_purpose}}
+**Legal Basis:** {{legal_basis}}
+
+## 2. Notice and Consent
+**Privacy Notice:** {{notice_provided}}
+**Consent:** {{consent_obtained}}
+**Opt-Out:** {{opt_out_available}}
+
+## 3. Use and Retention
+**Use Limitation:** {{use_limitation}}
+**Retention Period:** {{retention_period}}
+**Disposal:** {{disposal_method}}
+
+## 4. Individual Rights
+**Access:** {{access_rights}}
+**Correction:** {{correction_rights}}
+**Deletion:** {{deletion_rights}}
+
+## 5. Disclosure
+**Third Parties:** {{third_party_sharing}}
+**International:** {{international_transfers}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      pi_types: { type: 'text', label: 'PI Types Collected', required: true },
+      collection_purpose: { type: 'text', label: 'Collection Purpose', required: true },
+      legal_basis: { type: 'text', label: 'Legal Basis', required: true },
+      notice_provided: { type: 'select', label: 'Privacy Notice Provided?', required: true, options: ['Yes', 'No'] },
+      consent_obtained: { type: 'select', label: 'Consent Obtained?', required: true, options: ['Yes', 'No', 'Not Required'] },
+      opt_out_available: { type: 'select', label: 'Opt-Out Available?', required: true, options: ['Yes', 'No'] },
+      use_limitation: { type: 'text', label: 'Use Limitation', required: true },
+      retention_period: { type: 'text', label: 'Retention Period', required: true },
+      disposal_method: { type: 'text', label: 'Disposal Method', required: true },
+      access_rights: { type: 'select', label: 'Access Rights Provided?', required: true, options: ['Yes', 'No'] },
+      correction_rights: { type: 'select', label: 'Correction Rights?', required: true, options: ['Yes', 'No'] },
+      deletion_rights: { type: 'select', label: 'Deletion Rights?', required: true, options: ['Yes', 'No'] },
+      third_party_sharing: { type: 'text', label: 'Third Party Sharing', required: true },
+      international_transfers: { type: 'text', label: 'International Transfers', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-change',
+    title: 'Change Management Policy',
+    description: 'SOC 2 CC8 - System change control procedures',
+    framework: 'SOC2',
+    category: 'operations',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Change Management Policy
+## SOC 2 - CC8
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Change Types
+**Standard:** {{standard_change}}
+**Emergency:** {{emergency_change}}
+**Normal:** {{normal_change}}
+
+## 2. Change Process
+**Request:** {{change_request_process}}
+**Approval:** {{approval_process}}
+**Testing:** {{testing_requirements}}
+**Implementation:** {{implementation_process}}
+
+## 3. Change Review Board
+**Members:** {{crb_members}}
+**Meeting Frequency:** {{crb_frequency}}
+
+## 4. Rollback
+**Rollback Plan:** {{rollback_required}}
+**Testing:** {{rollback_testing}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      standard_change: { type: 'text', label: 'Standard Change Definition', required: true },
+      emergency_change: { type: 'text', label: 'Emergency Change Definition', required: true },
+      normal_change: { type: 'text', label: 'Normal Change Definition', required: true },
+      change_request_process: { type: 'text', label: 'Change Request Process', required: true },
+      approval_process: { type: 'text', label: 'Approval Process', required: true },
+      testing_requirements: { type: 'text', label: 'Testing Requirements', required: true },
+      implementation_process: { type: 'text', label: 'Implementation Process', required: true },
+      crb_members: { type: 'text', label: 'Change Review Board Members', required: true },
+      crb_frequency: { type: 'select', label: 'CRB Meeting Frequency', required: true, options: ['Weekly', 'Bi-weekly', 'Monthly'] },
+      rollback_required: { type: 'select', label: 'Rollback Plan Required?', required: true, options: ['Yes', 'No', 'Conditional'] },
+      rollback_testing: { type: 'text', label: 'Rollback Testing', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-incident',
+    title: 'Incident Response Policy',
+    description: 'SOC 2 CC7 - Security incident response procedures',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Incident Response Policy
+## SOC 2 - CC7
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Incident Classification
+**Critical:** {{critical_def}}
+**High:** {{high_def}}
+**Medium:** {{medium_def}}
+**Low:** {{low_def}}
+
+## 2. Response Process
+**Detection:** {{detection_methods}}
+**Containment:** {{containment_process}}
+**Eradication:** {{eradication_process}}
+**Recovery:** {{recovery_process}}
+
+## 3. Response Team
+**IR Lead:** {{ir_lead}}
+**Team Members:** {{team_members}}
+**On-Call:** {{oncall_schedule}}
+
+## 4. Communication
+**Internal:** {{internal_comms}}
+**Customer:** {{customer_notification}}
+**Timeline:** {{notification_timeline}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      critical_def: { type: 'text', label: 'Critical Incident Definition', required: true },
+      high_def: { type: 'text', label: 'High Incident Definition', required: true },
+      medium_def: { type: 'text', label: 'Medium Incident Definition', required: true },
+      low_def: { type: 'text', label: 'Low Incident Definition', required: true },
+      detection_methods: { type: 'text', label: 'Detection Methods', required: true },
+      containment_process: { type: 'text', label: 'Containment Process', required: true },
+      eradication_process: { type: 'text', label: 'Eradication Process', required: true },
+      recovery_process: { type: 'text', label: 'Recovery Process', required: true },
+      ir_lead: { type: 'text', label: 'IR Lead', required: true },
+      team_members: { type: 'text', label: 'Team Members', required: true },
+      oncall_schedule: { type: 'text', label: 'On-Call Schedule', required: true },
+      internal_comms: { type: 'text', label: 'Internal Communications', required: true },
+      customer_notification: { type: 'text', label: 'Customer Notification', required: true },
+      notification_timeline: { type: 'select', label: 'Notification Timeline', required: true, options: ['Immediately', '24 hours', '72 hours'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-backup',
+    title: 'Backup and Recovery Policy',
+    description: 'SOC 2 CC2/A1 - Data backup and recovery procedures',
+    framework: 'SOC2',
+    category: 'availability',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Backup and Recovery Policy
+## SOC 2 - CC2, A1
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Backup Schedule
+**Full Backup:** {{full_backup_freq}}
+**Incremental:** {{incremental_freq}}
+**Retention:** {{backup_retention}}
+
+## 2. Backup Storage
+**Primary:** {{primary_location}}
+**Offsite:** {{offsite_location}}
+**Encryption:** {{backup_encryption}}
+
+## 3. Recovery
+**RTO:** {{rto}}
+**RPO:** {{rpo}}
+**Testing:** {{recovery_test_freq}}
+
+## 4. Verification
+**Integrity Check:** {{integrity_check}}
+**Test Restore:** {{test_restore_freq}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      full_backup_freq: { type: 'select', label: 'Full Backup Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      incremental_freq: { type: 'select', label: 'Incremental Frequency', required: true, options: ['Hourly', 'Every 6 hours', 'Daily'] },
+      backup_retention: { type: 'select', label: 'Backup Retention', required: true, options: ['30 days', '90 days', '1 year', '7 years'] },
+      primary_location: { type: 'text', label: 'Primary Backup Location', required: true },
+      offsite_location: { type: 'text', label: 'Offsite Backup Location', required: true },
+      backup_encryption: { type: 'select', label: 'Backup Encryption?', required: true, options: ['Yes', 'No'] },
+      rto: { type: 'text', label: 'Recovery Time Objective', required: true },
+      rpo: { type: 'text', label: 'Recovery Point Objective', required: true },
+      recovery_test_freq: { type: 'select', label: 'Recovery Test Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      integrity_check: { type: 'select', label: 'Integrity Check Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      test_restore_freq: { type: 'select', label: 'Test Restore Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-logging',
+    title: 'Log Management and Retention Policy',
+    description: 'SOC 2 CC4/CC7 - Security logging and monitoring',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Log Management and Retention Policy
+## SOC 2 - CC4, CC7
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Logging Requirements
+**Systems:** {{systems_logged}}
+**Events:** {{events_logged}}
+**Detail Level:** {{log_detail}}
+
+## 2. Log Collection
+**Centralization:** {{centralized_logging}}
+**SIEM:** {{siem_tool}}
+**Real-time:** {{realtime_collection}}
+
+## 3. Log Retention
+**Security Logs:** {{security_retention}}
+**Audit Logs:** {{audit_retention}}
+**Application Logs:** {{app_retention}}
+
+## 4. Log Review
+**Frequency:** {{review_frequency}}
+**Automated Alerts:** {{automated_alerts}}
+**Responsible:** {{review_responsible}}
+
+## 5. Protection
+**Integrity:** {{log_integrity}}
+**Access Control:** {{log_access}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      systems_logged: { type: 'text', label: 'Systems Logged', required: true },
+      events_logged: { type: 'text', label: 'Events Logged', required: true },
+      log_detail: { type: 'select', label: 'Log Detail Level', required: true, options: ['Basic', 'Standard', 'Detailed'] },
+      centralized_logging: { type: 'select', label: 'Centralized Logging?', required: true, options: ['Yes', 'No'] },
+      siem_tool: { type: 'text', label: 'SIEM Tool', required: true },
+      realtime_collection: { type: 'select', label: 'Real-time Collection?', required: true, options: ['Yes', 'No'] },
+      security_retention: { type: 'select', label: 'Security Log Retention', required: true, options: ['90 days', '1 year', '7 years'] },
+      audit_retention: { type: 'select', label: 'Audit Log Retention', required: true, options: ['90 days', '1 year', '7 years'] },
+      app_retention: { type: 'select', label: 'Application Log Retention', required: true, options: ['30 days', '90 days', '1 year'] },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      automated_alerts: { type: 'select', label: 'Automated Alerts Enabled?', required: true, options: ['Yes', 'No'] },
+      review_responsible: { type: 'text', label: 'Review Responsible Party', required: true },
+      log_integrity: { type: 'text', label: 'Log Integrity Protection', required: true },
+      log_access: { type: 'text', label: 'Log Access Controls', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-vulnerability',
+    title: 'Vulnerability Management Policy',
+    description: 'SOC 2 CC7 - Vulnerability assessment and remediation',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Vulnerability Management Policy
+## SOC 2 - CC7
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+
+## 1. Vulnerability Scanning
+**Frequency:** {{scan_frequency}}
+**Scope:** {{scan_scope}}
+**Scanner:** {{scan_tool}}
+
+## 2. Assessment
+**Authenticated Scans:** {{authenticated_scans}}
+**Penetration Testing:** {{pentest_frequency}}
+
+## 3. Remediation
+**Critical:** Within {{critical_timeline}}
+**High:** Within {{high_timeline}}
+**Medium:** Within {{medium_timeline}}
+**Low:** Within {{low_timeline}}
+
+## 4. Exceptions
+**Process:** {{exception_process}}
+**Approval:** {{exception_approval}}
+
+## 5. Reporting
+**Frequency:** {{report_frequency}}
+**Recipients:** {{report_recipients}}
+
+**Policy Owner:** {{policy_owner}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      scan_frequency: { type: 'select', label: 'Scan Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      scan_scope: { type: 'text', label: 'Scan Scope', required: true },
+      scan_tool: { type: 'text', label: 'Scanning Tool', required: true },
+      authenticated_scans: { type: 'select', label: 'Authenticated Scans?', required: true, options: ['Yes', 'No'] },
+      pentest_frequency: { type: 'select', label: 'Penetration Test Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      critical_timeline: { type: 'select', label: 'Critical Timeline', required: true, options: ['24 hours', '48 hours', '1 week'] },
+      high_timeline: { type: 'select', label: 'High Timeline', required: true, options: ['1 week', '2 weeks', '30 days'] },
+      medium_timeline: { type: 'select', label: 'Medium Timeline', required: true, options: ['30 days', '60 days', '90 days'] },
+      low_timeline: { type: 'select', label: 'Low Timeline', required: true, options: ['90 days', '180 days', 'Next cycle'] },
+      exception_process: { type: 'text', label: 'Exception Process', required: true },
+      exception_approval: { type: 'text', label: 'Exception Approval Authority', required: true },
+      report_frequency: { type: 'select', label: 'Report Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      report_recipients: { type: 'text', label: 'Report Recipients', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true }
+    }
+  },
+  {
+    id: 'soc2-data-classification',
+    title: 'Data Classification Policy',
+    description: 'SOC 2 C1 - Data classification and handling requirements',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Data Classification Policy
+## SOC 2 Trust Services - C1 (Confidentiality)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+
+## 1. Purpose
+This policy establishes data classification levels and handling requirements.
+
+## 2. Classification Levels
+
+### Public Data
+**Definition:** {{public_definition}}
+**Examples:** {{public_examples}}
+**Handling:** No restrictions
+
+### Internal Data
+**Definition:** {{internal_definition}}
+**Examples:** {{internal_examples}}
+**Handling:** {{internal_handling}}
+
+### Confidential Data
+**Definition:** {{confidential_definition}}
+**Examples:** {{confidential_examples}}
+**Handling:** {{confidential_handling}}
+**Encryption:** Required in transit and at rest
+
+### Restricted Data
+**Definition:** {{restricted_definition}}
+**Examples:** {{restricted_examples}}
+**Handling:** {{restricted_handling}}
+**Access:** Role-based, need-to-know only
+**Encryption:** AES-256 or equivalent
+
+## 3. Data Labeling
+**Electronic:** {{electronic_labeling}}
+**Physical:** {{physical_labeling}}
+
+## 4. Storage Requirements
+**Public:** {{public_storage}}
+**Internal:** {{internal_storage}}
+**Confidential:** {{confidential_storage}}
+**Restricted:** {{restricted_storage}}
+
+## 5. Transmission Requirements
+**Email:** {{email_requirements}}
+**File Transfer:** {{file_transfer_requirements}}
+**External Sharing:** {{external_sharing_requirements}}
+
+## 6. Retention and Disposal
+**Retention Schedule:** {{retention_schedule}}
+**Secure Disposal:** {{disposal_method}}
+
+**Policy Owner:** {{policy_owner}}
+**Review Frequency:** {{review_frequency}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      public_definition: { type: 'text', label: 'Public Data Definition', required: true },
+      public_examples: { type: 'text', label: 'Public Data Examples', required: true },
+      internal_definition: { type: 'text', label: 'Internal Data Definition', required: true },
+      internal_examples: { type: 'text', label: 'Internal Data Examples', required: true },
+      internal_handling: { type: 'text', label: 'Internal Handling Requirements', required: true },
+      confidential_definition: { type: 'text', label: 'Confidential Data Definition', required: true },
+      confidential_examples: { type: 'text', label: 'Confidential Data Examples', required: true },
+      confidential_handling: { type: 'text', label: 'Confidential Handling Requirements', required: true },
+      restricted_definition: { type: 'text', label: 'Restricted Data Definition', required: true },
+      restricted_examples: { type: 'text', label: 'Restricted Data Examples', required: true },
+      restricted_handling: { type: 'text', label: 'Restricted Handling Requirements', required: true },
+      electronic_labeling: { type: 'text', label: 'Electronic Labeling Method', required: true },
+      physical_labeling: { type: 'text', label: 'Physical Labeling Method', required: true },
+      public_storage: { type: 'text', label: 'Public Storage Requirements', required: true },
+      internal_storage: { type: 'text', label: 'Internal Storage Requirements', required: true },
+      confidential_storage: { type: 'text', label: 'Confidential Storage Requirements', required: true },
+      restricted_storage: { type: 'text', label: 'Restricted Storage Requirements', required: true },
+      email_requirements: { type: 'text', label: 'Email Requirements', required: true },
+      file_transfer_requirements: { type: 'text', label: 'File Transfer Requirements', required: true },
+      external_sharing_requirements: { type: 'text', label: 'External Sharing Requirements', required: true },
+      retention_schedule: { type: 'text', label: 'Retention Schedule', required: true },
+      disposal_method: { type: 'text', label: 'Disposal Method', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] }
+    }
+  }
+];
+
+// ================================================================================
+// SOC 2 ADDITIONAL OPERATIONAL TEMPLATES
+// ================================================================================
+export const AdditionalSOC2OperationalTemplates: DocumentTemplate[] = [
+  {
+    id: 'soc2-sdlc',
+    title: 'Secure Software Development Lifecycle (SDLC) Policy',
+    description: 'SOC 2 CC8 - Secure development practices and SDLC requirements',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Secure Software Development Lifecycle (SDLC) Policy
+## SOC 2 Trust Services - CC8
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+
+## 1. Purpose and Scope
+
+This policy defines secure development practices throughout the software development lifecycle.
+
+**Applies To:** {{applies_to}}
+
+## 2. SDLC Methodology
+
+**Framework:** {{sdlc_framework}}
+**Stages:** {{sdlc_stages}}
+
+## 3. Security Requirements
+
+### Planning and Requirements
+**Security Requirements:** {{security_requirements_process}}
+**Threat Modeling:** {{threat_modeling_required}}
+**Privacy Impact:** {{privacy_assessment_required}}
+
+### Design
+**Security Architecture Review:** {{architecture_review_required}}
+**Design Patterns:** {{secure_design_patterns}}
+**Data Flow Diagrams:** {{data_flow_required}}
+
+### Development
+
+#### Secure Coding Standards
+**Coding Standards:** {{coding_standards}}
+**OWASP Top 10:** Must address
+**CWE/SANS Top 25:** Must address
+
+#### Code Security
+**Input Validation:** {{input_validation_requirements}}
+**Output Encoding:** {{output_encoding_requirements}}
+**Authentication/Authorization:** {{authn_authz_requirements}}
+**Cryptography:** {{crypto_requirements}}
+**Error Handling:** {{error_handling_requirements}}
+**Logging:** {{logging_requirements}}
+
+#### Dependencies and Libraries
+**Approved Libraries:** {{approved_libraries}}
+**Vulnerability Scanning:** {{dependency_scanning_tool}}
+**Update Frequency:** {{dependency_update_frequency}}
+
+### Testing
+
+#### Security Testing Requirements
+**Unit Tests:** {{unit_test_requirements}}
+**Integration Tests:** {{integration_test_requirements}}
+**Security Tests:** {{security_test_requirements}}
+
+**Static Analysis (SAST):**
+- Tool: {{sast_tool}}
+- Frequency: {{sast_frequency}}
+- Threshold: {{sast_threshold}}
+
+**Dynamic Analysis (DAST):**
+- Tool: {{dast_tool}}
+- Frequency: {{dast_frequency}}
+- Scope: {{dast_scope}}
+
+**Dependency Scanning (SCA):**
+- Tool: {{sca_tool}}
+- Frequency: {{sca_frequency}}
+- Action Threshold: {{sca_threshold}}
+
+**Penetration Testing:**
+- Frequency: {{pentest_frequency}}
+- Scope: {{pentest_scope}}
+- Provider: {{pentest_provider}}
+
+### Deployment
+
+**Pre-Production Checklist:** {{preprod_checklist}}
+**Security Sign-Off Required:** {{security_signoff_required}}
+**Deployment Approval:** {{deployment_approval}}
+
+**Production Deployment:**
+- Method: {{deployment_method}}
+- Rollback Plan: Required
+- Monitoring: {{deployment_monitoring}}
+
+### Maintenance
+
+**Patch Management:** Per Patch Management Policy
+**Vulnerability Response:** {{vulnerability_response_timeline}}
+**Security Updates:** {{security_update_process}}
+
+## 4. Code Review
+
+**Peer Review Required:** {{peer_review_required}}
+**Security Review:** {{security_review_trigger}}
+**Review Checklist:** {{review_checklist}}
+
+## 5. Version Control
+
+**System:** {{version_control_system}}
+**Branch Strategy:** {{branch_strategy}}
+**Commit Signing:** {{commit_signing_required}}
+**Access Control:** {{vcs_access_control}}
+
+## 6. Secrets Management
+
+**Secrets Storage:** {{secrets_storage_system}}
+**Hard-Coded Secrets:** Prohibited
+**Credential Scanning:** {{credential_scanning_tool}}
+**Rotation:** {{secret_rotation_frequency}}
+
+## 7. CI/CD Pipeline Security
+
+**Pipeline Tool:** {{cicd_tool}}
+**Security Gates:**
+- SAST: {{sast_gate}}
+- Dependency scan: {{sca_gate}}
+- Unit tests: {{test_gate}}
+- Code coverage: {{coverage_gate}}
+
+**Pipeline Access:** {{pipeline_access_control}}
+
+## 8. Production Data
+
+**Production Data in Non-Prod:** {{prod_data_policy}}
+**Data Masking:** {{data_masking_requirements}}
+**Test Data:** {{test_data_policy}}
+
+## 9. Security Training
+
+**Developer Training:** {{developer_training_requirements}}
+**Frequency:** {{training_frequency}}
+**Topics:** {{training_topics}}
+
+## 10. Incident Response
+
+**Security Bugs:** {{security_bug_process}}
+**Disclosure:** {{vulnerability_disclosure_policy}}
+**Bug Bounty:** {{bug_bounty_program}}
+
+**Policy Owner:** {{policy_owner}}
+**Review Frequency:** {{review_frequency}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      applies_to: { type: 'text', label: 'Applies To', required: true },
+      sdlc_framework: { type: 'select', label: 'SDLC Framework', required: true, options: ['Agile', 'Waterfall', 'DevOps', 'Hybrid'] },
+      sdlc_stages: { type: 'text', label: 'SDLC Stages', required: true },
+      security_requirements_process: { type: 'text', label: 'Security Requirements Process', required: true },
+      threat_modeling_required: { type: 'select', label: 'Threat Modeling Required', required: true, options: ['Yes', 'No', 'For high-risk features'] },
+      privacy_assessment_required: { type: 'select', label: 'Privacy Assessment Required', required: true, options: ['Yes', 'No', 'For data processing features'] },
+      architecture_review_required: { type: 'select', label: 'Architecture Review Required', required: true, options: ['Yes', 'No', 'For major changes'] },
+      secure_design_patterns: { type: 'text', label: 'Secure Design Patterns', required: true },
+      data_flow_required: { type: 'select', label: 'Data Flow Diagrams Required', required: true, options: ['Yes', 'No', 'For data processing features'] },
+      coding_standards: { type: 'text', label: 'Coding Standards', required: true },
+      input_validation_requirements: { type: 'text', label: 'Input Validation Requirements', required: true },
+      output_encoding_requirements: { type: 'text', label: 'Output Encoding Requirements', required: true },
+      authn_authz_requirements: { type: 'text', label: 'AuthN/AuthZ Requirements', required: true },
+      crypto_requirements: { type: 'text', label: 'Cryptography Requirements', required: true },
+      error_handling_requirements: { type: 'text', label: 'Error Handling Requirements', required: true },
+      logging_requirements: { type: 'text', label: 'Logging Requirements', required: true },
+      approved_libraries: { type: 'text', label: 'Approved Libraries List', required: true },
+      dependency_scanning_tool: { type: 'text', label: 'Dependency Scanning Tool', required: true },
+      dependency_update_frequency: { type: 'select', label: 'Dependency Update Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      unit_test_requirements: { type: 'text', label: 'Unit Test Requirements', required: true },
+      integration_test_requirements: { type: 'text', label: 'Integration Test Requirements', required: true },
+      security_test_requirements: { type: 'text', label: 'Security Test Requirements', required: true },
+      sast_tool: { type: 'text', label: 'SAST Tool', required: true },
+      sast_frequency: { type: 'select', label: 'SAST Frequency', required: true, options: ['Every commit', 'Every PR', 'Daily', 'Weekly'] },
+      sast_threshold: { type: 'text', label: 'SAST Threshold', required: true },
+      dast_tool: { type: 'text', label: 'DAST Tool', required: true },
+      dast_frequency: { type: 'select', label: 'DAST Frequency', required: true, options: ['Every deployment', 'Weekly', 'Monthly'] },
+      dast_scope: { type: 'text', label: 'DAST Scope', required: true },
+      sca_tool: { type: 'text', label: 'SCA Tool', required: true },
+      sca_frequency: { type: 'select', label: 'SCA Frequency', required: true, options: ['Every commit', 'Every PR', 'Daily'] },
+      sca_threshold: { type: 'text', label: 'SCA Threshold', required: true },
+      pentest_frequency: { type: 'select', label: 'Penetration Test Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      pentest_scope: { type: 'text', label: 'Pentest Scope', required: true },
+      pentest_provider: { type: 'text', label: 'Pentest Provider', required: true },
+      preprod_checklist: { type: 'text', label: 'Pre-Production Checklist', required: true },
+      security_signoff_required: { type: 'select', label: 'Security Sign-Off Required', required: true, options: ['Yes', 'No', 'For major releases'] },
+      deployment_approval: { type: 'text', label: 'Deployment Approval', required: true },
+      deployment_method: { type: 'text', label: 'Deployment Method', required: true },
+      deployment_monitoring: { type: 'text', label: 'Deployment Monitoring', required: true },
+      vulnerability_response_timeline: { type: 'text', label: 'Vulnerability Response Timeline', required: true },
+      security_update_process: { type: 'text', label: 'Security Update Process', required: true },
+      peer_review_required: { type: 'select', label: 'Peer Review Required', required: true, options: ['Yes', 'No'] },
+      security_review_trigger: { type: 'text', label: 'Security Review Trigger', required: true },
+      review_checklist: { type: 'text', label: 'Review Checklist', required: true },
+      version_control_system: { type: 'text', label: 'Version Control System', required: true },
+      branch_strategy: { type: 'text', label: 'Branch Strategy', required: true },
+      commit_signing_required: { type: 'select', label: 'Commit Signing Required', required: true, options: ['Yes', 'No'] },
+      vcs_access_control: { type: 'text', label: 'VCS Access Control', required: true },
+      secrets_storage_system: { type: 'text', label: 'Secrets Storage System', required: true },
+      credential_scanning_tool: { type: 'text', label: 'Credential Scanning Tool', required: true },
+      secret_rotation_frequency: { type: 'text', label: 'Secret Rotation Frequency', required: true },
+      cicd_tool: { type: 'text', label: 'CI/CD Tool', required: true },
+      sast_gate: { type: 'text', label: 'SAST Gate', required: true },
+      sca_gate: { type: 'text', label: 'SCA Gate', required: true },
+      test_gate: { type: 'text', label: 'Test Gate', required: true },
+      coverage_gate: { type: 'text', label: 'Coverage Gate', required: true },
+      pipeline_access_control: { type: 'text', label: 'Pipeline Access Control', required: true },
+      prod_data_policy: { type: 'text', label: 'Production Data Policy', required: true },
+      data_masking_requirements: { type: 'text', label: 'Data Masking Requirements', required: true },
+      test_data_policy: { type: 'text', label: 'Test Data Policy', required: true },
+      developer_training_requirements: { type: 'text', label: 'Developer Training Requirements', required: true },
+      training_frequency: { type: 'select', label: 'Training Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      training_topics: { type: 'text', label: 'Training Topics', required: true },
+      security_bug_process: { type: 'text', label: 'Security Bug Process', required: true },
+      vulnerability_disclosure_policy: { type: 'text', label: 'Vulnerability Disclosure Policy', required: true },
+      bug_bounty_program: { type: 'text', label: 'Bug Bounty Program', required: false },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] }
+    }
+  },
+  {
+    id: 'soc2-code-review',
+    title: 'Code Review Policy',
+    description: 'SOC 2 CC8 - Code review and quality assurance requirements',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Code Review Policy
+## SOC 2 Trust Services - CC8
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+
+## 1. Purpose
+This policy establishes code review requirements to ensure code quality and security.
+
+## 2. Review Requirements
+
+### All Code Changes
+**Peer Review Required:** {{peer_review_required}}
+**Approvals Required:** {{approvals_required}}
+**Self-Approval:** Prohibited
+
+### High-Risk Changes
+**Definition:** {{high_risk_definition}}
+**Additional Review:** {{additional_review_requirements}}
+**Security Review:** {{security_review_required}}
+
+## 3. Review Process
+
+### Submission
+**Pull Request Required:** Yes
+**Title/Description:** {{pr_description_requirements}}
+**Linked Issues:** {{issue_linking_required}}
+
+### Review Checklist
+- Code follows coding standards
+- Security best practices applied
+- Tests included and passing
+- Documentation updated
+- No hard-coded credentials
+- Error handling implemented
+- Input validation present
+- {{additional_checklist_items}}
+
+### Review Timeline
+**Standard Changes:** {{standard_review_timeline}}
+**Urgent Changes:** {{urgent_review_timeline}}
+**Emergency Changes:** {{emergency_review_process}}
+
+## 4. Automated Checks
+
+**Required Checks:**
+- Unit tests passing
+- SAST scan passing
+- Dependency scan passing
+- Code coverage: {{coverage_threshold}}%
+- {{additional_automated_checks}}
+
+**Merge Blocking:** {{merge_blocking_checks}}
+
+## 5. Security-Focused Review
+
+**Security Review Triggers:**
+- Authentication/authorization changes
+- Cryptographic operations
+- Data processing changes
+- External integrations
+- {{additional_security_triggers}}
+
+**Security Reviewer:** {{security_reviewer_role}}
+
+## 6. Documentation
+
+**Review Comments:** Required for changes requested
+**Approval Documentation:** {{approval_documentation_requirements}}
+**Post-Merge:** {{post_merge_documentation}}
+
+**Policy Owner:** {{policy_owner}}
+**Review Frequency:** {{review_frequency}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      peer_review_required: { type: 'select', label: 'Peer Review Required', required: true, options: ['Yes', 'No'] },
+      approvals_required: { type: 'number', label: 'Approvals Required', required: true },
+      high_risk_definition: { type: 'text', label: 'High-Risk Definition', required: true },
+      additional_review_requirements: { type: 'text', label: 'Additional Review Requirements', required: true },
+      security_review_required: { type: 'select', label: 'Security Review Required', required: true, options: ['Yes', 'No', 'For specific changes'] },
+      pr_description_requirements: { type: 'text', label: 'PR Description Requirements', required: true },
+      issue_linking_required: { type: 'select', label: 'Issue Linking Required', required: true, options: ['Yes', 'No', 'Recommended'] },
+      additional_checklist_items: { type: 'text', label: 'Additional Checklist Items', required: false },
+      standard_review_timeline: { type: 'text', label: 'Standard Review Timeline', required: true },
+      urgent_review_timeline: { type: 'text', label: 'Urgent Review Timeline', required: true },
+      emergency_review_process: { type: 'text', label: 'Emergency Review Process', required: true },
+      coverage_threshold: { type: 'number', label: 'Code Coverage Threshold %', required: true },
+      additional_automated_checks: { type: 'text', label: 'Additional Automated Checks', required: false },
+      merge_blocking_checks: { type: 'text', label: 'Merge Blocking Checks', required: true },
+      additional_security_triggers: { type: 'text', label: 'Additional Security Triggers', required: false },
+      security_reviewer_role: { type: 'text', label: 'Security Reviewer Role', required: true },
+      approval_documentation_requirements: { type: 'text', label: 'Approval Documentation Requirements', required: true },
+      post_merge_documentation: { type: 'text', label: 'Post-Merge Documentation', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] }
+    }
+  },
+  {
+    id: 'soc2-mfa',
+    title: 'Multi-Factor Authentication (MFA) Policy',
+    description: 'SOC 2 CC6 - Multi-factor authentication requirements',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Multi-Factor Authentication (MFA) Policy
+## SOC 2 Trust Services - CC6
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+
+## 1. Purpose
+This policy mandates multi-factor authentication to protect against unauthorized access.
+
+## 2. MFA Requirements
+
+### Required Systems
+**Production Systems:** {{production_mfa_required}}
+**VPN:** {{vpn_mfa_required}}
+**Email:** {{email_mfa_required}}
+**Cloud Services:** {{cloud_mfa_required}}
+**Administrative Access:** {{admin_mfa_required}}
+**Source Code Repositories:** {{vcs_mfa_required}}
+**All Systems:** {{all_systems_mfa_required}}
+
+### Authentication Factors
+
+**Something You Know:**
+- Password (minimum requirements per Password Policy)
+
+**Something You Have (Choose One):**
+- Hardware token: {{hardware_token_allowed}}
+- Mobile authenticator app: {{mobile_app_allowed}}
+- SMS code: {{sms_allowed}}
+- Email code: {{email_code_allowed}}
+- Biometric: {{biometric_allowed}}
+
+**Approved MFA Methods:**
+{{approved_mfa_methods}}
+
+**Preferred Method:** {{preferred_mfa_method}}
+
+## 3. Enrollment
+
+### New Users
+**Enrollment Timeline:** {{enrollment_timeline}}
+**Enrollment Process:** {{enrollment_process}}
+**Backup Method Required:** {{backup_method_required}}
+
+### Existing Users
+**Enrollment Deadline:** {{existing_user_deadline}}
+**Grace Period:** {{grace_period}}
+
+## 4. MFA Device Management
+
+### Device Registration
+**Maximum Devices:** {{max_devices}}
+**Device Naming:** {{device_naming_requirements}}
+**Registration Approval:** {{registration_approval}}
+
+### Lost/Stolen Device
+**Reporting:** Immediately to {{reporting_contact}}
+**Device Removal:** {{device_removal_process}}
+**Re-enrollment:** {{reenrollment_process}}
+
+### Device Replacement
+**Process:** {{device_replacement_process}}
+**Verification:** {{replacement_verification}}
+
+## 5. Exceptions
+
+### Exception Process
+**Request:** {{exception_request_process}}
+**Approval:** {{exception_approval}}
+**Justification:** {{exception_justification_requirements}}
+**Duration:** {{exception_duration}}
+**Review:** {{exception_review_frequency}}
+
+### Compensating Controls
+{{compensating_controls}}
+
+## 6. Session Management
+
+**Session Timeout:** {{session_timeout}}
+**Re-authentication Required:** {{reauth_required}}
+**Remember Device:** {{remember_device_allowed}}
+**Remember Duration:** {{remember_duration}}
+
+## 7. Compliance and Monitoring
+
+### Monitoring
+**MFA Enrollment Rate:** {{enrollment_monitoring}}
+**Failed MFA Attempts:** {{failed_attempt_monitoring}}
+**Reporting:** {{mfa_reporting_frequency}}
+
+### Enforcement
+**Non-Compliance:** {{non_compliance_action}}
+**Access Suspension:** {{access_suspension_policy}}
+
+**Policy Owner:** {{policy_owner}}
+**Review Frequency:** {{review_frequency}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      production_mfa_required: { type: 'select', label: 'Production Systems MFA Required', required: true, options: ['Yes', 'No'] },
+      vpn_mfa_required: { type: 'select', label: 'VPN MFA Required', required: true, options: ['Yes', 'No'] },
+      email_mfa_required: { type: 'select', label: 'Email MFA Required', required: true, options: ['Yes', 'No'] },
+      cloud_mfa_required: { type: 'select', label: 'Cloud Services MFA Required', required: true, options: ['Yes', 'No'] },
+      admin_mfa_required: { type: 'select', label: 'Admin Access MFA Required', required: true, options: ['Yes', 'No'] },
+      vcs_mfa_required: { type: 'select', label: 'VCS MFA Required', required: true, options: ['Yes', 'No'] },
+      all_systems_mfa_required: { type: 'select', label: 'All Systems MFA Required', required: true, options: ['Yes', 'No'] },
+      hardware_token_allowed: { type: 'select', label: 'Hardware Token Allowed', required: true, options: ['Yes', 'No'] },
+      mobile_app_allowed: { type: 'select', label: 'Mobile App Allowed', required: true, options: ['Yes', 'No'] },
+      sms_allowed: { type: 'select', label: 'SMS Allowed', required: true, options: ['Yes', 'No', 'Discouraged'] },
+      email_code_allowed: { type: 'select', label: 'Email Code Allowed', required: true, options: ['Yes', 'No'] },
+      biometric_allowed: { type: 'select', label: 'Biometric Allowed', required: true, options: ['Yes', 'No'] },
+      approved_mfa_methods: { type: 'text', label: 'Approved MFA Methods', required: true },
+      preferred_mfa_method: { type: 'text', label: 'Preferred MFA Method', required: true },
+      enrollment_timeline: { type: 'text', label: 'Enrollment Timeline', required: true },
+      enrollment_process: { type: 'text', label: 'Enrollment Process', required: true },
+      backup_method_required: { type: 'select', label: 'Backup Method Required', required: true, options: ['Yes', 'No'] },
+      existing_user_deadline: { type: 'date', label: 'Existing User Deadline', required: false },
+      grace_period: { type: 'text', label: 'Grace Period', required: false },
+      max_devices: { type: 'number', label: 'Maximum Devices', required: true },
+      device_naming_requirements: { type: 'text', label: 'Device Naming Requirements', required: true },
+      registration_approval: { type: 'text', label: 'Registration Approval', required: true },
+      reporting_contact: { type: 'text', label: 'Reporting Contact', required: true },
+      device_removal_process: { type: 'text', label: 'Device Removal Process', required: true },
+      reenrollment_process: { type: 'text', label: 'Re-enrollment Process', required: true },
+      device_replacement_process: { type: 'text', label: 'Device Replacement Process', required: true },
+      replacement_verification: { type: 'text', label: 'Replacement Verification', required: true },
+      exception_request_process: { type: 'text', label: 'Exception Request Process', required: true },
+      exception_approval: { type: 'text', label: 'Exception Approval', required: true },
+      exception_justification_requirements: { type: 'text', label: 'Exception Justification Requirements', required: true },
+      exception_duration: { type: 'text', label: 'Exception Duration', required: true },
+      exception_review_frequency: { type: 'select', label: 'Exception Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      compensating_controls: { type: 'text', label: 'Compensating Controls', required: true },
+      session_timeout: { type: 'text', label: 'Session Timeout', required: true },
+      reauth_required: { type: 'text', label: 'Re-authentication Required', required: true },
+      remember_device_allowed: { type: 'select', label: 'Remember Device Allowed', required: true, options: ['Yes', 'No'] },
+      remember_duration: { type: 'text', label: 'Remember Duration', required: false },
+      enrollment_monitoring: { type: 'text', label: 'Enrollment Monitoring', required: true },
+      failed_attempt_monitoring: { type: 'text', label: 'Failed Attempt Monitoring', required: true },
+      mfa_reporting_frequency: { type: 'select', label: 'MFA Reporting Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      non_compliance_action: { type: 'text', label: 'Non-Compliance Action', required: true },
+      access_suspension_policy: { type: 'text', label: 'Access Suspension Policy', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] }
+    }
+  },
+  {
+    id: 'soc2-password',
+    title: 'Password Policy',
+    description: 'SOC 2 CC6 - Password requirements and management',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Password Policy
+## SOC 2 Trust Services - CC6
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+
+## 1. Password Requirements
+
+### Complexity
+**Minimum Length:** {{min_length}} characters
+**Maximum Length:** {{max_length}} characters (if applicable)
+**Character Requirements:**
+- Uppercase letters: {{uppercase_required}}
+- Lowercase letters: {{lowercase_required}}
+- Numbers: {{numbers_required}}
+- Special characters: {{special_required}}
+
+**Complexity Rule:** {{complexity_rule}}
+
+### Password History
+**Previous Passwords Remembered:** {{password_history}}
+**Reuse Restriction:** Cannot reuse last {{password_history}} passwords
+
+### Password Expiration
+**Expiration:** {{password_expiration}}
+**Expiration Notice:** {{expiration_notice}}
+**Grace Period:** {{grace_period}}
+
+## 2. Password Creation
+
+### Prohibited Passwords
+- Dictionary words
+- Company name or variations
+- Username or variations
+- Sequential characters (abc, 123)
+- Repeated characters (aaa, 111)
+- Previously breached passwords
+- {{additional_prohibited}}
+
+### Password Strength
+**Strength Meter:** {{strength_meter_required}}
+**Minimum Strength:** {{minimum_strength}}
+
+## 3. Password Management
+
+### Password Storage
+**User Storage:** Password manager recommended
+**Approved Password Managers:** {{approved_password_managers}}
+**Written Passwords:** Prohibited
+
+### Sharing and Disclosure
+**Password Sharing:** Prohibited
+**Service Accounts:** {{service_account_policy}}
+**Shared Accounts:** {{shared_account_policy}}
+
+## 4. Account Security
+
+### Account Lockout
+**Failed Attempts:** {{lockout_threshold}}
+**Lockout Duration:** {{lockout_duration}}
+**Unlock Process:** {{unlock_process}}
+
+### Password Reset
+
+**Self-Service Reset:**
+- Available: {{self_service_available}}
+- Verification: {{reset_verification_method}}
+- Security Questions: {{security_questions_required}}
+
+**IT-Assisted Reset:**
+- Process: {{it_reset_process}}
+- Verification: {{it_verification_requirements}}
+- Delivery: {{password_delivery_method}}
+
+**Temporary Passwords:**
+- Change Required: On first login
+- Expiration: {{temp_password_expiration}}
+
+## 5. Multi-Factor Authentication
+
+**MFA Required:** Per MFA Policy
+**MFA Reduces Requirements:** {{mfa_reduces_requirements}}
+
+## 6. Special Accounts
+
+### Administrative Accounts
+**Minimum Length:** {{admin_min_length}} characters
+**Expiration:** {{admin_expiration}}
+**Additional Requirements:** {{admin_additional_requirements}}
+
+### Service Accounts
+**Management:** {{service_account_management}}
+**Rotation:** {{service_account_rotation}}
+**Storage:** {{service_account_storage}}
+
+### Emergency Access
+**Break-Glass Accounts:** {{break_glass_policy}}
+**Usage Logging:** {{emergency_access_logging}}
+
+## 7. System-Specific Requirements
+
+### Corporate Systems
+**Requirements:** As defined above
+
+### Customer-Facing Systems
+**Requirements:** {{customer_system_requirements}}
+
+### Legacy Systems
+**Exceptions:** {{legacy_system_exceptions}}
+**Compensating Controls:** {{legacy_compensating_controls}}
+
+## 8. Monitoring and Compliance
+
+### Monitoring
+**Weak Passwords:** {{weak_password_monitoring}}
+**Breach Databases:** {{breach_monitoring}}
+**Compliance Rate:** {{compliance_monitoring}}
+
+### Enforcement
+**Non-Compliance:** {{non_compliance_action}}
+**Account Suspension:** {{suspension_policy}}
+
+### Reporting
+**Frequency:** {{reporting_frequency}}
+**Metrics:**
+- Password compliance rate
+- Reset frequency
+- Lockout frequency
+- MFA adoption rate
+
+**Policy Owner:** {{policy_owner}}
+**Review Frequency:** {{review_frequency}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      min_length: { type: 'number', label: 'Minimum Length', required: true },
+      max_length: { type: 'number', label: 'Maximum Length', required: false },
+      uppercase_required: { type: 'select', label: 'Uppercase Required', required: true, options: ['Yes', 'No'] },
+      lowercase_required: { type: 'select', label: 'Lowercase Required', required: true, options: ['Yes', 'No'] },
+      numbers_required: { type: 'select', label: 'Numbers Required', required: true, options: ['Yes', 'No'] },
+      special_required: { type: 'select', label: 'Special Characters Required', required: true, options: ['Yes', 'No'] },
+      complexity_rule: { type: 'text', label: 'Complexity Rule', required: true },
+      password_history: { type: 'number', label: 'Password History', required: true },
+      password_expiration: { type: 'text', label: 'Password Expiration', required: true },
+      expiration_notice: { type: 'text', label: 'Expiration Notice', required: true },
+      grace_period: { type: 'text', label: 'Grace Period', required: true },
+      additional_prohibited: { type: 'text', label: 'Additional Prohibited Patterns', required: false },
+      strength_meter_required: { type: 'select', label: 'Strength Meter Required', required: true, options: ['Yes', 'No'] },
+      minimum_strength: { type: 'text', label: 'Minimum Strength', required: true },
+      approved_password_managers: { type: 'text', label: 'Approved Password Managers', required: true },
+      service_account_policy: { type: 'text', label: 'Service Account Policy', required: true },
+      shared_account_policy: { type: 'text', label: 'Shared Account Policy', required: true },
+      lockout_threshold: { type: 'number', label: 'Lockout Threshold', required: true },
+      lockout_duration: { type: 'text', label: 'Lockout Duration', required: true },
+      unlock_process: { type: 'text', label: 'Unlock Process', required: true },
+      self_service_available: { type: 'select', label: 'Self-Service Available', required: true, options: ['Yes', 'No'] },
+      reset_verification_method: { type: 'text', label: 'Reset Verification Method', required: true },
+      security_questions_required: { type: 'select', label: 'Security Questions Required', required: true, options: ['Yes', 'No'] },
+      it_reset_process: { type: 'text', label: 'IT Reset Process', required: true },
+      it_verification_requirements: { type: 'text', label: 'IT Verification Requirements', required: true },
+      password_delivery_method: { type: 'text', label: 'Password Delivery Method', required: true },
+      temp_password_expiration: { type: 'text', label: 'Temp Password Expiration', required: true },
+      mfa_reduces_requirements: { type: 'select', label: 'MFA Reduces Requirements', required: true, options: ['Yes', 'No'] },
+      admin_min_length: { type: 'number', label: 'Admin Minimum Length', required: true },
+      admin_expiration: { type: 'text', label: 'Admin Password Expiration', required: true },
+      admin_additional_requirements: { type: 'text', label: 'Admin Additional Requirements', required: true },
+      service_account_management: { type: 'text', label: 'Service Account Management', required: true },
+      service_account_rotation: { type: 'text', label: 'Service Account Rotation', required: true },
+      service_account_storage: { type: 'text', label: 'Service Account Storage', required: true },
+      break_glass_policy: { type: 'text', label: 'Break-Glass Policy', required: true },
+      emergency_access_logging: { type: 'text', label: 'Emergency Access Logging', required: true },
+      customer_system_requirements: { type: 'text', label: 'Customer System Requirements', required: true },
+      legacy_system_exceptions: { type: 'text', label: 'Legacy System Exceptions', required: false },
+      legacy_compensating_controls: { type: 'text', label: 'Legacy Compensating Controls', required: false },
+      weak_password_monitoring: { type: 'text', label: 'Weak Password Monitoring', required: true },
+      breach_monitoring: { type: 'text', label: 'Breach Monitoring', required: true },
+      compliance_monitoring: { type: 'text', label: 'Compliance Monitoring', required: true },
+      non_compliance_action: { type: 'text', label: 'Non-Compliance Action', required: true },
+      suspension_policy: { type: 'text', label: 'Suspension Policy', required: true },
+      reporting_frequency: { type: 'select', label: 'Reporting Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually'] },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] }
+    }
+  },
+  {
+    id: 'soc2-network-security',
+    title: 'Network Security Policy',
+    description: 'SOC 2 CC6 - Network security controls and segmentation',
+    framework: 'SOC2',
+    category: 'security',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Network Security Policy
+## SOC 2 Trust Services - CC6
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+
+## 1. Network Architecture
+
+### Network Segmentation
+**Segmentation Required:** {{segmentation_required}}
+**Zones:** {{network_zones}}
+**DMZ:** {{dmz_required}}
+
+### VLAN Configuration
+**VLANs:** {{vlan_configuration}}
+**Inter-VLAN Routing:** {{inter_vlan_routing}}
+
+## 2. Perimeter Security
+
+### Firewall
+**Type:** {{firewall_type}}
+**Configuration:** {{firewall_configuration}}
+**Rule Review:** {{firewall_rule_review_frequency}}
+**Default Deny:** {{default_deny}}
+
+### Intrusion Detection/Prevention
+**IDS/IPS:** {{ids_ips_deployed}}
+**Monitoring:** {{ids_monitoring}}
+**Alert Response:** {{ids_alert_response}}
+
+### DDoS Protection
+**Protection:** {{ddos_protection}}
+**Provider:** {{ddos_provider}}
+
+## 3. Network Access Control
+
+### Remote Access
+**VPN Required:** {{vpn_required}}
+**VPN Type:** {{vpn_type}}
+**MFA for VPN:** {{vpn_mfa_required}}
+**Split Tunneling:** {{split_tunneling_allowed}}
+
+### Wireless Security
+**Wireless Available:** {{wireless_available}}
+**Encryption:** {{wireless_encryption}}
+**Guest Network:** {{guest_network_available}}
+**Guest Network Isolation:** {{guest_isolation}}
+
+### NAC (Network Access Control)
+**NAC Deployed:** {{nac_deployed}}
+**Requirements:** {{nac_requirements}}
+
+## 4. Network Monitoring
+
+### Logging
+**Network Logs:** {{network_logging}}
+**Log Retention:** {{log_retention}}
+**Log Analysis:** {{log_analysis_tool}}
+
+### Traffic Monitoring
+**Monitoring Tool:** {{traffic_monitoring_tool}}
+**Anomaly Detection:** {{anomaly_detection}}
+**Bandwidth Monitoring:** {{bandwidth_monitoring}}
+
+### SIEM Integration
+**SIEM:** {{siem_integration}}
+**Alerts:** {{siem_alert_configuration}}
+
+## 5. Network Services
+
+### DNS
+**DNS Service:** {{dns_service}}
+**DNS Security:** {{dns_security}}
+**DNSSEC:** {{dnssec_enabled}}
+
+### DHCP
+**DHCP Service:** {{dhcp_service}}
+**IP Management:** {{ip_management}}
+
+### NTP
+**Time Synchronization:** {{ntp_service}}
+**NTP Source:** {{ntp_source}}
+
+## 6. Encryption
+
+### Data in Transit
+**Encryption Required:** {{encryption_required}}
+**Protocols:** {{approved_protocols}}
+**Prohibited:** {{prohibited_protocols}}
+**TLS Version:** {{tls_version}}
+
+### VPN Encryption
+**Algorithm:** {{vpn_encryption}}
+**Key Length:** {{vpn_key_length}}
+
+## 7. Network Device Security
+
+### Device Hardening
+**Baseline Configuration:** {{device_baseline}}
+**Unnecessary Services:** Disabled
+**SNMP:** {{snmp_configuration}}
+
+### Access Control
+**Administrative Access:** {{admin_access_controls}}
+**SSH Required:** {{ssh_required}}
+**Telnet:** Prohibited
+
+### Patching
+**Patch Management:** Per Patch Management Policy
+**Emergency Patches:** {{emergency_patch_process}}
+
+## 8. Cloud Network Security
+
+### Cloud Provider
+**Providers:** {{cloud_providers}}
+**Security Groups:** {{security_group_configuration}}
+**Network ACLs:** {{network_acl_configuration}}
+
+### Hybrid Connectivity
+**Site-to-Site VPN:** {{site_to_site_vpn}}
+**Direct Connect:** {{direct_connect}}
+
+## 9. Incident Response
+
+### Network Incidents
+**Detection:** {{network_incident_detection}}
+**Response:** {{network_incident_response}}
+**Containment:** {{network_containment_procedures}}
+
+**Policy Owner:** {{policy_owner}}
+**Review Frequency:** {{review_frequency}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      segmentation_required: { type: 'select', label: 'Segmentation Required', required: true, options: ['Yes', 'No'] },
+      network_zones: { type: 'text', label: 'Network Zones', required: true },
+      dmz_required: { type: 'select', label: 'DMZ Required', required: true, options: ['Yes', 'No'] },
+      vlan_configuration: { type: 'text', label: 'VLAN Configuration', required: true },
+      inter_vlan_routing: { type: 'text', label: 'Inter-VLAN Routing', required: true },
+      firewall_type: { type: 'text', label: 'Firewall Type', required: true },
+      firewall_configuration: { type: 'text', label: 'Firewall Configuration', required: true },
+      firewall_rule_review_frequency: { type: 'select', label: 'Firewall Rule Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually'] },
+      default_deny: { type: 'select', label: 'Default Deny', required: true, options: ['Yes', 'No'] },
+      ids_ips_deployed: { type: 'select', label: 'IDS/IPS Deployed', required: true, options: ['Yes', 'No', 'IDS only', 'IPS only'] },
+      ids_monitoring: { type: 'text', label: 'IDS Monitoring', required: true },
+      ids_alert_response: { type: 'text', label: 'IDS Alert Response', required: true },
+      ddos_protection: { type: 'select', label: 'DDoS Protection', required: true, options: ['Yes', 'No'] },
+      ddos_provider: { type: 'text', label: 'DDoS Provider', required: false },
+      vpn_required: { type: 'select', label: 'VPN Required', required: true, options: ['Yes', 'No'] },
+      vpn_type: { type: 'text', label: 'VPN Type', required: true },
+      vpn_mfa_required: { type: 'select', label: 'VPN MFA Required', required: true, options: ['Yes', 'No'] },
+      split_tunneling_allowed: { type: 'select', label: 'Split Tunneling Allowed', required: true, options: ['Yes', 'No'] },
+      wireless_available: { type: 'select', label: 'Wireless Available', required: true, options: ['Yes', 'No'] },
+      wireless_encryption: { type: 'text', label: 'Wireless Encryption', required: true },
+      guest_network_available: { type: 'select', label: 'Guest Network Available', required: true, options: ['Yes', 'No'] },
+      guest_isolation: { type: 'select', label: 'Guest Network Isolation', required: true, options: ['Yes', 'No'] },
+      nac_deployed: { type: 'select', label: 'NAC Deployed', required: true, options: ['Yes', 'No'] },
+      nac_requirements: { type: 'text', label: 'NAC Requirements', required: false },
+      network_logging: { type: 'text', label: 'Network Logging', required: true },
+      log_retention: { type: 'text', label: 'Log Retention', required: true },
+      log_analysis_tool: { type: 'text', label: 'Log Analysis Tool', required: true },
+      traffic_monitoring_tool: { type: 'text', label: 'Traffic Monitoring Tool', required: true },
+      anomaly_detection: { type: 'text', label: 'Anomaly Detection', required: true },
+      bandwidth_monitoring: { type: 'text', label: 'Bandwidth Monitoring', required: true },
+      siem_integration: { type: 'select', label: 'SIEM Integration', required: true, options: ['Yes', 'No'] },
+      siem_alert_configuration: { type: 'text', label: 'SIEM Alert Configuration', required: false },
+      dns_service: { type: 'text', label: 'DNS Service', required: true },
+      dns_security: { type: 'text', label: 'DNS Security', required: true },
+      dnssec_enabled: { type: 'select', label: 'DNSSEC Enabled', required: true, options: ['Yes', 'No'] },
+      dhcp_service: { type: 'text', label: 'DHCP Service', required: true },
+      ip_management: { type: 'text', label: 'IP Management', required: true },
+      ntp_service: { type: 'text', label: 'NTP Service', required: true },
+      ntp_source: { type: 'text', label: 'NTP Source', required: true },
+      encryption_required: { type: 'select', label: 'Encryption Required', required: true, options: ['Yes', 'No'] },
+      approved_protocols: { type: 'text', label: 'Approved Protocols', required: true },
+      prohibited_protocols: { type: 'text', label: 'Prohibited Protocols', required: true },
+      tls_version: { type: 'text', label: 'TLS Version', required: true },
+      vpn_encryption: { type: 'text', label: 'VPN Encryption Algorithm', required: true },
+      vpn_key_length: { type: 'text', label: 'VPN Key Length', required: true },
+      device_baseline: { type: 'text', label: 'Device Baseline Configuration', required: true },
+      snmp_configuration: { type: 'text', label: 'SNMP Configuration', required: true },
+      admin_access_controls: { type: 'text', label: 'Admin Access Controls', required: true },
+      ssh_required: { type: 'select', label: 'SSH Required', required: true, options: ['Yes', 'No'] },
+      emergency_patch_process: { type: 'text', label: 'Emergency Patch Process', required: true },
+      cloud_providers: { type: 'text', label: 'Cloud Providers', required: false },
+      security_group_configuration: { type: 'text', label: 'Security Group Configuration', required: false },
+      network_acl_configuration: { type: 'text', label: 'Network ACL Configuration', required: false },
+      site_to_site_vpn: { type: 'text', label: 'Site-to-Site VPN', required: false },
+      direct_connect: { type: 'text', label: 'Direct Connect', required: false },
+      network_incident_detection: { type: 'text', label: 'Network Incident Detection', required: true },
+      network_incident_response: { type: 'text', label: 'Network Incident Response', required: true },
+      network_containment_procedures: { type: 'text', label: 'Network Containment Procedures', required: true },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] }
+    }
+  },
+  {
+    id: 'soc2-data-quality',
+    title: 'Data Quality Controls',
+    description: 'SOC 2 PI1 - Data quality and processing integrity controls',
+    framework: 'SOC2',
+    category: 'operations',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Data Quality Controls
+## SOC 2 Trust Services - PI1 (Processing Integrity)
+
+**Organization:** {{company_name}}
+**Version:** {{version}}
+**Effective Date:** {{effective_date}}
+
+## 1. Purpose
+This policy establishes controls to ensure data quality, accuracy, completeness, and timeliness.
+
+## 2. Data Quality Dimensions
+
+### Accuracy
+**Definition:** {{accuracy_definition}}
+**Measurement:** {{accuracy_measurement}}
+**Target:** {{accuracy_target}}%
+
+### Completeness
+**Definition:** {{completeness_definition}}
+**Measurement:** {{completeness_measurement}}
+**Target:** {{completeness_target}}%
+
+### Consistency
+**Definition:** {{consistency_definition}}
+**Validation:** {{consistency_validation}}
+
+### Timeliness
+**Definition:** {{timeliness_definition}}
+**SLA:** {{timeliness_sla}}
+
+### Validity
+**Definition:** {{validity_definition}}
+**Validation Rules:** {{validation_rules}}
+
+## 3. Data Input Controls
+
+### Input Validation
+**Required Fields:** {{required_fields_validation}}
+**Format Validation:** {{format_validation}}
+**Range Checks:** {{range_checks}}
+**Business Rules:** {{business_rules_validation}}
+
+### Error Handling
+**Invalid Input:** {{invalid_input_handling}}
+**Error Messages:** {{error_message_requirements}}
+**Error Logging:** {{error_logging}}
+
+### Duplicate Prevention
+**Duplicate Detection:** {{duplicate_detection}}
+**Merge Process:** {{duplicate_merge_process}}
+
+## 4. Data Processing Controls
+
+### Processing Validation
+**Calculation Verification:** {{calculation_verification}}
+**Transformation Rules:** {{transformation_rules}}
+**Processing Logs:** {{processing_logs}}
+
+### Automated Processing
+**Automation Validation:** {{automation_validation}}
+**Monitoring:** {{automated_process_monitoring}}
+**Exception Handling:** {{exception_handling}}
+
+### Batch Processing
+**Batch Controls:** {{batch_controls}}
+**Reconciliation:** {{batch_reconciliation}}
+**Failure Handling:** {{batch_failure_handling}}
+
+## 5. Data Output Controls
+
+### Output Validation
+**Completeness Checks:** {{output_completeness_checks}}
+**Format Validation:** {{output_format_validation}}
+**Reconciliation:** {{output_reconciliation}}
+
+### Output Distribution
+**Authorization:** {{output_authorization}}
+**Delivery Verification:** {{delivery_verification}}
+**Transmission Security:** {{transmission_security}}
+
+## 6. Data Quality Monitoring
+
+### Quality Metrics
+**Metrics Tracked:** {{quality_metrics}}
+**Monitoring Frequency:** {{monitoring_frequency}}
+**Dashboard:** {{quality_dashboard}}
+
+### Quality Thresholds
+**Accuracy Threshold:** {{accuracy_threshold}}%
+**Completeness Threshold:** {{completeness_threshold}}%
+**Timeliness Threshold:** {{timeliness_threshold}}
+
+### Alerts
+**Alert Triggers:** {{alert_triggers}}
+**Alert Recipients:** {{alert_recipients}}
+**Response Time:** {{alert_response_time}}
+
+## 7. Data Reconciliation
+
+### Reconciliation Process
+**Frequency:** {{reconciliation_frequency}}
+**Scope:** {{reconciliation_scope}}
+**Methodology:** {{reconciliation_methodology}}
+
+### Discrepancy Management
+**Investigation:** {{discrepancy_investigation}}
+**Resolution:** {{discrepancy_resolution}}
+**Documentation:** {{discrepancy_documentation}}
+
+## 8. Data Correction
+
+### Correction Process
+**Authorization:** {{correction_authorization}}
+**Audit Trail:** {{correction_audit_trail}}
+**Notification:** {{correction_notification}}
+
+### Bulk Corrections
+**Approval:** {{bulk_correction_approval}}
+**Testing:** {{bulk_correction_testing}}
+**Rollback:** {{bulk_correction_rollback}}
+
+## 9. Reporting
+
+### Quality Reports
+**Frequency:** {{quality_report_frequency}}
+**Recipients:** {{quality_report_recipients}}
+**Content:** {{quality_report_content}}
+
+### Compliance Reporting
+**Regulatory Reports:** {{regulatory_reporting}}
+**Accuracy Requirements:** {{regulatory_accuracy_requirements}}
+
+**Policy Owner:** {{policy_owner}}
+**Review Frequency:** {{review_frequency}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true },
+      accuracy_definition: { type: 'text', label: 'Accuracy Definition', required: true },
+      accuracy_measurement: { type: 'text', label: 'Accuracy Measurement', required: true },
+      accuracy_target: { type: 'number', label: 'Accuracy Target %', required: true },
+      completeness_definition: { type: 'text', label: 'Completeness Definition', required: true },
+      completeness_measurement: { type: 'text', label: 'Completeness Measurement', required: true },
+      completeness_target: { type: 'number', label: 'Completeness Target %', required: true },
+      consistency_definition: { type: 'text', label: 'Consistency Definition', required: true },
+      consistency_validation: { type: 'text', label: 'Consistency Validation', required: true },
+      timeliness_definition: { type: 'text', label: 'Timeliness Definition', required: true },
+      timeliness_sla: { type: 'text', label: 'Timeliness SLA', required: true },
+      validity_definition: { type: 'text', label: 'Validity Definition', required: true },
+      validation_rules: { type: 'text', label: 'Validation Rules', required: true },
+      required_fields_validation: { type: 'text', label: 'Required Fields Validation', required: true },
+      format_validation: { type: 'text', label: 'Format Validation', required: true },
+      range_checks: { type: 'text', label: 'Range Checks', required: true },
+      business_rules_validation: { type: 'text', label: 'Business Rules Validation', required: true },
+      invalid_input_handling: { type: 'text', label: 'Invalid Input Handling', required: true },
+      error_message_requirements: { type: 'text', label: 'Error Message Requirements', required: true },
+      error_logging: { type: 'text', label: 'Error Logging', required: true },
+      duplicate_detection: { type: 'text', label: 'Duplicate Detection', required: true },
+      duplicate_merge_process: { type: 'text', label: 'Duplicate Merge Process', required: true },
+      calculation_verification: { type: 'text', label: 'Calculation Verification', required: true },
+      transformation_rules: { type: 'text', label: 'Transformation Rules', required: true },
+      processing_logs: { type: 'text', label: 'Processing Logs', required: true },
+      automation_validation: { type: 'text', label: 'Automation Validation', required: true },
+      automated_process_monitoring: { type: 'text', label: 'Automated Process Monitoring', required: true },
+      exception_handling: { type: 'text', label: 'Exception Handling', required: true },
+      batch_controls: { type: 'text', label: 'Batch Controls', required: true },
+      batch_reconciliation: { type: 'text', label: 'Batch Reconciliation', required: true },
+      batch_failure_handling: { type: 'text', label: 'Batch Failure Handling', required: true },
+      output_completeness_checks: { type: 'text', label: 'Output Completeness Checks', required: true },
+      output_format_validation: { type: 'text', label: 'Output Format Validation', required: true },
+      output_reconciliation: { type: 'text', label: 'Output Reconciliation', required: true },
+      output_authorization: { type: 'text', label: 'Output Authorization', required: true },
+      delivery_verification: { type: 'text', label: 'Delivery Verification', required: true },
+      transmission_security: { type: 'text', label: 'Transmission Security', required: true },
+      quality_metrics: { type: 'text', label: 'Quality Metrics Tracked', required: true },
+      monitoring_frequency: { type: 'select', label: 'Monitoring Frequency', required: true, options: ['Real-time', 'Daily', 'Weekly', 'Monthly'] },
+      quality_dashboard: { type: 'text', label: 'Quality Dashboard', required: true },
+      accuracy_threshold: { type: 'number', label: 'Accuracy Threshold %', required: true },
+      completeness_threshold: { type: 'number', label: 'Completeness Threshold %', required: true },
+      timeliness_threshold: { type: 'text', label: 'Timeliness Threshold', required: true },
+      alert_triggers: { type: 'text', label: 'Alert Triggers', required: true },
+      alert_recipients: { type: 'text', label: 'Alert Recipients', required: true },
+      alert_response_time: { type: 'text', label: 'Alert Response Time', required: true },
+      reconciliation_frequency: { type: 'select', label: 'Reconciliation Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly', 'Quarterly'] },
+      reconciliation_scope: { type: 'text', label: 'Reconciliation Scope', required: true },
+      reconciliation_methodology: { type: 'text', label: 'Reconciliation Methodology', required: true },
+      discrepancy_investigation: { type: 'text', label: 'Discrepancy Investigation', required: true },
+      discrepancy_resolution: { type: 'text', label: 'Discrepancy Resolution', required: true },
+      discrepancy_documentation: { type: 'text', label: 'Discrepancy Documentation', required: true },
+      correction_authorization: { type: 'text', label: 'Correction Authorization', required: true },
+      correction_audit_trail: { type: 'text', label: 'Correction Audit Trail', required: true },
+      correction_notification: { type: 'text', label: 'Correction Notification', required: true },
+      bulk_correction_approval: { type: 'text', label: 'Bulk Correction Approval', required: true },
+      bulk_correction_testing: { type: 'text', label: 'Bulk Correction Testing', required: true },
+      bulk_correction_rollback: { type: 'text', label: 'Bulk Correction Rollback', required: true },
+      quality_report_frequency: { type: 'select', label: 'Quality Report Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      quality_report_recipients: { type: 'text', label: 'Quality Report Recipients', required: true },
+      quality_report_content: { type: 'text', label: 'Quality Report Content', required: true },
+      regulatory_reporting: { type: 'text', label: 'Regulatory Reporting', required: false },
+      regulatory_accuracy_requirements: { type: 'text', label: 'Regulatory Accuracy Requirements', required: false },
+      policy_owner: { type: 'text', label: 'Policy Owner', required: true },
+      review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] }
+    }
   }
 ];
 
@@ -4501,6 +8636,1014 @@ Covers all security incidents affecting system confidentiality, integrity, or av
       mgmt_notification: { type: 'number', label: 'Management Notification (hours)', required: true },
       tabletop_freq: { type: 'select', label: 'Tabletop Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
       drill_freq: { type: 'select', label: 'Drill Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-2',
+    title: 'FedRAMP Digital Identity Worksheet',
+    description: 'Attachment 2 - Digital identity level determination per NIST SP 800-63',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 2,
+    documentType: 'worksheet',
+    required: true,
+    templateContent: `# Digital Identity Worksheet
+## FedRAMP SSP Attachment 2
+
+### System Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**Assessment Date:** {{assessment_date}}
+
+## 1. Purpose
+This worksheet determines the appropriate digital identity assurance level per NIST SP 800-63-3 Digital Identity Guidelines.
+
+## 2. Impact Assessment
+
+### 2.1 Potential Impact of Authentication Errors
+| Impact Category | Inconvenience | Financial Loss | Reputation/Privacy | Safety | Civil Liberties |
+|----------------|---------------|----------------|-------------------|--------|-----------------|
+| **Low** | {{low_inconvenience}} | {{low_financial}} | {{low_reputation}} | {{low_safety}} | {{low_civil}} |
+| **Moderate** | {{mod_inconvenience}} | {{mod_financial}} | {{mod_reputation}} | {{mod_safety}} | {{mod_civil}} |
+| **High** | {{high_inconvenience}} | {{high_financial}} | {{high_reputation}} | {{high_safety}} | {{high_civil}} |
+
+**Overall Impact Level:** {{overall_impact}}
+
+## 3. Identity Assurance Level (IAL)
+
+### 3.1 IAL Determination
+**Question 1:** Does the system require identity proofing?
+**Answer:** {{requires_proofing}}
+
+**Question 2:** What level of confidence in identity is required?
+**Answer:** {{confidence_level}}
+
+**Determined IAL:** {{ial_level}}
+
+### 3.2 IAL Requirements
+**IAL 1:** Self-asserted attributes, no identity proofing required
+**IAL 2:** In-person or remote identity proofing, requires evidence of identity
+**IAL 3:** In-person identity proofing, biometric collection
+
+**Selected IAL:** {{selected_ial}}
+**Justification:** {{ial_justification}}
+
+## 4. Authenticator Assurance Level (AAL)
+
+### 4.1 AAL Determination
+**AAL 1:** Single-factor authentication (password)
+**AAL 2:** Multi-factor authentication (MFA)
+**AAL 3:** Hardware-based cryptographic authenticator
+
+**Selected AAL:** {{selected_aal}}
+**Authentication Methods:** {{auth_methods}}
+
+### 4.2 MFA Implementation
+**Primary Factor:** {{primary_factor}}
+**Secondary Factor:** {{secondary_factor}}
+**MFA Solution:** {{mfa_solution}}
+
+## 5. Federation Assurance Level (FAL)
+
+### 5.1 FAL Determination
+**Does system use federated authentication?** {{uses_federation}}
+
+**FAL 1:** Bearer assertion (no signature required)
+**FAL 2:** Signed assertion
+**FAL 3:** Signed assertion, encrypted
+
+**Selected FAL:** {{selected_fal}}
+**Federation Protocol:** {{federation_protocol}}
+
+## 6. Risk Assessment
+
+### 6.1 Authentication Risk Factors
+**User Population:** {{user_population}}
+**Data Sensitivity:** {{data_sensitivity}}
+**Remote Access:** {{remote_access}}
+**Privileged Functions:** {{privileged_functions}}
+
+### 6.2 Compensating Controls
+**Session Management:** {{session_mgmt}}
+**Anomaly Detection:** {{anomaly_detection}}
+**Continuous Monitoring:** {{continuous_monitoring}}
+
+## 7. Recommendations
+
+### 7.1 Required Implementation
+- **IAL:** {{recommended_ial}}
+- **AAL:** {{recommended_aal}}
+- **FAL:** {{recommended_fal}}
+
+### 7.2 Technical Requirements
+- Identity proofing process: {{proofing_process}}
+- Authenticator types: {{authenticator_types}}
+- Session timeout: {{session_timeout}}
+- Re-authentication: {{reauth_requirement}}
+
+**Completed By:** {{completed_by}}
+**Reviewed By:** {{reviewed_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      assessment_date: { type: 'date', label: 'Assessment Date', required: true },
+      low_inconvenience: { type: 'text', label: 'Low Inconvenience Impact', required: false },
+      low_financial: { type: 'text', label: 'Low Financial Impact', required: false },
+      low_reputation: { type: 'text', label: 'Low Reputation Impact', required: false },
+      low_safety: { type: 'text', label: 'Low Safety Impact', required: false },
+      low_civil: { type: 'text', label: 'Low Civil Liberties Impact', required: false },
+      mod_inconvenience: { type: 'text', label: 'Moderate Inconvenience Impact', required: false },
+      mod_financial: { type: 'text', label: 'Moderate Financial Impact', required: false },
+      mod_reputation: { type: 'text', label: 'Moderate Reputation Impact', required: false },
+      mod_safety: { type: 'text', label: 'Moderate Safety Impact', required: false },
+      mod_civil: { type: 'text', label: 'Moderate Civil Liberties Impact', required: false },
+      high_inconvenience: { type: 'text', label: 'High Inconvenience Impact', required: false },
+      high_financial: { type: 'text', label: 'High Financial Impact', required: false },
+      high_reputation: { type: 'text', label: 'High Reputation Impact', required: false },
+      high_safety: { type: 'text', label: 'High Safety Impact', required: false },
+      high_civil: { type: 'text', label: 'High Civil Liberties Impact', required: false },
+      overall_impact: { type: 'select', label: 'Overall Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      requires_proofing: { type: 'select', label: 'Requires Identity Proofing?', required: true, options: ['Yes', 'No'] },
+      confidence_level: { type: 'select', label: 'Required Confidence Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      ial_level: { type: 'select', label: 'Determined IAL', required: true, options: ['IAL 1', 'IAL 2', 'IAL 3'] },
+      selected_ial: { type: 'select', label: 'Selected IAL', required: true, options: ['IAL 1', 'IAL 2', 'IAL 3'] },
+      ial_justification: { type: 'text', label: 'IAL Justification', required: true },
+      selected_aal: { type: 'select', label: 'Selected AAL', required: true, options: ['AAL 1', 'AAL 2', 'AAL 3'] },
+      auth_methods: { type: 'text', label: 'Authentication Methods', required: true },
+      primary_factor: { type: 'select', label: 'Primary Authentication Factor', required: true, options: ['Password', 'PIN', 'Biometric'] },
+      secondary_factor: { type: 'select', label: 'Secondary Authentication Factor', required: true, options: ['SMS', 'Authenticator App', 'Hardware Token', 'Biometric'] },
+      mfa_solution: { type: 'text', label: 'MFA Solution', required: true },
+      uses_federation: { type: 'select', label: 'Uses Federation?', required: true, options: ['Yes', 'No'] },
+      selected_fal: { type: 'select', label: 'Selected FAL', required: true, options: ['FAL 1', 'FAL 2', 'FAL 3', 'N/A'] },
+      federation_protocol: { type: 'text', label: 'Federation Protocol', required: false },
+      user_population: { type: 'text', label: 'User Population Description', required: true },
+      data_sensitivity: { type: 'select', label: 'Data Sensitivity', required: true, options: ['Low', 'Moderate', 'High'] },
+      remote_access: { type: 'select', label: 'Remote Access Allowed?', required: true, options: ['Yes', 'No'] },
+      privileged_functions: { type: 'text', label: 'Privileged Functions', required: true },
+      session_mgmt: { type: 'text', label: 'Session Management Controls', required: true },
+      anomaly_detection: { type: 'text', label: 'Anomaly Detection', required: true },
+      continuous_monitoring: { type: 'text', label: 'Continuous Monitoring', required: true },
+      recommended_ial: { type: 'select', label: 'Recommended IAL', required: true, options: ['IAL 1', 'IAL 2', 'IAL 3'] },
+      recommended_aal: { type: 'select', label: 'Recommended AAL', required: true, options: ['AAL 1', 'AAL 2', 'AAL 3'] },
+      recommended_fal: { type: 'select', label: 'Recommended FAL', required: true, options: ['FAL 1', 'FAL 2', 'FAL 3', 'N/A'] },
+      proofing_process: { type: 'text', label: 'Identity Proofing Process', required: true },
+      authenticator_types: { type: 'text', label: 'Authenticator Types', required: true },
+      session_timeout: { type: 'select', label: 'Session Timeout', required: true, options: ['15 minutes', '30 minutes', '1 hour', '2 hours'] },
+      reauth_requirement: { type: 'text', label: 'Re-authentication Requirement', required: true },
+      completed_by: { type: 'text', label: 'Completed By', required: true },
+      reviewed_by: { type: 'text', label: 'Reviewed By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-3',
+    title: 'FedRAMP Privacy Threshold Analysis (PTA)',
+    description: 'Attachment 3 - Privacy Threshold Analysis per E-Government Act',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 3,
+    documentType: 'assessment',
+    required: true,
+    templateContent: `# Privacy Threshold Analysis (PTA)
+## FedRAMP SSP Attachment 3
+
+### System Information
+**System Name:** {{system_name}}
+**System Abbreviation:** {{system_abbr}}
+**System Owner:** {{system_owner}}
+**Analysis Date:** {{analysis_date}}
+
+## 1. Purpose
+This Privacy Threshold Analysis (PTA) determines whether {{system_name}} requires a Privacy Impact Assessment (PIA) per the E-Government Act of 2002.
+
+## 2. System Description
+**Function:** {{system_function}}
+**User Base:** {{user_base}}
+**Data Types:** {{data_types}}
+
+## 3. PII Determination Questions
+
+### 3.1 Does the system collect, maintain, or disseminate PII?
+**Answer:** {{collects_pii}}
+
+**If YES, describe:**
+{{pii_description}}
+
+### 3.2 Types of PII Collected
+- [ ] Name: {{pii_name}}
+- [ ] Social Security Number: {{pii_ssn}}
+- [ ] Date of Birth: {{pii_dob}}
+- [ ] Email Address: {{pii_email}}
+- [ ] Phone Number: {{pii_phone}}
+- [ ] Home Address: {{pii_address}}
+- [ ] Financial Information: {{pii_financial}}
+- [ ] Medical Information: {{pii_medical}}
+- [ ] Biometric Data: {{pii_biometric}}
+- [ ] Other: {{pii_other}}
+
+### 3.3 Number of Records
+**Estimated records containing PII:** {{pii_record_count}}
+**Number of individuals:** {{individual_count}}
+
+## 4. PII Collection Purpose
+
+### 4.1 Legal Authority
+**Statutory Authority:** {{legal_authority}}
+**Regulatory Authority:** {{regulatory_authority}}
+
+### 4.2 Business Need
+**Purpose of Collection:** {{collection_purpose}}
+**Use of PII:** {{pii_use}}
+
+### 4.3 Data Minimization
+**Is only necessary PII collected?** {{data_minimization}}
+**Justification:** {{minimization_justification}}
+
+## 5. Information Sharing
+
+### 5.1 External Sharing
+**Is PII shared externally?** {{external_sharing}}
+
+**If YES, with whom:**
+{{sharing_parties}}
+
+**Purpose of sharing:** {{sharing_purpose}}
+**Legal authority for sharing:** {{sharing_authority}}
+
+### 5.2 Sharing Agreements
+**MOUs/ISAs in place?** {{has_agreements}}
+**Agreement references:** {{agreement_refs}}
+
+## 6. Notice and Consent
+
+### 6.1 Privacy Notice
+**Is privacy notice provided to individuals?** {{provides_notice}}
+**Location of notice:** {{notice_location}}
+**Format:** {{notice_format}}
+
+### 6.2 Consent
+**Is consent obtained for PII collection?** {{obtains_consent}}
+**Consent mechanism:** {{consent_mechanism}}
+**Opt-out available?** {{opt_out_available}}
+
+## 7. Access and Amendment
+
+### 7.1 Individual Access
+**Can individuals access their PII?** {{individual_access}}
+**Access method:** {{access_method}}
+
+### 7.2 Amendment Rights
+**Can individuals request corrections?** {{amendment_rights}}
+**Correction process:** {{correction_process}}
+
+## 8. Data Retention and Disposal
+
+### 8.1 Retention
+**Retention period:** {{retention_period}}
+**Records schedule:** {{records_schedule}}
+**NARA approved?** {{nara_approved}}
+
+### 8.2 Disposal
+**Disposal method:** {{disposal_method}}
+**Media sanitization:** {{sanitization_method}}
+
+## 9. Security Controls
+
+### 9.1 PII Protection
+**Encryption at rest:** {{encryption_rest}}
+**Encryption in transit:** {{encryption_transit}}
+**Access controls:** {{access_controls}}
+**Audit logging:** {{audit_logging}}
+
+### 9.2 Breach Response
+**Incident response plan includes PII breach procedures?** {{breach_procedures}}
+**Notification process:** {{breach_notification}}
+
+## 10. System of Records Notice (SORN)
+
+### 10.1 SORN Determination
+**Is a SORN required?** {{sorn_required}}
+
+**If YES:**
+**SORN Number:** {{sorn_number}}
+**Publication Date:** {{sorn_date}}
+**Federal Register Citation:** {{sorn_citation}}
+
+**If NO, explain:** {{sorn_exemption}}
+
+## 11. Privacy Impact Assessment (PIA) Determination
+
+### 11.1 PIA Required?
+Based on the analysis above, is a PIA required?
+
+**Answer:** {{pia_required}}
+
+### 11.2 PIA Trigger Analysis
+| Trigger | Present? | Notes |
+|---------|----------|-------|
+| New collection of PII | {{trigger_new}} | {{trigger_new_notes}} |
+| New use of existing PII | {{trigger_use}} | {{trigger_use_notes}} |
+| New technology | {{trigger_tech}} | {{trigger_tech_notes}} |
+| New external sharing | {{trigger_sharing}} | {{trigger_sharing_notes}} |
+| Alteration to business process | {{trigger_process}} | {{trigger_process_notes}} |
+
+### 11.3 Recommendation
+**PIA Status:** {{pia_status}}
+**Next Steps:** {{next_steps}}
+
+## 12. Privacy POC
+
+**Privacy Officer:** {{privacy_officer}}
+**Contact:** {{privacy_contact}}
+**Department:** {{privacy_dept}}
+
+## 13. Approval
+
+**Completed By:** {{completed_by}}
+**Date:** {{completion_date}}
+
+**Reviewed By:** {{reviewed_by}}
+**Date:** {{review_date}}
+
+**Approved By:** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      system_abbr: { type: 'text', label: 'System Abbreviation', required: true },
+      system_owner: { type: 'text', label: 'System Owner', required: true },
+      analysis_date: { type: 'date', label: 'Analysis Date', required: true },
+      system_function: { type: 'text', label: 'System Function', required: true },
+      user_base: { type: 'text', label: 'User Base', required: true },
+      data_types: { type: 'text', label: 'Data Types', required: true },
+      collects_pii: { type: 'select', label: 'Collects PII?', required: true, options: ['Yes', 'No'] },
+      pii_description: { type: 'text', label: 'PII Description', required: false },
+      pii_name: { type: 'select', label: 'Collects Name?', required: false, options: ['Yes', 'No'] },
+      pii_ssn: { type: 'select', label: 'Collects SSN?', required: false, options: ['Yes', 'No'] },
+      pii_dob: { type: 'select', label: 'Collects DOB?', required: false, options: ['Yes', 'No'] },
+      pii_email: { type: 'select', label: 'Collects Email?', required: false, options: ['Yes', 'No'] },
+      pii_phone: { type: 'select', label: 'Collects Phone?', required: false, options: ['Yes', 'No'] },
+      pii_address: { type: 'select', label: 'Collects Address?', required: false, options: ['Yes', 'No'] },
+      pii_financial: { type: 'select', label: 'Collects Financial Info?', required: false, options: ['Yes', 'No'] },
+      pii_medical: { type: 'select', label: 'Collects Medical Info?', required: false, options: ['Yes', 'No'] },
+      pii_biometric: { type: 'select', label: 'Collects Biometric Data?', required: false, options: ['Yes', 'No'] },
+      pii_other: { type: 'text', label: 'Other PII Types', required: false },
+      pii_record_count: { type: 'number', label: 'PII Record Count', required: false },
+      individual_count: { type: 'number', label: 'Individual Count', required: false },
+      legal_authority: { type: 'text', label: 'Legal Authority', required: true },
+      regulatory_authority: { type: 'text', label: 'Regulatory Authority', required: false },
+      collection_purpose: { type: 'text', label: 'Collection Purpose', required: true },
+      pii_use: { type: 'text', label: 'PII Use', required: true },
+      data_minimization: { type: 'select', label: 'Data Minimization Applied?', required: true, options: ['Yes', 'No'] },
+      minimization_justification: { type: 'text', label: 'Minimization Justification', required: true },
+      external_sharing: { type: 'select', label: 'External Sharing?', required: true, options: ['Yes', 'No'] },
+      sharing_parties: { type: 'text', label: 'Sharing Parties', required: false },
+      sharing_purpose: { type: 'text', label: 'Sharing Purpose', required: false },
+      sharing_authority: { type: 'text', label: 'Sharing Authority', required: false },
+      has_agreements: { type: 'select', label: 'Has Sharing Agreements?', required: false, options: ['Yes', 'No'] },
+      agreement_refs: { type: 'text', label: 'Agreement References', required: false },
+      provides_notice: { type: 'select', label: 'Provides Privacy Notice?', required: true, options: ['Yes', 'No'] },
+      notice_location: { type: 'text', label: 'Notice Location', required: false },
+      notice_format: { type: 'text', label: 'Notice Format', required: false },
+      obtains_consent: { type: 'select', label: 'Obtains Consent?', required: true, options: ['Yes', 'No', 'N/A'] },
+      consent_mechanism: { type: 'text', label: 'Consent Mechanism', required: false },
+      opt_out_available: { type: 'select', label: 'Opt-out Available?', required: false, options: ['Yes', 'No'] },
+      individual_access: { type: 'select', label: 'Individual Access?', required: true, options: ['Yes', 'No'] },
+      access_method: { type: 'text', label: 'Access Method', required: false },
+      amendment_rights: { type: 'select', label: 'Amendment Rights?', required: true, options: ['Yes', 'No'] },
+      correction_process: { type: 'text', label: 'Correction Process', required: false },
+      retention_period: { type: 'text', label: 'Retention Period', required: true },
+      records_schedule: { type: 'text', label: 'Records Schedule', required: true },
+      nara_approved: { type: 'select', label: 'NARA Approved?', required: true, options: ['Yes', 'No', 'Pending'] },
+      disposal_method: { type: 'text', label: 'Disposal Method', required: true },
+      sanitization_method: { type: 'text', label: 'Media Sanitization Method', required: true },
+      encryption_rest: { type: 'select', label: 'Encryption at Rest?', required: true, options: ['Yes', 'No'] },
+      encryption_transit: { type: 'select', label: 'Encryption in Transit?', required: true, options: ['Yes', 'No'] },
+      access_controls: { type: 'text', label: 'Access Controls', required: true },
+      audit_logging: { type: 'select', label: 'Audit Logging?', required: true, options: ['Yes', 'No'] },
+      breach_procedures: { type: 'select', label: 'Breach Procedures?', required: true, options: ['Yes', 'No'] },
+      breach_notification: { type: 'text', label: 'Breach Notification Process', required: true },
+      sorn_required: { type: 'select', label: 'SORN Required?', required: true, options: ['Yes', 'No'] },
+      sorn_number: { type: 'text', label: 'SORN Number', required: false },
+      sorn_date: { type: 'date', label: 'SORN Publication Date', required: false },
+      sorn_citation: { type: 'text', label: 'Federal Register Citation', required: false },
+      sorn_exemption: { type: 'text', label: 'SORN Exemption Reason', required: false },
+      pia_required: { type: 'select', label: 'PIA Required?', required: true, options: ['Yes', 'No'] },
+      trigger_new: { type: 'select', label: 'New PII Collection?', required: true, options: ['Yes', 'No'] },
+      trigger_new_notes: { type: 'text', label: 'New Collection Notes', required: false },
+      trigger_use: { type: 'select', label: 'New Use of PII?', required: true, options: ['Yes', 'No'] },
+      trigger_use_notes: { type: 'text', label: 'New Use Notes', required: false },
+      trigger_tech: { type: 'select', label: 'New Technology?', required: true, options: ['Yes', 'No'] },
+      trigger_tech_notes: { type: 'text', label: 'New Technology Notes', required: false },
+      trigger_sharing: { type: 'select', label: 'New External Sharing?', required: true, options: ['Yes', 'No'] },
+      trigger_sharing_notes: { type: 'text', label: 'New Sharing Notes', required: false },
+      trigger_process: { type: 'select', label: 'Business Process Change?', required: true, options: ['Yes', 'No'] },
+      trigger_process_notes: { type: 'text', label: 'Process Change Notes', required: false },
+      pia_status: { type: 'select', label: 'PIA Status', required: true, options: ['Required', 'Not Required', 'In Progress', 'Completed'] },
+      next_steps: { type: 'text', label: 'Next Steps', required: true },
+      privacy_officer: { type: 'text', label: 'Privacy Officer Name', required: true },
+      privacy_contact: { type: 'text', label: 'Privacy Officer Contact', required: true },
+      privacy_dept: { type: 'text', label: 'Privacy Department', required: true },
+      completed_by: { type: 'text', label: 'Completed By', required: true },
+      completion_date: { type: 'date', label: 'Completion Date', required: true },
+      reviewed_by: { type: 'text', label: 'Reviewed By', required: true },
+      review_date: { type: 'date', label: 'Review Date', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-4',
+    title: 'FedRAMP Privacy Impact Assessment (PIA)',
+    description: 'Attachment 4 - Privacy Impact Assessment per E-Government Act',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 4,
+    documentType: 'assessment',
+    required: true,
+    templateContent: `# Privacy Impact Assessment (PIA)
+## FedRAMP SSP Attachment 4
+
+### System Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**PIA Date:** {{pia_date}}
+**PIA ID:** {{pia_id}}
+
+## 1. System Overview
+**Purpose:** {{system_purpose}}
+**Authority:** {{legal_authority}}
+**Scope:** {{system_scope}}
+
+## 2. Information Collected
+**PII Types:** {{pii_types}}
+**Data Sources:** {{data_sources}}
+**Collection Method:** {{collection_method}}
+**Volume:** {{data_volume}}
+
+## 3. Uses of Information
+**Primary Use:** {{primary_use}}
+**Secondary Uses:** {{secondary_uses}}
+**Internal Sharing:** {{internal_sharing}}
+**External Sharing:** {{external_sharing}}
+
+## 4. Notice and Consent
+**Notice Provided:** {{notice_provided}}
+**Consent Obtained:** {{consent_obtained}}
+**Opt-Out Available:** {{opt_out}}
+
+## 5. Access and Security
+**Access Controls:** {{access_controls}}
+**Encryption:** {{encryption}}
+**Audit Logging:** {{audit_logging}}
+**Retention:** {{retention_period}}
+
+## 6. Privacy Risks
+**Risk 1:** {{risk_1}}
+**Mitigation 1:** {{mitigation_1}}
+
+**Risk 2:** {{risk_2}}
+**Mitigation 2:** {{mitigation_2}}
+
+## 7. SORN
+**SORN Required:** {{sorn_required}}
+**SORN Number:** {{sorn_number}}
+
+**Completed By:** {{completed_by}}
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      pia_date: { type: 'date', label: 'PIA Date', required: true },
+      pia_id: { type: 'text', label: 'PIA ID', required: true },
+      system_purpose: { type: 'text', label: 'System Purpose', required: true },
+      legal_authority: { type: 'text', label: 'Legal Authority', required: true },
+      system_scope: { type: 'text', label: 'System Scope', required: true },
+      pii_types: { type: 'text', label: 'PII Types Collected', required: true },
+      data_sources: { type: 'text', label: 'Data Sources', required: true },
+      collection_method: { type: 'text', label: 'Collection Method', required: true },
+      data_volume: { type: 'text', label: 'Data Volume', required: true },
+      primary_use: { type: 'text', label: 'Primary Use', required: true },
+      secondary_uses: { type: 'text', label: 'Secondary Uses', required: false },
+      internal_sharing: { type: 'text', label: 'Internal Sharing', required: true },
+      external_sharing: { type: 'text', label: 'External Sharing', required: true },
+      notice_provided: { type: 'select', label: 'Notice Provided?', required: true, options: ['Yes', 'No'] },
+      consent_obtained: { type: 'select', label: 'Consent Obtained?', required: true, options: ['Yes', 'No', 'N/A'] },
+      opt_out: { type: 'select', label: 'Opt-Out Available?', required: true, options: ['Yes', 'No'] },
+      access_controls: { type: 'text', label: 'Access Controls', required: true },
+      encryption: { type: 'text', label: 'Encryption Methods', required: true },
+      audit_logging: { type: 'text', label: 'Audit Logging', required: true },
+      retention_period: { type: 'text', label: 'Retention Period', required: true },
+      risk_1: { type: 'text', label: 'Privacy Risk 1', required: true },
+      mitigation_1: { type: 'text', label: 'Risk 1 Mitigation', required: true },
+      risk_2: { type: 'text', label: 'Privacy Risk 2', required: false },
+      mitigation_2: { type: 'text', label: 'Risk 2 Mitigation', required: false },
+      sorn_required: { type: 'select', label: 'SORN Required?', required: true, options: ['Yes', 'No'] },
+      sorn_number: { type: 'text', label: 'SORN Number', required: false },
+      completed_by: { type: 'text', label: 'Completed By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-7',
+    title: 'FedRAMP Laws and Regulations',
+    description: 'Attachment 7 - Applicable laws, regulations, and standards',
+    framework: 'FedRAMP-Moderate',
+    category: 'compliance',
+    priority: 7,
+    documentType: 'reference',
+    required: true,
+    templateContent: `# Laws, Regulations, and Standards
+## FedRAMP SSP Attachment 7
+
+### System Information
+**System Name:** {{system_name}}
+**Date:** {{document_date}}
+
+## 1. Federal Laws
+| Law | Applicability | Controls |
+|-----|---------------|----------|
+| Federal Information Security Management Act (FISMA) | {{fisma_applicable}} | {{fisma_controls}} |
+| Privacy Act of 1974 | {{privacy_act}} | {{privacy_controls}} |
+| E-Government Act of 2002 | {{egov_act}} | {{egov_controls}} |
+| {{custom_law_1}} | {{custom_law_1_applicable}} | {{custom_law_1_controls}} |
+
+## 2. Federal Regulations
+| Regulation | Citation | Requirements |
+|------------|----------|--------------|
+| OMB Circular A-130 | {{omb_a130}} | {{omb_a130_req}} |
+| {{custom_reg_1}} | {{custom_reg_1_cite}} | {{custom_reg_1_req}} |
+
+## 3. Standards
+| Standard | Version | Application |
+|----------|---------|-------------|
+| NIST 800-53 | Rev 5 | Security controls baseline |
+| NIST 800-63 | Rev 3 | Digital identity |
+| FIPS 199 | Current | Security categorization |
+| FIPS 200 | Current | Minimum security requirements |
+| {{custom_std_1}} | {{custom_std_1_ver}} | {{custom_std_1_app}} |
+
+## 4. Industry Standards (if applicable)
+**PCI DSS:** {{pci_applicable}}
+**HIPAA:** {{hipaa_applicable}}
+**SOX:** {{sox_applicable}}
+
+## 5. Compliance Monitoring
+**Review Frequency:** {{review_freq}}
+**Responsible Party:** {{compliance_owner}}
+
+**Document Owner:** {{document_owner}}
+**Last Updated:** {{last_updated}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      fisma_applicable: { type: 'select', label: 'FISMA Applicable?', required: true, options: ['Yes', 'No'] },
+      fisma_controls: { type: 'text', label: 'FISMA Controls', required: false },
+      privacy_act: { type: 'select', label: 'Privacy Act Applicable?', required: true, options: ['Yes', 'No'] },
+      privacy_controls: { type: 'text', label: 'Privacy Controls', required: false },
+      egov_act: { type: 'select', label: 'E-Gov Act Applicable?', required: true, options: ['Yes', 'No'] },
+      egov_controls: { type: 'text', label: 'E-Gov Controls', required: false },
+      custom_law_1: { type: 'text', label: 'Additional Law 1', required: false },
+      custom_law_1_applicable: { type: 'select', label: 'Custom Law 1 Applicable?', required: false, options: ['Yes', 'No', 'N/A'] },
+      custom_law_1_controls: { type: 'text', label: 'Custom Law 1 Controls', required: false },
+      omb_a130: { type: 'select', label: 'OMB A-130 Applicable?', required: true, options: ['Yes', 'No'] },
+      omb_a130_req: { type: 'text', label: 'OMB A-130 Requirements', required: false },
+      custom_reg_1: { type: 'text', label: 'Additional Regulation 1', required: false },
+      custom_reg_1_cite: { type: 'text', label: 'Regulation 1 Citation', required: false },
+      custom_reg_1_req: { type: 'text', label: 'Regulation 1 Requirements', required: false },
+      custom_std_1: { type: 'text', label: 'Additional Standard 1', required: false },
+      custom_std_1_ver: { type: 'text', label: 'Standard 1 Version', required: false },
+      custom_std_1_app: { type: 'text', label: 'Standard 1 Application', required: false },
+      pci_applicable: { type: 'select', label: 'PCI DSS Applicable?', required: false, options: ['Yes', 'No', 'N/A'] },
+      hipaa_applicable: { type: 'select', label: 'HIPAA Applicable?', required: false, options: ['Yes', 'No', 'N/A'] },
+      sox_applicable: { type: 'select', label: 'SOX Applicable?', required: false, options: ['Yes', 'No', 'N/A'] },
+      review_freq: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] },
+      compliance_owner: { type: 'text', label: 'Compliance Owner', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      last_updated: { type: 'date', label: 'Last Updated', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-9',
+    title: 'FedRAMP Control Implementation Summary Workbook',
+    description: 'Attachment 9 - Simplified CIS workbook reference (see FedRAMP CIS core document for full version)',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 9,
+    documentType: 'worksheet',
+    required: true,
+    templateContent: `# Control Implementation Summary (CIS) Workbook
+## FedRAMP SSP Attachment 9
+
+**Note:** This attachment references the full Control Implementation Summary available in the FedRAMP Core Documents (fedramp-cis).
+
+### System Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**Assessment Date:** {{assessment_date}}
+
+## Quick Reference
+**Total Controls:** {{total_controls}}
+**Implemented:** {{implemented_count}}
+**Partially Implemented:** {{partial_count}}
+**Not Implemented:** {{not_implemented_count}}
+
+## Control Family Summary
+| Family | Total | Implemented | Partial | Not Implemented |
+|--------|-------|-------------|---------|-----------------|
+| AC | {{ac_total}} | {{ac_impl}} | {{ac_partial}} | {{ac_not}} |
+| AU | {{au_total}} | {{au_impl}} | {{au_partial}} | {{au_not}} |
+| SC | {{sc_total}} | {{sc_impl}} | {{sc_partial}} | {{sc_not}} |
+
+**For complete CIS details, see:** FedRAMP Control Implementation Summary (fedramp-cis)
+
+**Prepared By:** {{prepared_by}}
+**Date:** {{prep_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      assessment_date: { type: 'date', label: 'Assessment Date', required: true },
+      total_controls: { type: 'number', label: 'Total Controls', required: true },
+      implemented_count: { type: 'number', label: 'Implemented Count', required: true },
+      partial_count: { type: 'number', label: 'Partially Implemented Count', required: true },
+      not_implemented_count: { type: 'number', label: 'Not Implemented Count', required: true },
+      ac_total: { type: 'number', label: 'AC Total', required: false },
+      ac_impl: { type: 'number', label: 'AC Implemented', required: false },
+      ac_partial: { type: 'number', label: 'AC Partial', required: false },
+      ac_not: { type: 'number', label: 'AC Not Implemented', required: false },
+      au_total: { type: 'number', label: 'AU Total', required: false },
+      au_impl: { type: 'number', label: 'AU Implemented', required: false },
+      au_partial: { type: 'number', label: 'AU Partial', required: false },
+      au_not: { type: 'number', label: 'AU Not Implemented', required: false },
+      sc_total: { type: 'number', label: 'SC Total', required: false },
+      sc_impl: { type: 'number', label: 'SC Implemented', required: false },
+      sc_partial: { type: 'number', label: 'SC Partial', required: false },
+      sc_not: { type: 'number', label: 'SC Not Implemented', required: false },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      prep_date: { type: 'date', label: 'Preparation Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-10',
+    title: 'FedRAMP FIPS 199 Security Categorization',
+    description: 'Attachment 10 - FIPS 199 system security categorization',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 10,
+    documentType: 'assessment',
+    required: true,
+    templateContent: `# FIPS 199 Security Categorization
+## FedRAMP SSP Attachment 10
+
+### System Information
+**System Name:** {{system_name}}
+**System Abbreviation:** {{system_abbr}}
+**System Owner:** {{system_owner}}
+**Categorization Date:** {{cat_date}}
+
+## 1. Security Objectives
+
+### 1.1 Confidentiality
+**Impact Level:** {{confidentiality_impact}}
+**Justification:** {{confidentiality_justification}}
+
+### 1.2 Integrity
+**Impact Level:** {{integrity_impact}}
+**Justification:** {{integrity_justification}}
+
+### 1.3 Availability
+**Impact Level:** {{availability_impact}}
+**Justification:** {{availability_justification}}
+
+## 2. Information Types
+
+### 2.1 Primary Information Type
+**Type:** {{info_type_1}}
+**NIST SP 800-60 Category:** {{nist_category_1}}
+**Confidentiality:** {{type_1_conf}}
+**Integrity:** {{type_1_int}}
+**Availability:** {{type_1_avail}}
+
+### 2.2 Additional Information Types
+**Type:** {{info_type_2}}
+**Category:** {{nist_category_2}}
+
+## 3. Overall System Categorization
+
+**Formula:** SC system = {(confidentiality, impact), (integrity, impact), (availability, impact)}
+
+**System Categorization:**
+SC {{system_name}} = {(confidentiality, {{confidentiality_impact}}), (integrity, {{integrity_impact}}), (availability, {{availability_impact}})}
+
+**Overall Impact Level:** {{overall_impact}}
+
+## 4. Rationale
+{{categorization_rationale}}
+
+## 5. FedRAMP Baseline
+**Applicable Baseline:** {{fedramp_baseline}}
+**Control Tailoring:** {{tailoring_applied}}
+
+## 6. Approval
+
+**Categorization Performed By:** {{performed_by}}
+**Date:** {{performed_date}}
+
+**Reviewed By:** {{reviewed_by}}
+**Date:** {{reviewed_date}}
+
+**Approved By (Authorizing Official):** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      system_abbr: { type: 'text', label: 'System Abbreviation', required: true },
+      system_owner: { type: 'text', label: 'System Owner', required: true },
+      cat_date: { type: 'date', label: 'Categorization Date', required: true },
+      confidentiality_impact: { type: 'select', label: 'Confidentiality Impact', required: true, options: ['Low', 'Moderate', 'High'] },
+      confidentiality_justification: { type: 'text', label: 'Confidentiality Justification', required: true },
+      integrity_impact: { type: 'select', label: 'Integrity Impact', required: true, options: ['Low', 'Moderate', 'High'] },
+      integrity_justification: { type: 'text', label: 'Integrity Justification', required: true },
+      availability_impact: { type: 'select', label: 'Availability Impact', required: true, options: ['Low', 'Moderate', 'High'] },
+      availability_justification: { type: 'text', label: 'Availability Justification', required: true },
+      info_type_1: { type: 'text', label: 'Primary Information Type', required: true },
+      nist_category_1: { type: 'text', label: 'NIST SP 800-60 Category 1', required: true },
+      type_1_conf: { type: 'select', label: 'Type 1 Confidentiality', required: true, options: ['Low', 'Moderate', 'High'] },
+      type_1_int: { type: 'select', label: 'Type 1 Integrity', required: true, options: ['Low', 'Moderate', 'High'] },
+      type_1_avail: { type: 'select', label: 'Type 1 Availability', required: true, options: ['Low', 'Moderate', 'High'] },
+      info_type_2: { type: 'text', label: 'Additional Information Type', required: false },
+      nist_category_2: { type: 'text', label: 'NIST Category 2', required: false },
+      overall_impact: { type: 'select', label: 'Overall Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      categorization_rationale: { type: 'text', label: 'Categorization Rationale', required: true },
+      fedramp_baseline: { type: 'select', label: 'FedRAMP Baseline', required: true, options: ['Low', 'Moderate', 'High'] },
+      tailoring_applied: { type: 'select', label: 'Control Tailoring Applied?', required: true, options: ['Yes', 'No'] },
+      performed_by: { type: 'text', label: 'Performed By', required: true },
+      performed_date: { type: 'date', label: 'Performed Date', required: true },
+      reviewed_by: { type: 'text', label: 'Reviewed By', required: true },
+      reviewed_date: { type: 'date', label: 'Reviewed Date', required: true },
+      approved_by: { type: 'text', label: 'Approved By (AO)', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-11',
+    title: 'FedRAMP Separation of Duties Matrix',
+    description: 'Attachment 11 - Separation of duties and responsibilities matrix',
+    framework: 'FedRAMP-Moderate',
+    category: 'policy',
+    priority: 11,
+    documentType: 'matrix',
+    required: true,
+    templateContent: `# Separation of Duties Matrix
+## FedRAMP SSP Attachment 11
+
+### System Information
+**System Name:** {{system_name}}
+**Date:** {{document_date}}
+**Version:** {{version}}
+
+## 1. Purpose
+This matrix defines separation of duties to prevent conflicts of interest and reduce fraud risk per NIST 800-53 AC-5.
+
+## 2. Key Roles and Responsibilities
+
+| Function | System Admin | Security Admin | Developer | Manager | Auditor |
+|----------|--------------|----------------|-----------|---------|---------|
+| **User Account Management** |
+| Create accounts | {{admin_create}} | - | - | Approve | Review |
+| Modify privileges | - | {{sec_modify}} | - | Approve | Review |
+| Delete accounts | {{admin_delete}} | {{sec_delete}} | - | - | Review |
+| **Security Controls** |
+| Configure firewalls | - | {{sec_firewall}} | - | - | Review |
+| IDS/IPS management | - | {{sec_ids}} | - | - | Review |
+| Security monitoring | - | {{sec_monitor}} | - | - | - |
+| **System Changes** |
+| Code development | - | - | {{dev_code}} | - | - |
+| Code review | - | {{sec_review}} | - | {{mgr_review}} | - |
+| Deploy to production | {{admin_deploy}} | - | - | Approve | - |
+| **Access Controls** |
+| Grant admin access | - | - | - | {{mgr_grant}} | Review |
+| Access reviews | - | {{sec_access_review}} | - | {{mgr_access_review}} | Audit |
+| **Audit Functions** |
+| Configure logging | - | {{sec_log_config}} | - | - | - |
+| Review logs | - | {{sec_log_review}} | - | - | {{audit_log_review}} |
+| Audit controls | - | - | - | - | {{audit_controls}} |
+
+## 3. Segregation Rules
+
+### 3.1 Prohibited Combinations
+1. **Cannot combine:** Development + Production Deployment
+2. **Cannot combine:** Security Administration + Audit Functions
+3. **Cannot combine:** Access Provisioning + Access Approval
+4. **Cannot combine:** {{custom_prohibition_1}}
+
+### 3.2 Required Approvals
+| Action | Requires Approval From |
+|--------|----------------------|
+| Privileged access grant | {{priv_access_approver}} |
+| Security configuration changes | {{sec_config_approver}} |
+| Production deployments | {{prod_deploy_approver}} |
+| User termination | {{term_approver}} |
+
+## 4. Compensating Controls
+**Small Team Adjustments:** {{small_team_controls}}
+**Monitoring:** {{monitoring_controls}}
+**Management Review:** {{mgmt_review_freq}}
+
+## 5. Exceptions
+| Exception | Justification | Compensating Control | Approved By |
+|-----------|---------------|---------------------|-------------|
+| {{exception_1}} | {{exception_1_just}} | {{exception_1_control}} | {{exception_1_approver}} |
+
+**Document Owner:** {{document_owner}}
+**Last Review:** {{last_review}}
+**Next Review:** {{next_review}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      document_date: { type: 'date', label: 'Document Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      admin_create: { type: 'select', label: 'Admin Can Create Accounts?', required: true, options: ['Yes', 'No', 'With Approval'] },
+      sec_modify: { type: 'select', label: 'Security Can Modify Privileges?', required: true, options: ['Yes', 'No'] },
+      admin_delete: { type: 'select', label: 'Admin Can Delete Accounts?', required: true, options: ['Yes', 'No'] },
+      sec_delete: { type: 'select', label: 'Security Can Delete Accounts?', required: true, options: ['Yes', 'No'] },
+      sec_firewall: { type: 'select', label: 'Security Configures Firewalls?', required: true, options: ['Yes', 'No'] },
+      sec_ids: { type: 'select', label: 'Security Manages IDS/IPS?', required: true, options: ['Yes', 'No'] },
+      sec_monitor: { type: 'select', label: 'Security Monitors?', required: true, options: ['Yes', 'No'] },
+      dev_code: { type: 'select', label: 'Developer Writes Code?', required: true, options: ['Yes', 'No'] },
+      sec_review: { type: 'select', label: 'Security Reviews Code?', required: true, options: ['Yes', 'No'] },
+      mgr_review: { type: 'select', label: 'Manager Reviews Code?', required: true, options: ['Yes', 'No'] },
+      admin_deploy: { type: 'select', label: 'Admin Deploys?', required: true, options: ['Yes', 'No', 'With Approval'] },
+      mgr_grant: { type: 'select', label: 'Manager Grants Admin Access?', required: true, options: ['Yes', 'No'] },
+      sec_access_review: { type: 'select', label: 'Security Reviews Access?', required: true, options: ['Yes', 'No'] },
+      mgr_access_review: { type: 'select', label: 'Manager Reviews Access?', required: true, options: ['Yes', 'No'] },
+      sec_log_config: { type: 'select', label: 'Security Configures Logging?', required: true, options: ['Yes', 'No'] },
+      sec_log_review: { type: 'select', label: 'Security Reviews Logs?', required: true, options: ['Yes', 'No'] },
+      audit_log_review: { type: 'select', label: 'Auditor Reviews Logs?', required: true, options: ['Yes', 'No'] },
+      audit_controls: { type: 'select', label: 'Auditor Audits Controls?', required: true, options: ['Yes', 'No'] },
+      custom_prohibition_1: { type: 'text', label: 'Additional Prohibition', required: false },
+      priv_access_approver: { type: 'text', label: 'Privileged Access Approver', required: true },
+      sec_config_approver: { type: 'text', label: 'Security Config Approver', required: true },
+      prod_deploy_approver: { type: 'text', label: 'Production Deployment Approver', required: true },
+      term_approver: { type: 'text', label: 'Termination Approver', required: true },
+      small_team_controls: { type: 'text', label: 'Small Team Controls', required: false },
+      monitoring_controls: { type: 'text', label: 'Monitoring Controls', required: true },
+      mgmt_review_freq: { type: 'select', label: 'Management Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Semi-annually'] },
+      exception_1: { type: 'text', label: 'Exception 1', required: false },
+      exception_1_just: { type: 'text', label: 'Exception 1 Justification', required: false },
+      exception_1_control: { type: 'text', label: 'Exception 1 Compensating Control', required: false },
+      exception_1_approver: { type: 'text', label: 'Exception 1 Approved By', required: false },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      last_review: { type: 'date', label: 'Last Review Date', required: true },
+      next_review: { type: 'date', label: 'Next Review Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-12',
+    title: 'FedRAMP Security Assessment Plan (SAP)',
+    description: 'Attachment 12 - Security Assessment Plan template',
+    framework: 'FedRAMP-Moderate',
+    category: 'assessment',
+    priority: 12,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Security Assessment Plan (SAP)
+## FedRAMP SSP Attachment 12
+
+### System Information
+**System Name:** {{system_name}}
+**Impact Level:** {{impact_level}}
+**SAP Version:** {{sap_version}}
+**SAP Date:** {{sap_date}}
+
+## 1. Assessment Overview
+**Purpose:** {{assessment_purpose}}
+**Scope:** {{assessment_scope}}
+**Timeline:** {{assessment_timeline}}
+
+## 2. Assessment Team
+**Lead Assessor:** {{lead_assessor}}
+**3PAO:** {{three_pao}}
+**Team Members:** {{team_members}}
+
+## 3. Assessment Approach
+**Methodology:** {{methodology}}
+**Testing Types:**
+- Interviews: {{interviews}}
+- Document Review: {{doc_review}}
+- Technical Testing: {{tech_testing}}
+- Penetration Testing: {{pentest}}
+
+## 4. Control Selection
+**Baseline:** {{control_baseline}}
+**Total Controls:** {{total_controls}}
+**Assessment Focus Areas:** {{focus_areas}}
+
+## 5. Assessment Schedule
+**Kickoff:** {{kickoff_date}}
+**Interviews:** {{interview_dates}}
+**Testing:** {{testing_dates}}
+**Report Draft:** {{draft_date}}
+**Final Report:** {{final_date}}
+
+## 6. Deliverables
+- Security Assessment Report (SAR)
+- POA&M
+- Test Results
+- {{custom_deliverable}}
+
+**Prepared By:** {{prepared_by}}
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      sap_version: { type: 'text', label: 'SAP Version', required: true },
+      sap_date: { type: 'date', label: 'SAP Date', required: true },
+      assessment_purpose: { type: 'text', label: 'Assessment Purpose', required: true },
+      assessment_scope: { type: 'text', label: 'Assessment Scope', required: true },
+      assessment_timeline: { type: 'text', label: 'Assessment Timeline', required: true },
+      lead_assessor: { type: 'text', label: 'Lead Assessor', required: true },
+      three_pao: { type: 'text', label: '3PAO Organization', required: true },
+      team_members: { type: 'text', label: 'Team Members', required: true },
+      methodology: { type: 'text', label: 'Assessment Methodology', required: true },
+      interviews: { type: 'select', label: 'Includes Interviews?', required: true, options: ['Yes', 'No'] },
+      doc_review: { type: 'select', label: 'Includes Document Review?', required: true, options: ['Yes', 'No'] },
+      tech_testing: { type: 'select', label: 'Includes Technical Testing?', required: true, options: ['Yes', 'No'] },
+      pentest: { type: 'select', label: 'Includes Penetration Testing?', required: true, options: ['Yes', 'No'] },
+      control_baseline: { type: 'select', label: 'Control Baseline', required: true, options: ['FedRAMP Low', 'FedRAMP Moderate', 'FedRAMP High'] },
+      total_controls: { type: 'number', label: 'Total Controls to Assess', required: true },
+      focus_areas: { type: 'text', label: 'Assessment Focus Areas', required: true },
+      kickoff_date: { type: 'date', label: 'Kickoff Date', required: true },
+      interview_dates: { type: 'text', label: 'Interview Dates', required: true },
+      testing_dates: { type: 'text', label: 'Testing Dates', required: true },
+      draft_date: { type: 'date', label: 'Draft Report Date', required: true },
+      final_date: { type: 'date', label: 'Final Report Date', required: true },
+      custom_deliverable: { type: 'text', label: 'Additional Deliverable', required: false },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-att-13',
+    title: 'FedRAMP Integrated Inventory Workbook Reference',
+    description: 'Attachment 13 - Reference to integrated inventory (see fedramp-inventory for full version)',
+    framework: 'FedRAMP-Moderate',
+    category: 'inventory',
+    priority: 13,
+    documentType: 'worksheet',
+    required: true,
+    templateContent: `# Integrated Inventory Workbook
+## FedRAMP SSP Attachment 13
+
+**Note:** This attachment references the full Integrated Inventory Workbook available in the FedRAMP Core Documents (fedramp-inventory).
+
+### System Information
+**System Name:** {{system_name}}
+**Inventory Date:** {{inventory_date}}
+**Version:** {{version}}
+
+## Quick Summary
+**Hardware Assets:** {{hardware_count}}
+**Software Assets:** {{software_count}}
+**Network Devices:** {{network_count}}
+**Virtual Assets:** {{virtual_count}}
+**Cloud Services:** {{cloud_count}}
+
+## Key Components
+1. Hardware inventory with serial numbers and locations
+2. Software inventory with versions and licenses
+3. Network diagram and device inventory
+4. Virtual machine inventory
+5. Cloud service inventory
+6. Data flow diagrams
+
+**For complete inventory details, see:** FedRAMP Integrated Inventory Workbook (fedramp-inventory)
+
+## Inventory Management
+**Update Frequency:** {{update_frequency}}
+**Responsible Party:** {{inventory_owner}}
+**Last Updated:** {{last_updated}}
+
+**Prepared By:** {{prepared_by}}
+**Approved By:** {{approved_by}}
+**Approval Date:** {{approval_date}}`,
+    templateVariables: {
+      system_name: { type: 'text', label: 'System Name', required: true },
+      inventory_date: { type: 'date', label: 'Inventory Date', required: true },
+      version: { type: 'text', label: 'Version', required: true },
+      hardware_count: { type: 'number', label: 'Hardware Asset Count', required: true },
+      software_count: { type: 'number', label: 'Software Asset Count', required: true },
+      network_count: { type: 'number', label: 'Network Device Count', required: true },
+      virtual_count: { type: 'number', label: 'Virtual Asset Count', required: true },
+      cloud_count: { type: 'number', label: 'Cloud Service Count', required: true },
+      update_frequency: { type: 'select', label: 'Update Frequency', required: true, options: ['Real-time', 'Daily', 'Weekly', 'Monthly'] },
+      inventory_owner: { type: 'text', label: 'Inventory Owner', required: true },
+      last_updated: { type: 'date', label: 'Last Updated', required: true },
+      prepared_by: { type: 'text', label: 'Prepared By', required: true },
       approved_by: { type: 'text', label: 'Approved By', required: true },
       approval_date: { type: 'date', label: 'Approval Date', required: true }
     }
@@ -5202,16 +10345,1140 @@ Memory protection: {{memory_protection}}
       approved_by: { type: 'text', label: 'Approved By', required: true },
       effective_date: { type: 'date', label: 'Effective Date', required: true }
     }
+  },
+  {
+    id: 'nist-at',
+    title: 'Awareness and Training (AT) Family',
+    description: 'NIST 800-53 Rev 5 Awareness and Training family documentation',
+    framework: 'NIST-800-53',
+    category: 'AT',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Awareness and Training (AT) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## AT-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates security awareness and training policy.
+
+**Policy Review:** {{policy_review_freq}}
+**Procedure Review:** {{procedure_review_freq}}
+
+## AT-2 Literacy Training and Awareness
+**Training Frequency:** {{training_frequency}}
+**Training Topics:**
+- Security roles and responsibilities
+- Proper email and internet usage
+- Password management
+- Social engineering awareness
+- Incident reporting
+- {{additional_topics}}
+
+**Training Methods:** {{training_methods}}
+**Completion Tracking:** {{completion_tracking}}
+
+## AT-3 Role-Based Training
+**Training by Role:**
+- System Administrators: {{admin_training}}
+- Developers: {{developer_training}}
+- Privileged Users: {{privileged_training}}
+- General Users: {{general_training}}
+
+**Training Before Access:** {{before_access_training}}
+**Annual Refresher:** {{annual_refresher}}
+
+## AT-4 Training Records
+**Record Retention:** {{record_retention}}
+**Records Include:** Individual training, training dates, training types completed
+
+## AT-5 Contacts with Security Groups
+**External Contacts:**
+{{security_groups}}
+
+**Information Sharing:** {{info_sharing}}
+
+## AT-6 Training Feedback
+**Feedback Mechanisms:** {{feedback_methods}}
+**Training Improvements:** {{improvements}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      policy_review_freq: { type: 'select', label: 'Policy Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      procedure_review_freq: { type: 'select', label: 'Procedure Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      training_frequency: { type: 'select', label: 'Training Frequency', required: true, options: ['Annually', 'Semi-annually', 'Upon Hire'] },
+      training_methods: { type: 'text', label: 'Training Methods', required: true },
+      completion_tracking: { type: 'text', label: 'Completion Tracking System', required: true },
+      record_retention: { type: 'text', label: 'Record Retention Period', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-ca',
+    title: 'Assessment, Authorization, and Monitoring (CA) Family',
+    description: 'NIST 800-53 Rev 5 Assessment, Authorization, and Monitoring family documentation',
+    framework: 'NIST-800-53',
+    category: 'CA',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Assessment, Authorization, and Monitoring (CA) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## CA-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates assessment, authorization, and monitoring policy.
+
+## CA-2 Control Assessments
+**Assessment Frequency:** {{assessment_frequency}}
+**Assessment Scope:** {{assessment_scope}}
+**Independent Assessor:** {{independent_assessor}}
+**Assessment Methods:** Examine, Interview, Test
+
+## CA-3 Information Exchange
+**Interconnection Agreements:** {{interconnection_agreements}}
+**Data Exchange Requirements:** {{exchange_requirements}}
+
+## CA-5 Plan of Action and Milestones (POA&M)
+**POA&M Updates:** {{poam_update_freq}}
+**Tracking System:** {{tracking_system}}
+
+## CA-6 Authorization
+**Authorizing Official:** {{authorizing_official}}
+**Authorization Type:** {{authorization_type}}
+**Reauthorization:** {{reauth_frequency}}
+
+## CA-7 Continuous Monitoring
+**Monitoring Strategy:** {{monitoring_strategy}}
+**Monitoring Frequency:** {{monitoring_frequency}}
+
+**Metrics Monitored:**
+- Security control effectiveness
+- Changes to system
+- Compliance status
+- {{additional_metrics}}
+
+**Reporting:** {{reporting_frequency}}
+
+## CA-8 Penetration Testing
+**Testing Frequency:** {{pentest_frequency}}
+**Testing Scope:** {{pentest_scope}}
+**Tester Qualifications:** {{tester_quals}}
+
+## CA-9 Internal System Connections
+**Authorized Connections:** {{authorized_connections}}
+**Connection Reviews:** {{connection_review_freq}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      assessment_frequency: { type: 'select', label: 'Assessment Frequency', required: true, options: ['Annually', 'Every 3 years', 'Continuously'] },
+      independent_assessor: { type: 'select', label: 'Independent Assessor', required: true, options: ['Yes', 'No', 'Planned'] },
+      authorizing_official: { type: 'text', label: 'Authorizing Official', required: true },
+      authorization_type: { type: 'select', label: 'Authorization Type', required: true, options: ['ATO', 'IATT', 'IATO'] },
+      reauth_frequency: { type: 'select', label: 'Reauthorization Frequency', required: true, options: ['Every 3 years', 'Annually', 'As needed'] },
+      monitoring_strategy: { type: 'text', label: 'Continuous Monitoring Strategy', required: true },
+      monitoring_frequency: { type: 'select', label: 'Monitoring Frequency', required: true, options: ['Continuous', 'Daily', 'Weekly', 'Monthly'] },
+      pentest_frequency: { type: 'select', label: 'Penetration Testing Frequency', required: true, options: ['Annually', 'Bi-annually', 'As needed'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-cp',
+    title: 'Contingency Planning (CP) Family',
+    description: 'NIST 800-53 Rev 5 Contingency Planning family documentation',
+    framework: 'NIST-800-53',
+    category: 'CP',
+    priority: 2,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Contingency Planning (CP) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## CP-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates contingency planning policy.
+
+## CP-2 Contingency Plan
+**Plan Review:** {{plan_review_freq}}
+**Plan Testing:** {{plan_test_freq}}
+**Plan Distribution:** {{plan_distribution}}
+
+**Key Personnel:**
+- Contingency Plan Coordinator: {{coordinator}}
+- Emergency Response Team: {{response_team}}
+
+## CP-3 Contingency Training
+**Training Frequency:** {{training_frequency}}
+**Training Audience:** {{training_audience}}
+
+## CP-4 Contingency Plan Testing
+**Test Frequency:** {{test_frequency}}
+**Test Types:**
+- Tabletop exercises
+- Functional tests
+- Full-scale exercises
+- {{additional_tests}}
+
+**Test Documentation:** {{test_documentation}}
+
+## CP-6 Alternate Storage Site
+**Alternate Site:** {{alternate_site}}
+**Geographic Separation:** {{geo_separation}}
+**Readiness:** {{site_readiness}}
+
+## CP-7 Alternate Processing Site
+**Processing Site:** {{processing_site}}
+**Transfer Time:** {{transfer_time}}
+**Data Synchronization:** {{data_sync}}
+
+## CP-8 Telecommunications Services
+**Primary Provider:** {{primary_telecom}}
+**Alternate Provider:** {{alternate_telecom}}
+
+## CP-9 System Backup
+**Backup Frequency:**
+- User data: {{user_backup_freq}}
+- System data: {{system_backup_freq}}
+- Configuration: {{config_backup_freq}}
+
+**Backup Location:** {{backup_location}}
+**Backup Testing:** {{backup_test_freq}}
+
+## CP-10 System Recovery and Reconstitution
+**Recovery Time Objective (RTO):** {{rto}}
+**Recovery Point Objective (RPO):** {{rpo}}
+
+**Recovery Procedures:**
+{{recovery_procedures}}
+
+**Restoration Priority:** {{restoration_priority}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      plan_review_freq: { type: 'select', label: 'Plan Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      plan_test_freq: { type: 'select', label: 'Plan Testing Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      coordinator: { type: 'text', label: 'Contingency Plan Coordinator', required: true },
+      test_frequency: { type: 'select', label: 'Test Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      alternate_site: { type: 'text', label: 'Alternate Storage Site', required: true },
+      processing_site: { type: 'text', label: 'Alternate Processing Site', required: true },
+      user_backup_freq: { type: 'select', label: 'User Data Backup Frequency', required: true, options: ['Real-time', 'Daily', 'Weekly'] },
+      system_backup_freq: { type: 'select', label: 'System Data Backup Frequency', required: true, options: ['Real-time', 'Daily', 'Weekly'] },
+      rto: { type: 'text', label: 'Recovery Time Objective (RTO)', required: true },
+      rpo: { type: 'text', label: 'Recovery Point Objective (RPO)', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-ma',
+    title: 'Maintenance (MA) Family',
+    description: 'NIST 800-53 Rev 5 Maintenance family documentation',
+    framework: 'NIST-800-53',
+    category: 'MA',
+    priority: 5,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Maintenance (MA) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## MA-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates system maintenance policy.
+
+## MA-2 Controlled Maintenance
+**Maintenance Schedule:** {{maintenance_schedule}}
+**Maintenance Windows:** {{maintenance_windows}}
+**Approval Required:** {{approval_required}}
+
+**Maintenance Activities:**
+- Scheduled maintenance
+- Preventive maintenance
+- Corrective maintenance
+- Emergency maintenance
+
+**Documentation:** {{maintenance_documentation}}
+
+## MA-3 Maintenance Tools
+**Authorized Tools:** {{authorized_tools}}
+**Tool Inspection:** {{tool_inspection}}
+**Tool Removal:** {{tool_removal}}
+
+## MA-4 Nonlocal Maintenance
+**Remote Maintenance:** {{remote_maintenance_allowed}}
+**Remote Access Methods:** {{remote_methods}}
+**MFA Required:** {{mfa_required}}
+**Session Logging:** {{session_logging}}
+
+**Authorization:** {{maintenance_authorization}}
+
+## MA-5 Maintenance Personnel
+**Authorized Personnel:** {{authorized_personnel}}
+**Escort Requirements:** {{escort_requirements}}
+
+**Personnel Screening:**
+{{personnel_screening}}
+
+## MA-6 Timely Maintenance
+**Mean Time to Repair (MTTR):** {{mttr}}
+**Spare Parts:** {{spare_parts}}
+**Vendor Support:** {{vendor_support}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      maintenance_schedule: { type: 'text', label: 'Maintenance Schedule', required: true },
+      maintenance_windows: { type: 'text', label: 'Maintenance Windows', required: true },
+      approval_required: { type: 'select', label: 'Approval Required', required: true, options: ['Yes', 'For critical systems only', 'No'] },
+      authorized_tools: { type: 'text', label: 'Authorized Maintenance Tools', required: true },
+      remote_maintenance_allowed: { type: 'select', label: 'Remote Maintenance Allowed', required: true, options: ['Yes', 'With approval', 'No'] },
+      mfa_required: { type: 'select', label: 'MFA Required for Remote', required: true, options: ['Yes', 'No'] },
+      escort_requirements: { type: 'select', label: 'Escort Requirements', required: true, options: ['Required', 'Not required', 'Situational'] },
+      mttr: { type: 'text', label: 'Mean Time to Repair (MTTR)', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-mp',
+    title: 'Media Protection (MP) Family',
+    description: 'NIST 800-53 Rev 5 Media Protection family documentation',
+    framework: 'NIST-800-53',
+    category: 'MP',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Media Protection (MP) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## MP-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates media protection policy.
+
+## MP-2 Media Access
+**Access Authorization:** {{access_authorization}}
+**Media Library:** {{media_library}}
+
+**Access Controls:**
+{{access_controls}}
+
+## MP-3 Media Marking
+**Marking Requirements:**
+- Classification level
+- Distribution limitations
+- Handling caveats
+- {{additional_markings}}
+
+**Labeling Methods:** {{labeling_methods}}
+
+## MP-4 Media Storage
+**Storage Locations:** {{storage_locations}}
+**Storage Controls:** {{storage_controls}}
+**Environmental Controls:** {{environmental_controls}}
+
+## MP-5 Media Transport
+**Transport Authorization:** {{transport_authorization}}
+**Courier Requirements:** {{courier_requirements}}
+**Encryption Required:** {{encryption_required}}
+**Chain of Custody:** {{chain_of_custody}}
+
+## MP-6 Media Sanitization
+**Sanitization Methods:**
+- Clear: {{clear_method}}
+- Purge: {{purge_method}}
+- Destroy: {{destroy_method}}
+
+**Sanitization Tools:** {{sanitization_tools}}
+**Verification:** {{sanitization_verification}}
+**Documentation:** {{sanitization_documentation}}
+
+## MP-7 Media Use
+**Authorized Use:** {{authorized_use}}
+**Prohibited Use:** {{prohibited_use}}
+**Removable Media:** {{removable_media_policy}}
+
+## MP-8 Media Downgrading
+**Downgrading Process:** {{downgrading_process}}
+**Authorization:** {{downgrading_authorization}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      access_authorization: { type: 'text', label: 'Access Authorization Process', required: true },
+      labeling_methods: { type: 'text', label: 'Labeling Methods', required: true },
+      storage_locations: { type: 'text', label: 'Storage Locations', required: true },
+      storage_controls: { type: 'text', label: 'Storage Controls', required: true },
+      transport_authorization: { type: 'text', label: 'Transport Authorization', required: true },
+      encryption_required: { type: 'select', label: 'Encryption Required for Transport', required: true, options: ['Yes', 'For sensitive only', 'No'] },
+      clear_method: { type: 'text', label: 'Clear Method', required: true },
+      purge_method: { type: 'text', label: 'Purge Method', required: true },
+      destroy_method: { type: 'text', label: 'Destroy Method', required: true },
+      removable_media_policy: { type: 'select', label: 'Removable Media Policy', required: true, options: ['Prohibited', 'Allowed with approval', 'Allowed'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-pe',
+    title: 'Physical and Environmental Protection (PE) Family',
+    description: 'NIST 800-53 Rev 5 Physical and Environmental Protection family documentation',
+    framework: 'NIST-800-53',
+    category: 'PE',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Physical and Environmental Protection (PE) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**Facility:** {{facility_name}}
+
+## PE-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates physical and environmental protection policy.
+
+## PE-2 Physical Access Authorizations
+**Authorization Process:** {{authorization_process}}
+**Access List Review:** {{access_review_freq}}
+**Visitor Management:** {{visitor_management}}
+
+## PE-3 Physical Access Control
+**Access Control Methods:**
+- {{access_method_1}}
+- {{access_method_2}}
+- {{access_method_3}}
+
+**Badge System:** {{badge_system}}
+**Entry Points:** {{entry_points}}
+**24/7 Monitoring:** {{monitoring_247}}
+
+## PE-4 Access Control for Transmission
+**Physical access controls for transmission and distribution systems:**
+{{transmission_controls}}
+
+## PE-5 Access Control for Output Devices
+**Output Device Controls:** {{output_controls}}
+**Printer Security:** {{printer_security}}
+
+## PE-6 Monitoring Physical Access
+**Monitoring Systems:**
+- CCTV: {{cctv_system}}
+- Intrusion Detection: {{intrusion_detection}}
+- Guard Services: {{guard_services}}
+
+**Recording Retention:** {{recording_retention}}
+**Review Frequency:** {{review_frequency}}
+
+## PE-8 Visitor Access Records
+**Visitor Log:** {{visitor_log_system}}
+**Escort Requirements:** {{escort_required}}
+**Badge Issuance:** {{visitor_badges}}
+**Record Retention:** {{visitor_record_retention}}
+
+## PE-9 Power Equipment and Cabling
+**UPS:** {{ups_system}}
+**Generator:** {{generator}}
+**Power Redundancy:** {{power_redundancy}}
+
+## PE-10 Emergency Shutoff
+**Shutoff Locations:** {{shutoff_locations}}
+**Emergency Power Off (EPO):** {{epo_system}}
+
+## PE-11 Emergency Power
+**Emergency Power Source:** {{emergency_power}}
+**Transition Time:** {{transition_time}}
+**Fuel Supply:** {{fuel_supply}}
+
+## PE-12 Emergency Lighting
+**Emergency Lighting:** {{emergency_lighting}}
+**Coverage Areas:** {{coverage_areas}}
+
+## PE-13 Fire Protection
+**Fire Suppression:** {{fire_suppression}}
+**Fire Detection:** {{fire_detection}}
+**Inspection Frequency:** {{fire_inspection_freq}}
+
+## PE-14 Environmental Controls
+**Temperature Range:** {{temp_range}}
+**Humidity Range:** {{humidity_range}}
+**Monitoring System:** {{environmental_monitoring}}
+
+## PE-15 Water Damage Protection
+**Water Detection:** {{water_detection}}
+**Shutoff Valves:** {{shutoff_valves}}
+
+## PE-16 Delivery and Removal
+**Loading Dock Controls:** {{loading_dock_controls}}
+**Inspection Process:** {{inspection_process}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      facility_name: { type: 'text', label: 'Facility Name', required: true },
+      authorization_process: { type: 'text', label: 'Authorization Process', required: true },
+      access_review_freq: { type: 'select', label: 'Access Review Frequency', required: true, options: ['Monthly', 'Quarterly', 'Annually'] },
+      badge_system: { type: 'text', label: 'Badge System', required: true },
+      monitoring_247: { type: 'select', label: '24/7 Monitoring', required: true, options: ['Yes', 'No', 'Business hours only'] },
+      cctv_system: { type: 'text', label: 'CCTV System', required: true },
+      escort_required: { type: 'select', label: 'Escort Required for Visitors', required: true, options: ['Yes', 'For restricted areas', 'No'] },
+      ups_system: { type: 'text', label: 'UPS System', required: true },
+      emergency_power: { type: 'text', label: 'Emergency Power Source', required: true },
+      fire_suppression: { type: 'text', label: 'Fire Suppression System', required: true },
+      temp_range: { type: 'text', label: 'Temperature Range', required: true },
+      humidity_range: { type: 'text', label: 'Humidity Range', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-pl',
+    title: 'Planning (PL) Family',
+    description: 'NIST 800-53 Rev 5 Planning family documentation',
+    framework: 'NIST-800-53',
+    category: 'PL',
+    priority: 2,
+    documentType: 'plan',
+    required: true,
+    templateContent: `# Planning (PL) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## PL-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates security and privacy planning policy.
+
+## PL-2 System Security and Privacy Plans
+**Plan Review:** {{plan_review_freq}}
+**Plan Distribution:** {{plan_distribution}}
+
+**System Security Plan (SSP) Includes:**
+- System identification and authorization boundary
+- Operational environment
+- Security control implementation
+- Relationships with other systems
+
+## PL-4 Rules of Behavior
+**Rules of Behavior Include:**
+- Acceptable use of system resources
+- Expected behavior regarding information and system usage
+- Consequences of inconsistent behavior
+- Acknowledgment requirements
+
+**Distribution:** {{rules_distribution}}
+**Acknowledgment:** {{acknowledgment_process}}
+
+## PL-7 Concept of Operations
+**System Purpose:** {{system_purpose}}
+**Mission Functions:** {{mission_functions}}
+**System Capabilities:** {{system_capabilities}}
+
+## PL-8 Security and Privacy Architectures
+**Architecture Description:** {{architecture_description}}
+**Security Architecture:** {{security_architecture}}
+**Privacy Architecture:** {{privacy_architecture}}
+
+**Architectural Principles:**
+{{architectural_principles}}
+
+## PL-9 Central Management
+**Centrally Managed Controls:**
+{{centrally_managed_controls}}
+
+## PL-10 Baseline Selection
+**Security Baseline:** {{security_baseline}}
+**Tailoring Actions:** {{tailoring_actions}}
+
+## PL-11 Baseline Tailoring
+**Tailoring Criteria:**
+{{tailoring_criteria}}
+
+**Compensating Controls:**
+{{compensating_controls}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      plan_review_freq: { type: 'select', label: 'Plan Review Frequency', required: true, options: ['Annually', 'Every 3 years', 'As needed'] },
+      plan_distribution: { type: 'text', label: 'Plan Distribution', required: true },
+      rules_distribution: { type: 'text', label: 'Rules of Behavior Distribution', required: true },
+      acknowledgment_process: { type: 'text', label: 'Acknowledgment Process', required: true },
+      system_purpose: { type: 'text', label: 'System Purpose', required: true },
+      security_baseline: { type: 'select', label: 'Security Baseline', required: true, options: ['Low', 'Moderate', 'High'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-pm',
+    title: 'Program Management (PM) Family',
+    description: 'NIST 800-53 Rev 5 Program Management family documentation',
+    framework: 'NIST-800-53',
+    category: 'PM',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Program Management (PM) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+
+## PM-1 Information Security Program Plan
+**Program Goals:** {{program_goals}}
+**Program Objectives:** {{program_objectives}}
+
+**Organizational Structure:**
+{{organizational_structure}}
+
+**Roles and Responsibilities:**
+- Chief Information Security Officer (CISO): {{ciso_name}}
+- Privacy Officer: {{privacy_officer}}
+- System Owners: {{system_owners}}
+
+## PM-2 Information Security Program Leadership Role
+**Senior Information Security Officer:** {{senior_iso}}
+**Reporting Structure:** {{reporting_structure}}
+
+## PM-3 Information Security and Privacy Resources
+**Budget:** {{security_budget}}
+**Staffing:** {{security_staffing}}
+**Resources Allocation:** {{resources_allocation}}
+
+## PM-4 Plan of Action and Milestones Process
+**POA&M Review:** {{poam_review_freq}}
+**Remediation Tracking:** {{remediation_tracking}}
+
+## PM-5 System Inventory
+**System Inventory:** {{system_inventory}}
+**Inventory Updates:** {{inventory_update_freq}}
+
+## PM-6 Measures of Performance
+**Security Metrics:**
+{{security_metrics}}
+
+**Performance Indicators:**
+{{performance_indicators}}
+
+**Reporting:** {{metrics_reporting_freq}}
+
+## PM-7 Enterprise Architecture
+**Architecture Framework:** {{architecture_framework}}
+**Security Integration:** {{security_integration}}
+
+## PM-9 Risk Management Strategy
+**Risk Framing:** {{risk_framing}}
+**Risk Assessment Process:** {{risk_assessment_process}}
+**Risk Response:** {{risk_response}}
+**Risk Monitoring:** {{risk_monitoring}}
+
+## PM-10 Authorization Process
+**Authorization Workflow:** {{authorization_workflow}}
+**Authorizing Officials:** {{authorizing_officials}}
+
+## PM-11 Mission and Business Process Definition
+**Mission Functions:** {{mission_functions}}
+**Business Processes:** {{business_processes}}
+
+## PM-15 Security and Privacy Groups and Associations
+**Professional Memberships:**
+{{professional_memberships}}
+
+**Information Sharing:** {{info_sharing}}
+
+## PM-16 Threat Awareness Program
+**Threat Intelligence Sources:** {{threat_intel_sources}}
+**Dissemination:** {{threat_dissemination}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      ciso_name: { type: 'text', label: 'CISO Name', required: true },
+      privacy_officer: { type: 'text', label: 'Privacy Officer', required: true },
+      senior_iso: { type: 'text', label: 'Senior Information Security Officer', required: true },
+      security_budget: { type: 'text', label: 'Security Budget', required: true },
+      poam_review_freq: { type: 'select', label: 'POA&M Review Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      inventory_update_freq: { type: 'select', label: 'Inventory Update Frequency', required: true, options: ['Real-time', 'Monthly', 'Quarterly'] },
+      metrics_reporting_freq: { type: 'select', label: 'Metrics Reporting Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-ps',
+    title: 'Personnel Security (PS) Family',
+    description: 'NIST 800-53 Rev 5 Personnel Security family documentation',
+    framework: 'NIST-800-53',
+    category: 'PS',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Personnel Security (PS) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## PS-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates personnel security policy.
+
+## PS-2 Position Risk Designation
+**Risk Designations:**
+- High Risk: {{high_risk_positions}}
+- Moderate Risk: {{moderate_risk_positions}}
+- Low Risk: {{low_risk_positions}}
+
+**Review Frequency:** {{designation_review_freq}}
+
+## PS-3 Personnel Screening
+**Screening Requirements by Position:**
+- Background Check: {{background_check_requirements}}
+- Reference Checks: {{reference_checks}}
+- Employment Verification: {{employment_verification}}
+- Education Verification: {{education_verification}}
+- Credit Check: {{credit_check}}
+
+**Rescreening:** {{rescreening_frequency}}
+
+## PS-4 Personnel Termination
+**Termination Procedures:**
+1. Access revocation: {{access_revocation_timeline}}
+2. Property return: {{property_return_process}}
+3. Exit interview: {{exit_interview}}
+4. Knowledge transfer: {{knowledge_transfer}}
+
+**Final Access Review:** {{final_access_review}}
+
+## PS-5 Personnel Transfer
+**Transfer Procedures:**
+- Access review and modification
+- Role change documentation
+- Supervisor notification
+- Training updates
+
+**Notification Timeline:** {{transfer_notification}}
+
+## PS-6 Access Agreements
+**Agreement Types:**
+- Acceptable Use Policy (AUP)
+- Nondisclosure Agreement (NDA)
+- Rules of Behavior
+- {{additional_agreements}}
+
+**Review Frequency:** {{agreement_review_freq}}
+**Reacknowledgment:** {{reacknowledgment_freq}}
+
+## PS-7 External Personnel Security
+**Contractor Requirements:**
+{{contractor_requirements}}
+
+**Third-Party Security:** {{third_party_security}}
+
+## PS-8 Personnel Sanctions
+**Sanctions Process:** {{sanctions_process}}
+**Violation Examples:** {{violation_examples}}
+**Appeal Process:** {{appeal_process}}
+
+## PS-9 Position Descriptions
+**Security Roles in Job Descriptions:**
+{{security_roles}}
+
+**Security Responsibilities:**
+{{security_responsibilities}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      designation_review_freq: { type: 'select', label: 'Risk Designation Review Frequency', required: true, options: ['Annually', 'Every 3 years', 'As needed'] },
+      background_check_requirements: { type: 'text', label: 'Background Check Requirements', required: true },
+      rescreening_frequency: { type: 'select', label: 'Rescreening Frequency', required: true, options: ['Annually', 'Every 3 years', 'Every 5 years', 'Not required'] },
+      access_revocation_timeline: { type: 'text', label: 'Access Revocation Timeline', required: true },
+      agreement_review_freq: { type: 'select', label: 'Agreement Review Frequency', required: true, options: ['Annually', 'Every 3 years', 'At hire only'] },
+      sanctions_process: { type: 'text', label: 'Sanctions Process', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-pt',
+    title: 'Privacy Controls (PT) Family',
+    description: 'NIST 800-53 Rev 5 Privacy Controls family documentation',
+    framework: 'NIST-800-53',
+    category: 'PT',
+    priority: 2,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Privacy Controls (PT) Family
+## NIST 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+**Privacy Officer:** {{privacy_officer}}
+
+## PT-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates privacy policy.
+
+**Policy Review:** {{policy_review_freq}}
+**Procedure Review:** {{procedure_review_freq}}
+
+## PT-2 Authority to Collect
+**Legal Authority:** {{legal_authority}}
+**Collection Justification:** {{collection_justification}}
+
+## PT-3 Personally Identifiable Information Processing Purposes
+**Processing Purposes:**
+{{processing_purposes}}
+
+**Purpose Limitation:** {{purpose_limitation}}
+
+## PT-4 Consent
+**Consent Mechanism:** {{consent_mechanism}}
+**Consent Type:** {{consent_type}}
+**Withdrawal Process:** {{withdrawal_process}}
+
+## PT-5 Privacy Notice
+**Notice Content:**
+- Types of PII collected
+- Purpose of collection
+- How PII is used and shared
+- Individual rights
+- Contact information
+
+**Notice Delivery:** {{notice_delivery}}
+**Notice Updates:** {{notice_update_freq}}
+
+## PT-6 System of Records Notice and Privacy Act Statements
+**System of Records Notice (SORN):** {{sorn_status}}
+**Privacy Act Statement:** {{privacy_act_statement}}
+
+## PT-7 Specific Categories of Personally Identifiable Information
+**Special Categories:**
+- {{special_category_1}}
+- {{special_category_2}}
+- {{special_category_3}}
+
+**Additional Protections:** {{additional_protections}}
+
+## PT-8 Computer Matching Requirements
+**Matching Agreements:** {{matching_agreements}}
+**Matching Notices:** {{matching_notices}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      privacy_officer: { type: 'text', label: 'Privacy Officer', required: true },
+      policy_review_freq: { type: 'select', label: 'Policy Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      procedure_review_freq: { type: 'select', label: 'Procedure Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      legal_authority: { type: 'text', label: 'Legal Authority to Collect', required: true },
+      processing_purposes: { type: 'text', label: 'PII Processing Purposes', required: true },
+      consent_mechanism: { type: 'text', label: 'Consent Mechanism', required: true },
+      consent_type: { type: 'select', label: 'Consent Type', required: true, options: ['Opt-in', 'Opt-out', 'Explicit'] },
+      notice_delivery: { type: 'select', label: 'Notice Delivery', required: true, options: ['Website', 'Email', 'Physical', 'Multiple methods'] },
+      notice_update_freq: { type: 'select', label: 'Notice Update Frequency', required: true, options: ['As needed', 'Annually', 'Quarterly'] },
+      sorn_status: { type: 'select', label: 'SORN Status', required: true, options: ['Published', 'In progress', 'Not applicable'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-sa',
+    title: 'System and Services Acquisition (SA) Family',
+    description: 'NIST 800-53 Rev 5 System and Services Acquisition family documentation',
+    framework: 'NIST-800-53',
+    category: 'SA',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# System and Services Acquisition (SA) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## SA-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates system and services acquisition policy.
+
+## SA-2 Allocation of Resources
+**Budget Allocation:** {{budget_allocation}}
+**Security Requirements in Budget:** {{security_in_budget}}
+
+## SA-3 System Development Life Cycle
+**SDLC Methodology:** {{sdlc_methodology}}
+
+**Phases:**
+1. Initiation
+2. Development/Acquisition
+3. Implementation
+4. Operations/Maintenance
+5. Disposition
+
+**Security Integration:** {{security_integration}}
+
+## SA-4 Acquisition Process
+**Security Requirements in Contracts:**
+{{security_requirements}}
+
+**Vendor Security Assessment:** {{vendor_assessment}}
+
+## SA-5 System Documentation
+**Required Documentation:**
+- System architecture
+- Configuration settings
+- Operational procedures
+- Security procedures
+- {{additional_documentation}}
+
+**Documentation Review:** {{documentation_review_freq}}
+
+## SA-8 Security and Privacy Engineering Principles
+**Design Principles:**
+{{design_principles}}
+
+**Security by Design:** {{security_by_design}}
+
+## SA-9 External System Services
+**Service Level Agreements (SLAs):** {{sla_requirements}}
+**Vendor Management:** {{vendor_management}}
+**Service Monitoring:** {{service_monitoring}}
+
+## SA-10 Developer Configuration Management
+**Configuration Management:** {{config_management}}
+**Version Control:** {{version_control}}
+**Change Control:** {{change_control}}
+
+## SA-11 Developer Testing and Evaluation
+**Testing Requirements:**
+- Unit testing
+- Integration testing
+- System testing
+- Security testing
+- {{additional_testing}}
+
+**Test Coverage:** {{test_coverage}}
+
+## SA-15 Development Process, Standards, and Tools
+**Development Standards:** {{development_standards}}
+**Coding Standards:** {{coding_standards}}
+**Development Tools:** {{development_tools}}
+
+## SA-16 Developer-Provided Training
+**Training Requirements:** {{training_requirements}}
+**Training Delivery:** {{training_delivery}}
+
+## SA-17 Developer Security and Privacy Architecture and Design
+**Security Architecture Review:** {{architecture_review}}
+**Threat Modeling:** {{threat_modeling}}
+
+## SA-22 Unsupported System Components
+**Unsupported Components:** {{unsupported_components}}
+**Justification:** {{unsupported_justification}}
+**Compensating Controls:** {{compensating_controls}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      sdlc_methodology: { type: 'select', label: 'SDLC Methodology', required: true, options: ['Waterfall', 'Agile', 'DevSecOps', 'Hybrid'] },
+      security_requirements: { type: 'text', label: 'Security Requirements in Contracts', required: true },
+      vendor_assessment: { type: 'text', label: 'Vendor Security Assessment Process', required: true },
+      documentation_review_freq: { type: 'select', label: 'Documentation Review Frequency', required: true, options: ['Annually', 'With each release', 'Quarterly'] },
+      version_control: { type: 'text', label: 'Version Control System', required: true },
+      test_coverage: { type: 'text', label: 'Test Coverage Requirements', required: true },
+      development_standards: { type: 'text', label: 'Development Standards', required: true },
+      threat_modeling: { type: 'select', label: 'Threat Modeling', required: true, options: ['Required', 'For critical systems', 'Not performed'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-sr',
+    title: 'Supply Chain Risk Management (SR) Family',
+    description: 'NIST 800-53 Rev 5 Supply Chain Risk Management family documentation',
+    framework: 'NIST-800-53',
+    category: 'SR',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Supply Chain Risk Management (SR) Family
+## NIST SP 800-53 Rev 5
+
+### Organization Information
+**Organization:** {{company_name}}
+**System:** {{system_name}}
+
+## SR-1 Policy and Procedures
+{{company_name}} develops, documents, and disseminates supply chain risk management policy.
+
+**Policy Review:** {{policy_review_freq}}
+**Procedure Review:** {{procedure_review_freq}}
+
+## SR-2 Supply Chain Risk Management Plan
+**Plan Components:**
+- Risk identification
+- Risk assessment
+- Risk mitigation
+- Risk monitoring
+
+**Plan Review:** {{plan_review_freq}}
+**Plan Updates:** {{plan_update_process}}
+
+## SR-3 Supply Chain Controls and Processes
+**Supplier Selection Criteria:**
+{{supplier_criteria}}
+
+**Vendor Assessment:** {{vendor_assessment_process}}
+**Onboarding Process:** {{vendor_onboarding}}
+
+## SR-4 Provenance
+**Component Provenance Tracking:**
+{{provenance_tracking}}
+
+**Chain of Custody:** {{chain_of_custody}}
+
+## SR-5 Acquisition Strategies, Tools, and Methods
+**Acquisition Strategy:** {{acquisition_strategy}}
+
+**Risk Mitigation Strategies:**
+- Multiple sourcing
+- Diverse suppliers
+- Trusted suppliers
+- {{additional_strategies}}
+
+## SR-6 Supplier Assessments and Reviews
+**Assessment Frequency:** {{assessment_frequency}}
+**Assessment Criteria:**
+{{assessment_criteria}}
+
+**Review Process:** {{review_process}}
+
+## SR-7 Supply Chain Operations Security
+**OPSEC Practices:**
+{{opsec_practices}}
+
+**Information Sharing Controls:** {{info_sharing_controls}}
+
+## SR-8 Notification Agreements
+**Incident Notification:** {{incident_notification}}
+**Notification Timeline:** {{notification_timeline}}
+**Escalation Process:** {{escalation_process}}
+
+## SR-9 Tamper Resistance and Detection
+**Tamper Protection:** {{tamper_protection}}
+**Tamper Detection:** {{tamper_detection}}
+
+## SR-10 Inspection of Systems or Components
+**Inspection Process:** {{inspection_process}}
+**Inspection Frequency:** {{inspection_frequency}}
+**Inspection Documentation:** {{inspection_documentation}}
+
+## SR-11 Component Authenticity
+**Authenticity Verification:**
+{{authenticity_verification}}
+
+**Anti-Counterfeit Measures:** {{anticounterfeit_measures}}
+
+## SR-12 Component Disposal
+**Disposal Process:** {{disposal_process}}
+**Data Sanitization:** {{data_sanitization}}
+**Environmental Compliance:** {{environmental_compliance}}
+
+**Document Owner:** {{document_owner}}
+**Approved By:** {{approved_by}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      system_name: { type: 'text', label: 'System Name', required: true },
+      policy_review_freq: { type: 'select', label: 'Policy Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      procedure_review_freq: { type: 'select', label: 'Procedure Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      plan_review_freq: { type: 'select', label: 'Plan Review Frequency', required: true, options: ['Annually', 'Semi-annually', 'Quarterly'] },
+      supplier_criteria: { type: 'text', label: 'Supplier Selection Criteria', required: true },
+      vendor_assessment_process: { type: 'text', label: 'Vendor Assessment Process', required: true },
+      acquisition_strategy: { type: 'text', label: 'Acquisition Strategy', required: true },
+      assessment_frequency: { type: 'select', label: 'Assessment Frequency', required: true, options: ['Annually', 'Bi-annually', 'Quarterly'] },
+      incident_notification: { type: 'text', label: 'Incident Notification Requirements', required: true },
+      notification_timeline: { type: 'text', label: 'Notification Timeline', required: true },
+      inspection_frequency: { type: 'select', label: 'Inspection Frequency', required: true, options: ['Upon receipt', 'Annually', 'Random sampling'] },
+      disposal_process: { type: 'text', label: 'Component Disposal Process', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
   }
 ];
 
 // Master template registry with complete template sets including operational and certification templates
 export const AllDocumentTemplates: Record<string, DocumentTemplate[]> = {
   'ISO27001': [...ISO27001Templates, ...AdditionalISO27001Templates, ...ExtendedISO27001Templates],
-  'SOC2': [...SOC2Templates, ...ExtendedSOC2Templates],
-  'FedRAMP-Low': FedRAMPLowTemplates,
-  'FedRAMP-Moderate': [...FedRAMPModerateTemplates, ...FedRAMPAttachmentTemplates],
-  'FedRAMP-High': FedRAMPHighTemplates,
+  'SOC2': [...SOC2Templates, ...ExtendedSOC2Templates, ...AdditionalSOC2OperationalTemplates],
+  'FedRAMP-Low': [...FedRAMPLowTemplates, ...FedRAMPCoreTemplates],
+  'FedRAMP-Moderate': [...FedRAMPModerateTemplates, ...FedRAMPAttachmentTemplates, ...FedRAMPCoreTemplates],
+  'FedRAMP-High': [...FedRAMPHighTemplates, ...FedRAMPCoreTemplates],
   'NIST-800-53': [...NIST80053Templates, ...NIST80053ControlFamilyTemplates],
   'General': OperationalTemplates,
   'Certification': CertificationDocumentTemplates
