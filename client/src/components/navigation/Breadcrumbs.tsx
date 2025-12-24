@@ -20,7 +20,6 @@ const routeLabels: Record<string, string> = {
   "/workspace": "Document Workspace",
   "/documents": "Documents",
   "/audit-trail": "Audit Trail",
-  "/audit-trail/complete": "Complete Audit Trail",
   "/user-profile": "User Profile",
   "/organizations": "Organizations",
   "/storage": "Object Storage",

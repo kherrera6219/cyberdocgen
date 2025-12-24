@@ -33,8 +33,7 @@ const NISTFramework = lazy(() => import("./pages/nist-framework"));
 
 // Analysis and audit pages
 const GapAnalysis = lazy(() => import("./pages/gap-analysis"));
-const AuditTrail = lazy(() => import("./pages/audit-trail"));
-const AuditTrailComplete = lazy(() => import("./pages/audit-trail-complete"));
+const AuditTrail = lazy(() => import("./pages/audit-trail-complete"));
 const ExportCenter = lazy(() => import("./pages/export-center"));
 
 // Authentication pages
@@ -46,7 +45,6 @@ const MfaSetup = lazy(() => import("@/pages/mfa-setup"));
 
 // Admin and settings
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
-const UserProfileNew = lazy(() => import("./pages/user-profile-new"));
 const ProfileSettings = lazy(() => import("./pages/profile-settings"));
 
 // AI features
@@ -115,7 +113,6 @@ function AuthenticatedRouter() {
         <Route path="/export" component={ExportCenter} />
         <Route path="/admin" component={AdminSettings} />
         <Route path="/cloud-integrations" component={CloudIntegrations} />
-        <Route path="/audit-trail/complete" component={AuditTrailComplete} />
         <Route path="/profile/settings" component={ProfileSettings} />
         <Route path="/ai-assistant" component={AIAssistant} />
         <Route path="/mcp-tools" component={MCPTools} />
