@@ -93,7 +93,7 @@ function AuthenticatedRouter() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
       <Switch>
-        <Route path="/" component={Home} />
+        <Route path="/" component={Dashboard} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/profile" component={CompanyProfile} />
         <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />

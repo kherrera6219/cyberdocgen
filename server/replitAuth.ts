@@ -287,6 +287,44 @@ export function requireAuditor(): RequestHandler {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   try {
+    // MVP Development Mode: Auto-authenticate as admin user
+    // This bypasses login for faster development iteration
+    if (process.env.NODE_ENV !== 'production') {
+      const session = req.session as any;
+      
+      // If no session userId, set up dev admin user
+      if (!session?.userId) {
+        const devAdminId = 'dev-admin-001';
+        
+        // Ensure the dev admin user exists in the database
+        try {
+          let adminUser = await storage.getUser(devAdminId);
+          if (!adminUser) {
+            await storage.upsertUser({
+              id: devAdminId,
+              email: 'admin@cyberdocgen.dev',
+              firstName: 'Admin',
+              lastName: 'User',
+              profileImageUrl: null,
+            });
+            // Update role to admin
+            await storage.updateUser(devAdminId, { role: 'admin' });
+          }
+          
+          // Set up the session
+          session.userId = devAdminId;
+          session.isTemporary = false;
+        } catch (error) {
+          logger.warn('Dev admin setup failed, continuing with session check', { error });
+        }
+      }
+      
+      // With dev session set, continue
+      if (session?.userId) {
+        return next();
+      }
+    }
+
     // Check for Enterprise auth session first (email/password login)
     const session = req.session as any;
     if (session?.userId) {
