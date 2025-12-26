@@ -296,7 +296,6 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       // If no session userId, set up dev admin user
       if (!session?.userId) {
         const devAdminId = 'dev-admin-001';
-        const devOrgId = 'dev-org-001';
         
         // Ensure the dev admin user and organization exist
         try {
@@ -314,28 +313,31 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
           }
           
           // Ensure dev organization exists and admin is a member
-          const userOrgs = await storage.getUserOrganizations(devAdminId);
+          let userOrgs = await storage.getUserOrganizations(devAdminId);
+          let activeOrgId: string;
+          
           if (userOrgs.length === 0) {
-            // Check if dev org exists, if not create one
-            let devOrg = await storage.getOrganization(devOrgId);
-            if (!devOrg) {
-              // Create the dev organization
-              devOrg = await storage.createOrganization({
-                name: 'Development Organization',
-                slug: 'dev-org',
-              });
-            }
+            // Create the dev organization
+            const devOrg = await storage.createOrganization({
+              name: 'Development Organization',
+              slug: 'dev-org',
+            });
+            activeOrgId = devOrg.id;
+            
             // Add user to organization as owner
             await storage.addUserToOrganization({
               userId: devAdminId,
-              organizationId: devOrg.id,
+              organizationId: activeOrgId,
               role: 'owner',
             });
+          } else {
+            // Use the first organization the user belongs to
+            activeOrgId = userOrgs[0].organizationId;
           }
           
           // Set up the session with organization context
           session.userId = devAdminId;
-          session.organizationId = devOrgId;
+          session.organizationId = activeOrgId;
           session.isTemporary = false;
         } catch (error) {
           logger.warn('Dev admin setup failed, continuing with session check', { error });

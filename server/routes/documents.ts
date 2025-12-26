@@ -7,8 +7,6 @@ import { insertDocumentSchema, documentVersions } from '@shared/schema';
 import { versionService } from '../services/versionService';
 import { auditService } from '../services/auditService';
 import type { AIModel } from '../services/aiOrchestrator';
-import { validateBody } from '../middleware/routeValidation';
-import { generateDocumentSchema, generateSingleDocumentSchema, createDocumentVersionSchema } from '../validation/schemas';
 import { db } from '../db';
 import { eq, desc } from 'drizzle-orm';
 import { cache } from '../middleware/production';

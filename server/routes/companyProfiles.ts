@@ -5,8 +5,6 @@ import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { insertCompanyProfileSchema } from '@shared/schema';
 import { companyDataExtractionService } from '../services/companyDataExtractionService';
-import { validateBody } from '../middleware/routeValidation';
-import { extractFromDocumentSchema, extractFromWebsiteSchema } from '../validation/schemas';
 import { cache } from '../middleware/production';
 import { requireOrganization, getCompanyProfileWithOrgCheck, type MultiTenantRequest } from '../middleware/multiTenant';
 
