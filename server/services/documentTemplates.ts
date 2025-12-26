@@ -37,7 +37,13 @@ export interface DocumentTemplate {
     | 'specification'
     | 'checklist'
     | 'statement'
-    | 'memorandum';
+    | 'memorandum'
+    | 'register'
+    | 'program'
+    | 'minutes'
+    | 'worksheet'
+    | 'reference'
+    | 'matrix';
   required: boolean;
   templateContent: string;
   templateVariables: {

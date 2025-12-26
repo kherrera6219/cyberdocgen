@@ -272,3 +272,111 @@ export type ExportDocumentRequestInput = z.infer<typeof exportDocumentRequestSch
 export type SaveDocumentRequestInput = z.infer<typeof saveDocumentRequestSchema>;
 export type GenerateDocumentRequestInput = z.infer<typeof generateDocumentRequestSchema>;
 export type GenerationJobCreateInput = z.infer<typeof generationJobCreateSchema>;
+
+// AI-specific schemas
+export const extractProfileSchema = z.object({
+  source: z.string().min(1, 'Source is required'),
+  format: z.enum(['text', 'json', 'structured']).optional().default('structured'),
+});
+
+export const riskAssessmentSchema = z.object({
+  companyProfileId: z.string().min(1, 'Company profile ID is required'),
+  framework: z.string().optional(),
+  scope: z.array(z.string()).optional(),
+  includeRecommendations: z.boolean().optional().default(true),
+});
+
+export const threatAnalysisSchema = z.object({
+  companyProfileId: z.string().min(1, 'Company profile ID is required'),
+  framework: z.string().optional(),
+  assetCategories: z.array(z.string()).optional(),
+});
+
+export const qualityScoreSchema = qualityScoringSchema;
+
+export const frameworkAlignmentSchema = z.object({
+  sourceFramework: z.string().min(1, 'Source framework is required'),
+  targetFramework: z.string().min(1, 'Target framework is required'),
+  controls: z.array(z.string()).optional(),
+});
+
+export const fineTuneSchema = z.object({
+  modelId: z.string().min(1, 'Model ID is required'),
+  trainingData: z.array(z.object({
+    input: z.string(),
+    output: z.string(),
+  })),
+  hyperparameters: z.record(z.any()).optional(),
+});
+
+export const generateOptimizedSchema = z.object({
+  content: z.string().min(1, 'Content is required'),
+  optimizationGoal: z.enum(['clarity', 'compliance', 'conciseness', 'completeness']).optional(),
+  framework: z.string().optional(),
+});
+
+export const assessRisksSchema = z.object({
+  companyProfileId: z.string().min(1, 'Company profile ID is required'),
+  framework: z.string().optional(),
+  riskCategories: z.array(z.string()).optional(),
+  includeRemediation: z.boolean().optional().default(true),
+});
+
+export const analyzeImageSchema = z.object({
+  imageUrl: z.string().url().optional(),
+  imageData: z.string().optional(),
+  analysisType: z.enum(['document', 'diagram', 'screenshot', 'general']).optional().default('general'),
+  extractText: z.boolean().optional().default(true),
+});
+
+export const multimodalChatSchema = z.object({
+  message: z.string().min(1, 'Message is required'),
+  images: z.array(z.object({
+    url: z.string().url().optional(),
+    data: z.string().optional(),
+  })).optional(),
+  context: z.object({
+    companyProfileId: z.string().optional(),
+    framework: z.string().optional(),
+  }).optional(),
+});
+
+export const extractFromDocumentSchema = exportDocumentSchema;
+export const extractFromWebsiteSchema = z.object({
+  url: z.string().url('Valid URL is required'),
+  extractionType: z.enum(['company_info', 'policies', 'controls', 'general']).optional().default('general'),
+  framework: z.string().optional(),
+});
+
+export const generateSingleDocumentSchema = generateDocumentSchema;
+export const createDocumentVersionSchema = z.object({
+  documentId: z.string().min(1, 'Document ID is required'),
+  content: z.string().min(1, 'Content is required'),
+  changes: z.string().optional(),
+  versionNote: z.string().optional(),
+});
+
+export const gapAnalysisGenerateSchema = gapAnalysisSchema;
+export const updateRecommendationSchema = z.object({
+  recommendationId: z.string().min(1, 'Recommendation ID is required'),
+  status: z.enum(['pending', 'in_progress', 'completed', 'rejected']).optional(),
+  notes: z.string().optional(),
+  assignedTo: z.string().optional(),
+});
+
+export type ExtractProfileInput = z.infer<typeof extractProfileSchema>;
+export type RiskAssessmentInput = z.infer<typeof riskAssessmentSchema>;
+export type ThreatAnalysisInput = z.infer<typeof threatAnalysisSchema>;
+export type QualityScoreInput = z.infer<typeof qualityScoreSchema>;
+export type FrameworkAlignmentInput = z.infer<typeof frameworkAlignmentSchema>;
+export type FineTuneInput = z.infer<typeof fineTuneSchema>;
+export type GenerateOptimizedInput = z.infer<typeof generateOptimizedSchema>;
+export type AssessRisksInput = z.infer<typeof assessRisksSchema>;
+export type AnalyzeImageInput = z.infer<typeof analyzeImageSchema>;
+export type MultimodalChatInput = z.infer<typeof multimodalChatSchema>;
+export type ExtractFromDocumentInput = z.infer<typeof extractFromDocumentSchema>;
+export type ExtractFromWebsiteInput = z.infer<typeof extractFromWebsiteSchema>;
+export type GenerateSingleDocumentInput = z.infer<typeof generateSingleDocumentSchema>;
+export type CreateDocumentVersionInput = z.infer<typeof createDocumentVersionSchema>;
+export type GapAnalysisGenerateInput = z.infer<typeof gapAnalysisGenerateSchema>;
+export type UpdateRecommendationInput = z.infer<typeof updateRecommendationSchema>;
