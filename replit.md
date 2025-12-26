@@ -92,6 +92,12 @@ Preferred communication style: Simple, everyday language.
 - **Replit OpenID Connect** - Primary authentication provider
 - Requires `REPLIT_DOMAINS`, `REPL_ID`, and `SESSION_SECRET` environment variables
 
+### MVP Development Mode
+- **Auto-Login**: In development (`NODE_ENV !== 'production'`), the app automatically authenticates as an admin user
+- **Admin Account**: Uses `dev-admin-001` with email `admin@cyberdocgen.dev`
+- **Dashboard Default**: Authenticated users are directed to `/dashboard` by default instead of the home page
+- **Security**: This bypass is disabled in production - always verifies `NODE_ENV !== 'production'` before auto-auth
+
 ### Required Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string
 - `SESSION_SECRET` - Session encryption key (minimum 32 characters)

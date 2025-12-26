@@ -289,14 +289,16 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   try {
     // MVP Development Mode: Auto-authenticate as admin user
     // This bypasses login for faster development iteration
+    // SECURITY: This is ONLY enabled when NODE_ENV !== 'production'
     if (process.env.NODE_ENV !== 'production') {
       const session = req.session as any;
       
       // If no session userId, set up dev admin user
       if (!session?.userId) {
         const devAdminId = 'dev-admin-001';
+        const devOrgId = 'dev-org-001';
         
-        // Ensure the dev admin user exists in the database
+        // Ensure the dev admin user and organization exist
         try {
           let adminUser = await storage.getUser(devAdminId);
           if (!adminUser) {
@@ -311,8 +313,29 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
             await storage.updateUser(devAdminId, { role: 'admin' });
           }
           
-          // Set up the session
+          // Ensure dev organization exists and admin is a member
+          const userOrgs = await storage.getUserOrganizations(devAdminId);
+          if (userOrgs.length === 0) {
+            // Check if dev org exists, if not create one
+            let devOrg = await storage.getOrganization(devOrgId);
+            if (!devOrg) {
+              // Create the dev organization
+              devOrg = await storage.createOrganization({
+                name: 'Development Organization',
+                slug: 'dev-org',
+              });
+            }
+            // Add user to organization as owner
+            await storage.addUserToOrganization({
+              userId: devAdminId,
+              organizationId: devOrg.id,
+              role: 'owner',
+            });
+          }
+          
+          // Set up the session with organization context
           session.userId = devAdminId;
+          session.organizationId = devOrgId;
           session.isTemporary = false;
         } catch (error) {
           logger.warn('Dev admin setup failed, continuing with session check', { error });

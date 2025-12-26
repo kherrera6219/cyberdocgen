@@ -272,3 +272,82 @@ export type ExportDocumentRequestInput = z.infer<typeof exportDocumentRequestSch
 export type SaveDocumentRequestInput = z.infer<typeof saveDocumentRequestSchema>;
 export type GenerateDocumentRequestInput = z.infer<typeof generateDocumentRequestSchema>;
 export type GenerationJobCreateInput = z.infer<typeof generationJobCreateSchema>;
+
+// Additional AI schemas
+export const extractProfileSchema = z.object({
+  content: z.string().min(1, 'Content is required'),
+});
+
+export const riskAssessmentSchema = z.object({
+  frameworks: z.array(z.string()).optional().default([]),
+  includeDocuments: z.boolean().optional().default(false),
+});
+
+export const threatAnalysisSchema = z.object({
+  industry: z.string().min(1, 'Industry is required'),
+  companySize: z.string().optional(),
+  frameworks: z.array(z.string()).optional().default([]),
+});
+
+export const qualityScoreSchema = z.object({
+  content: z.string().min(1, 'Content is required'),
+  title: z.string().optional(),
+  framework: z.string().optional(),
+  documentType: z.string().optional(),
+});
+
+export const frameworkAlignmentSchema = z.object({
+  content: z.string().min(1, 'Content is required'),
+  framework: z.string().min(1, 'Framework is required'),
+  documentType: z.string().optional(),
+});
+
+export const fineTuneSchema = z.object({
+  industryId: z.string().min(1, 'Industry ID is required'),
+  requirements: z.array(z.string()).optional().default([]),
+  customInstructions: z.string().optional(),
+  priority: z.enum(['low', 'medium', 'high']).optional().default('medium'),
+});
+
+// AI Image Analysis schemas
+export const analyzeImageSchema = z.object({
+  imageData: z.string().min(1, 'Image data is required'),
+  prompt: z.string().optional(),
+  framework: z.string().optional(),
+  analysisType: z.enum(['compliance', 'quality', 'general']).optional().default('general'),
+});
+
+export const assessRisksSchema = z.object({
+  industryId: z.string().min(1, 'Industry ID is required'),
+  organizationContext: z.object({
+    size: z.string().optional(),
+    region: z.string().optional(),
+    regulations: z.array(z.string()).optional(),
+  }).optional(),
+});
+
+export const generateOptimizedSchema = z.object({
+  configId: z.string().optional(),
+  documentType: z.string().min(1, 'Document type is required'),
+  context: z.object({
+    industry: z.string().optional(),
+    companyName: z.string().optional(),
+    framework: z.string().optional(),
+  }),
+});
+
+export const multimodalChatSchema = z.object({
+  message: z.string().min(1, 'Message is required').max(10000),
+  framework: z.string().optional(),
+  sessionId: z.string().optional(),
+  attachments: z.array(z.object({
+    type: z.string(),
+    content: z.string(),
+    name: z.string().optional(),
+  })).optional(),
+});
+
+export type AnalyzeImageInput = z.infer<typeof analyzeImageSchema>;
+export type AssessRisksInput = z.infer<typeof assessRisksSchema>;
+export type GenerateOptimizedInput = z.infer<typeof generateOptimizedSchema>;
+export type MultimodalChatInput = z.infer<typeof multimodalChatSchema>;
