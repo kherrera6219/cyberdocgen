@@ -351,3 +351,4 @@ export type AnalyzeImageInput = z.infer<typeof analyzeImageSchema>;
 export type AssessRisksInput = z.infer<typeof assessRisksSchema>;
 export type GenerateOptimizedInput = z.infer<typeof generateOptimizedSchema>;
 export type MultimodalChatInput = z.infer<typeof multimodalChatSchema>;
+

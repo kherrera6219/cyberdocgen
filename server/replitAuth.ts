@@ -207,7 +207,7 @@ export async function setupAuth(app: Express) {
 // Helper function to get user ID from either OAuth or session-based auth
 export function getUserId(req: any): string | undefined {
   // Check for temporary/enterprise session first
-  const session = req.session as any;
+  const session = req.session;
   if (session?.userId) {
     return session.userId;
   }
@@ -299,7 +299,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
         
         // Ensure the dev admin user and organization exist
         try {
-          let adminUser = await storage.getUser(devAdminId);
+          const adminUser = await storage.getUser(devAdminId);
           if (!adminUser) {
             await storage.upsertUser({
               id: devAdminId,
@@ -313,7 +313,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
           }
           
           // Ensure dev organization exists and admin is a member
-          let userOrgs = await storage.getUserOrganizations(devAdminId);
+          const userOrgs = await storage.getUserOrganizations(devAdminId);
           let activeOrgId: string;
           
           if (userOrgs.length === 0) {

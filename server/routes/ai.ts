@@ -34,7 +34,7 @@ import {
   assessRisksSchema,
   analyzeImageSchema,
   multimodalChatSchema
-} from '../validation/schemas';
+} from '../validation/requestSchemas';
 import { analyzeImage, analyzeMultipleImages } from '../services/geminiVision';
 
 export function registerAIRoutes(router: Router) {
@@ -727,7 +727,7 @@ export function registerAIRoutes(router: Router) {
       const { message, framework, sessionId, attachments } = req.body;
       const userId = getRequiredUserId(req);
 
-      let imageAnalysisResults: any[] = [];
+      const imageAnalysisResults: any[] = [];
       const unsupportedFiles: string[] = [];
       const documentContents: string[] = [];
       
@@ -861,7 +861,7 @@ export function registerAIRoutes(router: Router) {
 
       // Calculate time filter
       const now = new Date();
-      let startDate = new Date();
+      const startDate = new Date();
       if (timeRange === '7d') {
         startDate.setDate(now.getDate() - 7);
       } else if (timeRange === '30d') {

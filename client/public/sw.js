@@ -1,3 +1,5 @@
+/* eslint-env serviceworker */
+/* global self */
 /**
  * CyberDocGen Service Worker
  *

@@ -116,11 +116,11 @@ export default function Header() {
               <div className="flex items-center space-x-1 sm:space-x-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 px-2 sm:px-3 py-2 rounded-lg transition-colors">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
                   <span className="text-white text-xs sm:text-sm font-medium">
-                    {getInitials((user as any)?.email)}
+                    {getInitials((user)?.email)}
                   </span>
                 </div>
                 <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-200 max-w-24 lg:max-w-none truncate">
-                  {getUserName((user as any)?.email)}
+                  {getUserName((user)?.email)}
                 </span>
                 <ChevronDown className="hidden sm:block h-4 w-4 text-gray-400" />
               </div>

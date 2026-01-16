@@ -312,7 +312,7 @@ export function AIInsightsDashboard({
                           {rec.title}
                         </h3>
                         <Badge 
-                          variant={getPriorityColor(rec.priority) as "destructive" | "secondary" | "outline"} 
+                          variant={getPriorityColor(rec.priority)} 
                           className="text-xs"
                           aria-label={`Priority: ${rec.priority}`}
                         >

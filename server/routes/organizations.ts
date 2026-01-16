@@ -3,7 +3,7 @@ import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { validateBody } from '../middleware/routeValidation';
-import { createOrganizationSchema } from '../validation/schemas';
+import { createOrganizationSchema } from '../validation/requestSchemas';
 
 export function registerOrganizationsRoutes(router: Router) {
   router.get("/", isAuthenticated, async (req: any, res) => {

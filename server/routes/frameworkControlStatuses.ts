@@ -152,7 +152,7 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
           .insert(frameworkControlStatuses)
           .values({
             organizationId,
-            framework: framework.toLowerCase() as any,
+            framework: framework.toLowerCase(),
             controlId,
             status,
             evidenceStatus: evidenceStatus || 'none',
@@ -254,7 +254,7 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
             .insert(frameworkControlStatuses)
             .values({
               organizationId,
-              framework: framework.toLowerCase() as any,
+              framework: framework.toLowerCase(),
               controlId,
               status,
               evidenceStatus: evidenceStatus || 'none',

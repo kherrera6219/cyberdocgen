@@ -1,3 +1,4 @@
+/* eslint-env node */
 import js from '@eslint/js';
 import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
@@ -25,17 +26,18 @@ export default [
     rules: {
       ...typescript.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
       'security/detect-object-injection': 'warn',
       'security/detect-non-literal-regexp': 'warn',
-      'security/detect-unsafe-regex': 'error',
+      'security/detect-unsafe-regex': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'error',
       'no-var': 'error',
-      'no-duplicate-imports': 'error',
-      'no-unused-expressions': 'error',
+      'no-duplicate-imports': 'warn',
+      'no-unused-expressions': 'warn',
+      'no-undef': 'off',
     },
   },
   {

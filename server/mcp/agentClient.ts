@@ -85,7 +85,7 @@ export class AgentClient {
   ): Promise<AgentResponse> {
     try {
       const conversationId = `${context.userId || 'anon'}_${agent.id}`;
-      let messages = this.getConversationHistory(conversationId);
+      const messages = this.getConversationHistory(conversationId);
 
       // Add system prompt if this is the start of conversation
       if (messages.length === 0) {
@@ -200,7 +200,7 @@ export class AgentClient {
   ): Promise<AgentResponse> {
     try {
       const conversationId = `${context.userId || 'anon'}_${agent.id}`;
-      let messages = this.getConversationHistory(conversationId);
+      const messages = this.getConversationHistory(conversationId);
 
       // Add user message
       messages.push({

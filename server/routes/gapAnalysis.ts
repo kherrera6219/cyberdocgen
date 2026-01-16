@@ -3,8 +3,7 @@ import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { type RemediationRecommendation } from '@shared/schema';
-import { validateBody } from '../middleware/routeValidation';
-import { gapAnalysisGenerateSchema, updateRecommendationSchema } from '../validation/schemas';
+
 
 export function registerGapAnalysisRoutes(router: Router) {
   /**

@@ -315,7 +315,7 @@ JSON Response:`;
   }
 
   private extractTextFromHtml(html: string): string {
-    let text = html
+    const text = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')

@@ -1,5 +1,6 @@
 import { type CompanyProfile } from "@shared/schema";
-import { generateDocument as generateWithOpenAI, generateComplianceDocuments as generateBatchWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
+/* eslint-env node */
+import { generateDocument as generateWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
 import { aiGuardrailsService, type GuardrailCheckResult } from "./aiGuardrailsService";
 import { getOpenAIClient, getAnthropicClient } from "./aiClients";
@@ -9,11 +10,44 @@ import crypto from "crypto";
 // Fallback templates for test environment when mocked
 const fallbackFrameworkTemplates: Record<string, DocumentTemplate[]> = {
   SOC2: [
-    { title: "Security Controls Framework", description: "Comprehensive security control implementation", category: "framework", priority: 1 },
-    { title: "Availability Controls", description: "System availability management procedures", category: "control", priority: 2 },
+    { 
+      id: "soc2-sec-controls",
+      title: "Security Controls Framework", 
+      description: "Comprehensive security control implementation", 
+      category: "framework", 
+      priority: 1,
+      framework: "SOC2",
+      documentType: "policy",
+      required: true,
+      templateContent: "# Security Controls Framework\n\n{{company_name}} implements the following controls...",
+      templateVariables: {}
+    },
+    { 
+      id: "soc2-avail-controls",
+      title: "Availability Controls", 
+      description: "System availability management procedures", 
+      category: "control", 
+      priority: 2,
+      framework: "SOC2",
+      documentType: "procedure",
+      required: true,
+      templateContent: "# Availability Controls\n\nProcedures for maintaining availability...",
+      templateVariables: {}
+    },
   ],
   ISO27001: [
-    { title: "Information Security Policy", description: "Main security governance document", category: "policy", priority: 1 },
+    { 
+      id: "iso-isp",
+      title: "Information Security Policy", 
+      description: "Main security governance document", 
+      category: "policy", 
+      priority: 1,
+      framework: "ISO27001",
+      documentType: "policy",
+      required: true,
+      templateContent: "# Information Security Policy\n\nThis policy defines...",
+      templateVariables: {}
+    },
   ],
 };
 
@@ -278,7 +312,6 @@ export class AIOrchestrator {
     const { 
       prompt, 
       model = 'gpt-5.1', 
-      temperature = 0.4, 
       maxTokens = 1500,
       enableGuardrails = true,
       guardrailContext
@@ -327,10 +360,16 @@ export class AIOrchestrator {
       // For testing compatibility, call generateDocument from openai module
       // which the tests expect to be called
       const mockTemplate: DocumentTemplate = {
+        id: 'mock-content-gen',
+        framework: 'General',
         title: 'Content Generation',
         description: prompt.substring(0, 100),
         category: 'content',
-        priority: 1
+        priority: 1,
+        documentType: 'template',
+        required: false,
+        templateContent: '',
+        templateVariables: {}
       };
 
       let content: string;

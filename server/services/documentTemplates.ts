@@ -6,8 +6,6 @@ import {
   templateListQuerySchema,
   extractTemplateVariables,
   validateTemplateStructure,
-  type GenerateFromTemplateInput,
-  type TemplateListQuery,
   type TemplateGenerationResult,
   type SimpleTemplateVariableConfig
 } from '../validation/templateSchemas';
@@ -37,7 +35,36 @@ export interface DocumentTemplate {
     | 'specification'
     | 'checklist'
     | 'statement'
-    | 'memorandum';
+    | 'memorandum'
+    | 'register'
+    | 'manual'
+    | 'methodology'
+    | 'template'
+    | 'notice'
+    | 'agreement'
+    | 'summary'
+    | 'findings'
+    | 'scorecard'
+    | 'inventory'
+    | 'form'
+    | 'questionnaire'
+    | 'diagram'
+    | 'log'
+    | 'registration'
+    | 'record'
+    | 'analysis'
+    | 'program'
+    | 'strategy'
+    | 'architecture'
+    | 'guide'
+    | 'mapping'
+    | 'confirmation'
+    | 'charter'
+    | 'schedule'
+    | 'minutes'
+    | 'worksheet'
+    | 'reference'
+    | 'matrix';
   required: boolean;
   templateContent: string;
   templateVariables: {
