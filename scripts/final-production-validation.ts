@@ -1,5 +1,5 @@
-
 #!/usr/bin/env tsx
+/* eslint-disable no-console */
 
 /**
  * Final Production Validation - Complete System Check
@@ -151,25 +151,25 @@ async function validateSecurity(): Promise<ValidationResult> {
     const { validateEncryption } = await import('./encrypt-existing-data');
     const encryptionResult = await validateEncryption();
     
-    if (encryptionResult.success) {
+    if (encryptionResult) {
       checks.push({
         name: 'Encryption Service',
-        status: 'pass',
+        status: 'pass' as const,
         message: 'Encryption service operational',
         critical: true
       });
     } else {
       checks.push({
         name: 'Encryption Service',
-        status: 'fail',
-        message: encryptionResult.error || 'Encryption validation failed',
+        status: 'fail' as const,
+        message: 'Encryption validation failed',
         critical: true
       });
     }
   } catch (error: any) {
     checks.push({
       name: 'Encryption Service',
-      status: 'fail',
+      status: 'fail' as const,
       message: `Encryption service error: ${error.message}`,
       critical: true
     });
@@ -179,14 +179,14 @@ async function validateSecurity(): Promise<ValidationResult> {
   if (process.env.NODE_ENV === 'production') {
     checks.push({
       name: 'Production Mode',
-      status: 'pass',
+      status: 'pass' as const,
       message: 'Application configured for production',
       critical: false
     });
   } else {
     checks.push({
       name: 'Production Mode',
-      status: 'warning',
+      status: 'warning' as const,
       message: 'Not in production mode - ensure NODE_ENV=production',
       critical: false
     });
@@ -204,41 +204,47 @@ async function validateCompliance(): Promise<ValidationResult> {
     if (complianceReport.overallScore >= 85) {
       checks.push({
         name: 'SOC 2 Compliance',
-        status: 'pass',
+        status: 'pass' as const,
         message: `Compliance score: ${complianceReport.overallScore}% - ${complianceReport.status}`,
         critical: false
       });
     } else if (complianceReport.overallScore >= 70) {
       checks.push({
         name: 'SOC 2 Compliance',
-        status: 'warning',
+        status: 'warning' as const,
         message: `Compliance score: ${complianceReport.overallScore}% - Improvements recommended`,
         critical: false
       });
     } else {
       checks.push({
         name: 'SOC 2 Compliance',
-        status: 'fail',
+        status: 'fail' as const,
         message: `Compliance score: ${complianceReport.overallScore}% - Critical issues identified`,
         critical: true
       });
     }
 
     // Check individual controls
-    const criticalControls = ['dataEncryption', 'auditLogging', 'accessControl'];
-    for (const control of criticalControls) {
-      const controlResult = complianceReport.controls[control];
-      if (controlResult?.status === 'compliant') {
+    const criticalControlsMap: Record<string, string> = {
+      'dataEncryption': 'Data Encryption at Rest',
+      'auditLogging': 'Audit Logging System',
+      'accessControl': 'Access Control System'
+    };
+    
+    for (const [key, checkName] of Object.entries(criticalControlsMap)) {
+      const controlResult = complianceReport.checks.find(c => c.name === checkName);
+      
+      if (controlResult?.status === 'pass' || controlResult?.status === 'warning') { // Warning is acceptable for some controls in dev but let's be strict or mirror the result
         checks.push({
-          name: `${control} Control`,
-          status: 'pass',
+          name: `${checkName} Control`,
+          status: controlResult.status,
           message: controlResult.description,
           critical: true
         });
       } else {
         checks.push({
-          name: `${control} Control`,
-          status: 'fail',
+          name: `${checkName} Control`,
+          status: 'fail' as const,
           message: controlResult?.description || 'Control not implemented',
           critical: true
         });
@@ -248,7 +254,7 @@ async function validateCompliance(): Promise<ValidationResult> {
   } catch (error: any) {
     checks.push({
       name: 'Compliance Validation',
-      status: 'fail',
+      status: 'fail' as const,
       message: `Compliance check failed: ${error.message}`,
       critical: false
     });

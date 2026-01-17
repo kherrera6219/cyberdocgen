@@ -87,9 +87,37 @@ export default function Dashboard() {
     queryKey: ["/api/documents"],
   });
 
+
   const { data: approvals = [] } = useQuery<DocumentApproval[]>({
     queryKey: ["/api/approvals?status=pending"],
   });
+
+  // Calculate stats with guards for undefined data
+  const completedDocs = documents?.filter(doc => doc.status === 'complete').length ?? 0;
+  const activeFrameworks = documents?.length > 0 
+    ? Array.from(new Set(documents.map(doc => doc.framework))).length 
+    : 0;
+
+  // Framework stats with guards
+  const iso27001Docs = documents?.filter(doc => doc.framework === 'ISO27001' && doc.status === 'complete').length ?? 0;
+  const soc2Docs = documents?.filter(doc => doc.framework === 'SOC2' && doc.status === 'complete').length ?? 0;
+
+  const iso27001Progress = Math.round((iso27001Docs / 14) * 100);
+  const soc2Progress = Math.round((soc2Docs / 12) * 100);
+
+  const recentDocuments = documents
+    ?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 3) ?? [];
+
+  const nextApprovalDeadline = useMemo(() => {
+    const pendingDeadlines = approvals
+      .filter((approval) => approval.status === "pending" && approval.dueDate)
+      .map((approval) => new Date(approval.dueDate as Date | string))
+      .filter((date) => !Number.isNaN(date.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    return pendingDeadlines[0] ?? null;
+  }, [approvals]);
 
   // Cleanup function for generation
   const cleanupGeneration = () => {
@@ -223,18 +251,7 @@ export default function Dashboard() {
     );
   }
 
-  // Calculate stats with guards for undefined data
-  const completedDocs = documents?.filter(doc => doc.status === 'complete').length ?? 0;
-  const activeFrameworks = documents?.length > 0 
-    ? Array.from(new Set(documents.map(doc => doc.framework))).length 
-    : 0;
 
-  // Framework stats with guards
-  const iso27001Docs = documents?.filter(doc => doc.framework === 'ISO27001' && doc.status === 'complete').length ?? 0;
-  const soc2Docs = documents?.filter(doc => doc.framework === 'SOC2' && doc.status === 'complete').length ?? 0;
-
-  const iso27001Progress = Math.round((iso27001Docs / 14) * 100);
-  const soc2Progress = Math.round((soc2Docs / 12) * 100);
 
   const handleGenerateDocuments = (framework: string) => {
     if (!profile) {
@@ -255,19 +272,7 @@ export default function Dashboard() {
     handleGenerateDocuments(framework);
   };
 
-  const recentDocuments = documents
-    ?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 3) ?? [];
 
-  const nextApprovalDeadline = useMemo(() => {
-    const pendingDeadlines = approvals
-      .filter((approval) => approval.status === "pending" && approval.dueDate)
-      .map((approval) => new Date(approval.dueDate as Date | string))
-      .filter((date) => !Number.isNaN(date.getTime()))
-      .sort((a, b) => a.getTime() - b.getTime());
-
-    return pendingDeadlines[0] ?? null;
-  }, [approvals]);
 
   return (
     <div className="space-y-6 sm:space-y-8">

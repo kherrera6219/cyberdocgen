@@ -204,6 +204,7 @@ async function decrypt(encryptedData: string | EncryptedData): Promise<string> {
         return service.decryptSensitiveField(parsedData, DataClassification.RESTRICTED);
       }
     } catch (e) {
+      // Ignore decryption errors for invalid formats
     }
   } else {
     return service.decryptSensitiveField(encryptedData, DataClassification.RESTRICTED);

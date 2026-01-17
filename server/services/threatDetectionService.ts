@@ -52,7 +52,7 @@ export class ThreatDetectionService {
       {
         id: 'path_traversal',
         name: 'Path Traversal',
-        pattern: /(\.\.[\/\\]){2,}/,
+        pattern: new RegExp('(\\.\\.[\\\\/]){2,}'),
         severity: 'high',
         description: 'Directory traversal attempt detected'
       },

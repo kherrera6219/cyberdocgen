@@ -58,7 +58,7 @@ async function completePhase2() {
     // 5. Test SMS verification
     logger.info('✓ Testing SMS verification...');
     
-    const smsVerification = await mfaService.verifySMS(testUserId, smsSetup.verificationCode!, smsSetup);
+    const smsVerification = await mfaService.verifySMS(testUserId, smsSetup.verificationCode, smsSetup);
     
     if (!smsVerification) {
       throw new Error('SMS verification failed');

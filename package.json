@@ -12,7 +12,8 @@
     "test": "vitest",
     "test:run": "vitest --run",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",

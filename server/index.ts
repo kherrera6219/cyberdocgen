@@ -8,6 +8,7 @@ import cors from "cors";
 import { getSession } from "./replitAuth";
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       requestId?: string;

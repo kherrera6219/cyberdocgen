@@ -1,6 +1,5 @@
-// @ts-nocheck
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm, type UseFormReturn } from "react-hook-form";
+import { useForm, type UseFormReturn, type Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ import { useEffect } from "react";
 
 interface PersonnelFieldProps {
   title: string;
-  fieldPrefix: string;
+  fieldPrefix: keyof NonNullable<InsertCompanyProfile['keyPersonnel']>;
   form: UseFormReturn<InsertCompanyProfile>;
 }
 
@@ -34,7 +33,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <FormField
           control={form.control}
-          name={`keyPersonnel.${fieldPrefix}.name`}
+          name={`keyPersonnel.${fieldPrefix}.name` as Path<InsertCompanyProfile>}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Name</FormLabel>
@@ -51,7 +50,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
         />
         <FormField
           control={form.control}
-          name={`keyPersonnel.${fieldPrefix}.email`}
+          name={`keyPersonnel.${fieldPrefix}.email` as Path<InsertCompanyProfile>}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Email</FormLabel>
@@ -69,7 +68,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
         />
         <FormField
           control={form.control}
-          name={`keyPersonnel.${fieldPrefix}.phone`}
+          name={`keyPersonnel.${fieldPrefix}.phone` as Path<InsertCompanyProfile>}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Phone</FormLabel>

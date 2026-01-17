@@ -23,7 +23,7 @@ describe('Workflow Integration Tests', () => {
     testUser = await storage.createUser({
       email: 'test@example.com',
       password: 'hashedpassword',
-      organizationId: testOrg.id!,
+      organizationId: testOrg.id,
       createdAt: new Date(),
     });
   });
@@ -32,7 +32,7 @@ describe('Workflow Integration Tests', () => {
     it('should complete full document generation from profile to export', async () => {
       // Step 1: Create company profile
       const companyProfile: Omit<CompanyProfile, 'id' | 'createdAt' | 'updatedAt'> = {
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         companyName: 'Acme Corp',
         industry: 'Technology',
         companySize: '51-200',
@@ -50,7 +50,7 @@ describe('Workflow Integration Tests', () => {
 
       // Step 2: Generate documents
       const doc1 = await storage.createDocument({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         title: 'Information Security Policy',
         framework: 'ISO27001',
         category: 'policy',
@@ -65,7 +65,7 @@ describe('Workflow Integration Tests', () => {
       });
 
       const doc2 = await storage.createDocument({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         title: 'Access Control Procedure',
         framework: 'SOC2',
         category: 'procedure',
@@ -83,14 +83,14 @@ describe('Workflow Integration Tests', () => {
       expect(doc2.id).toBeDefined();
 
       // Step 3: Update document status to in_progress
-      const updatedDoc1 = await storage.updateDocument(doc1.id!, {
+      const updatedDoc1 = await storage.updateDocument(doc1.id, {
         status: 'in_progress',
       });
 
       expect(updatedDoc1.status).toBe('in_progress');
 
       // Step 4: Complete document review
-      const completedDoc1 = await storage.updateDocument(doc1.id!, {
+      const completedDoc1 = await storage.updateDocument(doc1.id, {
         status: 'complete',
         version: '1.1',
       });
@@ -101,14 +101,14 @@ describe('Workflow Integration Tests', () => {
       // Step 5: Query completed documents
       const allStorageDocs = await storage.getDocuments();
       const completedDocs = allStorageDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.status === 'complete'
+        d.organizationId === testOrg.id && d.status === 'complete'
       );
 
       expect(completedDocs.length).toBeGreaterThanOrEqual(1);
       expect(completedDocs.some(d => d.id === doc1.id)).toBe(true);
 
       // Step 6: Query all documents for organization
-      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id!);
+      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id);
 
       expect(allDocs.length).toBe(2);
     });
@@ -116,7 +116,7 @@ describe('Workflow Integration Tests', () => {
     it('should handle document lifecycle with multiple versions', async () => {
       // Create initial document
       const doc = await storage.createDocument({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         title: 'Risk Assessment Procedure',
         framework: 'ISO27001',
         category: 'procedure',
@@ -131,7 +131,7 @@ describe('Workflow Integration Tests', () => {
       expect(doc.status).toBe('draft');
 
       // Update to version 1.1
-      const v11 = await storage.updateDocument(doc.id!, {
+      const v11 = await storage.updateDocument(doc.id, {
         content: 'Version 1.1 content',
         version: '1.1',
         status: 'in_progress',
@@ -141,7 +141,7 @@ describe('Workflow Integration Tests', () => {
       expect(v11.status).toBe('in_progress');
 
       // Finalize to version 2.0
-      const v20 = await storage.updateDocument(doc.id!, {
+      const v20 = await storage.updateDocument(doc.id, {
         content: 'Version 2.0 content',
         version: '2.0',
         status: 'complete',
@@ -156,7 +156,7 @@ describe('Workflow Integration Tests', () => {
     it('should perform gap analysis after document generation', async () => {
       // Create company profile with selected frameworks
       const profile = await storage.createCompanyProfile({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         companyName: 'Tech Startup',
         industry: 'Technology',
         companySize: '1-50',
@@ -170,7 +170,7 @@ describe('Workflow Integration Tests', () => {
       // Generate documents for ISO27001 (out of 114 controls)
       const iso27001Docs = await Promise.all([
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'ISO 27001 Policy 1',
           framework: 'ISO27001',
           category: 'policy',
@@ -181,7 +181,7 @@ describe('Workflow Integration Tests', () => {
           updatedAt: new Date(),
         }),
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'ISO 27001 Policy 2',
           framework: 'ISO27001',
           category: 'policy',
@@ -195,7 +195,7 @@ describe('Workflow Integration Tests', () => {
 
       // Generate documents for SOC2
       const soc2Doc = await storage.createDocument({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         title: 'SOC2 Security Controls',
         framework: 'SOC2',
         category: 'control',
@@ -209,11 +209,11 @@ describe('Workflow Integration Tests', () => {
       // Query documents by framework
       const allDocs = await storage.getDocuments();
       const iso27001AllDocs = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.framework === 'ISO27001'
+        d.organizationId === testOrg.id && d.framework === 'ISO27001'
       );
 
       const soc2AllDocs = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.framework === 'SOC2'
+        d.organizationId === testOrg.id && d.framework === 'SOC2'
       );
 
       expect(iso27001AllDocs.length).toBe(2);
@@ -237,7 +237,7 @@ describe('Workflow Integration Tests', () => {
     it('should identify gaps in document coverage', async () => {
       // Create documents for only some frameworks
       await storage.createDocument({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         title: 'ISO 27001 Policy',
         framework: 'ISO27001',
         category: 'policy',
@@ -250,7 +250,7 @@ describe('Workflow Integration Tests', () => {
 
       // Query all documents
       const allStorageDocs = await storage.getDocuments();
-      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id!);
+      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id);
 
       // Check for framework coverage
       const frameworks = ['ISO27001', 'SOC2', 'FedRAMP', 'NIST'];
@@ -274,7 +274,7 @@ describe('Workflow Integration Tests', () => {
       for (const framework of frameworks) {
         const docs = await Promise.all([
           storage.createDocument({
-            organizationId: testOrg.id!,
+            organizationId: testOrg.id,
             title: `${framework} Policy`,
             framework,
             category: 'policy',
@@ -285,7 +285,7 @@ describe('Workflow Integration Tests', () => {
             updatedAt: new Date(),
           }),
           storage.createDocument({
-            organizationId: testOrg.id!,
+            organizationId: testOrg.id,
             title: `${framework} Procedure`,
             framework,
             category: 'procedure',
@@ -304,7 +304,7 @@ describe('Workflow Integration Tests', () => {
       const allStorageDocs = await storage.getDocuments();
       for (const framework of frameworks) {
         const docs = allStorageDocs.filter(d =>
-          d.organizationId === testOrg.id! && d.framework === framework
+          d.organizationId === testOrg.id && d.framework === framework
         );
 
         expect(docs.length).toBe(2);
@@ -312,7 +312,7 @@ describe('Workflow Integration Tests', () => {
       }
 
       // Verify total document count
-      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id!);
+      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id);
 
       expect(allDocs.length).toBe(6); // 3 frameworks × 2 documents
     });
@@ -321,7 +321,7 @@ describe('Workflow Integration Tests', () => {
       // Create various documents
       await Promise.all([
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'ISO Policy 1',
           framework: 'ISO27001',
           category: 'policy',
@@ -332,7 +332,7 @@ describe('Workflow Integration Tests', () => {
           updatedAt: new Date(),
         }),
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'ISO Policy 2',
           framework: 'ISO27001',
           category: 'policy',
@@ -343,7 +343,7 @@ describe('Workflow Integration Tests', () => {
           updatedAt: new Date(),
         }),
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'SOC2 Control',
           framework: 'SOC2',
           category: 'control',
@@ -358,19 +358,19 @@ describe('Workflow Integration Tests', () => {
       // Filter by framework
       const allDocs = await storage.getDocuments();
       const isoDocs = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.framework === 'ISO27001'
+        d.organizationId === testOrg.id && d.framework === 'ISO27001'
       );
       expect(isoDocs.length).toBe(2);
 
       // Filter by status
       const completeDocs = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.status === 'complete'
+        d.organizationId === testOrg.id && d.status === 'complete'
       );
       expect(completeDocs.length).toBe(2);
 
       // Filter by category
       const policies = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.category === 'policy'
+        d.organizationId === testOrg.id && d.category === 'policy'
       );
       expect(policies.length).toBe(2);
     });
@@ -381,7 +381,7 @@ describe('Workflow Integration Tests', () => {
       // Create AI-generated documents
       await Promise.all([
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'AI Policy 1',
           framework: 'ISO27001',
           category: 'policy',
@@ -394,7 +394,7 @@ describe('Workflow Integration Tests', () => {
           updatedAt: new Date(),
         }),
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'Manual Policy 1',
           framework: 'ISO27001',
           category: 'policy',
@@ -408,7 +408,7 @@ describe('Workflow Integration Tests', () => {
       ]);
 
       const allStorageDocs = await storage.getDocuments();
-      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id!);
+      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id);
 
       const aiDocs = allDocs.filter(d => d.aiGenerated);
       const manualDocs = allDocs.filter(d => !d.aiGenerated);
@@ -425,20 +425,20 @@ describe('Workflow Integration Tests', () => {
       const user2 = await storage.createUser({
         email: 'user2@example.com',
         password: 'hashedpassword',
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         createdAt: new Date(),
       });
 
       const user3 = await storage.createUser({
         email: 'user3@example.com',
         password: 'hashedpassword',
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         createdAt: new Date(),
       });
 
       // Create documents from different users
       await storage.createDocument({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         title: 'Policy from User 1',
         framework: 'ISO27001',
         category: 'policy',
@@ -450,7 +450,7 @@ describe('Workflow Integration Tests', () => {
       });
 
       await storage.createDocument({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         title: 'Policy from User 2',
         framework: 'SOC2',
         category: 'policy',
@@ -463,7 +463,7 @@ describe('Workflow Integration Tests', () => {
 
       // All users should see all organization documents
       const allDocs = await storage.getDocuments();
-      const orgDocs = allDocs.filter(d => d.organizationId === testOrg.id!);
+      const orgDocs = allDocs.filter(d => d.organizationId === testOrg.id);
 
       expect(orgDocs.length).toBe(2);
     });
@@ -474,7 +474,7 @@ describe('Workflow Integration Tests', () => {
       // Create a variety of documents for testing
       await Promise.all([
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'Information Security Policy',
           description: 'Main security policy document',
           framework: 'ISO27001',
@@ -486,7 +486,7 @@ describe('Workflow Integration Tests', () => {
           updatedAt: new Date('2024-01-15'),
         }),
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'Access Control Procedure',
           description: 'Detailed access control procedures',
           framework: 'SOC2',
@@ -498,7 +498,7 @@ describe('Workflow Integration Tests', () => {
           updatedAt: new Date('2024-01-20'),
         }),
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'Incident Response Plan',
           description: 'Security incident response plan',
           framework: 'FedRAMP',
@@ -515,7 +515,7 @@ describe('Workflow Integration Tests', () => {
     it('should support filtering by status', async () => {
       const allDocs = await storage.getDocuments();
       const completeDocs = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.status === 'complete'
+        d.organizationId === testOrg.id && d.status === 'complete'
       );
 
       expect(completeDocs.length).toBe(1);
@@ -525,7 +525,7 @@ describe('Workflow Integration Tests', () => {
     it('should support filtering by framework', async () => {
       const allDocs = await storage.getDocuments();
       const soc2Docs = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.framework === 'SOC2'
+        d.organizationId === testOrg.id && d.framework === 'SOC2'
       );
 
       expect(soc2Docs.length).toBe(1);
@@ -535,7 +535,7 @@ describe('Workflow Integration Tests', () => {
     it('should support filtering by category', async () => {
       const allDocs = await storage.getDocuments();
       const policyDocs = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.category === 'policy'
+        d.organizationId === testOrg.id && d.category === 'policy'
       );
 
       expect(policyDocs.length).toBe(1);
@@ -544,7 +544,7 @@ describe('Workflow Integration Tests', () => {
 
     it('should return all documents when no filters applied', async () => {
       const allDocs = await storage.getDocuments();
-      const orgDocs = allDocs.filter(d => d.organizationId === testOrg.id!);
+      const orgDocs = allDocs.filter(d => d.organizationId === testOrg.id);
 
       expect(orgDocs.length).toBe(3);
     });
@@ -553,7 +553,7 @@ describe('Workflow Integration Tests', () => {
   describe('Bulk Document Operations Workflow', () => {
     it('should handle bulk document creation', async () => {
       const documentsToCreate = Array.from({ length: 10 }, (_, i) => ({
-        organizationId: testOrg.id!,
+        organizationId: testOrg.id,
         title: `Bulk Document ${i + 1}`,
         framework: 'ISO27001',
         category: 'policy' as const,
@@ -573,7 +573,7 @@ describe('Workflow Integration Tests', () => {
 
       // Verify all documents were created
       const allStorageDocs = await storage.getDocuments();
-      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id!);
+      const allDocs = allStorageDocs.filter(d => d.organizationId === testOrg.id);
 
       expect(allDocs.length).toBe(10);
     });
@@ -582,7 +582,7 @@ describe('Workflow Integration Tests', () => {
       // Create multiple draft documents
       const draftDocs = await Promise.all([
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'Draft 1',
           framework: 'ISO27001',
           category: 'policy',
@@ -593,7 +593,7 @@ describe('Workflow Integration Tests', () => {
           updatedAt: new Date(),
         }),
         storage.createDocument({
-          organizationId: testOrg.id!,
+          organizationId: testOrg.id,
           title: 'Draft 2',
           framework: 'ISO27001',
           category: 'policy',
@@ -608,7 +608,7 @@ describe('Workflow Integration Tests', () => {
       // Update all to in_progress
       const updatedDocs = await Promise.all(
         draftDocs.map(doc =>
-          storage.updateDocument(doc.id!, { status: 'in_progress' })
+          storage.updateDocument(doc.id, { status: 'in_progress' })
         )
       );
 
@@ -617,7 +617,7 @@ describe('Workflow Integration Tests', () => {
       // Verify updates persisted
       const allDocs = await storage.getDocuments();
       const inProgressDocs = allDocs.filter(d =>
-        d.organizationId === testOrg.id! && d.status === 'in_progress'
+        d.organizationId === testOrg.id && d.status === 'in_progress'
       );
 
       expect(inProgressDocs.length).toBe(2);

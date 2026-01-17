@@ -1,5 +1,5 @@
-
 #!/usr/bin/env tsx
+/* eslint-disable no-console */
 
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';

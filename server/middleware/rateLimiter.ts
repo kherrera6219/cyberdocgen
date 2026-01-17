@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 
 interface RateLimitConfig {
@@ -112,7 +112,7 @@ const AI_REQUEST_LIMITS = {
   maxMetadataSize: 10000, // 10KB max for metadata
 };
 
-export function validateAIRequestSize(req: Request, res: Response, next: Function) {
+export function validateAIRequestSize(req: Request, res: Response, next: NextFunction) {
   try {
     const body = req.body;
     
