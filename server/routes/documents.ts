@@ -1,11 +1,9 @@
-import { Router } from 'express';
-import { z } from 'zod';
+import { Router, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { insertDocumentSchema, documentVersions } from '@shared/schema';
 import { versionService } from '../services/versionService';
-import { auditService } from '../services/auditService';
 import type { AIModel } from '../services/aiOrchestrator';
 import { db } from '../db';
 import { eq, desc } from 'drizzle-orm';
@@ -16,245 +14,217 @@ import {
   getDocumentWithOrgCheck,
   getCompanyProfileWithOrgCheck
 } from '../middleware/multiTenant';
+import { 
+  secureHandler, 
+  validateInput, 
+  ValidationError,
+  NotFoundError
+} from '../utils/errorHandling';
 
 export async function registerDocumentsRoutes(router: Router) {
   const { requireMFA, enforceMFATimeout } = await import('../middleware/mfa');
 
-  router.get("/", isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      const { companyProfileId, framework } = req.query;
-      const organizationId = req.organizationId!;
+  router.get("/", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { companyProfileId, framework } = req.query;
+    const organizationId = req.organizationId!;
 
-      let documents;
-      if (companyProfileId) {
-        const { profile, authorized } = await getCompanyProfileWithOrgCheck(
-          companyProfileId as string, 
-          organizationId
-        );
-        if (!authorized) {
-          return res.status(404).json({ message: "Company profile not found" });
-        }
-        documents = await storage.getDocumentsByCompanyProfile(companyProfileId as string);
-      } else if (framework) {
-        const allDocs = await storage.getDocumentsByFramework(framework as string);
-        documents = [];
-        for (const doc of allDocs) {
-          const { authorized } = await getDocumentWithOrgCheck(doc.id, organizationId);
-          if (authorized) documents.push(doc);
-        }
-      } else {
-        documents = await storage.getDocuments(organizationId);
+    let documents;
+    if (companyProfileId) {
+      const { authorized } = await getCompanyProfileWithOrgCheck(
+        companyProfileId as string, 
+        organizationId
+      );
+      if (!authorized) {
+        throw new NotFoundError("Company profile not found");
       }
-
-      res.json(documents);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error("Failed to fetch documents", { error: errorMessage });
-      res.status(500).json({ message: "Failed to fetch documents" });
+      documents = await storage.getDocumentsByCompanyProfile(companyProfileId as string);
+    } else if (framework) {
+      const allDocs = await storage.getDocumentsByFramework(framework as string);
+      documents = [];
+      for (const doc of allDocs) {
+        const { authorized } = await getDocumentWithOrgCheck(doc.id, organizationId);
+        if (authorized) documents.push(doc);
+      }
+    } else {
+      documents = await storage.getDocuments(organizationId);
     }
-  });
 
-  router.get("/:id", isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      const { document, authorized } = await getDocumentWithOrgCheck(
-        req.params.id, 
+    res.json({ success: true, data: documents });
+  }));
+
+  router.get("/:id", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { document, authorized } = await getDocumentWithOrgCheck(
+      req.params.id, 
+      req.organizationId!
+    );
+    
+    if (!authorized || !document) {
+      logger.warn('Document access denied - cross-tenant attempt', {
+        documentId: req.params.id,
+        organizationId: req.organizationId,
+        userId: getUserId(req),
+        ip: req.ip
+      });
+      throw new NotFoundError("Document not found");
+    }
+    res.json({ success: true, data: document });
+  }));
+
+  router.post("/", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, validateInput(insertDocumentSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const validatedData = req.body;
+    
+    // Validate that companyProfileId belongs to the user's organization
+    if (validatedData.companyProfileId) {
+      const { authorized } = await getCompanyProfileWithOrgCheck(
+        validatedData.companyProfileId, 
         req.organizationId!
       );
-      
-      if (!authorized || !document) {
-        logger.warn('Document access denied - cross-tenant attempt', {
-          documentId: req.params.id,
+      if (!authorized) {
+        logger.warn('Document creation denied - cross-tenant company profile', {
+          companyProfileId: validatedData.companyProfileId,
           organizationId: req.organizationId,
           userId: getUserId(req),
           ip: req.ip
         });
-        return res.status(404).json({ message: "Document not found" });
+        throw new ValidationError("Invalid company profile");
       }
-      res.json(document);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch document" });
     }
-  });
+    
+    const document = await storage.createDocument(validatedData);
+    cache.invalidateByPattern('/api/documents');
+    res.status(201).json({ success: true, data: document });
+  }, { audit: { action: 'create', entityType: 'document' } }));
 
-  router.post("/", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
-    try {
-      const validatedData = insertDocumentSchema.parse(req.body);
-      
-      // Validate that companyProfileId belongs to the user's organization
-      if (validatedData.companyProfileId) {
-        const { profile, authorized } = await getCompanyProfileWithOrgCheck(
-          validatedData.companyProfileId, 
-          req.organizationId!
-        );
-        if (!authorized) {
-          logger.warn('Document creation denied - cross-tenant company profile', {
-            companyProfileId: validatedData.companyProfileId,
-            organizationId: req.organizationId,
-            userId: getUserId(req),
-            ip: req.ip
-          });
-          return res.status(400).json({ message: "Invalid company profile" });
-        }
-      }
-      
-      const document = await storage.createDocument(validatedData);
-      
-      cache.invalidateByPattern('/api/documents');
-      
-      res.status(201).json(document);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create document" });
+  router.put("/:id", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, validateInput(insertDocumentSchema.partial()), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { document: existingDoc, authorized } = await getDocumentWithOrgCheck(
+      req.params.id, 
+      req.organizationId!
+    );
+    
+    if (!authorized || !existingDoc) {
+      logger.warn('Document update denied - cross-tenant attempt', {
+        documentId: req.params.id,
+        organizationId: req.organizationId,
+        userId: getUserId(req),
+        ip: req.ip
+      });
+      throw new NotFoundError("Document not found");
     }
-  });
-
-  router.put("/:id", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
-    try {
-      const { document: existingDoc, authorized } = await getDocumentWithOrgCheck(
-        req.params.id, 
+    
+    const validatedData = req.body;
+    
+    // Prevent cross-tenant document reassignment via companyProfileId change
+    if (validatedData.companyProfileId && validatedData.companyProfileId !== existingDoc.companyProfileId) {
+      const { authorized: newProfileAuthorized } = await getCompanyProfileWithOrgCheck(
+        validatedData.companyProfileId, 
         req.organizationId!
       );
-      
-      if (!authorized || !existingDoc) {
-        logger.warn('Document update denied - cross-tenant attempt', {
+      if (!newProfileAuthorized) {
+        logger.warn('Document update denied - cross-tenant reassignment attempt', {
           documentId: req.params.id,
+          newCompanyProfileId: validatedData.companyProfileId,
           organizationId: req.organizationId,
           userId: getUserId(req),
           ip: req.ip
         });
-        return res.status(404).json({ message: "Document not found" });
+        throw new ValidationError("Invalid company profile");
       }
-      
-      const validatedData = insertDocumentSchema.partial().parse(req.body);
-      
-      // Prevent cross-tenant document reassignment via companyProfileId change
-      if (validatedData.companyProfileId && validatedData.companyProfileId !== existingDoc.companyProfileId) {
-        const { profile, authorized: newProfileAuthorized } = await getCompanyProfileWithOrgCheck(
-          validatedData.companyProfileId, 
-          req.organizationId!
-        );
-        if (!newProfileAuthorized) {
-          logger.warn('Document update denied - cross-tenant reassignment attempt', {
-            documentId: req.params.id,
-            newCompanyProfileId: validatedData.companyProfileId,
-            organizationId: req.organizationId,
-            userId: getUserId(req),
-            ip: req.ip
-          });
-          return res.status(400).json({ message: "Invalid company profile" });
+    }
+    
+    const document = await storage.updateDocument(req.params.id, validatedData);
+    if (!document) {
+      throw new NotFoundError("Document not found");
+    }
+    
+    cache.invalidateByPattern('/api/documents');
+    res.json({ success: true, data: document });
+  }, { audit: { action: 'update', entityType: 'document' } }));
+
+  router.delete("/:id", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { document: existingDoc, authorized } = await getDocumentWithOrgCheck(
+      req.params.id, 
+      req.organizationId!
+    );
+    
+    if (!authorized || !existingDoc) {
+      logger.warn('Document delete denied - cross-tenant attempt', {
+        documentId: req.params.id,
+        organizationId: req.organizationId,
+        userId: getUserId(req),
+        ip: req.ip
+      });
+      throw new NotFoundError("Document not found");
+    }
+    
+    const success = await storage.deleteDocument(req.params.id);
+    if (!success) {
+      throw new NotFoundError("Document not found");
+    }
+    
+    cache.invalidateByPattern('/api/documents');
+    res.status(204).send();
+  }, { audit: { action: 'delete', entityType: 'document' } }));
+
+  router.post('/upload-and-extract', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    // Note: This endpoint returns extracted data without persisting.
+    // Organization context is enforced for audit/logging purposes.
+    const extractedData = [
+      {
+        filename: "incorporation_docs.pdf",
+        companyName: "TechCorp Solutions Inc.",
+        incorporationDate: "2020-03-15",
+        businessType: "Corporation",
+        jurisdiction: "Delaware, USA",
+        registrationNumber: "2020-001234",
+        principals: [
+          { name: "John Smith", role: "CEO" },
+          { name: "Jane Doe", role: "CTO" }
+        ],
+        address: "123 Innovation Drive, San Francisco, CA 94105",
+        contactInfo: {
+          email: "info@techcorp.com",
+          phone: "+1-555-0123"
         }
       }
-      
-      const document = await storage.updateDocument(req.params.id, validatedData);
-      if (!document) {
-        return res.status(404).json({ message: "Document not found" });
-      }
-      
-      cache.invalidateByPattern('/api/documents');
-      
-      res.json(document);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update document" });
-    }
-  });
+    ];
 
-  router.delete("/:id", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
-    try {
-      const { document: existingDoc, authorized } = await getDocumentWithOrgCheck(
-        req.params.id, 
-        req.organizationId!
-      );
-      
-      if (!authorized || !existingDoc) {
-        logger.warn('Document delete denied - cross-tenant attempt', {
-          documentId: req.params.id,
-          organizationId: req.organizationId,
-          userId: getUserId(req),
-          ip: req.ip
-        });
-        return res.status(404).json({ message: "Document not found" });
-      }
-      
-      const success = await storage.deleteDocument(req.params.id);
-      if (!success) {
-        return res.status(404).json({ message: "Document not found" });
-      }
-      
-      cache.invalidateByPattern('/api/documents');
-      
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete document" });
-    }
-  });
-
-  router.post('/upload-and-extract', isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      // Note: This endpoint returns extracted data without persisting.
-      // Organization context is enforced for audit/logging purposes.
-      const extractedData = [
-        {
-          filename: "incorporation_docs.pdf",
-          companyName: "TechCorp Solutions Inc.",
-          incorporationDate: "2020-03-15",
-          businessType: "Corporation",
-          jurisdiction: "Delaware, USA",
-          registrationNumber: "2020-001234",
-          principals: [
-            { name: "John Smith", role: "CEO" },
-            { name: "Jane Doe", role: "CTO" }
-          ],
-          address: "123 Innovation Drive, San Francisco, CA 94105",
-          contactInfo: {
-            email: "info@techcorp.com",
-            phone: "+1-555-0123"
-          }
-        }
-      ];
-
-      res.json({ 
-        success: true, 
+    res.json({ 
+      success: true, 
+      data: {
         extractedData,
         message: "Documents processed successfully" 
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Error processing documents', { error: errorMessage });
-      res.status(500).json({ message: 'Failed to process documents' });
+      }
+    });
+  }));
+
+  router.post('/generate', isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { framework, category, title, description, companyProfileId } = req.body;
+    
+    if (!framework || !category || !title) {
+      throw new ValidationError('Missing required fields');
     }
-  });
 
-  router.post('/generate', isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, async (req: MultiTenantRequest, res) => {
-    try {
-      const { framework, category, title, description, companyProfileId } = req.body;
-      
-      if (!framework || !category || !title) {
-        return res.status(400).json({ message: 'Missing required fields' });
-      }
+    // Require valid companyProfileId for tenant isolation
+    if (!companyProfileId) {
+      throw new ValidationError("companyProfileId is required");
+    }
 
-      // Validate companyProfileId belongs to user's organization
-      if (companyProfileId) {
-        const { profile, authorized } = await getCompanyProfileWithOrgCheck(
-          companyProfileId, 
-          req.organizationId!
-        );
-        if (!authorized) {
-          logger.warn('Document generation denied - cross-tenant company profile', {
-            companyProfileId,
-            organizationId: req.organizationId,
-            userId: getUserId(req),
-            ip: req.ip
-          });
-          return res.status(400).json({ message: "Invalid company profile" });
-        }
-      }
+    // Validate companyProfileId belongs to user's organization
+    const { authorized } = await getCompanyProfileWithOrgCheck(
+      companyProfileId, 
+      req.organizationId!
+    );
+    if (!authorized) {
+      logger.warn('Document generation denied - cross-tenant company profile', {
+        companyProfileId,
+        organizationId: req.organizationId,
+        userId: getUserId(req),
+        ip: req.ip
+      });
+      throw new ValidationError("Invalid company profile");
+    }
 
-      const generatedContent = `# ${title}
+    const generatedContent = `# ${title}
 
 ## Overview
 This ${category} document has been generated for ${framework} compliance requirements.
@@ -286,319 +256,225 @@ Document generated using AI on ${new Date().toISOString()}
 Framework: ${framework}
 Category: ${category}`;
 
-      // Require valid companyProfileId for tenant isolation
-      if (!companyProfileId) {
-        return res.status(400).json({ message: "companyProfileId is required" });
-      }
-      
-      const document = await storage.createDocument({
-        companyProfileId,
-        createdBy: getUserId(req) || "system",
-        title,
-        description,
-        framework,
-        category,
-        content: generatedContent,
-        documentType: "text",
-        status: "draft",
-        aiGenerated: true,
-        aiModel: "gpt-4",
-        generationPrompt: `Generate a ${category} document for ${framework} compliance`
-      });
+    const document = await storage.createDocument({
+      companyProfileId,
+      createdBy: getUserId(req) || "system",
+      title,
+      description,
+      framework,
+      category,
+      content: generatedContent,
+      documentType: "text",
+      status: "draft",
+      aiGenerated: true,
+      aiModel: "gpt-4",
+      generationPrompt: `Generate a ${category} document for ${framework} compliance`
+    });
 
-      res.json({ success: true, document });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Error generating document', { error: errorMessage });
-      res.status(500).json({ message: 'Failed to generate document' });
-    }
-  });
+    res.json({ success: true, data: document });
+  }, { audit: { action: 'create', entityType: 'document' } }));
 
-  router.get('/:id/versions', isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      const documentId = req.params.id;
-      const userId = getUserId(req);
-      
-      // Validate document ownership
-      const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
-      if (!authorized || !document) {
-        logger.warn('Document versions access denied - cross-tenant attempt', {
-          documentId,
-          organizationId: req.organizationId,
-          userId,
-          ip: req.ip
-        });
-        return res.status(404).json({ message: "Document not found" });
-      }
-      
-      const versions = await versionService.getVersionHistory(documentId);
-      
-      await auditService.logAction({
-        action: "view",
-        entityType: "document",
-        entityId: documentId,
-        userId: userId,
-        ipAddress: req.ip || 'unknown',
-        userAgent: req.get('User-Agent'),
-        sessionId: req.sessionID,
-        metadata: { viewAction: "view_versions", versionCount: versions.length }
-      });
-      
-      res.json(versions);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Error fetching document versions:', { error: errorMessage, documentId: req.params.id }, req);
-      res.status(500).json({ message: 'Failed to fetch document versions' });
-    }
-  });
-
-  router.post('/:id/versions', isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      const { title, content, changes, changeType = "minor" } = req.body;
-      const documentId = req.params.id;
-      const userId = getRequiredUserId(req);
-      
-      if (!title || !content) {
-        return res.status(400).json({ message: "Title and content are required" });
-      }
-
-      // Validate document ownership
-      const { document: existingDoc, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
-      if (!authorized || !existingDoc) {
-        logger.warn('Document version creation denied - cross-tenant attempt', {
-          documentId,
-          organizationId: req.organizationId,
-          userId,
-          ip: req.ip
-        });
-        return res.status(404).json({ message: "Document not found" });
-      }
-
-      const version = await versionService.createVersion({
+  router.get('/:id/versions', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const documentId = req.params.id;
+    const userId = getUserId(req);
+    
+    // Validate document ownership
+    const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
+    if (!authorized || !document) {
+      logger.warn('Document versions access denied - cross-tenant attempt', {
         documentId,
-        title,
-        content,
-        changes,
-        changeType,
-        createdBy: userId
+        organizationId: req.organizationId,
+        userId,
+        ip: req.ip
       });
+      throw new NotFoundError("Document not found");
+    }
+    
+    const versions = await versionService.getVersionHistory(documentId);
+    
+    res.json({ success: true, data: versions });
+  }, { audit: { action: 'view', entityType: 'document', getEntityId: (req) => req.params.id } }));
 
-      await auditService.logAction({
-        action: "create",
-        entityType: "document",
-        entityId: documentId,
-        userId: userId,
-        ipAddress: req.ip || 'unknown',
-        userAgent: req.get('User-Agent'),
-        sessionId: req.sessionID,
-        oldValues: { version: existingDoc.version },
-        newValues: { version: version.versionNumber, changes, changeType },
-        metadata: { versionId: version.id, changeType, automated: false }
+  router.post('/:id/versions', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { title, content, changes, changeType = "minor" } = req.body;
+    const documentId = req.params.id;
+    const userId = getRequiredUserId(req);
+    
+    if (!title || !content) {
+      throw new ValidationError("Title and content are required");
+    }
+
+    // Validate document ownership
+    const { document: existingDoc, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
+    if (!authorized || !existingDoc) {
+      logger.warn('Document version creation denied - cross-tenant attempt', {
+        documentId,
+        organizationId: req.organizationId,
+        userId,
+        ip: req.ip
       });
+      throw new NotFoundError("Document not found");
+    }
 
-      res.json({ 
-        success: true, 
+    const version = await versionService.createVersion({
+      documentId,
+      title,
+      content,
+      changes,
+      changeType,
+      createdBy: userId
+    });
+
+    res.json({ 
+      success: true, 
+      data: {
         message: "Version created successfully",
         version
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Error creating document version:', { error: errorMessage, documentId: req.params.id }, req);
-      res.status(500).json({ message: 'Failed to create document version' });
-    }
-  });
-
-  router.post('/:id/versions/:versionId/restore', isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      const documentId = req.params.id;
-      const versionId = req.params.versionId;
-      const userId = getRequiredUserId(req);
-
-      // Validate document ownership
-      const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
-      if (!authorized || !document) {
-        logger.warn('Document version restore denied - cross-tenant attempt', {
-          documentId,
-          organizationId: req.organizationId,
-          userId,
-          ip: req.ip
-        });
-        return res.status(404).json({ message: "Document not found" });
       }
+    });
+  }, { audit: { action: 'create', entityType: 'document', getEntityId: (req) => req.params.id } }));
 
-      const restoredVersion = await versionService.restoreVersion(documentId, parseInt(versionId), userId);
+  router.post('/:id/versions/:versionId/restore', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const documentId = req.params.id;
+    const versionId = req.params.versionId;
+    const userId = getRequiredUserId(req);
 
-      await auditService.logAction({
-        action: "update",
-        entityType: "document",
-        entityId: documentId,
-        userId: userId,
-        ipAddress: req.ip || 'unknown',
-        userAgent: req.get('User-Agent'),
-        sessionId: req.sessionID,
-        oldValues: { version: document.version },
-        newValues: { version: restoredVersion.versionNumber, restoredFromVersion: versionId },
-        metadata: {
-          action: "version_restore",
-          versionId: versionId,
-          restoredVersionNumber: restoredVersion.versionNumber
-        }
+    // Validate document ownership
+    const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
+    if (!authorized || !document) {
+      logger.warn('Document version restore denied - cross-tenant attempt', {
+        documentId,
+        organizationId: req.organizationId,
+        userId,
+        ip: req.ip
       });
+      throw new NotFoundError("Document not found");
+    }
 
-      res.json({ 
-        success: true, 
+    const restoredVersion = await versionService.restoreVersion(documentId, parseInt(versionId), userId);
+
+    res.json({ 
+      success: true, 
+      data: {
         message: "Document restored to selected version",
         version: restoredVersion
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Error restoring document version:', { error: errorMessage, documentId: req.params.id, versionId: req.params.versionId }, req);
-      res.status(500).json({ message: 'Failed to restore document version' });
-    }
-  });
-
-  router.get('/:id/versions/:version1/compare/:version2', isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      const { id: documentId, version1, version2 } = req.params;
-      const userId = getUserId(req);
-
-      // Validate document ownership
-      const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
-      if (!authorized || !document) {
-        return res.status(404).json({ message: "Document not found" });
       }
+    });
+  }, { audit: { action: 'update', entityType: 'document', getEntityId: (req) => req.params.id } }));
 
-      const comparison = await versionService.compareVersions(documentId, parseInt(version1), parseInt(version2));
+  router.get('/:id/versions/:version1/compare/:version2', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { id: documentId, version1, version2 } = req.params;
 
-      await auditService.logAction({
-        action: "view",
-        entityType: "document",
-        entityId: documentId,
-        userId: userId,
-        ipAddress: req.ip || 'unknown',
-        userAgent: req.get('User-Agent'),
-        sessionId: req.sessionID,
-        metadata: {
-          action: "version_compare",
-          version1,
-          version2,
-          diffCount: comparison.diff.added.length + comparison.diff.removed.length + comparison.diff.modified.length
-        }
-      });
-
-      res.json(comparison);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Error comparing document versions:', { error: errorMessage, documentId: req.params.id }, req);
-      res.status(500).json({ message: 'Failed to compare document versions' });
+    // Validate document ownership
+    const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
+    if (!authorized || !document) {
+      throw new NotFoundError("Document not found");
     }
-  });
 
-  router.get('/:id/approvals', isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      // Validate document ownership
-      const { document, authorized } = await getDocumentWithOrgCheck(req.params.id, req.organizationId!);
-      if (!authorized || !document) {
-        return res.status(404).json({ message: "Document not found" });
-      }
-      
-      const mockApprovals = [
-        {
-          id: "approval-1",
-          documentId: req.params.id,
-          versionId: "ver-3",
-          requestedBy: getUserId(req) || "user-1",
-          approverRole: "ciso",
-          assignedTo: "user-ciso",
-          status: "approved",
-          comments: "Approved after thorough review. All compliance requirements met.",
-          priority: "high",
-          dueDate: new Date("2024-08-20T17:00:00Z"),
-          approvedAt: new Date("2024-08-14T16:45:00Z"),
-          rejectedAt: null,
-          createdAt: new Date("2024-08-14T10:00:00Z"),
-          updatedAt: new Date("2024-08-14T16:45:00Z")
-        }
-      ];
+    const comparison = await versionService.compareVersions(documentId, parseInt(version1), parseInt(version2));
 
-      res.json(mockApprovals);
-    } catch (error) {
-      logger.error('Error fetching document approvals:', error);
-      res.status(500).json({ message: 'Failed to fetch document approvals' });
+    res.json({ success: true, data: comparison });
+  }, { audit: { action: 'view', entityType: 'document', getEntityId: (req) => req.params.id } }));
+
+  router.get('/:id/approvals', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    // Validate document ownership
+    const { document, authorized } = await getDocumentWithOrgCheck(req.params.id, req.organizationId!);
+    if (!authorized || !document) {
+      throw new NotFoundError("Document not found");
     }
-  });
-
-  router.post('/:id/approvals', isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      // Validate document ownership
-      const { document, authorized } = await getDocumentWithOrgCheck(req.params.id, req.organizationId!);
-      if (!authorized || !document) {
-        return res.status(404).json({ message: "Document not found" });
+    
+    const mockApprovals = [
+      {
+        id: "approval-1",
+        documentId: req.params.id,
+        versionId: "ver-3",
+        requestedBy: getUserId(req) || "user-1",
+        approverRole: "ciso",
+        assignedTo: "user-ciso",
+        status: "approved",
+        comments: "Approved after thorough review. All compliance requirements met.",
+        priority: "high",
+        dueDate: new Date("2024-08-20T17:00:00Z"),
+        approvedAt: new Date("2024-08-14T16:45:00Z"),
+        rejectedAt: null,
+        createdAt: new Date("2024-08-14T10:00:00Z"),
+        updatedAt: new Date("2024-08-14T16:45:00Z")
       }
-      
-      const { approverRole, assignedTo, comments, priority, dueDate } = req.body;
-      
-      res.json({ 
-        success: true, 
+    ];
+
+    res.json({ success: true, data: mockApprovals });
+  }));
+
+  router.post('/:id/approvals', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    // Validate document ownership
+    const { document, authorized } = await getDocumentWithOrgCheck(req.params.id, req.organizationId!);
+    if (!authorized || !document) {
+      throw new NotFoundError("Document not found");
+    }
+    
+    // In a real app, we would validate and save req.body to approvals table
+    
+    res.json({ 
+      success: true, 
+      data: {
         message: "Approval request submitted successfully",
         approvalId: "new-approval-id"
-      });
-    } catch (error) {
-      logger.error('Error requesting approval:', error);
-      res.status(500).json({ message: 'Failed to request approval' });
+      }
+    });
+  }, { audit: { action: 'create', entityType: 'approval', getEntityId: (req) => req.params.id } }));
+
+  router.post("/generate-single", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { aiOrchestrator } = await import('../services/aiOrchestrator');
+    const { companyProfileId, framework, template, model = 'auto', includeQualityAnalysis = false } = req.body;
+    const userId = getRequiredUserId(req);
+    
+    if (!companyProfileId || !framework || !template) {
+      throw new ValidationError("Company profile ID, framework, and template are required");
     }
-  });
 
-  router.post("/generate-single", isAuthenticated, requireMFA, enforceMFATimeout, async (req: any, res) => {
-    try {
-      const { aiOrchestrator } = await import('../services/aiOrchestrator');
-      const { companyProfileId, framework, template, model = 'auto', includeQualityAnalysis = false } = req.body;
-      const userId = getRequiredUserId(req);
-      
-      if (!companyProfileId || !framework || !template) {
-        return res.status(400).json({ message: "Company profile ID, framework, and template are required" });
-      }
+    const { authorized } = await getCompanyProfileWithOrgCheck(companyProfileId, req.organizationId!);
+    if (!authorized) {
+      throw new NotFoundError("Company profile not found");
+    }
 
-      const companyProfile = await storage.getCompanyProfile(companyProfileId);
-      if (!companyProfile) {
-        return res.status(404).json({ message: "Company profile not found" });
-      }
+    const companyProfile = await storage.getCompanyProfile(companyProfileId);
+    if (!companyProfile) {
+      throw new NotFoundError("Company profile not found");
+    }
 
-      const result = await aiOrchestrator.generateDocument(
-        template,
-        companyProfile,
-        framework,
-        { model: model as AIModel, includeQualityAnalysis }
-      );
+    const result = await aiOrchestrator.generateDocument(
+      template,
+      companyProfile,
+      framework,
+      { model: model as AIModel, includeQualityAnalysis }
+    );
 
-      const document = await storage.createDocument({
-        companyProfileId,
-        createdBy: userId,
-        title: template.title,
-        description: template.description,
-        framework,
-        category: template.category,
-        content: result.content,
-        status: "draft",
-        aiGenerated: true,
-        aiModel: result.model,
-        generationPrompt: `Single document generation using ${result.model}`,
-      });
+    const document = await storage.createDocument({
+      companyProfileId,
+      createdBy: userId,
+      title: template.title,
+      description: template.description,
+      framework,
+      category: template.category,
+      content: result.content,
+      status: "draft",
+      aiGenerated: true,
+      aiModel: result.model,
+      generationPrompt: `Single document generation using ${result.model}`,
+    });
 
-      res.json({ 
+    res.json({ 
+      success: true,
+      data: {
         document, 
         quality: result.qualityScore ? {
           score: result.qualityScore,
           feedback: result.feedback,
           suggestions: result.suggestions
         } : null
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error("Single document generation failed", { error: errorMessage });
-      res.status(500).json({ message: "Failed to generate document" });
-    }
-  });
+      }
+    });
+  }, { audit: { action: 'create', entityType: 'document' } }));
 
   /**
    * @openapi
@@ -620,55 +496,52 @@ Category: ${category}`;
    *       401:
    *         description: Unauthorized
    */
-  router.get('/:id/history', isAuthenticated, requireOrganization, async (req: MultiTenantRequest, res) => {
-    try {
-      const documentId = req.params.id;
+  router.get('/:id/history', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const documentId = req.params.id;
 
-      if (!documentId) {
-        return res.status(400).json({ message: 'Invalid document ID' });
-      }
+    if (!documentId) {
+      throw new ValidationError('Invalid document ID');
+    }
 
-      // Validate document ownership
-      const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
-      if (!authorized || !document) {
-        logger.warn('Document history access denied - cross-tenant attempt', {
-          documentId,
-          organizationId: req.organizationId,
-          userId: getUserId(req),
-          ip: req.ip
-        });
-        return res.status(404).json({ message: "Document not found" });
-      }
+    // Validate document ownership
+    const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
+    if (!authorized || !document) {
+      logger.warn('Document history access denied - cross-tenant attempt', {
+        documentId,
+        organizationId: req.organizationId,
+        userId: getUserId(req),
+        ip: req.ip
+      });
+      throw new NotFoundError("Document not found");
+    }
 
-      // Query document versions history
-      const versions = await db
-        .select()
-        .from(documentVersions)
-        .where(eq(documentVersions.documentId, documentId))
-        .orderBy(desc(documentVersions.versionNumber));
+    // Query document versions history
+    const versions = await db
+      .select()
+      .from(documentVersions)
+      .where(eq(documentVersions.documentId, documentId))
+      .orderBy(desc(documentVersions.versionNumber));
 
-      if (!versions || versions.length === 0) {
-        return res.json({
-          success: true,
+    if (!versions || versions.length === 0) {
+      res.json({
+        success: true,
+        data: {
           documentId,
           versions: [],
           message: 'No version history found for this document'
-        });
-      }
+        }
+      });
+      return;
+    }
 
-      res.json({
-        success: true,
+    res.json({
+      success: true,
+      data: {
         documentId,
         versions,
         currentVersion: versions[0], // Latest version
         totalVersions: versions.length
-      });
-    } catch (error) {
-      logger.error('Failed to retrieve document history', {
-        error: error instanceof Error ? error.message : String(error),
-        documentId: req.params.id
-      });
-      res.status(500).json({ message: 'Failed to retrieve document history' });
-    }
-  });
+      }
+    });
+  }));
 }

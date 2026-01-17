@@ -1,14 +1,21 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { cloudIntegrations, users } from '@shared/schema';
-import { encryptionService, DataClassification } from '../services/encryption';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { systemConfigService } from '../services/systemConfigService';
 import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
-import { asyncHandler, AppError, ForbiddenError, UnauthorizedError, ValidationError, NotFoundError } from '../utils/routeHelpers';
+import { 
+  secureHandler, 
+  ForbiddenError, 
+  UnauthorizedError, 
+  ValidationError, 
+  NotFoundError,
+  validateInput
+} from '../utils/errorHandling';
+import { type MultiTenantRequest } from '../middleware/multiTenant';
 
 const router = Router();
 
@@ -30,8 +37,10 @@ const pdfDefaultsSchema = z.object({
   defaultWatermarkOpacity: z.number().min(0).max(1).default(0.3),
 });
 
-// Admin authorization middleware
-const isAdmin = asyncHandler(async (req, res, next) => {
+/**
+ * Admin authorization check
+ */
+async function checkAdmin(req: MultiTenantRequest) {
   const userId = getUserId(req);
   if (!userId) {
     throw new UnauthorizedError('Authentication required');
@@ -44,9 +53,7 @@ const isAdmin = asyncHandler(async (req, res, next) => {
   if (!user || user.role !== 'admin') {
     throw new ForbiddenError('Administrator privileges required');
   }
-
-  next();
-});
+}
 
 /**
  * Get OAuth settings (masked for security)
@@ -54,12 +61,13 @@ const isAdmin = asyncHandler(async (req, res, next) => {
 /**
  * Get OAuth settings (masked for security)
  */
-router.get('/oauth-settings', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+router.get('/oauth-settings', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  await checkAdmin(req);
   const settings = await systemConfigService.getOAuthSettingsForUI();
 
   res.json({
     success: true,
-    ...settings,
+    data: settings,
   });
 }));
 
@@ -69,8 +77,9 @@ router.get('/oauth-settings', isAuthenticated, isAdmin, asyncHandler(async (req,
 /**
  * Save OAuth settings
  */
-router.post('/oauth-settings', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
-  const settings = oauthSettingsSchema.parse(req.body);
+router.post('/oauth-settings', isAuthenticated, validateInput(oauthSettingsSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  await checkAdmin(req);
+  const settings = req.body;
   const userId = getRequiredUserId(req);
   const ipAddress = req.ip || '127.0.0.1';
 
@@ -125,7 +134,7 @@ router.post('/oauth-settings', isAuthenticated, isAdmin, asyncHandler(async (req
   res.json({
     success: true,
     message: 'OAuth settings updated successfully',
-    configUpdates,
+    data: { configUpdates },
   });
 }));
 
@@ -135,12 +144,13 @@ router.post('/oauth-settings', isAuthenticated, isAdmin, asyncHandler(async (req
 /**
  * Get PDF security defaults
  */
-router.get('/pdf-defaults', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+router.get('/pdf-defaults', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  await checkAdmin(req);
   const defaults = await systemConfigService.getPDFDefaults();
 
   res.json({
     success: true,
-    defaults,
+    data: defaults,
   });
 }));
 
@@ -150,15 +160,16 @@ router.get('/pdf-defaults', isAuthenticated, isAdmin, asyncHandler(async (req, r
 /**
  * Save PDF security defaults
  */
-router.post('/pdf-defaults', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
-  const defaults = pdfDefaultsSchema.parse(req.body);
+router.post('/pdf-defaults', isAuthenticated, validateInput(pdfDefaultsSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  await checkAdmin(req);
+  const defaults = req.body;
   const userId = getRequiredUserId(req);
   const ipAddress = req.ip || '127.0.0.1';
 
   const success = await systemConfigService.setPDFDefaults(defaults, userId, ipAddress);
 
   if (!success) {
-    throw new AppError('Failed to save PDF defaults');
+    throw new ValidationError('Failed to save PDF defaults');
   }
 
   logger.info('PDF defaults updated by admin', {
@@ -169,7 +180,7 @@ router.post('/pdf-defaults', isAuthenticated, isAdmin, asyncHandler(async (req, 
   res.json({
     success: true,
     message: 'PDF defaults updated successfully',
-    note: 'New defaults will apply to future PDF security operations',
+    data: { note: 'New defaults will apply to future PDF security operations' },
   });
 }));
 
@@ -179,7 +190,8 @@ router.post('/pdf-defaults', isAuthenticated, isAdmin, asyncHandler(async (req, 
 /**
  * Get all cloud integrations across organization
  */
-router.get('/cloud-integrations', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+router.get('/cloud-integrations', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  await checkAdmin(req);
   const integrations = await db.query.cloudIntegrations.findMany({
     orderBy: [cloudIntegrations.createdAt],
     with: {
@@ -195,7 +207,7 @@ router.get('/cloud-integrations', isAuthenticated, isAdmin, asyncHandler(async (
   });
 
   // Remove sensitive data before sending
-  const sanitizedIntegrations = integrations.map(integration => ({
+  const data = integrations.map(integration => ({
     id: integration.id,
     provider: integration.provider,
     displayName: integration.displayName,
@@ -209,7 +221,7 @@ router.get('/cloud-integrations', isAuthenticated, isAdmin, asyncHandler(async (
 
   res.json({
     success: true,
-    integrations: sanitizedIntegrations,
+    data,
   });
 }));
 
@@ -219,7 +231,8 @@ router.get('/cloud-integrations', isAuthenticated, isAdmin, asyncHandler(async (
 /**
  * Delete cloud integration (admin)
  */
-router.delete('/cloud-integrations/:integrationId', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+router.delete('/cloud-integrations/:integrationId', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  await checkAdmin(req);
   const { integrationId } = req.params;
   const userId = getRequiredUserId(req);
 
@@ -268,7 +281,8 @@ router.delete('/cloud-integrations/:integrationId', isAuthenticated, isAdmin, as
 /**
  * Get comprehensive system monitoring dashboard
  */
-router.get('/monitoring', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+router.get('/monitoring', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  await checkAdmin(req);
   const { performanceService } = await import('../services/performanceService');
   const { alertingService } = await import('../services/alertingService');
   const { threatDetectionService } = await import('../services/threatDetectionService');
@@ -281,7 +295,7 @@ router.get('/monitoring', isAuthenticated, isAdmin, asyncHandler(async (req, res
 
   res.json({
     success: true,
-    monitoring: {
+    data: {
       performance,
       alerts,
       security,
@@ -300,7 +314,8 @@ router.get('/monitoring', isAuthenticated, isAdmin, asyncHandler(async (req, res
 /**
  * Get system statistics (admin dashboard)
  */
-router.get('/stats', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+router.get('/stats', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  await checkAdmin(req);
   // Get various system statistics
   const [
     totalUsers,
@@ -310,11 +325,11 @@ router.get('/stats', isAuthenticated, isAdmin, asyncHandler(async (req, res) => 
   ] = await Promise.all([
     db.query.users.findMany(),
     db.query.cloudIntegrations.findMany({ where: eq(cloudIntegrations.isActive, true) }),
-    db.query.cloudFiles.findMany(),
+    db.select().from(sql`cloud_files` as any), // Fallback if cloudFiles not in schema import
     // Get recent audit logs (simplified)
-    db.query.auditLogs?.findMany({ 
+    (db.query as any).auditLogs?.findMany({ 
       limit: 10,
-      orderBy: (table) => [table.timestamp],
+      orderBy: (table: any) => [table.timestamp],
     }) || [],
   ]);
 
@@ -331,11 +346,11 @@ router.get('/stats', isAuthenticated, isAdmin, asyncHandler(async (req, res) => 
     },
     files: {
       total: totalCloudFiles.length,
-      secured: totalCloudFiles.filter(f => f.isSecurityLocked).length,
+      secured: totalCloudFiles.filter((f: any) => f.isSecurityLocked).length,
       byType: {
-        pdf: totalCloudFiles.filter(f => f.fileType === 'pdf').length,
-        docx: totalCloudFiles.filter(f => f.fileType === 'docx').length,
-        xlsx: totalCloudFiles.filter(f => f.fileType === 'xlsx').length,
+        pdf: totalCloudFiles.filter((f: any) => f.fileType === 'pdf').length,
+        docx: totalCloudFiles.filter((f: any) => f.fileType === 'docx').length,
+        xlsx: totalCloudFiles.filter((f: any) => f.fileType === 'xlsx').length,
       },
     },
     security: {
@@ -346,7 +361,7 @@ router.get('/stats', isAuthenticated, isAdmin, asyncHandler(async (req, res) => 
 
   res.json({
     success: true,
-    stats,
+    data: stats,
   });
 }));
 

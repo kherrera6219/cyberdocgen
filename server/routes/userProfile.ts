@@ -1,16 +1,16 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db';
 import { users } from '@shared/schema';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { 
   secureHandler, 
   validateInput,
-  requireAuth, 
-  requireResource 
+  NotFoundError 
 } from '../utils/errorHandling';
+import { type MultiTenantRequest } from '../middleware/multiTenant';
 
 const router = Router();
 
@@ -46,8 +46,8 @@ const updateProfileSchema = z.object({
 /**
  * Get current user profile
  */
-router.get('/me', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.get('/me', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   const [user] = await db
     .select({
@@ -70,15 +70,17 @@ router.get('/me', isAuthenticated, secureHandler(async (req: Request, res: Respo
     .where(eq(users.id, userId))
     .limit(1);
 
-  requireResource(user, 'User');
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
   res.json({ success: true, data: user });
 }));
 
 /**
  * Update user profile
  */
-router.patch('/me', isAuthenticated, validateInput(updateProfileSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.patch('/me', isAuthenticated, validateInput(updateProfileSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   const updates: Record<string, unknown> = {
     updatedAt: new Date(),
@@ -98,7 +100,9 @@ router.patch('/me', isAuthenticated, validateInput(updateProfileSchema), secureH
     .where(eq(users.id, userId))
     .returning();
 
-  requireResource(updated, 'User');
+  if (!updated) {
+    throw new NotFoundError("User not found");
+  }
   logger.info('User profile updated', { userId });
   res.json({ success: true, data: updated });
 }, { audit: { action: 'update', entityType: 'userProfile' } }));
@@ -106,11 +110,13 @@ router.patch('/me', isAuthenticated, validateInput(updateProfileSchema), secureH
 /**
  * Update user preferences only
  */
-router.patch('/me/preferences', isAuthenticated, validateInput(profilePreferencesSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.patch('/me/preferences', isAuthenticated, validateInput(profilePreferencesSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  requireResource(user, 'User');
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
 
   const currentPrefs = user.profilePreferences || {};
   const newPrefs = { ...currentPrefs, ...req.body };
@@ -127,11 +133,13 @@ router.patch('/me/preferences', isAuthenticated, validateInput(profilePreference
 /**
  * Update notification settings only
  */
-router.patch('/me/notifications', isAuthenticated, validateInput(notificationSettingsSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.patch('/me/notifications', isAuthenticated, validateInput(notificationSettingsSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  requireResource(user, 'User');
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
 
   const currentSettings = user.notificationSettings || {};
   const newSettings = { ...currentSettings, ...req.body };

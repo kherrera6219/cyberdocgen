@@ -1,8 +1,7 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import { storage } from '../storage';
-import { isAuthenticated } from '../replitAuth';
-import { validateBody } from '../middleware/routeValidation';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import {
   exportDocumentRequestSchema,
   saveDocumentRequestSchema,
@@ -10,8 +9,15 @@ import {
 } from '../validation/requestSchemas';
 import { 
   secureHandler,
-  AppError
+  validateInput,
+  AppError,
+  NotFoundError
 } from '../utils/errorHandling';
+import { 
+  type MultiTenantRequest, 
+  requireOrganization,
+  getCompanyProfileWithOrgCheck 
+} from '../middleware/multiTenant';
 
 function getContentType(format: string): string {
   const contentTypes: Record<string, string> = {
@@ -29,7 +35,7 @@ export function registerExportRoutes(router: Router) {
   /**
    * Export document (public - users can export any content they provide)
    */
-  router.post('/export-document', validateBody(exportDocumentRequestSchema), secureHandler(async (req: Request, res: Response) => {
+  router.post('/export-document', validateInput(exportDocumentRequestSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { content, format, filename } = req.body;
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -74,36 +80,32 @@ export function registerExportRoutes(router: Router) {
   /**
    * Save document to storage
    */
-  router.post('/save-document', isAuthenticated, validateBody(saveDocumentRequestSchema), secureHandler(async (req: Request, res: Response) => {
+  router.post('/save-document', isAuthenticated, requireOrganization, validateInput(saveDocumentRequestSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { title, content, framework, category, companyProfileId, createdBy } = req.body;
+    const organizationId = req.organizationId!;
+    const userId = getRequiredUserId(req);
 
     let finalCompanyProfileId = companyProfileId;
     
     if (!finalCompanyProfileId) {
-      let systemUserId = createdBy;
-      if (!systemUserId || systemUserId === 'system') {
-        let systemUser = await storage.getUserByEmail('system@compliance.ai');
-        if (!systemUser) {
-          systemUser = await storage.createUser({
-            email: 'system@compliance.ai',
-            firstName: 'System',
-            lastName: 'Generated'
-          });
-        }
-        systemUserId = systemUser.id;
-      }
-      
+      // Create a default profile if none provided, but scoped to the user's organization
       const systemProfile = await storage.createCompanyProfile({
-        organizationId: 'system-org',
-        companyName: 'System Generated',
+        organizationId,
+        companyName: 'Company Profile',
         industry: 'General',
         companySize: 'Small',
         headquarters: 'N/A',
         dataClassification: 'internal',
         businessApplications: 'Auto-generated profile for standalone documents',
-        createdBy: systemUserId
+        createdBy: userId
       });
       finalCompanyProfileId = systemProfile.id;
+    } else {
+      // Validate that the provided company profile belongs to the organization
+      const { authorized } = await getCompanyProfileWithOrgCheck(finalCompanyProfileId, organizationId);
+      if (!authorized) {
+        throw new NotFoundError("Company profile not found");
+      }
     }
 
     const documentData = {
@@ -113,21 +115,22 @@ export function registerExportRoutes(router: Router) {
       category: category || 'general',
       status: 'draft' as const,
       companyProfileId: finalCompanyProfileId,
-      createdBy: createdBy || 'system'
+      createdBy: userId,
+      organizationId // Ensure document is linked to org
     };
 
     const savedDocument = await storage.createDocument(documentData);
     
     res.json({
       success: true,
-      data: { document: savedDocument }
+      data: savedDocument
     });
   }, { audit: { action: 'create', entityType: 'document' } }));
 
   /**
    * Generate document using AI
    */
-  router.post('/generate-document', isAuthenticated, validateBody(generateDocumentRequestSchema), secureHandler(async (req: Request, res: Response) => {
+  router.post('/generate-document', isAuthenticated, requireOrganization, validateInput(generateDocumentRequestSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { framework, companyProfile, documentType, templateId, variables } = req.body;
     
     const { DocumentTemplateService } = await import('../services/documentTemplates');

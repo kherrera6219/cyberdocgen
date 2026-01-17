@@ -18,6 +18,13 @@ import { encryptionService, DataClassification } from './encryption';
 import { auditService, AuditAction, RiskLevel } from './auditService';
 import { systemConfigService } from './systemConfigService';
 import { logger } from '../utils/logger';
+import { circuitBreakers } from '../utils/circuitBreaker';
+import { 
+  AppError, 
+  NotFoundError, 
+  BadGatewayError,
+  ServiceUnavailableError 
+} from '../utils/errorHandling';
 
 export interface CloudIntegrationConfig {
   userId: string;
@@ -131,12 +138,13 @@ export class CloudIntegrationService {
 
       return integration.id;
     } catch (error: any) {
+      if (error instanceof AppError) throw error;
       logger.error('Failed to create cloud integration', { 
         error: error.message,
         provider: config.provider,
         userId: config.userId,
       });
-      throw new Error(`Failed to create ${config.provider} integration`);
+      throw new AppError(`Failed to create ${config.provider} integration`, 500);
     }
   }
 
@@ -150,7 +158,7 @@ export class CloudIntegrationService {
       });
 
       if (!integration || !integration.isActive) {
-        throw new Error('Integration not found or inactive');
+        throw new NotFoundError('Cloud integration not found or inactive');
       }
 
       // Decrypt access token
@@ -240,7 +248,7 @@ export class CloudIntegrationService {
       // Get OAuth credentials from system configuration
       const credentials = await systemConfigService.getOAuthCredentials('google');
       if (!credentials) {
-        throw new Error('Google OAuth credentials not configured');
+        throw new ServiceUnavailableError('Google OAuth credentials not configured');
       }
 
       const auth = new OAuth2Client(
@@ -251,11 +259,13 @@ export class CloudIntegrationService {
 
       const driveClient = drive({ version: 'v3', auth });
 
-      const response = await driveClient.files.list({
-        pageSize: 100,
-        fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink,parents)',
-        q: "trashed=false and (mimeType='application/pdf' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document' or mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')",
-      });
+      const response = await circuitBreakers.cloudStorage.execute(() => 
+        driveClient.files.list({
+          pageSize: 100,
+          fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,webContentLink,thumbnailLink,parents)',
+          q: "trashed=false and (mimeType='application/pdf' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document' or mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')",
+        })
+      );
 
       return response.data.files?.map((file: drive_v3.Schema$File) => ({
         id: file.id!,
@@ -269,8 +279,9 @@ export class CloudIntegrationService {
         parents: file.parents || undefined,
       })) || [];
     } catch (error: any) {
+      if (error instanceof AppError) throw error;
       logger.error('Failed to sync Google Drive files', { error: error.message });
-      throw new Error('Failed to sync Google Drive files');
+      throw new BadGatewayError('Failed to sync Google Drive files', { originalError: error.message });
     }
   }
 
@@ -282,18 +293,20 @@ export class CloudIntegrationService {
       // Check if Microsoft OAuth credentials are configured
       const credentials = await systemConfigService.getOAuthCredentials('microsoft');
       if (!credentials) {
-        throw new Error('Microsoft OAuth credentials not configured');
+        throw new ServiceUnavailableError('Microsoft OAuth credentials not configured');
       }
 
       const authProvider = new CustomAuthProvider(accessToken);
       const graphClient = Client.initWithMiddleware({ authProvider });
 
-      const response = await graphClient
-        .api('/me/drive/root/children')
-        .filter("(file/mimeType eq 'application/pdf') or (file/mimeType eq 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') or (file/mimeType eq 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')")
-        .select('id,name,file,size,lastModifiedDateTime,webUrl,@microsoft.graph.downloadUrl')
-        .top(100)
-        .get();
+      const response = await circuitBreakers.cloudStorage.execute(() => 
+        graphClient
+          .api('/me/drive/root/children')
+          .filter("(file/mimeType eq 'application/pdf') or (file/mimeType eq 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') or (file/mimeType eq 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')")
+          .select('id,name,file,size,lastModifiedDateTime,webUrl,@microsoft.graph.downloadUrl')
+          .top(100)
+          .get()
+      );
 
       return response.value?.map((file: any) => ({
         id: file.id,
@@ -306,8 +319,9 @@ export class CloudIntegrationService {
         thumbnailLink: file.thumbnails?.[0]?.medium?.url,
       })) || [];
     } catch (error: any) {
+      if (error instanceof AppError) throw error;
       logger.error('Failed to sync OneDrive files', { error: error.message });
-      throw new Error('Failed to sync OneDrive files');
+      throw new BadGatewayError('Failed to sync OneDrive files', { originalError: error.message });
     }
   }
 
@@ -373,7 +387,7 @@ export class CloudIntegrationService {
       });
 
       if (!file || file.fileType !== 'pdf') {
-        throw new Error('File not found or not a PDF');
+        throw new NotFoundError('File not found or not a PDF');
       }
 
       // Update file security settings

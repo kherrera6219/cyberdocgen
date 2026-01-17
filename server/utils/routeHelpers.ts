@@ -50,8 +50,9 @@ export class ValidationError extends AppError {
  * security.ts checks for err.name === 'UnauthorizedError'
  */
 export class UnauthorizedError extends AppError {
-  constructor(message: string = 'Authentication required') {
-    super(message, 401, 'UNAUTHORIZED');
+  constructor(message: string = 'Authentication required', details?: { code?: string; [key: string]: any } | any) {
+    const code = typeof details === 'object' && details?.code ? details.code : 'UNAUTHORIZED';
+    super(message, 401, code, details);
   }
 }
 
@@ -60,8 +61,12 @@ export class UnauthorizedError extends AppError {
  * Matches err.name === 'ForbiddenError' in security.ts
  */
 export class ForbiddenError extends AppError {
-  constructor(message: string = 'Access denied', details?: any) {
-    super(message, 403, 'FORBIDDEN', details);
+  constructor(message: string = 'Access denied', detailsOrCode?: string | any, details?: any) {
+    if (typeof detailsOrCode === 'string') {
+      super(message, 403, detailsOrCode, details);
+    } else {
+      super(message, 403, 'FORBIDDEN', detailsOrCode);
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { enterpriseAuthService } from '../services/enterpriseAuthService';
 import { mfaService } from '../services/mfaService';
@@ -78,7 +78,7 @@ const passkeyRegistrationSchema = z.object({
  * Login with email/username and password
  * Strict rate limiting: 5 attempts per hour to prevent brute force
  */
-router.post('/login', authStrictLimiter, validateInput(loginSchema), secureHandler(async (req: Request, res: Response) => {
+router.post('/login', authStrictLimiter, validateInput(loginSchema), secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const { identifier, password } = req.body;
   const ipAddress = req.ip || req.socket.remoteAddress;
 
@@ -147,7 +147,7 @@ router.post('/login', authStrictLimiter, validateInput(loginSchema), secureHandl
  * Create enterprise user account
  * Strict rate limiting to prevent account enumeration
  */
-router.post('/signup', authStrictLimiter, validateInput(createAccountSchema), secureHandler(async (req: Request, res: Response) => {
+router.post('/signup', authStrictLimiter, validateInput(createAccountSchema), secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const ipAddress = req.ip || req.socket.remoteAddress;
   
   try {
@@ -178,8 +178,9 @@ router.post('/signup', authStrictLimiter, validateInput(createAccountSchema), se
         }),
       }
     });
-  } catch (error: any) {
-    if (error.message.includes('already exists')) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('already exists')) {
       throw new ConflictError('An account with this email already exists');
     }
     throw error;
@@ -190,7 +191,7 @@ router.post('/signup', authStrictLimiter, validateInput(createAccountSchema), se
  * Verify email address (POST)
  * Standard auth rate limiting
  */
-router.post('/verify-email', authLimiter, validateInput(emailVerificationSchema), secureHandler(async (req: Request, res: Response) => {
+router.post('/verify-email', authLimiter, validateInput(emailVerificationSchema), secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const { token } = req.body;
   const ipAddress = req.ip || req.socket.remoteAddress;
   
@@ -202,7 +203,9 @@ router.post('/verify-email', authLimiter, validateInput(emailVerificationSchema)
 
   res.json({
     success: true,
-    message: 'Email verified successfully. Your account is now active.',
+    data: {
+      message: 'Email verified successfully. Your account is now active.',
+    }
   });
 }));
 
@@ -210,7 +213,7 @@ router.post('/verify-email', authLimiter, validateInput(emailVerificationSchema)
  * Verify email address (GET - for email link clicks)
  * Standard auth rate limiting
  */
-router.get('/verify-email', authLimiter, secureHandler(async (req: Request, res: Response) => {
+router.get('/verify-email', authLimiter, secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const token = req.query.token as string;
   if (!token) {
     throw new ValidationError('Verification token is required');
@@ -231,7 +234,7 @@ router.get('/verify-email', authLimiter, secureHandler(async (req: Request, res:
  * Request password reset
  * Strict rate limiting to prevent enumeration and abuse
  */
-router.post('/forgot-password', authStrictLimiter, validateInput(passwordResetRequestSchema), secureHandler(async (req: Request, res: Response) => {
+router.post('/forgot-password', authStrictLimiter, validateInput(passwordResetRequestSchema), secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const { email } = req.body;
   const ipAddress = req.ip || req.socket.remoteAddress;
   
@@ -246,9 +249,11 @@ router.post('/forgot-password', authStrictLimiter, validateInput(passwordResetRe
   // Always return success to prevent email enumeration
   res.json({
     success: true,
-    message: 'If an account with that email exists, a password reset link has been sent.',
-    // Don't send token in production - it should be emailed
-    ...(process.env.NODE_ENV !== 'production' && { resetToken }),
+    data: {
+      message: 'If an account with that email exists, a password reset link has been sent.',
+      // Don't send token in production - it should be emailed
+      ...(process.env.NODE_ENV !== 'production' && { resetToken }),
+    }
   });
 }));
 
@@ -256,7 +261,7 @@ router.post('/forgot-password', authStrictLimiter, validateInput(passwordResetRe
  * Confirm password reset
  * Strict rate limiting to prevent token brute-forcing
  */
-router.post('/reset-password', authStrictLimiter, validateInput(passwordResetConfirmSchema), secureHandler(async (req: Request, res: Response) => {
+router.post('/reset-password', authStrictLimiter, validateInput(passwordResetConfirmSchema), secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const ipAddress = req.ip || req.socket.remoteAddress;
   
   const reset = await enterpriseAuthService.confirmPasswordReset(req.body, ipAddress);
@@ -267,7 +272,9 @@ router.post('/reset-password', authStrictLimiter, validateInput(passwordResetCon
 
   res.json({
     success: true,
-    message: 'Password reset successfully. You can now log in with your new password.',
+    data: {
+      message: 'Password reset successfully. You can now log in with your new password.',
+    }
   });
 }));
 
@@ -275,7 +282,7 @@ router.post('/reset-password', authStrictLimiter, validateInput(passwordResetCon
  * Setup Google Authenticator
  * Standard auth rate limiting
  */
-router.post('/setup-google-authenticator', authLimiter, validateInput(googleAuthSetupSchema), secureHandler(async (req: Request, res: Response) => {
+router.post('/setup-google-authenticator', authLimiter, validateInput(googleAuthSetupSchema), secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const { userId } = req.body;
   const ipAddress = req.ip || req.socket.remoteAddress;
   
@@ -298,13 +305,13 @@ router.post('/setup-google-authenticator', authLimiter, validateInput(googleAuth
  * Verify Google Authenticator setup
  * Standard auth rate limiting
  */
-router.post('/verify-google-authenticator', authLimiter, validateInput(googleAuthVerifySchema), secureHandler(async (req: Request, res: Response) => {
+router.post('/verify-google-authenticator', authLimiter, validateInput(googleAuthVerifySchema), secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const { userId, token } = req.body;
   const ipAddress = req.ip || req.socket.remoteAddress;
   
   // Get the user's TOTP secret for verification
   const mfaSettings = await mfaService.getAllMFASettings(userId);
-  const totpSetting = mfaSettings?.find((s: any) => s.type === 'totp');
+  const totpSetting = mfaSettings?.find((s: { mfaType: string }) => s.mfaType === 'totp');
   if (!totpSetting || !totpSetting.secretEncrypted) {
     throw new ValidationError('Google Authenticator not set up for this user');
   }
@@ -332,7 +339,9 @@ router.post('/verify-google-authenticator', authLimiter, validateInput(googleAut
 
   res.json({
     success: true,
-    message: 'Google Authenticator verified and enabled successfully',
+    data: {
+      message: 'Google Authenticator verified and enabled successfully',
+    }
   });
 }));
 
@@ -340,7 +349,7 @@ router.post('/verify-google-authenticator', authLimiter, validateInput(googleAut
  * Register passkey
  * Standard auth rate limiting
  */
-router.post('/register-passkey', authLimiter, validateInput(passkeyRegistrationSchema), secureHandler(async (req: Request, res: Response) => {
+router.post('/register-passkey', authLimiter, validateInput(passkeyRegistrationSchema), secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const ipAddress = req.ip || req.socket.remoteAddress;
   
   const registered = await enterpriseAuthService.registerPasskey(req.body, ipAddress);
@@ -351,14 +360,16 @@ router.post('/register-passkey', authLimiter, validateInput(passkeyRegistrationS
 
   res.json({
     success: true,
-    message: 'Passkey registered successfully',
+    data: {
+      message: 'Passkey registered successfully',
+    }
   });
 }, { audit: { action: 'create', entityType: 'passkey' } }));
 
 /**
  * Logout user and destroy session
  */
-router.post('/logout', secureHandler(async (req: Request, res: Response) => {
+router.post('/logout', secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const userId = req.session?.userId;
   const email = req.session?.email;
 
@@ -410,14 +421,16 @@ router.post('/logout', secureHandler(async (req: Request, res: Response) => {
 
   res.json({
     success: true,
-    message: 'Logged out successfully',
+    data: {
+      message: 'Logged out successfully',
+    }
   });
 }));
 
 /**
  * Get authentication methods available for user
  */
-router.get('/methods/:userId', secureHandler(async (req: Request, res: Response) => {
+router.get('/methods/:userId', secureHandler(async (req: Request, res: Response, _next: NextFunction) => {
   const { userId } = req.params;
   
   // Get user's authentication methods

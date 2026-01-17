@@ -1,31 +1,41 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { aiOrchestrator, type AIModel, type GenerationOptions } from '../services/aiOrchestrator';
 import { frameworkTemplates } from '../services/openai';
 import { generationLimiter } from '../middleware/security';
-import { validateBody } from '../middleware/routeValidation';
-import { generationJobCreateSchema } from '../validation/requestSchemas';
 import { 
   secureHandler, 
-  requireAuth, 
-  requireResource,
-  ValidationError 
+  validateInput,
+  ValidationError,
+  NotFoundError
 } from '../utils/errorHandling';
+import { 
+  type MultiTenantRequest, 
+  requireOrganization,
+  getCompanyProfileWithOrgCheck 
+} from '../middleware/multiTenant';
+import { generationJobCreateSchema } from '../validation/requestSchemas';
 
 export function registerGenerationJobsRoutes(router: Router) {
   /**
    * Get all generation jobs (optionally filtered by company profile)
    */
-  router.get("/", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.get("/", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { companyProfileId } = req.query;
+    const organizationId = req.organizationId!;
     
     let jobs;
     if (companyProfileId) {
+      // Validate company profile ownership
+      const { authorized } = await getCompanyProfileWithOrgCheck(companyProfileId as string, organizationId);
+      if (!authorized) {
+        throw new NotFoundError("Company profile not found");
+      }
       jobs = await storage.getGenerationJobsByCompanyProfile(companyProfileId as string);
     } else {
-      jobs = await storage.getGenerationJobs();
+      jobs = await storage.getGenerationJobs(organizationId);
     }
     
     res.json({ success: true, data: jobs });
@@ -34,9 +44,20 @@ export function registerGenerationJobsRoutes(router: Router) {
   /**
    * Get single generation job by ID
    */
-  router.get("/:id", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.get("/:id", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
     const job = await storage.getGenerationJob(req.params.id);
-    requireResource(job, 'Generation job');
+    
+    if (!job) {
+      throw new NotFoundError("Generation job not found");
+    }
+    
+    // Check if job belongs to organization via company profile
+    const profile = await storage.getCompanyProfile(job.companyProfileId);
+    if (!profile || profile.organizationId !== organizationId) {
+      throw new NotFoundError("Generation job not found");
+    }
+    
     res.json({ success: true, data: job });
   }, { audit: { action: 'view', entityType: 'generationJob', getEntityId: (req) => req.params.id } }));
 }
@@ -45,12 +66,15 @@ export function registerGenerateDocumentsRoutes(router: Router) {
   /**
    * Start async document generation job
    */
-  router.post("/", generationLimiter, isAuthenticated, validateBody(generationJobCreateSchema), secureHandler(async (req: Request, res: Response) => {
+  router.post("/", generationLimiter, isAuthenticated, requireOrganization, validateInput(generationJobCreateSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { companyProfileId, framework, model = 'auto', includeQualityAnalysis = false, enableCrossValidation = false } = req.body;
-    const userId = requireAuth(req);
+    const organizationId = req.organizationId!;
+    const userId = getRequiredUserId(req);
 
-    const companyProfile = await storage.getCompanyProfile(companyProfileId);
-    requireResource(companyProfile, 'Company profile');
+    const { profile: companyProfile, authorized } = await getCompanyProfileWithOrgCheck(companyProfileId, organizationId);
+    if (!authorized || !companyProfile) {
+      throw new NotFoundError("Company profile not found");
+    }
 
     const templates = frameworkTemplates[framework];
     if (!templates) {

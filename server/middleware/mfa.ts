@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { logger } from '../utils/logger';
+import { 
+  UnauthorizedError, 
+  ForbiddenError, 
+  AppError 
+} from '../utils/errorHandling';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -39,10 +44,7 @@ export function requireMFA(req: Request, res: Response, next: NextFunction) {
     }
 
     if (!userId) {
-      return res.status(401).json({ 
-        message: 'Authentication required',
-        mfaRequired: false 
-      });
+      return next(new UnauthorizedError('Authentication required'));
     }
 
     // High-security routes that require MFA
@@ -107,11 +109,10 @@ export function requireMFA(req: Request, res: Response, next: NextFunction) {
         }
       });
 
-      return res.status(403).json({
-        message: 'Multi-factor authentication required for this operation',
+      return next(new ForbiddenError('Multi-factor authentication required for this operation', 'MFA_REQUIRED', {
         mfaRequired: true,
         challengeUrl: '/api/auth/mfa/challenge'
-      });
+      }));
     }
 
     next();
@@ -119,7 +120,7 @@ export function requireMFA(req: Request, res: Response, next: NextFunction) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('MFA middleware error', { error: errorMessage });
-    res.status(500).json({ message: 'Internal server error' });
+    next(new AppError('Internal server error', 500));
   }
 }
 
@@ -133,16 +134,15 @@ export function verifyMFA(req: Request, res: Response, next: NextFunction) {
     const userId = user?.claims?.sub;
 
     if (!userId) {
-      return res.status(401).json({ message: 'Authentication required' });
+      return next(new UnauthorizedError('Authentication required'));
     }
 
     if (!mfaToken) {
       // If MFA was required but no token provided, return 403
       if (req.mfaRequired) {
-        return res.status(403).json({ 
-          message: 'MFA token required',
+        return next(new ForbiddenError('MFA token required', 'MFA_TOKEN_REQUIRED', {
           mfaRequired: true 
-        });
+        }));
       }
       // If MFA was not required, proceed without a token
       return next();
@@ -175,7 +175,7 @@ export function verifyMFA(req: Request, res: Response, next: NextFunction) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('MFA verification error', { error: errorMessage });
-    res.status(500).json({ message: 'Internal server error' });
+    next(new AppError('Internal server error', 500));
   }
 }
 
@@ -213,11 +213,10 @@ export function enforceMFATimeout(req: Request, res: Response, next: NextFunctio
           }
         });
 
-        return res.status(403).json({
-          message: 'MFA verification expired. Please re-authenticate.',
+        return next(new ForbiddenError('MFA verification expired. Please re-authenticate.', 'MFA_EXPIRED', {
           mfaRequired: true,
           reason: 'timeout'
-        });
+        }));
       }
     }
 

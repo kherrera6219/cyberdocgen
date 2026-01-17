@@ -65,18 +65,15 @@ export function createErrorResponse(
 ): ErrorResponse {
   let code = 'INTERNAL_ERROR';
   let message = 'An unexpected error occurred';
-  let statusCode = 500;
   let details: unknown = undefined;
 
   if (error instanceof AppError) {
     code = error.code || error.name.toUpperCase().replace(/ERROR$/, '_ERROR');
     message = error.message;
-    statusCode = error.statusCode;
     details = error.details;
   } else if (error instanceof ZodError) {
     code = 'VALIDATION_ERROR';
     message = 'Invalid request data';
-    statusCode = 400;
     details = error.errors.map(e => ({
       path: e.path.join('.'),
       message: e.message,
@@ -175,6 +172,45 @@ export function secureHandler(
       }
     }
   };
+}
+
+/**
+ * Global Express Error Handler
+ * 
+ * Standardizes any unhandled error or error passed to next()
+ * into the standard API error response format.
+ */
+export function globalErrorHandler(
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  const requestId = req.requestId || (req.headers['x-request-id'] as string);
+  
+  // Log the error
+  const statusCode = error instanceof AppError ? error.statusCode : 500;
+  const isClientError = statusCode < 500;
+
+  if (!isClientError) {
+    logger.error('Unhandled application error', {
+      requestId,
+      path: req.path,
+      method: req.method,
+      error: error.message,
+      stack: error.stack,
+      userId: getUserId(req),
+    });
+  }
+
+  // Send standardized error response
+  if (!res.headersSent) {
+    const response = createErrorResponse(error, requestId);
+    res.status(statusCode).json(response);
+  } else {
+    // If headers already sent, delegate to default Express handler
+    next(error);
+  }
 }
 
 /**
@@ -295,7 +331,7 @@ export function wrapHandler(
   handler: (req: Request, res: Response) => Promise<void>,
   options: SecureHandlerOptions = {}
 ): RequestHandler {
-  return secureHandler(async (req, res, next) => {
+  return secureHandler(async (req, res, _next) => {
     await handler(req, res);
   }, options);
 }
@@ -304,8 +340,12 @@ export function wrapHandler(
  * Rate limit error (429)
  */
 export class RateLimitError extends AppError {
-  constructor(message: string = 'Too many requests', retryAfter?: number) {
-    super(message, 429, 'RATE_LIMIT_EXCEEDED', { retryAfter });
+  constructor(message: string = 'Too many requests', details?: { 
+    retryAfter?: string | number | string[];
+    code?: string;
+    [key: string]: any;
+  }) {
+    super(message, 429, details?.code || 'RATE_LIMIT_EXCEEDED', details);
   }
 }
 
@@ -333,6 +373,15 @@ export class ServiceUnavailableError extends AppError {
 export class BadGatewayError extends AppError {
   constructor(message: string = 'Upstream service error', details?: unknown) {
     super(message, 502, 'BAD_GATEWAY', details);
+  }
+}
+
+/**
+ * AI Service error (502/503)
+ */
+export class AIServiceError extends AppError {
+  constructor(message: string = 'AI service error', details?: unknown) {
+    super(message, 502, 'AI_SERVICE_ERROR', details);
   }
 }
 

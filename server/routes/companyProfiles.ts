@@ -1,5 +1,4 @@
-import { Router } from 'express';
-import { z } from 'zod';
+import { Router, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
@@ -7,18 +6,26 @@ import { insertCompanyProfileSchema } from '@shared/schema';
 import { companyDataExtractionService } from '../services/companyDataExtractionService';
 import { cache } from '../middleware/production';
 import { requireOrganization, getCompanyProfileWithOrgCheck, type MultiTenantRequest } from '../middleware/multiTenant';
-import { asyncHandler, NotFoundError, ValidationError } from '../utils/routeHelpers';
+import { 
+  secureHandler, 
+  NotFoundError, 
+  ValidationError,
+  validateInput 
+} from '../utils/errorHandling';
 
 export async function registerCompanyProfilesRoutes(router: Router) {
   const { requireMFA, enforceMFATimeout } = await import('../middleware/mfa');
 
-  router.get("/", isAuthenticated, requireOrganization, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.get("/", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
     const profiles = await storage.getCompanyProfiles(organizationId);
-    res.json(profiles);
+    res.json({
+      success: true,
+      data: profiles
+    });
   }));
 
-  router.get("/:id", isAuthenticated, requireOrganization, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.get("/:id", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
     const { profile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
     
@@ -31,23 +38,29 @@ export async function registerCompanyProfilesRoutes(router: Router) {
       throw new NotFoundError("Company profile not found");
     }
     
-    res.json(profile);
+    res.json({
+      success: true,
+      data: profile
+    });
   }));
 
-  router.post("/", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.post("/", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, validateInput(insertCompanyProfileSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
-    const validatedData = insertCompanyProfileSchema.parse({
+    const validatedData = {
       ...req.body,
       organizationId
-    });
+    };
     const profile = await storage.createCompanyProfile(validatedData);
     
     cache.invalidateByPattern('/api/company-profiles');
     
-    res.status(201).json(profile);
+    res.status(201).json({
+      success: true,
+      data: profile
+    });
   }));
 
-  router.put("/:id", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.put("/:id", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, validateInput(insertCompanyProfileSchema.partial()), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
     const { profile: existingProfile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
     
@@ -60,18 +73,20 @@ export async function registerCompanyProfilesRoutes(router: Router) {
       throw new NotFoundError("Company profile not found");
     }
     
-    const validatedData = insertCompanyProfileSchema.partial().parse(req.body);
-    const profile = await storage.updateCompanyProfile(req.params.id, validatedData);
+    const profile = await storage.updateCompanyProfile(req.params.id, req.body);
     if (!profile) {
       throw new NotFoundError("Company profile not found");
     }
     
     cache.invalidateByPattern('/api/company-profiles');
     
-    res.json(profile);
+    res.json({
+      success: true,
+      data: profile
+    });
   }));
 
-  router.patch("/:id", isAuthenticated, requireOrganization, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.patch("/:id", isAuthenticated, requireOrganization, validateInput(insertCompanyProfileSchema.partial()), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
     const { profile: existingProfile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
     
@@ -84,18 +99,20 @@ export async function registerCompanyProfilesRoutes(router: Router) {
       throw new NotFoundError("Company profile not found");
     }
     
-    const validatedData = insertCompanyProfileSchema.partial().parse(req.body);
-    const profile = await storage.updateCompanyProfile(req.params.id, validatedData);
+    const profile = await storage.updateCompanyProfile(req.params.id, req.body);
     if (!profile) {
       throw new NotFoundError("Company profile not found");
     }
     
     cache.invalidateByPattern('/api/company-profiles');
     
-    res.json(profile);
+    res.json({
+      success: true,
+      data: profile
+    });
   }));
 
-  router.post("/:id/extract-from-document", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.post("/:id/extract-from-document", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
     const { profile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
     
@@ -115,10 +132,13 @@ export async function registerCompanyProfilesRoutes(router: Router) {
       filename,
     });
 
-    res.json(extracted);
+    res.json({
+      success: true,
+      data: extracted
+    });
   }));
 
-  router.post("/:id/extract-from-website", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.post("/:id/extract-from-website", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
     const { profile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
     
@@ -133,10 +153,13 @@ export async function registerCompanyProfilesRoutes(router: Router) {
     }
 
     const extracted = await companyDataExtractionService.extractFromWebsite({ url });
-    res.json(extracted);
+    res.json({
+      success: true,
+      data: extracted
+    });
   }));
 
-  router.post("/:id/research", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.post("/:id/research", isAuthenticated, requireOrganization, requireMFA, enforceMFATimeout, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
     const { profile, authorized } = await getCompanyProfileWithOrgCheck(req.params.id, organizationId);
     
@@ -150,6 +173,9 @@ export async function registerCompanyProfilesRoutes(router: Router) {
       headquarters: profile.headquarters,
     });
 
-    res.json(extracted);
+    res.json({
+      success: true,
+      data: extracted
+    });
   }));
 }

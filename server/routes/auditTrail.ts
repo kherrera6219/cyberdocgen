@@ -1,11 +1,15 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
-import { asyncHandler, NotFoundError, ValidationError } from '../utils/routeHelpers';
+import { 
+  secureHandler, 
+  NotFoundError, 
+  ValidationError 
+} from '../utils/errorHandling';
 import { auditService } from '../services/auditService';
 import { requireOrganization, type MultiTenantRequest } from '../middleware/multiTenant';
 
 export function registerAuditTrailRoutes(router: Router) {
-  router.get('/', isAuthenticated, requireOrganization, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.get('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { page = 1, limit = 50, entityType, action, search, dateFrom, dateTo } = req.query;
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
@@ -34,17 +38,23 @@ export function registerAuditTrailRoutes(router: Router) {
       metadata: { filters: auditQuery }
     });
 
-    res.json(result);
+    res.json({
+      success: true,
+      data: result
+    });
   }));
 
-  router.get('/stats', isAuthenticated, requireOrganization, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.get('/stats', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const organizationId = req.organizationId!;
     
     const stats = await auditService.getAuditStats(organizationId);
-    res.json(stats);
+    res.json({
+      success: true,
+      data: stats
+    });
   }));
 
-  router.get('/:id', isAuthenticated, requireOrganization, asyncHandler(async (req: MultiTenantRequest, res) => {
+  router.get('/:id', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { id } = req.params;
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
@@ -71,7 +81,7 @@ export function registerAuditTrailRoutes(router: Router) {
 
     res.json({
       success: true,
-      auditEntry
+      data: auditEntry
     });
   }));
 }

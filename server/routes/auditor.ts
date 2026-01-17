@@ -1,9 +1,10 @@
-import { Router } from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { Router, Response, NextFunction } from 'express';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { db } from '../db';
-import { documents, documentApprovals, gapAnalysisReports } from '@shared/schema';
-import { eq, desc, count } from 'drizzle-orm';
-import { asyncHandler } from '../utils/routeHelpers';
+import { documents, documentApprovals, gapAnalysisReports, companyProfiles } from '@shared/schema';
+import { eq, desc, count, and } from 'drizzle-orm';
+import { secureHandler } from '../utils/errorHandling';
+import { type MultiTenantRequest, requireOrganization } from '../middleware/multiTenant';
 
 export function registerAuditorRoutes(app: Router) {
   const router = Router();
@@ -22,39 +23,51 @@ export function registerAuditorRoutes(app: Router) {
    *       401:
    *         description: Unauthorized
    */
-  router.get('/documents', isAuthenticated, asyncHandler(async (req, res) => {
+  router.get('/documents', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { status, framework, limit = 50, offset = 0 } = req.query;
+    const organizationId = req.organizationId!;
 
     // Build query with optional filters
-    let query = db.select().from(documents);
+    let query = db.select({ documents }).from(documents)
+      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id));
 
-    // Apply filters if provided
+    // Apply organization filter
+    let whereClause = eq(companyProfiles.organizationId, organizationId);
+
+    // Apply tags/framework if provided
     if (status) {
-      query = query.where(eq(documents.status, status as string)) as any;
+      whereClause = and(whereClause, eq(documents.status, status as string)) as any;
     }
     if (framework) {
-      query = query.where(eq(documents.framework, framework as string)) as any;
+      whereClause = and(whereClause, eq(documents.framework, framework as string)) as any;
     }
+
+    query = query.where(whereClause) as any;
 
     // Get documents with pagination
     const documentsList = await query
       .orderBy(desc(documents.updatedAt))
       .limit(parseInt(limit as string, 10))
-      .offset(parseInt(offset as string, 10));
+      .offset(parseInt(offset as string, 10))
+      .then(results => results.map(r => r.documents));
 
     // Get total count
     const [{ total }] = await db
       .select({ total: count() })
-      .from(documents);
+      .from(documents)
+      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
+      .where(eq(companyProfiles.organizationId, organizationId));
 
     res.json({
       success: true,
-      documents: documentsList,
-      pagination: {
-        total,
-        limit: parseInt(limit as string, 10),
-        offset: parseInt(offset as string, 10),
-        hasMore: parseInt(offset as string, 10) + documentsList.length < total
+      data: {
+        documents: documentsList,
+        pagination: {
+          total,
+          limit: parseInt(limit as string, 10),
+          offset: parseInt(offset as string, 10),
+          hasMore: parseInt(offset as string, 10) + documentsList.length < total
+        }
       }
     });
   }));
@@ -73,7 +86,9 @@ export function registerAuditorRoutes(app: Router) {
    *       401:
    *         description: Unauthorized
    */
-  router.get('/overview', isAuthenticated, asyncHandler(async (req, res) => {
+  router.get('/overview', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
+
     // Get document statistics by status
     const documentStats = await db
       .select({
@@ -81,6 +96,8 @@ export function registerAuditorRoutes(app: Router) {
         count: count()
       })
       .from(documents)
+      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
+      .where(eq(companyProfiles.organizationId, organizationId))
       .groupBy(documents.status);
 
     // Get approval statistics
@@ -90,12 +107,16 @@ export function registerAuditorRoutes(app: Router) {
         count: count()
       })
       .from(documentApprovals)
+      .innerJoin(documents, eq(documentApprovals.documentId, documents.id))
+      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
+      .where(eq(companyProfiles.organizationId, organizationId))
       .groupBy(documentApprovals.status);
 
     // Get gap analysis reports count
     const [{ gapReportsCount }] = await db
       .select({ gapReportsCount: count() })
-      .from(gapAnalysisReports);
+      .from(gapAnalysisReports)
+      .where(eq(gapAnalysisReports.organizationId, organizationId));
 
     // Get documents by framework
     const frameworkStats = await db
@@ -104,6 +125,8 @@ export function registerAuditorRoutes(app: Router) {
         count: count()
       })
       .from(documents)
+      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
+      .where(eq(companyProfiles.organizationId, organizationId))
       .groupBy(documents.framework);
 
     // Calculate overall compliance percentage (documents with status 'approved')
@@ -113,7 +136,7 @@ export function registerAuditorRoutes(app: Router) {
 
     res.json({
       success: true,
-      overview: {
+      data: {
         compliancePercentage,
         totalDocuments: totalDocs,
         documentsByStatus: documentStats,
@@ -138,22 +161,31 @@ export function registerAuditorRoutes(app: Router) {
    *       401:
    *         description: Unauthorized
    */
-  router.get('/export', isAuthenticated, asyncHandler(async (req, res) => {
+  router.get('/export', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { format = 'json', framework } = req.query;
+    const organizationId = req.organizationId!;
 
     // Get all documents
-    let query = db.select().from(documents);
+    let whereClause = eq(companyProfiles.organizationId, organizationId);
     if (framework) {
-      query = query.where(eq(documents.framework, framework as string)) as any;
+      whereClause = and(whereClause, eq(documents.framework, framework as string)) as any;
     }
 
-    const allDocuments = await query.orderBy(desc(documents.updatedAt));
+    const allDocuments = await db.select({ documents }).from(documents)
+      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
+      .where(whereClause)
+      .orderBy(desc(documents.updatedAt))
+      .then(results => results.map(r => r.documents));
 
     // Get all approvals
     const allApprovals = await db
-      .select()
+      .select({ document_approvals: documentApprovals })
       .from(documentApprovals)
-      .orderBy(desc(documentApprovals.createdAt));
+      .innerJoin(documents, eq(documentApprovals.documentId, documents.id))
+      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
+      .where(eq(companyProfiles.organizationId, organizationId))
+      .orderBy(desc(documentApprovals.createdAt))
+      .then(results => results.map(r => r.document_approvals));
 
     // Generate export data
     const exportData = {
@@ -182,8 +214,10 @@ export function registerAuditorRoutes(app: Router) {
       // Can be extended to generate actual CSV/PDF
       res.json({
         success: true,
-        message: `Export format '${format}' not yet implemented, returning JSON`,
-        data: exportData
+        data: {
+          message: `Export format '${format}' not yet implemented, returning JSON`,
+          ...exportData
+        }
       });
     }
   }));

@@ -1,24 +1,24 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { storage } from '../storage';
-import { isAuthenticated } from '../replitAuth';
-import { logger } from '../utils/logger';
-import { validateBody } from '../middleware/routeValidation';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { createOrganizationSchema } from '../validation/requestSchemas';
 import { 
   secureHandler,
-  requireAuth
+  validateInput
 } from '../utils/errorHandling';
+import { auditService, AuditAction } from '../services/auditService';
+import { type MultiTenantRequest } from '../middleware/multiTenant';
 
 export function registerOrganizationsRoutes(router: Router) {
   /**
    * Get all organizations for current user
    */
-  router.get("/", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
-    const userOrganizations = await storage.getUserOrganizations(userId);
+  router.get("/", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const userOrganizationsList = await storage.getUserOrganizations(userId);
     const organizations = [];
     
-    for (const userOrg of userOrganizations) {
+    for (const userOrg of userOrganizationsList) {
       const org = await storage.getOrganization(userOrg.organizationId);
       if (org) {
         organizations.push({ ...org, role: userOrg.role });
@@ -31,8 +31,8 @@ export function registerOrganizationsRoutes(router: Router) {
   /**
    * Create new organization
    */
-  router.post("/", isAuthenticated, validateBody(createOrganizationSchema), secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
+  router.post("/", isAuthenticated, validateInput(createOrganizationSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
     const organizationData = req.body;
     
     const organization = await storage.createOrganization(organizationData);
@@ -44,7 +44,20 @@ export function registerOrganizationsRoutes(router: Router) {
       role: "owner",
     });
     
-    logger.info('Organization created', { organizationId: organization.id, createdBy: userId });
+    // Log audit trail
+    await auditService.logAction({
+      action: AuditAction.CREATE,
+      entityType: 'organization',
+      entityId: organization.id,
+      userId,
+      organizationId: organization.id,
+      ipAddress: req.ip || '',
+      metadata: {
+        action: 'organization_creation',
+        name: organization.name
+      }
+    });
+
     res.status(201).json({ success: true, data: organization });
-  }, { audit: { action: 'create', entityType: 'organization' } }));
+  }));
 }

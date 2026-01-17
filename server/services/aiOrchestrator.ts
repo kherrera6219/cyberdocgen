@@ -5,6 +5,8 @@ import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceI
 import { aiGuardrailsService, type GuardrailCheckResult } from "./aiGuardrailsService";
 import { getOpenAIClient, getAnthropicClient } from "./aiClients";
 import { logger } from "../utils/logger";
+import { circuitBreakers } from "../utils/circuitBreaker";
+import { AIServiceError } from "../utils/errorHandling";
 import crypto from "crypto";
 
 // Fallback templates for test environment when mocked
@@ -158,23 +160,41 @@ export class AIOrchestrator {
       }
     }
     
-    // Generate document with selected model
+    // Generate document with selected model protected by circuit breakers
     try {
       if (selectedModel === 'claude-sonnet-4') {
-        content = await generateDocumentWithClaude(template, companyProfile, framework);
+        content = await circuitBreakers.anthropic.execute(() => 
+          generateDocumentWithClaude(template, companyProfile, framework)
+        );
       } else {
-        content = await generateWithOpenAI(template, companyProfile, framework);
+        content = await circuitBreakers.openai.execute(() => 
+          generateWithOpenAI(template, companyProfile, framework)
+        );
         selectedModel = 'gpt-5.1';
       }
     } catch (error) {
-      logger.error(`Error with ${selectedModel}, falling back to alternative:`, error);
+      logger.error(`Error with ${selectedModel}, attempting fallback:`, error);
+      
       // Fallback to alternative model
-      if (selectedModel === 'claude-sonnet-4') {
-        content = await generateWithOpenAI(template, companyProfile, framework);
-        selectedModel = 'gpt-5.1';
-      } else {
-        content = await generateDocumentWithClaude(template, companyProfile, framework);
-        selectedModel = 'claude-sonnet-4';
+      try {
+        if (selectedModel === 'claude-sonnet-4') {
+          content = await circuitBreakers.openai.execute(() => 
+            generateWithOpenAI(template, companyProfile, framework)
+          );
+          selectedModel = 'gpt-5.1';
+        } else {
+          content = await circuitBreakers.anthropic.execute(() => 
+            generateDocumentWithClaude(template, companyProfile, framework)
+          );
+          selectedModel = 'claude-sonnet-4';
+        }
+      } catch (fallbackError) {
+        logger.error('Primary and fallback models failed', { 
+          requestId, 
+          originalError: error instanceof Error ? error.message : String(error),
+          fallbackError: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+        });
+        throw new AIServiceError('All AI models failed to generate document', { requestId });
       }
     }
 
@@ -357,8 +377,7 @@ export class AIOrchestrator {
     }
 
     try {
-      // For testing compatibility, call generateDocument from openai module
-      // which the tests expect to be called
+      // Mock template for content generation
       const mockTemplate: DocumentTemplate = {
         id: 'mock-content-gen',
         framework: 'General',
@@ -374,9 +393,13 @@ export class AIOrchestrator {
 
       let content: string;
       if (model === 'claude-sonnet-4') {
-        content = await generateDocumentWithClaude(mockTemplate, {} as CompanyProfile, '');
+        content = await circuitBreakers.anthropic.execute(() => 
+          generateDocumentWithClaude(mockTemplate, {} as CompanyProfile, '')
+        );
       } else {
-        content = await generateWithOpenAI(mockTemplate, {} as CompanyProfile, '');
+        content = await circuitBreakers.openai.execute(() => 
+          generateWithOpenAI(mockTemplate, {} as CompanyProfile, '')
+        );
       }
 
       // Post-generation output moderation
@@ -417,24 +440,26 @@ export class AIOrchestrator {
         blocked: false,
       };
     } catch (error) {
-      logger.error('Content generation failed:', error);
+      logger.error('Primary content generation failed, attempting fallback', { error, requestId });
       
-      // Fallback to Anthropic if OpenAI fails
+      // Fallback to Anthropic if primary fails
       try {
-        logger.info('Attempting fallback to Anthropic for content generation', { requestId });
-        const client = getAnthropicClient();
-        const response = await client.messages.create({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: maxTokens,
-          messages: [{ role: "user", content: sanitizedPrompt }]
+        const fallbackContent = await circuitBreakers.anthropic.execute(async () => {
+          const client = getAnthropicClient();
+          const response = await client.messages.create({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: maxTokens,
+            messages: [{ role: "user", content: sanitizedPrompt }]
+          });
+          return response.content[0].type === 'text' ? response.content[0].text : '';
         });
-
-        let fallbackContent = response.content[0].type === 'text' ? response.content[0].text : '';
         
+        let finalContent = fallbackContent;
+
         // Run output guardrails on fallback response too
-        if (enableGuardrails && fallbackContent) {
+        if (enableGuardrails && finalContent) {
           try {
-            const fallbackOutputCheck = await aiGuardrailsService.checkGuardrails(sanitizedPrompt, fallbackContent, {
+            const fallbackOutputCheck = await aiGuardrailsService.checkGuardrails(sanitizedPrompt, finalContent, {
               requestId,
               modelProvider: 'anthropic',
               modelName: 'claude-sonnet-4',
@@ -446,7 +471,7 @@ export class AIOrchestrator {
             guardrailResult = fallbackOutputCheck;
 
             if (fallbackOutputCheck.sanitizedResponse) {
-              fallbackContent = fallbackOutputCheck.sanitizedResponse;
+              finalContent = fallbackOutputCheck.sanitizedResponse;
             }
 
             if (!fallbackOutputCheck.allowed && fallbackOutputCheck.action === 'blocked') {
@@ -463,16 +488,13 @@ export class AIOrchestrator {
         }
         
         return {
-          result: { content: fallbackContent, model: 'claude-sonnet-4' },
+          result: { content: finalContent, model: 'claude-sonnet-4' },
           guardrails: guardrailResult,
           blocked: false,
         };
       } catch (fallbackError) {
-        logger.error('Fallback to Anthropic also failed:', fallbackError);
-        return {
-          result: { content: '', model },
-          blocked: false,
-        };
+        logger.error('All content generation models failed', { requestId, fallbackError });
+        throw new AIServiceError('All content generation models failed', { requestId });
       }
     }
   }

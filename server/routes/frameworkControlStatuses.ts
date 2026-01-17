@@ -1,13 +1,13 @@
-import { Router, Request, Response } from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { Router, Response, NextFunction } from 'express';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { db } from '../db';
 import { frameworkControlStatuses } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { logger } from '../utils/logger';
 import { 
   secureHandler,
   ValidationError
 } from '../utils/errorHandling';
+import { type MultiTenantRequest, requireOrganization } from '../middleware/multiTenant';
 
 export function registerFrameworkControlStatusesRoutes(app: Router) {
   const router = Router();
@@ -15,9 +15,9 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
   /**
    * Get all control statuses for a framework
    */
-  router.get('/', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    const organizationId = user.organizationId || 'default';
+  router.get('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     const framework = req.query.framework as string;
 
     if (!framework) {
@@ -54,9 +54,9 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
   /**
    * Update or create a control status
    */
-  router.put('/:controlId', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    const organizationId = user.organizationId || 'default';
+  router.put('/:controlId', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     const { controlId } = req.params;
     const { framework, status, evidenceStatus, notes } = req.body;
 
@@ -65,7 +65,7 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
     }
 
     // Check if status exists
-    const existing = await db
+    const existingList = await db
       .select()
       .from(frameworkControlStatuses)
       .where(
@@ -77,30 +77,31 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
       )
       .limit(1);
 
+    const existing = existingList[0];
     let result;
-    if (existing.length > 0) {
+    if (existing) {
       [result] = await db
         .update(frameworkControlStatuses)
         .set({
           status,
-          evidenceStatus: evidenceStatus || existing[0].evidenceStatus,
-          notes: notes !== undefined ? notes : existing[0].notes,
-          updatedBy: user.id,
+          evidenceStatus: evidenceStatus || existing.evidenceStatus,
+          notes: notes !== undefined ? notes : existing.notes,
+          updatedBy: userId,
           updatedAt: new Date()
         })
-        .where(eq(frameworkControlStatuses.id, existing[0].id))
+        .where(eq(frameworkControlStatuses.id, existing.id))
         .returning();
     } else {
       [result] = await db
         .insert(frameworkControlStatuses)
         .values({
           organizationId,
-          framework: framework.toLowerCase(),
+          framework: framework.toLowerCase() as any,
           controlId,
           status,
           evidenceStatus: evidenceStatus || 'none',
           notes: notes || null,
-          updatedBy: user.id
+          updatedBy: userId
         })
         .returning();
     }
@@ -117,9 +118,9 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
   /**
    * Bulk update control statuses
    */
-  router.post('/bulk', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    const organizationId = user.organizationId || 'default';
+  router.post('/bulk', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     const { framework, updates } = req.body;
 
     if (!framework || !Array.isArray(updates)) {
@@ -132,7 +133,7 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
       
       if (!controlId || !status) continue;
 
-      const existing = await db
+      const existingList = await db
         .select()
         .from(frameworkControlStatuses)
         .where(
@@ -144,17 +145,18 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
         )
         .limit(1);
 
-      if (existing.length > 0) {
+      const existing = existingList[0];
+      if (existing) {
         const [result] = await db
           .update(frameworkControlStatuses)
           .set({
             status,
-            evidenceStatus: evidenceStatus || existing[0].evidenceStatus,
-            notes: notes !== undefined ? notes : existing[0].notes,
-            updatedBy: user.id,
+            evidenceStatus: evidenceStatus || existing.evidenceStatus,
+            notes: notes !== undefined ? notes : existing.notes,
+            updatedBy: userId,
             updatedAt: new Date()
           })
-          .where(eq(frameworkControlStatuses.id, existing[0].id))
+          .where(eq(frameworkControlStatuses.id, existing.id))
           .returning();
         results.push(result);
       } else {
@@ -162,12 +164,12 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
           .insert(frameworkControlStatuses)
           .values({
             organizationId,
-            framework: framework.toLowerCase(),
+            framework: framework.toLowerCase() as any,
             controlId,
             status,
             evidenceStatus: evidenceStatus || 'none',
             notes: notes || null,
-            updatedBy: user.id
+            updatedBy: userId
           })
           .returning();
         results.push(result);
@@ -186,9 +188,9 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
   /**
    * Get summary statistics for all frameworks
    */
-  router.get('/summary', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    const organizationId = user.organizationId || 'default';
+  router.get('/summary', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
 
     const allStatuses = await db
       .select()
@@ -239,9 +241,9 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
   /**
    * Get all control statuses for a framework (compatibility endpoint)
    */
-  frameworksRouter.get('/:framework/control-statuses', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    const organizationId = user.organizationId || 'default';
+  frameworksRouter.get('/:framework/control-statuses', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     const framework = req.params.framework;
 
     const statuses = await db
@@ -262,14 +264,14 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
   /**
    * Update a control status (compatibility endpoint)
    */
-  frameworksRouter.put('/:framework/control-statuses/:controlId', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    const organizationId = user.organizationId || 'default';
+  frameworksRouter.put('/:framework/control-statuses/:controlId', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     const { framework, controlId } = req.params;
     const { status, evidenceStatus, notes } = req.body;
 
     // Check if status exists
-    const existing = await db
+    const existingList = await db
       .select()
       .from(frameworkControlStatuses)
       .where(
@@ -281,18 +283,19 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
       )
       .limit(1);
 
+    const existing = existingList[0];
     let result;
-    if (existing.length > 0) {
+    if (existing) {
       [result] = await db
         .update(frameworkControlStatuses)
         .set({
-          status: status || existing[0].status,
-          evidenceStatus: evidenceStatus || existing[0].evidenceStatus,
-          notes: notes !== undefined ? notes : existing[0].notes,
-          updatedBy: user.id,
+          status: status || existing.status,
+          evidenceStatus: evidenceStatus || existing.evidenceStatus,
+          notes: notes !== undefined ? notes : existing.notes,
+          updatedBy: userId,
           updatedAt: new Date()
         })
-        .where(eq(frameworkControlStatuses.id, existing[0].id))
+        .where(eq(frameworkControlStatuses.id, existing.id))
         .returning();
     } else {
       [result] = await db
@@ -304,7 +307,7 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
           status: status || 'not_started',
           evidenceStatus: evidenceStatus || 'none',
           notes: notes || null,
-          updatedBy: user.id
+          updatedBy: userId
         })
         .returning();
     }

@@ -189,8 +189,10 @@ export interface IStorage {
   updateGapAnalysisReport(id: string, updates: Partial<GapAnalysisReport>): Promise<GapAnalysisReport>;
   createGapAnalysisFinding(finding: InsertGapAnalysisFinding): Promise<GapAnalysisFinding>;
   getGapAnalysisFindings(reportId: string): Promise<GapAnalysisFinding[]>;
+  getGapAnalysisFinding(id: string): Promise<GapAnalysisFinding | undefined>;
   createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation>;
   getRemediationRecommendations(findingId: string): Promise<RemediationRecommendation[]>;
+  getRemediationRecommendation(id: string): Promise<RemediationRecommendation | undefined>;
   updateRemediationRecommendation(id: string, updates: Partial<RemediationRecommendation>): Promise<RemediationRecommendation>;
   createComplianceMaturityAssessment(assessment: InsertComplianceMaturityAssessment): Promise<ComplianceMaturityAssessment>;
   getComplianceMaturityAssessment(
@@ -633,6 +635,10 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.priority - a.priority);
   }
 
+  async getGapAnalysisFinding(id: string): Promise<GapAnalysisFinding | undefined> {
+    return this.gapAnalysisFindings.get(id);
+  }
+
   async createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation> {
     const id = randomUUID();
     const newRecommendation: RemediationRecommendation = {
@@ -655,6 +661,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.remediationRecommendations.values())
       .filter(rec => rec.findingId === findingId)
       .sort((a, b) => b.priority - a.priority);
+  }
+
+  async getRemediationRecommendation(id: string): Promise<RemediationRecommendation | undefined> {
+    return this.remediationRecommendations.get(id);
   }
 
   async updateRemediationRecommendation(id: string, updates: Partial<RemediationRecommendation>): Promise<RemediationRecommendation> {
@@ -1648,6 +1658,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(gapAnalysisFindings.createdAt));
   }
 
+  async getGapAnalysisFinding(id: string): Promise<GapAnalysisFinding | undefined> {
+    const [finding] = await db
+      .select()
+      .from(gapAnalysisFindings)
+      .where(eq(gapAnalysisFindings.id, id));
+    return finding || undefined;
+  }
+
   async createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation> {
     const [newRecommendation] = await db
       .insert(remediationRecommendations)
@@ -1662,6 +1680,14 @@ export class DatabaseStorage implements IStorage {
       .from(remediationRecommendations)
       .where(eq(remediationRecommendations.findingId, findingId))
       .orderBy(desc(remediationRecommendations.createdAt));
+  }
+
+  async getRemediationRecommendation(id: string): Promise<RemediationRecommendation | undefined> {
+    const [recommendation] = await db
+      .select()
+      .from(remediationRecommendations)
+      .where(eq(remediationRecommendations.id, id));
+    return recommendation || undefined;
   }
 
   async updateRemediationRecommendation(id: string, updates: Partial<RemediationRecommendation>): Promise<RemediationRecommendation> {

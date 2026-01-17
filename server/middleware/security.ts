@@ -4,6 +4,21 @@ import crypto from "crypto";
 import { logger } from "../utils/logger";
 import { performanceService } from '../services/performanceService';
 import { threatDetectionService } from '../services/threatDetectionService';
+import { 
+  ForbiddenError, 
+  UnauthorizedError, 
+  RateLimitError,
+  ValidationError
+} from '../utils/errorHandling';
+
+interface SessionWithCsrf extends Record<string, any> {
+  csrfToken?: string;
+  mfaVerified?: boolean;
+}
+
+interface RequestWithSession extends Request {
+  session?: SessionWithCsrf;
+}
 
 const CSRF_COOKIE_NAME = 'csrf-token';
 const CSRF_HEADER_NAME = 'x-csrf-token';
@@ -35,8 +50,8 @@ export function generateCsrfToken(): string {
 }
 
 // Session-bound CSRF token management
-export function getOrCreateSessionCsrfToken(req: Request): string {
-  const session = (req as any).session;
+export function getOrCreateSessionCsrfToken(req: RequestWithSession): string {
+  const session = req.session;
   if (session && session.csrfToken) {
     return session.csrfToken;
   }
@@ -92,10 +107,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
         hasHeader: !!headerToken,
         ip: req.ip
       });
-      return res.status(403).json({
-        message: 'CSRF token missing',
-        code: 'CSRF_TOKEN_MISSING'
-      });
+      return next(new ForbiddenError('CSRF token missing', 'CSRF_TOKEN_MISSING'));
     }
 
     // Validate using timing-safe comparison to prevent timing attacks
@@ -114,10 +126,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
         method: req.method,
         ip: req.ip
       });
-      return res.status(403).json({
-        message: 'CSRF token invalid',
-        code: 'CSRF_TOKEN_INVALID'
-      });
+      return next(new ForbiddenError('CSRF token invalid', 'CSRF_TOKEN_INVALID'));
     }
   }
 
@@ -159,18 +168,16 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: getRateLimitKey,
   validate: false,
-  handler: (req, res) => {
+  handler: (req: Request, res: Response, next: NextFunction) => {
     logger.warn('Rate limit exceeded', {
       ip: req.ip,
       userId: (req as any).user?.claims?.sub || 'anonymous',
       path: req.path,
       method: req.method,
     });
-    res.status(429).json({
-      message: "Too many requests, please try again later.",
-      code: 'RATE_LIMIT_EXCEEDED',
-      retryAfter: res.getHeader('Retry-After'),
-    });
+    next(new RateLimitError('Too many requests, please try again later', {
+      retryAfter: res.getHeader('Retry-After')
+    }));
   },
 });
 
@@ -184,16 +191,15 @@ export const authLimiter = rateLimit({
   keyGenerator: (req) => req.ip || 'unknown',
   validate: false,
   skipSuccessfulRequests: true, // Only count failed attempts
-  handler: (req, res) => {
+  handler: (req: Request, res: Response, next: NextFunction) => {
     logger.warn('Auth rate limit exceeded', {
       ip: req.ip,
       path: req.path,
     });
-    res.status(429).json({
-      message: "Too many authentication attempts, please try again later.",
+    next(new RateLimitError('Too many authentication attempts, please try again later', {
       code: 'AUTH_RATE_LIMIT_EXCEEDED',
-      retryAfter: res.getHeader('Retry-After'),
-    });
+      retryAfter: res.getHeader('Retry-After')
+    }));
   },
 });
 
@@ -205,18 +211,17 @@ export const generationLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: getRateLimitKey,
   validate: false,
-  handler: (req, res) => {
+  handler: (req: Request, res: Response, next: NextFunction) => {
     logger.warn('Generation rate limit exceeded', {
       ip: req.ip,
       userId: (req as any).user?.claims?.sub || 'anonymous',
       path: req.path,
     });
-    res.status(429).json({
-      message: "Generation limit exceeded. Please wait before generating more documents.",
+    next(new RateLimitError('Generation limit exceeded. Please wait before generating more documents.', {
       code: 'GENERATION_LIMIT_EXCEEDED',
       retryAfter: res.getHeader('Retry-After'),
-      remainingQuota: 0,
-    });
+      remainingQuota: 0
+    }));
   },
 });
 
@@ -236,9 +241,14 @@ export const aiLimiter = rateLimit({
       path: req.path,
     });
     res.status(429).json({
-      message: "Too many AI requests, please slow down.",
-      code: 'AI_RATE_LIMIT_EXCEEDED',
-      retryAfter: res.getHeader('Retry-After'),
+      success: false,
+      error: {
+        code: 'AI_RATE_LIMIT_EXCEEDED',
+        message: "Too many AI requests, please slow down.",
+        details: {
+          retryAfter: res.getHeader('Retry-After')
+        }
+      }
     });
   },
 });
@@ -288,7 +298,11 @@ export function validateRequest(req: Request, res: Response, next: NextFunction)
   if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
     if (!req.is('application/json')) {
       return res.status(400).json({
-        message: "Content-Type must be application/json"
+        success: false,
+        error: {
+          code: 'INVALID_CONTENT_TYPE',
+          message: "Content-Type must be application/json"
+        }
       });
     }
   }
@@ -410,8 +424,10 @@ export const threatDetection = (req: Request, res: Response, next: NextFunction)
 
     return res.status(403).json({
       success: false,
-      message: 'Request blocked for security reasons',
-      code: 'SECURITY_THREAT_DETECTED'
+      error: {
+        code: 'SECURITY_THREAT_DETECTED',
+        message: 'Request blocked for security reasons'
+      }
     });
   }
 
@@ -575,9 +591,12 @@ export function requireMFA(req: Request, res: Response, next: NextFunction) {
 
   if (mfaRequired && !user.mfaVerified) {
     return res.status(403).json({ 
-      message: 'MFA verification required',
-      code: 'MFA_REQUIRED',
-      mfaChallenge: true
+      success: false,
+      error: {
+        code: 'MFA_REQUIRED',
+        message: 'MFA verification required',
+        details: { mfaChallenge: true }
+      }
     });
   }
 
@@ -599,8 +618,11 @@ export function requireMFAForHighRisk(req: Request, res: Response, next: NextFun
   if (isHighRisk && (!user?.mfaVerified || 
       (Date.now() - user.mfaVerifiedAt) > 30 * 60 * 1000)) { // 30 minutes
     return res.status(403).json({
-      message: 'Recent MFA verification required for this operation',
-      code: 'MFA_VERIFICATION_EXPIRED'
+      success: false,
+      error: {
+        code: 'MFA_VERIFICATION_EXPIRED',
+        message: 'Recent MFA verification required for this operation'
+      }
     });
   }
 

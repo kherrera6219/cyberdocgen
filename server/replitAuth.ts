@@ -3,11 +3,31 @@ import { Strategy, type VerifyFunction } from "openid-client/passport";
 
 import passport from "passport";
 import session from "express-session";
-import type { Express, RequestHandler } from "express";
+import type { Express, Request, Response, NextFunction, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { logger } from "./utils/logger";
+import { 
+  UnauthorizedError, 
+  ForbiddenError, 
+  AppError 
+} from "./utils/errorHandling";
+
+interface ReplitUser {
+  id?: string;
+  claims?: {
+    sub: string;
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    profile_image_url?: string;
+    exp?: number;
+  };
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+}
 
 const getOidcConfig = memoize(
   async () => {
@@ -46,22 +66,23 @@ export function getSession() {
 }
 
 function updateUserSession(
-  user: any,
+  user: ReplitUser,
   tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
 ) {
-  user.claims = tokens.claims();
+  user.claims = tokens.claims() as ReplitUser['claims'];
   user.access_token = tokens.access_token;
   user.refresh_token = tokens.refresh_token;
   user.expires_at = user.claims?.exp;
 }
 
-async function upsertUser(claims: any) {
+async function upsertUser(claims: ReplitUser['claims']) {
+  if (!claims?.sub) return;
   await storage.upsertUser({
     id: claims["sub"],
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
+    email: claims["email"] || '',
+    firstName: claims["first_name"] || null,
+    lastName: claims["last_name"] || null,
+    profileImageUrl: claims["profile_image_url"] || null,
   });
 }
 
@@ -92,10 +113,10 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user: any = {};
+    const user: ReplitUser = {};
     updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user as Express.User);
+    await upsertUser(tokens.claims() as ReplitUser['claims']);
+    verified(null, user as any);
   };
 
   // Helper to get or create a strategy for a specific domain
@@ -166,7 +187,7 @@ export async function setupAuth(app: Express) {
       getOrCreateStrategy(hostname);
     }
     
-    passport.authenticate(strategyName, (err: any, user: any, info: any) => {
+    passport.authenticate(strategyName, (err: Error | null, user: ReplitUser | false, info: any) => {
       if (err) {
         logger.error(`[Auth Callback] Authentication error:`, { error: err });
         return res.redirect(`/login?error=${encodeURIComponent(err.message || 'Authentication failed')}`);
@@ -177,7 +198,7 @@ export async function setupAuth(app: Express) {
         return res.redirect('/login?error=Authentication%20failed');
       }
 
-      req.logIn(user, (loginErr) => {
+      req.logIn(user as any, (loginErr) => {
         if (loginErr) {
           logger.error(`[Auth Callback] Login error:`, { error: loginErr });
           return res.redirect(`/login?error=${encodeURIComponent(loginErr.message || 'Login failed')}`);
@@ -205,24 +226,25 @@ export async function setupAuth(app: Express) {
 }
 
 // Helper function to get user ID from either OAuth or session-based auth
-export function getUserId(req: any): string | undefined {
+export function getUserId(req: Request): string | undefined {
   // Check for temporary/enterprise session first
-  const session = req.session;
+  const session = (req as any).session;
   if (session?.userId) {
     return session.userId;
   }
   // Check for OAuth user
-  if (req.user?.claims?.sub) {
-    return req.user.claims.sub;
+  const user = req.user as ReplitUser | undefined;
+  if (user?.claims?.sub) {
+    return user.claims.sub;
   }
   return undefined;
 }
 
 // Helper that throws if user is not authenticated - use after isAuthenticated middleware
-export function getRequiredUserId(req: any): string {
+export function getRequiredUserId(req: Request): string {
   const userId = getUserId(req);
   if (!userId) {
-    throw new Error('User not authenticated');
+    throw new UnauthorizedError('User not authenticated');
   }
   return userId;
 }
@@ -233,7 +255,7 @@ export function requirePermission(permission: string): RequestHandler {
   return async (req, res, next) => {
     const userId = getUserId(req);
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return next(new UnauthorizedError("Authentication required"));
     }
 
     try {
@@ -260,7 +282,7 @@ export function requirePermission(permission: string): RequestHandler {
 
       if (!hasPermission) {
         logger.warn('Permission denied', { userId, permission });
-        return res.status(403).json({ message: "Insufficient permissions" });
+        return next(new ForbiddenError("Insufficient permissions", "PERMISSION_DENIED"));
       }
 
       return next();
@@ -270,7 +292,7 @@ export function requirePermission(permission: string): RequestHandler {
         userId, 
         permission 
       });
-      return res.status(500).json({ message: "Permission check failed" });
+      return next(new AppError("Permission check failed", 500));
     }
   };
 }
@@ -365,7 +387,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       : false;
 
     if (!isAuthenticatedMethod || !user?.expires_at) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return next(new UnauthorizedError("Authentication required"));
     }
 
     const now = Math.floor(Date.now() / 1000);
@@ -375,7 +397,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
     const refreshToken = user.refresh_token;
     if (!refreshToken) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return next(new UnauthorizedError("Session expired, please login again"));
     }
 
     try {
@@ -384,11 +406,11 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       updateUserSession(user, tokenResponse);
       return next();
     } catch (error) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return next(new UnauthorizedError("Failed to refresh session"));
     }
   } catch (error) {
     // If any error occurs in authentication check, return 401
     logger.error('Authentication middleware error', { error });
-    return res.status(401).json({ message: "Unauthorized" });
+    return next(new UnauthorizedError("Authentication check failed"));
   }
 };

@@ -2,6 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import { logger } from '../utils/logger';
 import { getUserId } from '../replitAuth';
+import { 
+  ForbiddenError, 
+  NotFoundError, 
+  ValidationError 
+} from '../utils/errorHandling';
 
 export interface MultiTenantRequest extends Request {
   organizationId?: string;
@@ -59,12 +64,7 @@ export function requireOrganization(
   next: NextFunction
 ): void {
   if (!req.organizationId) {
-    res.status(403).json({
-      success: false,
-      message: 'Organization context required',
-      code: 'ORG_CONTEXT_REQUIRED'
-    });
-    return;
+    return next(new ForbiddenError('Organization context required', 'ORG_CONTEXT_REQUIRED'));
   }
   next();
 }
@@ -72,12 +72,7 @@ export function requireOrganization(
 export function requireOrganizationRole(...allowedRoles: string[]) {
   return (req: MultiTenantRequest, res: Response, next: NextFunction): void => {
     if (!req.organizationId) {
-      res.status(403).json({
-        success: false,
-        message: 'Organization context required',
-        code: 'ORG_CONTEXT_REQUIRED'
-      });
-      return;
+      return next(new ForbiddenError('Organization context required', 'ORG_CONTEXT_REQUIRED'));
     }
 
     if (!req.organizationRole || !allowedRoles.includes(req.organizationRole)) {
@@ -87,12 +82,7 @@ export function requireOrganizationRole(...allowedRoles: string[]) {
         userRole: req.organizationRole,
         requiredRoles: allowedRoles
       });
-      res.status(403).json({
-        success: false,
-        message: 'Insufficient permissions for this operation',
-        code: 'INSUFFICIENT_ORG_ROLE'
-      });
-      return;
+      return next(new ForbiddenError('Insufficient permissions for this operation', 'INSUFFICIENT_ORG_ROLE'));
     }
 
     next();
@@ -143,21 +133,11 @@ export function requireResourceOwnership(resourceType: 'document' | 'companyProf
     const resourceId = req.params.id || req.params.documentId || req.params.profileId;
     
     if (!resourceId) {
-      res.status(400).json({
-        success: false,
-        message: 'Resource ID required',
-        code: 'RESOURCE_ID_REQUIRED'
-      });
-      return;
+      return next(new ValidationError('Resource ID required', { code: 'RESOURCE_ID_REQUIRED' }));
     }
 
     if (!req.organizationId) {
-      res.status(403).json({
-        success: false,
-        message: 'Organization context required',
-        code: 'ORG_CONTEXT_REQUIRED'
-      });
-      return;
+      return next(new ForbiddenError('Organization context required', 'ORG_CONTEXT_REQUIRED'));
     }
 
     const isOwner = await validateResourceOwnership(resourceType, resourceId, req.organizationId);
@@ -171,12 +151,7 @@ export function requireResourceOwnership(resourceType: 'document' | 'companyProf
         ip: req.ip
       });
       
-      res.status(404).json({
-        success: false,
-        message: 'Resource not found',
-        code: 'RESOURCE_NOT_FOUND'
-      });
-      return;
+      return next(new NotFoundError('Resource not found', { code: 'RESOURCE_NOT_FOUND' }));
     }
 
     next();

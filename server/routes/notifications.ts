@@ -1,29 +1,19 @@
-import { Router, Request, Response } from 'express';
-import { z } from 'zod';
+import { Router, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { 
   secureHandler,
-  validateInput,
-  requireAuth,
-  requireResource
+  NotFoundError
 } from '../utils/errorHandling';
+import { type MultiTenantRequest } from '../middleware/multiTenant';
 
-// Validation schemas
-const limitQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-});
-
-const notificationIdSchema = z.object({
-  id: z.string().min(1, 'Notification ID required'),
-});
 
 export function registerNotificationRoutes(router: Router) {
   /**
    * Get user notifications
    */
-  router.get("/", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
+  router.get("/", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
     const limit = parseInt(req.query.limit as string) || 50;
     
     const notifications = await storage.getNotifications(userId, limit);
@@ -33,8 +23,8 @@ export function registerNotificationRoutes(router: Router) {
   /**
    * Get unread notification count
    */
-  router.get("/unread-count", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
+  router.get("/unread-count", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
     const count = await storage.getUnreadNotificationCount(userId);
     res.json({ success: true, data: { count } });
   }));
@@ -42,12 +32,14 @@ export function registerNotificationRoutes(router: Router) {
   /**
    * Mark single notification as read
    */
-  router.patch("/:id/read", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
+  router.patch("/:id/read", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
     const { id } = req.params;
     
     const notification = await storage.markNotificationAsRead(id, userId);
-    requireResource(notification, 'Notification');
+    if (!notification) {
+      throw new NotFoundError('Notification not found');
+    }
     
     res.json({ success: true, data: notification });
   }, { audit: { action: 'update', entityType: 'notification', getEntityId: (req) => req.params.id } }));
@@ -55,8 +47,8 @@ export function registerNotificationRoutes(router: Router) {
   /**
    * Mark all notifications as read
    */
-  router.patch("/mark-all-read", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
+  router.patch("/mark-all-read", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
     const count = await storage.markAllNotificationsAsRead(userId);
     res.json({ success: true, data: { marked: count } });
   }, { audit: { action: 'update', entityType: 'notifications' } }));
@@ -64,13 +56,15 @@ export function registerNotificationRoutes(router: Router) {
   /**
    * Delete notification
    */
-  router.delete("/:id", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
+  router.delete("/:id", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
     const { id } = req.params;
     
     const deleted = await storage.deleteNotification(id, userId);
-    requireResource(deleted ? { id } : null, 'Notification');
+    if (!deleted) {
+      throw new NotFoundError('Notification not found');
+    }
     
-    res.json({ success: true, message: 'Notification deleted' });
+    res.json({ success: true, data: { message: 'Notification deleted' } });
   }, { audit: { action: 'delete', entityType: 'notification', getEntityId: (req) => req.params.id } }));
 }

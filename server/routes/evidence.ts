@@ -1,17 +1,21 @@
-import { Router, Request, Response } from 'express';
-import { isAuthenticated } from '../replitAuth';
+import { Router, Response, NextFunction } from 'express';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { db } from '../db';
 import { cloudFiles } from '@shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
-import { logger } from '../utils/logger';
 import { objectStorageService } from '../services/objectStorageService';
 import { auditService, AuditAction } from '../services/auditService';
 import { 
   secureHandler, 
-  requireResource,
+  validateInput,
   ValidationError,
-  AppError
+  AppError,
+  NotFoundError
 } from '../utils/errorHandling';
+import { 
+  type MultiTenantRequest, 
+  requireOrganization 
+} from '../middleware/multiTenant';
 
 // Helper function to get content type from file extension
 function getContentType(extension: string | undefined): string {
@@ -45,13 +49,13 @@ export function registerEvidenceRoutes(app: Router) {
   /**
    * Upload evidence for compliance controls
    */
-  router.post('/', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+  router.post('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     const {
       fileName,
       fileType,
       fileData,
-      organizationId,
       integrationId,
       description,
       controlIds,
@@ -97,7 +101,7 @@ export function registerEvidenceRoutes(app: Router) {
         canShare: false
       },
       metadata: {
-        createdBy: user?.id?.toString() || user?.claims?.sub,
+        createdBy: userId,
         tags: ['evidence', ...(controlIds || []).map((cid: string) => `control:${cid}`), framework ? `framework:${framework}` : ''].filter(Boolean),
         description: description || `Evidence file: ${fileName}`,
         version: '1.0'
@@ -108,17 +112,17 @@ export function registerEvidenceRoutes(app: Router) {
     }).returning();
 
     // Log audit trail
-    await auditService.logAudit({
-      entityType: 'document',
-      entityId: evidenceRecord.id,
+    await auditService.logAction({
       action: AuditAction.CREATE,
-      userId: user?.id?.toString() || user?.claims?.sub,
+      entityType: 'evidence',
+      entityId: evidenceRecord.id,
+      userId,
+      organizationId,
       ipAddress: req.ip || '',
       metadata: {
         action: 'evidence_upload',
         fileName,
         fileSize,
-        organizationId,
         framework,
         controlIds
       }
@@ -136,9 +140,9 @@ export function registerEvidenceRoutes(app: Router) {
   /**
    * List all evidence documents
    */
-  router.get('/', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.get('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
     const {
-      organizationId,
       framework,
       controlId,
       limit = '50',
@@ -146,18 +150,7 @@ export function registerEvidenceRoutes(app: Router) {
     } = req.query;
 
     // Build query with filters
-    let query = db.select().from(cloudFiles);
-
-    const conditions = [];
-
-    // Filter by organization if provided
-    if (organizationId) {
-      conditions.push(eq(cloudFiles.organizationId, organizationId as string));
-    }
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
-    }
+    const query = db.select().from(cloudFiles).where(eq(cloudFiles.organizationId, organizationId));
 
     // Get evidence files with pagination
     const evidenceFiles = await query
@@ -205,9 +198,10 @@ export function registerEvidenceRoutes(app: Router) {
   /**
    * Map evidence to controls
    */
-  router.post('/:id/controls', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.post('/:id/controls', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { id } = req.params;
-    const user = (req as any).user;
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     const { controlIds, framework, action = 'add' } = req.body;
 
     if (!controlIds || !Array.isArray(controlIds)) {
@@ -218,9 +212,14 @@ export function registerEvidenceRoutes(app: Router) {
     const [evidenceFile] = await db
       .select()
       .from(cloudFiles)
-      .where(eq(cloudFiles.id, id));
+      .where(and(
+        eq(cloudFiles.id, id),
+        eq(cloudFiles.organizationId, organizationId)
+      ));
 
-    requireResource(evidenceFile, 'Evidence file');
+    if (!evidenceFile) {
+      throw new NotFoundError("Evidence file not found");
+    }
 
     // Update metadata with control mappings using tags
     const currentMetadata = (evidenceFile.metadata as any) || {};
@@ -270,11 +269,12 @@ export function registerEvidenceRoutes(app: Router) {
       .returning();
 
     // Log audit trail
-    await auditService.logAudit({
-      entityType: 'document',
-      entityId: id,
+    await auditService.logAction({
       action: AuditAction.UPDATE,
-      userId: user?.id?.toString() || user?.claims?.sub,
+      entityType: 'evidence',
+      entityId: id,
+      userId,
+      organizationId,
       ipAddress: req.ip || '',
       metadata: {
         action: 'evidence_control_mapping',

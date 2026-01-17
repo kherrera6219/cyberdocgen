@@ -1,13 +1,13 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { logger } from '../utils/logger';
-import { isAuthenticated } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { 
   secureHandler, 
   validateInput,
-  requireResource,
-  ValidationError
+  ValidationError,
+  NotFoundError
 } from '../utils/errorHandling';
+import { type MultiTenantRequest, requireOrganization } from '../middleware/multiTenant';
 
 // Validation schemas for control status updates
 const controlStatusSchema = z.enum(["not_started", "in_progress", "implemented", "not_applicable"]);
@@ -38,7 +38,7 @@ export function registerTemplatesRoutes(router: Router) {
   /**
    * Get all templates (public - no auth required)
    */
-  router.get('/', secureHandler(async (req: Request, res: Response) => {
+  router.get('/', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { DocumentTemplateService } = await import('../services/documentTemplates');
     const { framework } = req.query;
     
@@ -56,12 +56,14 @@ export function registerTemplatesRoutes(router: Router) {
   /**
    * Get single template by ID (public - no auth required)
    */
-  router.get('/:templateId', secureHandler(async (req: Request, res: Response) => {
+  router.get('/:templateId', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { DocumentTemplateService } = await import('../services/documentTemplates');
     const { templateId } = req.params;
     
     const template = DocumentTemplateService.getTemplateById(templateId);
-    requireResource(template, 'Template');
+    if (!template) {
+      throw new NotFoundError('Template not found');
+    }
 
     res.json({ success: true, data: { template } });
   }));
@@ -71,7 +73,7 @@ export function registerFrameworksRoutes(router: Router) {
   /**
    * Get required templates for a framework
    */
-  router.get('/:framework/required-templates', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.get('/:framework/required-templates', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { DocumentTemplateService } = await import('../services/documentTemplates');
     const { framework } = req.params;
     
@@ -90,7 +92,7 @@ export function registerFrameworksRoutes(router: Router) {
   /**
    * Get framework statistics
    */
-  router.get("/:framework/stats", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.get("/:framework/stats", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { storage } = await import('../storage');
     const { frameworkTemplates } = await import('../services/openai');
     const { framework } = req.params;
@@ -102,7 +104,7 @@ export function registerFrameworksRoutes(router: Router) {
 
     const documents = await storage.getDocumentsByCompanyProfile(companyProfileId as string);
     const frameworkDocs = documents.filter(doc => doc.framework === framework);
-    const templates = frameworkTemplates[framework] || [];
+    const templates = (frameworkTemplates as Record<string, any[]>)[framework] || [];
     
     const completedDocs = frameworkDocs.filter(doc => doc.status === 'complete').length;
     const totalDocs = templates.length;
@@ -123,42 +125,35 @@ export function registerFrameworksRoutes(router: Router) {
   /**
    * Get control statuses for a framework
    */
-  router.get("/:framework/control-statuses", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.get("/:framework/control-statuses", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { storage } = await import('../storage');
     const { framework } = req.params;
-    const user = (req as any).user;
+    const organizationId = req.organizationId!;
 
-    if (!user?.organizationId) {
-      throw new ValidationError("Organization ID is required");
-    }
-
-    const controlStatuses = await storage.getFrameworkControlStatuses(user.organizationId, framework);
+    const controlStatuses = await storage.getFrameworkControlStatuses(organizationId, framework);
     res.json({ success: true, data: controlStatuses });
   }));
 
   /**
    * Update a specific control status
    */
-  router.put("/:framework/control-statuses/:controlId", isAuthenticated, validateInput(updateControlStatusSchema), secureHandler(async (req: Request, res: Response) => {
+  router.put("/:framework/control-statuses/:controlId", isAuthenticated, requireOrganization, validateInput(updateControlStatusSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { storage } = await import('../storage');
     const { framework, controlId } = req.params;
-    const user = (req as any).user;
-
-    if (!user?.organizationId) {
-      throw new ValidationError("Organization ID is required");
-    }
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
 
     const { status, evidenceStatus, notes } = req.body;
 
     const updated = await storage.updateFrameworkControlStatus(
-      user.organizationId,
+      organizationId,
       framework,
       controlId,
       { 
         status, 
         evidenceStatus, 
         notes,
-        updatedBy: user.id 
+        updatedBy: userId 
       }
     );
     res.json({ success: true, data: updated });
@@ -167,14 +162,11 @@ export function registerFrameworksRoutes(router: Router) {
   /**
    * Bulk update control statuses
    */
-  router.post("/:framework/control-statuses/bulk", isAuthenticated, validateInput(bulkUpdateSchema), secureHandler(async (req: Request, res: Response) => {
+  router.post("/:framework/control-statuses/bulk", isAuthenticated, requireOrganization, validateInput(bulkUpdateSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { storage } = await import('../storage');
     const { framework } = req.params;
-    const user = (req as any).user;
-
-    if (!user?.organizationId) {
-      throw new ValidationError("Organization ID is required");
-    }
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
 
     const { updates } = req.body;
 
@@ -188,14 +180,14 @@ export function registerFrameworksRoutes(router: Router) {
     const results = await Promise.all(
       updates.map((update: UpdateItem) => 
         storage.updateFrameworkControlStatus(
-          user.organizationId,
+          organizationId,
           framework,
           update.controlId,
           { 
             status: update.status, 
             evidenceStatus: update.evidenceStatus, 
             notes: update.notes,
-            updatedBy: user.id 
+            updatedBy: userId 
           }
         )
       )

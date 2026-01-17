@@ -1,9 +1,9 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express from "express";
 import crypto from "crypto";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { setupVite, serveStatic } from "./vite";
 import cors from "cors";
 import { getSession } from "./replitAuth";
 
@@ -21,22 +21,17 @@ import {
   generalLimiter,
   validateRequest,
   securityHeaders,
-  errorHandler,
   threatDetection,
   auditLogger,
-  requireMFA,
-  requireMFAForHighRisk,
   csrfProtection
 } from "./middleware/security";
+import { globalErrorHandler } from "./utils/errorHandling";
 import { tracingMiddleware } from "./middleware/tracing";
 import { egressControlMiddleware } from "./middleware/egressControl";
 import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
 import { validateEnvironment } from "./utils/validation";
 import { logger } from "./utils/logger";
 import { healthCheckHandler, readinessCheckHandler, livenessCheckHandler } from "./utils/health";
-import { performanceService } from './services/performanceService';
-import { alertingService } from './services/alertingService';
-import { threatDetectionService } from './services/threatDetectionService';
 
 
 // Validate environment variables before starting
@@ -165,8 +160,8 @@ app.use((req, res, next) => {
 
   const server = await registerRoutes(app);
 
-  // Use the enhanced error handler
-  app.use(errorHandler);
+  // Use the enhanced global error handler
+  app.use(globalErrorHandler);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

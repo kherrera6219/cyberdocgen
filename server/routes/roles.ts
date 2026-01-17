@@ -1,19 +1,18 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db';
 import { roles, roleAssignments, users, userOrganizations, insertRoleSchema } from '@shared/schema';
-import { isAuthenticated, getUserId } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { 
   secureHandler, 
   validateInput,
-  requireAuth, 
-  requireResource,
-  requirePermission,
   ConflictError,
-  ValidationError
+  NotFoundError,
+  ForbiddenError
 } from '../utils/errorHandling';
+import { type MultiTenantRequest } from '../middleware/multiTenant';
 
 const router = Router();
 
@@ -72,7 +71,7 @@ const assignRoleSchema = z.object({
 /**
  * Get all roles
  */
-router.get('/', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+router.get('/', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   const allRoles = await db.select().from(roles);
   res.json({ success: true, data: allRoles });
 }));
@@ -80,19 +79,23 @@ router.get('/', isAuthenticated, secureHandler(async (req: Request, res: Respons
 /**
  * Get single role by ID
  */
-router.get('/:id', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+router.get('/:id', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   const [role] = await db.select().from(roles).where(eq(roles.id, req.params.id)).limit(1);
-  requireResource(role, 'Role');
+  if (!role) {
+    throw new NotFoundError("Role not found");
+  }
   res.json({ success: true, data: role });
 }));
 
 /**
  * Seed default roles (admin only)
  */
-router.post('/seed', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.post('/seed', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  requirePermission(user?.role === 'admin', 'Admin access required');
+  if (user?.role !== 'admin') {
+    throw new ForbiddenError('Admin access required');
+  }
 
   for (const roleData of DEFAULT_ROLES) {
     const [existing] = await db.select().from(roles).where(eq(roles.name, roleData.name)).limit(1);
@@ -109,10 +112,12 @@ router.post('/seed', isAuthenticated, secureHandler(async (req: Request, res: Re
 /**
  * Create new role (admin only)
  */
-router.post('/', isAuthenticated, validateInput(insertRoleSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.post('/', isAuthenticated, validateInput(insertRoleSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  requirePermission(user?.role === 'admin', 'Admin access required');
+  if (user?.role !== 'admin') {
+    throw new ForbiddenError('Admin access required');
+  }
 
   const [newRole] = await db.insert(roles).values(req.body).returning();
   logger.info('Role created', { roleId: newRole.id, name: newRole.name });
@@ -122,8 +127,8 @@ router.post('/', isAuthenticated, validateInput(insertRoleSchema), secureHandler
 /**
  * Get role assignments for a user
  */
-router.get('/assignments/user/:userId', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const currentUserId = requireAuth(req);
+router.get('/assignments/user/:userId', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const currentUserId = getRequiredUserId(req);
   const targetUserId = req.params.userId;
 
   const currentUserOrgs = await db
@@ -140,7 +145,9 @@ router.get('/assignments/user/:userId', isAuthenticated, secureHandler(async (re
       .where(eq(userOrganizations.userId, targetUserId));
 
     const hasSharedOrg = targetOrgs.some(t => currentOrgIds.includes(t.orgId));
-    requirePermission(hasSharedOrg, 'Cannot view assignments for users outside your organizations');
+    if (!hasSharedOrg) {
+      throw new ForbiddenError('Cannot view assignments for users outside your organizations');
+    }
   }
 
   const allAssignments = await db
@@ -167,8 +174,8 @@ router.get('/assignments/user/:userId', isAuthenticated, secureHandler(async (re
 /**
  * Get role assignments for an organization
  */
-router.get('/assignments/organization/:orgId', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const currentUserId = requireAuth(req);
+router.get('/assignments/organization/:orgId', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const currentUserId = getRequiredUserId(req);
   const orgId = req.params.orgId;
 
   const [membership] = await db
@@ -177,7 +184,9 @@ router.get('/assignments/organization/:orgId', isAuthenticated, secureHandler(as
     .where(and(eq(userOrganizations.userId, currentUserId), eq(userOrganizations.organizationId, orgId)))
     .limit(1);
 
-  requirePermission(!!membership, 'Not a member of this organization');
+  if (!membership) {
+    throw new ForbiddenError('Not a member of this organization');
+  }
 
   const assignments = await db
     .select({
@@ -202,8 +211,8 @@ router.get('/assignments/organization/:orgId', isAuthenticated, secureHandler(as
 /**
  * Assign role to user
  */
-router.post('/assignments', isAuthenticated, validateInput(assignRoleSchema), secureHandler(async (req: Request, res: Response) => {
-  const currentUserId = requireAuth(req);
+router.post('/assignments', isAuthenticated, validateInput(assignRoleSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const currentUserId = getRequiredUserId(req);
   const { userId, organizationId, roleId } = req.body;
 
   const [membership] = await db
@@ -212,10 +221,9 @@ router.post('/assignments', isAuthenticated, validateInput(assignRoleSchema), se
     .where(and(eq(userOrganizations.userId, currentUserId), eq(userOrganizations.organizationId, organizationId)))
     .limit(1);
 
-  requirePermission(
-    !!membership && (membership.role === 'admin' || membership.role === 'owner'),
-    'Admin access required for this organization'
-  );
+  if (!membership || (membership.role !== 'admin' && membership.role !== 'owner')) {
+    throw new ForbiddenError('Admin access required for this organization');
+  }
 
   const [existing] = await db
     .select()
@@ -243,11 +251,13 @@ router.post('/assignments', isAuthenticated, validateInput(assignRoleSchema), se
 /**
  * Remove role assignment
  */
-router.delete('/assignments/:id', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const currentUserId = requireAuth(req);
+router.delete('/assignments/:id', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const currentUserId = getRequiredUserId(req);
   const [assignment] = await db.select().from(roleAssignments).where(eq(roleAssignments.id, req.params.id)).limit(1);
 
-  requireResource(assignment, 'Role assignment');
+  if (!assignment) {
+    throw new NotFoundError('Role assignment not found');
+  }
 
   const [membership] = await db
     .select()
@@ -255,10 +265,9 @@ router.delete('/assignments/:id', isAuthenticated, secureHandler(async (req: Req
     .where(and(eq(userOrganizations.userId, currentUserId), eq(userOrganizations.organizationId, assignment.organizationId)))
     .limit(1);
 
-  requirePermission(
-    !!membership && (membership.role === 'admin' || membership.role === 'owner'),
-    'Admin access required'
-  );
+  if (!membership || (membership.role !== 'admin' && membership.role !== 'owner')) {
+    throw new ForbiddenError('Admin access required');
+  }
 
   await db.delete(roleAssignments).where(eq(roleAssignments.id, req.params.id));
   logger.info('Role assignment removed', { assignmentId: req.params.id });

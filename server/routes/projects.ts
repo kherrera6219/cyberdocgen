@@ -1,32 +1,21 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { eq, and, desc } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db';
-import { projects, projectMemberships, users, userOrganizations, insertProjectSchema, insertProjectMembershipSchema } from '@shared/schema';
-import { isAuthenticated, getUserId } from '../replitAuth';
+import { projects, projectMemberships, users, userOrganizations, insertProjectSchema } from '@shared/schema';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { 
   secureHandler, 
   validateInput,
-  requireAuth,
-  requireResource,
-  requirePermission,
   NotFoundError,
   ForbiddenError,
   ConflictError
 } from '../utils/errorHandling';
+import { type MultiTenantRequest, requireOrganization } from '../middleware/multiTenant';
 
 const router = Router();
 
-// Validation schemas
-const projectIdSchema = z.object({
-  id: z.string().uuid('Invalid project ID'),
-});
-
-const memberIdSchema = z.object({
-  id: z.string().uuid('Invalid project ID'),
-  memberId: z.string().uuid('Invalid member ID'),
-});
 
 const addMemberSchema = z.object({
   userId: z.string().uuid('Invalid user ID'),
@@ -52,8 +41,8 @@ const updateProjectSchema = z.object({
 /**
  * Get all projects for current user
  */
-router.get('/', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.get('/', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   const userProjects = await db
     .select({
@@ -79,8 +68,8 @@ router.get('/', isAuthenticated, secureHandler(async (req: Request, res: Respons
 /**
  * Get projects by organization
  */
-router.get('/organization/:orgId', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.get('/organization/:orgId', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const orgId = req.params.orgId;
 
   const [membership] = await db
@@ -89,7 +78,9 @@ router.get('/organization/:orgId', isAuthenticated, secureHandler(async (req: Re
     .where(and(eq(userOrganizations.userId, userId), eq(userOrganizations.organizationId, orgId)))
     .limit(1);
 
-  requirePermission(!!membership, 'Not a member of this organization');
+  if (!membership) {
+    throw new ForbiddenError('Not a member of this organization');
+  }
 
   const orgProjects = await db
     .select()
@@ -103,8 +94,8 @@ router.get('/organization/:orgId', isAuthenticated, secureHandler(async (req: Re
 /**
  * Get single project by ID
  */
-router.get('/:id', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.get('/:id', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const projectId = req.params.id;
 
   const [membership] = await db
@@ -113,10 +104,14 @@ router.get('/:id', isAuthenticated, secureHandler(async (req: Request, res: Resp
     .where(and(eq(projectMemberships.projectId, projectId), eq(projectMemberships.userId, userId)))
     .limit(1);
 
-  requirePermission(!!membership, 'Not a member of this project');
+  if (!membership) {
+    throw new ForbiddenError('Not a member of this project');
+  }
 
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
-  requireResource(project, 'Project');
+  if (!project) {
+    throw new NotFoundError('Project not found');
+  }
 
   res.json({ success: true, data: project });
 }, { audit: { action: 'view', entityType: 'project', getEntityId: (req) => req.params.id } }));
@@ -124,20 +119,12 @@ router.get('/:id', isAuthenticated, secureHandler(async (req: Request, res: Resp
 /**
  * Create new project
  */
-router.post('/', isAuthenticated, validateInput(insertProjectSchema.extend({
-  organizationId: z.string().uuid(),
-})), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
-  const projectData = { ...req.body, createdBy: userId };
-
-  // Verify org membership
-  const [membership] = await db
-    .select()
-    .from(userOrganizations)
-    .where(and(eq(userOrganizations.userId, userId), eq(userOrganizations.organizationId, projectData.organizationId)))
-    .limit(1);
-
-  requirePermission(!!membership, 'Not a member of this organization');
+router.post('/', isAuthenticated, requireOrganization, validateInput(insertProjectSchema.extend({
+  organizationId: z.string().uuid().optional(),
+})), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
+  const organizationId = req.organizationId!;
+  const projectData = { ...req.body, organizationId, createdBy: userId };
 
   const [newProject] = await db.insert(projects).values(projectData).returning();
 
@@ -148,15 +135,15 @@ router.post('/', isAuthenticated, validateInput(insertProjectSchema.extend({
     role: 'owner',
   });
 
-  logger.info('Project created', { projectId: newProject.id, createdBy: userId });
+  logger.info('Project created', { projectId: newProject.id, createdBy: userId, organizationId });
   res.status(201).json({ success: true, data: newProject });
 }, { audit: { action: 'create', entityType: 'project' } }));
 
 /**
  * Update project
  */
-router.patch('/:id', isAuthenticated, validateInput(updateProjectSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.patch('/:id', isAuthenticated, validateInput(updateProjectSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const projectId = req.params.id;
 
   const [membership] = await db
@@ -165,7 +152,9 @@ router.patch('/:id', isAuthenticated, validateInput(updateProjectSchema), secure
     .where(and(eq(projectMemberships.projectId, projectId), eq(projectMemberships.userId, userId)))
     .limit(1);
 
-  requirePermission(!!membership && membership.role !== 'viewer', 'Edit access required');
+  if (!membership || membership.role === 'viewer') {
+    throw new ForbiddenError('Edit access required');
+  }
 
   const { name, description, status, framework, targetCompletionDate } = req.body;
   const updates: Record<string, unknown> = { updatedAt: new Date() };
@@ -182,15 +171,17 @@ router.patch('/:id', isAuthenticated, validateInput(updateProjectSchema), secure
     .where(eq(projects.id, projectId))
     .returning();
 
-  requireResource(updated, 'Project');
+  if (!updated) {
+    throw new NotFoundError('Project not found');
+  }
   res.json({ success: true, data: updated });
 }, { audit: { action: 'update', entityType: 'project', getEntityId: (req) => req.params.id } }));
 
 /**
  * Delete project
  */
-router.delete('/:id', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.delete('/:id', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const projectId = req.params.id;
 
   const [membership] = await db
@@ -199,7 +190,9 @@ router.delete('/:id', isAuthenticated, secureHandler(async (req: Request, res: R
     .where(and(eq(projectMemberships.projectId, projectId), eq(projectMemberships.userId, userId)))
     .limit(1);
 
-  requirePermission(!!membership && membership.role === 'owner', 'Owner access required');
+  if (!membership || membership.role !== 'owner') {
+    throw new ForbiddenError('Owner access required');
+  }
 
   await db.delete(projects).where(eq(projects.id, projectId));
   logger.info('Project deleted', { projectId, deletedBy: userId });
@@ -209,8 +202,8 @@ router.delete('/:id', isAuthenticated, secureHandler(async (req: Request, res: R
 /**
  * Get project members
  */
-router.get('/:id/members', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.get('/:id/members', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const projectId = req.params.id;
 
   const [membership] = await db
@@ -219,7 +212,9 @@ router.get('/:id/members', isAuthenticated, secureHandler(async (req: Request, r
     .where(and(eq(projectMemberships.projectId, projectId), eq(projectMemberships.userId, userId)))
     .limit(1);
 
-  requirePermission(!!membership, 'Not a member of this project');
+  if (!membership) {
+    throw new ForbiddenError('Not a member of this project');
+  }
 
   const members = await db
     .select({
@@ -242,8 +237,8 @@ router.get('/:id/members', isAuthenticated, secureHandler(async (req: Request, r
 /**
  * Add project member
  */
-router.post('/:id/members', isAuthenticated, validateInput(addMemberSchema), secureHandler(async (req: Request, res: Response) => {
-  const currentUserId = requireAuth(req);
+router.post('/:id/members', isAuthenticated, validateInput(addMemberSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const currentUserId = getRequiredUserId(req);
   const projectId = req.params.id;
   const { userId: targetUserId, role } = req.body;
 
@@ -254,11 +249,15 @@ router.post('/:id/members', isAuthenticated, validateInput(addMemberSchema), sec
     .where(and(eq(projectMemberships.projectId, projectId), eq(projectMemberships.userId, currentUserId)))
     .limit(1);
 
-  requirePermission(!!currentMembership && currentMembership.role === 'owner', 'Owner access required to add members');
+  if (!currentMembership || currentMembership.role !== 'owner') {
+    throw new ForbiddenError('Owner access required to add members');
+  }
 
   // Get project to check org
   const [project] = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
-  requireResource(project, 'Project');
+  if (!project) {
+    throw new NotFoundError('Project not found');
+  }
 
   // Verify target user is in org
   const [targetOrgMembership] = await db
@@ -267,7 +266,9 @@ router.post('/:id/members', isAuthenticated, validateInput(addMemberSchema), sec
     .where(and(eq(userOrganizations.userId, targetUserId), eq(userOrganizations.organizationId, project.organizationId)))
     .limit(1);
 
-  requirePermission(!!targetOrgMembership, 'User must be a member of the organization');
+  if (!targetOrgMembership) {
+    throw new ForbiddenError('User must be a member of the organization');
+  }
 
   // Check for existing membership
   const [existing] = await db
@@ -292,8 +293,8 @@ router.post('/:id/members', isAuthenticated, validateInput(addMemberSchema), sec
 /**
  * Update member role
  */
-router.patch('/:id/members/:memberId', isAuthenticated, validateInput(updateMemberSchema), secureHandler(async (req: Request, res: Response) => {
-  const currentUserId = requireAuth(req);
+router.patch('/:id/members/:memberId', isAuthenticated, validateInput(updateMemberSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const currentUserId = getRequiredUserId(req);
   const { id: projectId, memberId } = req.params;
   const { role } = req.body;
 
@@ -303,7 +304,9 @@ router.patch('/:id/members/:memberId', isAuthenticated, validateInput(updateMemb
     .where(and(eq(projectMemberships.projectId, projectId), eq(projectMemberships.userId, currentUserId)))
     .limit(1);
 
-  requirePermission(!!currentMembership && currentMembership.role === 'owner', 'Owner access required');
+  if (!currentMembership || currentMembership.role !== 'owner') {
+    throw new ForbiddenError('Owner access required');
+  }
 
   const [updated] = await db
     .update(projectMemberships)
@@ -311,15 +314,17 @@ router.patch('/:id/members/:memberId', isAuthenticated, validateInput(updateMemb
     .where(eq(projectMemberships.id, memberId))
     .returning();
 
-  requireResource(updated, 'Member');
+  if (!updated) {
+    throw new NotFoundError('Member not found');
+  }
   res.json({ success: true, data: updated });
 }, { audit: { action: 'update', entityType: 'projectMembership' } }));
 
 /**
  * Remove project member
  */
-router.delete('/:id/members/:memberId', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-  const currentUserId = requireAuth(req);
+router.delete('/:id/members/:memberId', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const currentUserId = getRequiredUserId(req);
   const { id: projectId, memberId } = req.params;
 
   const [currentMembership] = await db
@@ -328,7 +333,9 @@ router.delete('/:id/members/:memberId', isAuthenticated, secureHandler(async (re
     .where(and(eq(projectMemberships.projectId, projectId), eq(projectMemberships.userId, currentUserId)))
     .limit(1);
 
-  requirePermission(!!currentMembership && currentMembership.role === 'owner', 'Owner access required to remove members');
+  if (!currentMembership || currentMembership.role !== 'owner') {
+    throw new ForbiddenError('Owner access required to remove members');
+  }
 
   const [targetMembership] = await db
     .select()
@@ -336,9 +343,15 @@ router.delete('/:id/members/:memberId', isAuthenticated, secureHandler(async (re
     .where(eq(projectMemberships.id, memberId))
     .limit(1);
 
-  requireResource(targetMembership, 'Member');
-  requirePermission(targetMembership.projectId === projectId, 'Member does not belong to this project');
-  requirePermission(targetMembership.userId !== currentUserId, 'Cannot remove yourself from the project');
+  if (!targetMembership) {
+    throw new NotFoundError('Member not found');
+  }
+  if (targetMembership.projectId !== projectId) {
+    throw new ForbiddenError('Member does not belong to this project');
+  }
+  if (targetMembership.userId === currentUserId) {
+    throw new ForbiddenError('Cannot remove yourself from the project');
+  }
 
   await db.delete(projectMemberships).where(eq(projectMemberships.id, memberId));
   logger.info('Project member removed', { projectId, memberId, removedBy: currentUserId });

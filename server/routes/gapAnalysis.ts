@@ -1,29 +1,21 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { storage } from '../storage';
-import { isAuthenticated, getRequiredUserId } from '../replitAuth';
+import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { type RemediationRecommendation } from '@shared/schema';
 import { 
   secureHandler, 
-  requireAuth,
-  requireResource,
-  ValidationError
+  ValidationError,
+  NotFoundError
 } from '../utils/errorHandling';
+import { type MultiTenantRequest, requireOrganization } from '../middleware/multiTenant';
 
 export function registerGapAnalysisRoutes(router: Router) {
   /**
    * Get gap analysis reports
    */
-  router.get("/", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
-    const userOrganizations = await storage.getUserOrganizations(userId);
-
-    if (userOrganizations.length === 0) {
-      res.json({ success: true, data: [] });
-      return;
-    }
-
-    const organizationId = userOrganizations[0].organizationId;
+  router.get("/", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
     const reports = await storage.getGapAnalysisReports(organizationId);
 
     res.json({ success: true, data: reports });
@@ -32,17 +24,9 @@ export function registerGapAnalysisRoutes(router: Router) {
   /**
    * Get gap analysis by framework
    */
-  router.get("/:framework", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.get("/:framework", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { framework } = req.params;
-    const userId = requireAuth(req);
-    const userOrganizations = await storage.getUserOrganizations(userId);
-
-    if (userOrganizations.length === 0) {
-      res.json({ success: true, data: [] });
-      return;
-    }
-
-    const organizationId = userOrganizations[0].organizationId;
+    const organizationId = req.organizationId!;
     const reports = await storage.getGapAnalysisReports(organizationId);
 
     // Filter by framework
@@ -53,17 +37,11 @@ export function registerGapAnalysisRoutes(router: Router) {
   /**
    * Create a new gap analysis
    */
-  router.post("/", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
+  router.post("/", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { framework } = req.body;
 
     if (!framework) {
       throw new ValidationError("Framework is required");
-    }
-
-    const userOrganizations = await storage.getUserOrganizations(userId);
-    if (userOrganizations.length === 0) {
-      throw new ValidationError("User not associated with any organization");
     }
 
     res.status(501).json({ 
@@ -78,16 +56,8 @@ export function registerGapAnalysisRoutes(router: Router) {
   /**
    * Get gap analysis reports (alias)
    */
-  router.get("/reports", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
-    const userOrganizations = await storage.getUserOrganizations(userId);
-    
-    if (userOrganizations.length === 0) {
-      res.json({ success: true, data: [] });
-      return;
-    }
-
-    const organizationId = userOrganizations[0].organizationId;
+  router.get("/reports", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
     const reports = await storage.getGapAnalysisReports(organizationId);
     
     res.json({ success: true, data: reports });
@@ -96,11 +66,14 @@ export function registerGapAnalysisRoutes(router: Router) {
   /**
    * Get gap analysis report details
    */
-  router.get("/reports/:id", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.get("/reports/:id", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { id } = req.params;
+    const organizationId = req.organizationId!;
     const report = await storage.getGapAnalysisReport(id);
     
-    requireResource(report, 'Report');
+    if (!report || report.organizationId !== organizationId) {
+      throw new NotFoundError("Report not found");
+    }
 
     const findings = await storage.getGapAnalysisFindings(id);
     const recommendations = [];
@@ -111,7 +84,7 @@ export function registerGapAnalysisRoutes(router: Router) {
     }
 
     const maturityAssessment = await storage.getComplianceMaturityAssessment(
-      report.organizationId, 
+      organizationId, 
       report.framework
     );
 
@@ -141,23 +114,15 @@ export function registerGapAnalysisRoutes(router: Router) {
   /**
    * Generate gap analysis
    */
-  router.post("/generate", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
-    const userId = requireAuth(req);
+  router.post("/generate", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
     const { framework, includeMaturityAssessment, focusAreas } = req.body;
     
-    const userOrganizations = await storage.getUserOrganizations(userId);
-    if (userOrganizations.length === 0) {
-      throw new ValidationError("User not associated with any organization");
-    }
-
-    const organizationId = userOrganizations[0].organizationId;
     const companyProfiles = await storage.getCompanyProfiles(organizationId);
     
     if (companyProfiles.length === 0) {
-      throw new ValidationError("No company profile found");
+      throw new ValidationError("No company profile found. Please create a company profile first.");
     }
-
-    const companyProfile = companyProfiles[0];
 
     const report = await storage.createGapAnalysisReport({
       organizationId,
@@ -299,18 +264,33 @@ export function registerGapAnalysisRoutes(router: Router) {
   /**
    * Update recommendation status
    */
-  router.patch("/recommendations/:id", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  router.patch("/recommendations/:id", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { id } = req.params;
     const { status } = req.body;
+    const organizationId = req.organizationId!;
     
+    const recommendation = await storage.getRemediationRecommendation(id);
+    if (!recommendation) {
+      throw new NotFoundError("Recommendation not found");
+    }
+    
+    // Validate ownership via finding then report
+    const finding = await storage.getGapAnalysisFinding(recommendation.findingId);
+    if (!finding) {
+        throw new NotFoundError("Recommendation finding not found");
+    }
+    const report = await storage.getGapAnalysisReport(finding.reportId);
+    if (!report || report.organizationId !== organizationId) {
+      throw new NotFoundError("Recommendation not found");
+    }
+
     const updates: Partial<RemediationRecommendation> = { status };
     if (status === 'completed') {
       updates.completedDate = new Date();
     }
 
-    const recommendation = await storage.updateRemediationRecommendation(id, updates);
-    requireResource(recommendation, 'Recommendation');
+    const updated = await storage.updateRemediationRecommendation(id, updates);
 
-    res.json({ success: true, data: recommendation });
+    res.json({ success: true, data: updated });
   }, { audit: { action: 'update', entityType: 'recommendation', getEntityId: (req) => req.params.id } }));
 }

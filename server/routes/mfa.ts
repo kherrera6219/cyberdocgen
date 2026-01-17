@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { mfaService } from '../services/mfaService';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { logger } from '../utils/logger';
@@ -7,17 +7,14 @@ import { encryptionService, DataClassification } from '../services/encryption';
 import { 
   secureHandler, 
   validateInput,
-  requireAuth,
   ForbiddenError,
-  NotFoundError
+  NotFoundError,
+  ValidationError
 } from '../utils/errorHandling';
+import { getRequiredUserId } from '../replitAuth';
+import { type MultiTenantRequest } from '../middleware/multiTenant';
 
 // Extend Express Request types locally for this file to avoid global conflicts
-interface AuthUser {
-  claims?: {
-    sub: string;
-  };
-}
 
 // Add session properties
 declare module 'express-session' {
@@ -51,8 +48,8 @@ const verifySMSSchema = z.object({
  * GET /api/auth/mfa/status
  * Get user's current MFA configuration status
  */
-router.get('/status', secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.get('/status', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   // In a full implementation, fetch from database
   const mfaStatus = {
@@ -79,23 +76,17 @@ router.get('/status', secureHandler(async (req: Request, res: Response) => {
  * POST /api/auth/mfa/setup
  * Generic setup endpoint
  */
-router.post('/setup', secureHandler(async (req: Request, res: Response) => {
-  requireAuth(req);
-  res.status(400).json({ 
-    success: false, 
-    error: { 
-      code: 'METHOD_REQUIRED', 
-      message: 'Please specify MFA method: use /setup/totp or /setup/sms' 
-    } 
-  });
+router.post('/setup', secureHandler(async (req: MultiTenantRequest, _res: Response, _next: NextFunction) => {
+  getRequiredUserId(req);
+  throw new ValidationError('Please specify MFA method: use /setup/totp or /setup/sms', { code: 'METHOD_REQUIRED' });
 }));
 
 /**
  * POST /api/auth/mfa/setup/totp
  * Initialize TOTP setup for user
  */
-router.post('/setup/totp', validateInput(setupTOTPSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.post('/setup/totp', validateInput(setupTOTPSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   const mfaSetup = await mfaService.setupTOTP(userId);
   await mfaService.storeTOTPSettings(
@@ -124,8 +115,8 @@ router.post('/setup/totp', validateInput(setupTOTPSchema), secureHandler(async (
  * POST /api/auth/mfa/verify/totp
  * Verify TOTP token to complete setup or authenticate
  */
-router.post('/verify/totp', validateInput(verifyTOTPSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.post('/verify/totp', validateInput(verifyTOTPSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const { token, backupCode } = req.body;
 
   const totpSettings = await mfaService.getTOTPSettings(userId);
@@ -167,12 +158,8 @@ router.post('/verify/totp', validateInput(verifyTOTPSchema), secureHandler(async
       }
     });
   } else {
-    res.status(400).json({
-      success: false,
-      error: {
-        code: 'VERIFICATION_FAILED',
-        message: usedBackupCode ? 'Invalid backup code' : 'Invalid TOTP token'
-      }
+    throw new ValidationError(usedBackupCode ? 'Invalid backup code' : 'Invalid TOTP token', {
+      code: 'VERIFICATION_FAILED'
     });
   }
 }));
@@ -181,8 +168,8 @@ router.post('/verify/totp', validateInput(verifyTOTPSchema), secureHandler(async
  * POST /api/auth/mfa/setup/sms
  * Setup SMS-based MFA
  */
-router.post('/setup/sms', validateInput(setupSMSSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.post('/setup/sms', validateInput(setupSMSSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const { phoneNumber } = req.body;
 
   const smsConfig = await mfaService.setupSMS(userId, phoneNumber);
@@ -203,8 +190,8 @@ router.post('/setup/sms', validateInput(setupSMSSchema), secureHandler(async (re
  * POST /api/auth/mfa/verify/sms
  * Verify SMS code
  */
-router.post('/verify/sms', validateInput(verifySMSSchema), secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.post('/verify/sms', validateInput(verifySMSSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
   const { code } = req.body;
 
   // In production, fetch SMS config from database
@@ -232,12 +219,8 @@ router.post('/verify/sms', validateInput(verifySMSSchema), secureHandler(async (
       }
     });
   } else {
-    res.status(400).json({
-      success: false,
-      error: {
-        code: 'VERIFICATION_FAILED',
-        message: 'Invalid or expired SMS code'
-      }
+    throw new ValidationError('Invalid or expired SMS code', {
+      code: 'VERIFICATION_FAILED'
     });
   }
 }));
@@ -246,8 +229,8 @@ router.post('/verify/sms', validateInput(verifySMSSchema), secureHandler(async (
  * POST /api/auth/mfa/challenge
  * Request MFA challenge for high-risk operations
  */
-router.post('/challenge', secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.post('/challenge', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   // In production, determine available MFA methods from database
   const availableMethods = ['totp', 'sms'];
@@ -282,8 +265,8 @@ router.post('/challenge', secureHandler(async (req: Request, res: Response) => {
  * POST /api/auth/mfa/backup-codes
  * Generate backup codes for user
  */
-router.post('/backup-codes', secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.post('/backup-codes', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   const mfaSetup = await mfaService.setupTOTP(userId);
 
@@ -315,8 +298,8 @@ router.post('/backup-codes', secureHandler(async (req: Request, res: Response) =
  * DELETE /api/auth/mfa/disable
  * Disable MFA for user (requires current MFA verification)
  */
-router.delete('/disable', secureHandler(async (req: Request, res: Response) => {
-  const userId = requireAuth(req);
+router.delete('/disable', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
 
   // Require MFA verification to disable MFA (security best practice)
   if (!req.session?.mfaVerified) {

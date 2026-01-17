@@ -6,6 +6,12 @@ import { users, passwordResetTokens, emailVerificationTokens, passkeyCredentials
 import { encryptionService, DataClassification } from './encryption';
 import { auditService, AuditAction, RiskLevel } from './auditService';
 import { logger } from '../utils/logger';
+import { 
+  ConflictError, 
+  UnauthorizedError, 
+  RateLimitError, 
+  AppError
+} from '../utils/errorHandling';
 
 export interface CreateAccountRequest {
   email: string;
@@ -64,7 +70,7 @@ export class EnterpriseAuthService {
       });
 
       if (existingUser) {
-        throw new Error('Account with this email already exists');
+        throw new ConflictError('Account with this email already exists');
       }
 
       // Hash password using bcrypt with secure salt rounds
@@ -130,12 +136,14 @@ export class EnterpriseAuthService {
         },
         emailToken,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof AppError) throw error;
+      const message = error instanceof Error ? error.message : String(error);
       logger.error('Account creation failed', { 
         email: request.email.toLowerCase(), 
-        error: error.message,
+        error: message,
       });
-      throw new Error(`Account creation failed: ${error.message}`);
+      throw new AppError(`Account creation failed: ${message}`, 500);
     }
   }
 
@@ -581,13 +589,13 @@ export class EnterpriseAuthService {
       }
 
       if (!user) {
-        // Don't reveal if email/username exists
-        return { success: false, error: 'Invalid credentials' };
+        // Don't reveal if email/username exists, but use UnauthorizedError for consistency
+        throw new UnauthorizedError('Invalid credentials');
       }
 
       // Check if account is locked
       if (await this.isAccountLocked(user.id)) {
-        return { success: false, error: 'Account is locked due to too many failed login attempts' };
+        throw new RateLimitError('Account is locked due to too many failed login attempts');
       }
 
       // Email verification is disabled - allow all users to log in regardless of accountStatus
@@ -598,7 +606,7 @@ export class EnterpriseAuthService {
 
       if (!isPasswordValid) {
         await this.recordFailedLogin(user.id, ipAddress);
-        return { success: false, error: 'Invalid credentials' };
+        throw new UnauthorizedError('Invalid credentials');
       }
 
       // Record successful login
@@ -622,11 +630,12 @@ export class EnterpriseAuthService {
         },
       };
     } catch (error: any) {
+      if (error instanceof AppError) throw error;
       logger.error('Authentication failed', {
         identifier: identifier.toLowerCase(),
         error: error.message
       });
-      return { success: false, error: 'Authentication failed' };
+      throw new UnauthorizedError('Authentication failed');
     }
   }
 
