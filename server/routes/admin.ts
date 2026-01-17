@@ -8,6 +8,7 @@ import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { systemConfigService } from '../services/systemConfigService';
 import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
+import { asyncHandler, ForbiddenError, UnauthorizedError, ValidationError, NotFoundError } from '../utils/routeHelpers';
 
 const router = Router();
 
@@ -30,381 +31,323 @@ const pdfDefaultsSchema = z.object({
 });
 
 // Admin authorization middleware
-const isAdmin = async (req: any, res: any, next: any) => {
-  try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ success: false, message: 'Authentication required' });
-    }
-
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Administrator privileges required' 
-      });
-    }
-
-    next();
-  } catch (error: any) {
-    logger.error('Admin authorization failed', { error: error.message });
-    res.status(500).json({ success: false, message: 'Authorization failed' });
+const isAdmin = asyncHandler(async (req, res, next) => {
+  const userId = getUserId(req);
+  if (!userId) {
+    throw new UnauthorizedError('Authentication required');
   }
-};
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+
+  if (!user || user.role !== 'admin') {
+    throw new ForbiddenError('Administrator privileges required');
+  }
+
+  next();
+});
 
 /**
  * Get OAuth settings (masked for security)
  */
-router.get('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) => {
-  try {
-    const settings = await systemConfigService.getOAuthSettingsForUI();
+/**
+ * Get OAuth settings (masked for security)
+ */
+router.get('/oauth-settings', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+  const settings = await systemConfigService.getOAuthSettingsForUI();
 
-    res.json({
-      success: true,
-      ...settings,
-    });
-  } catch (error: any) {
-    logger.error('Failed to get OAuth settings', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve OAuth settings',
-    });
-  }
-});
+  res.json({
+    success: true,
+    ...settings,
+  });
+}));
 
 /**
  * Save OAuth settings
  */
-router.post('/oauth-settings', isAuthenticated, isAdmin, async (req: any, res) => {
-  try {
-    const settings = oauthSettingsSchema.parse(req.body);
-    const userId = getRequiredUserId(req);
-    const ipAddress = req.ip || '127.0.0.1';
+/**
+ * Save OAuth settings
+ */
+router.post('/oauth-settings', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+  const settings = oauthSettingsSchema.parse(req.body);
+  const userId = getRequiredUserId(req);
+  const ipAddress = req.ip || '127.0.0.1';
 
-    const configUpdates: string[] = [];
-    let hasUpdates = false;
-    
-    // Update Google OAuth credentials if provided
-    if (settings.googleClientId && settings.googleClientSecret) {
-      const success = await systemConfigService.setOAuthCredentials(
-        'google',
-        {
-          clientId: settings.googleClientId,
-          clientSecret: settings.googleClientSecret,
-        },
-        userId,
-        ipAddress
-      );
-      
-      if (success) {
-        configUpdates.push('Google OAuth credentials updated');
-        hasUpdates = true;
-      }
-    }
-    
-    // Update Microsoft OAuth credentials if provided
-    if (settings.microsoftClientId && settings.microsoftClientSecret) {
-      const success = await systemConfigService.setOAuthCredentials(
-        'microsoft',
-        {
-          clientId: settings.microsoftClientId,
-          clientSecret: settings.microsoftClientSecret,
-        },
-        userId,
-        ipAddress
-      );
-      
-      if (success) {
-        configUpdates.push('Microsoft OAuth credentials updated');
-        hasUpdates = true;
-      }
-    }
-
-    if (!hasUpdates) {
-      return res.status(400).json({
-        success: false,
-        message: 'No valid OAuth credentials provided for update',
-      });
-    }
-
-    logger.info('OAuth settings updated by admin', {
+  const configUpdates: string[] = [];
+  let hasUpdates = false;
+  
+  // Update Google OAuth credentials if provided
+  if (settings.googleClientId && settings.googleClientSecret) {
+    const success = await systemConfigService.setOAuthCredentials(
+      'google',
+      {
+        clientId: settings.googleClientId,
+        clientSecret: settings.googleClientSecret,
+      },
       userId,
-      configUpdates,
-    });
-
-    res.json({
-      success: true,
-      message: 'OAuth settings updated successfully',
-      configUpdates,
-    });
-  } catch (error: any) {
-    logger.error('Failed to save OAuth settings', { error: error.message });
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Failed to save OAuth settings',
-    });
+      ipAddress
+    );
+    
+    if (success) {
+      configUpdates.push('Google OAuth credentials updated');
+      hasUpdates = true;
+    }
   }
-});
+  
+  // Update Microsoft OAuth credentials if provided
+  if (settings.microsoftClientId && settings.microsoftClientSecret) {
+    const success = await systemConfigService.setOAuthCredentials(
+      'microsoft',
+      {
+        clientId: settings.microsoftClientId,
+        clientSecret: settings.microsoftClientSecret,
+      },
+      userId,
+      ipAddress
+    );
+    
+    if (success) {
+      configUpdates.push('Microsoft OAuth credentials updated');
+      hasUpdates = true;
+    }
+  }
+
+  if (!hasUpdates) {
+    throw new ValidationError('No valid OAuth credentials provided for update');
+  }
+
+  logger.info('OAuth settings updated by admin', {
+    userId,
+    configUpdates,
+  });
+
+  res.json({
+    success: true,
+    message: 'OAuth settings updated successfully',
+    configUpdates,
+  });
+}));
 
 /**
  * Get PDF security defaults
  */
-router.get('/pdf-defaults', isAuthenticated, isAdmin, async (req: any, res) => {
-  try {
-    const defaults = await systemConfigService.getPDFDefaults();
+/**
+ * Get PDF security defaults
+ */
+router.get('/pdf-defaults', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+  const defaults = await systemConfigService.getPDFDefaults();
 
-    res.json({
-      success: true,
-      defaults,
-    });
-  } catch (error: any) {
-    logger.error('Failed to get PDF defaults', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve PDF defaults',
-    });
-  }
-});
+  res.json({
+    success: true,
+    defaults,
+  });
+}));
 
 /**
  * Save PDF security defaults
  */
-router.post('/pdf-defaults', isAuthenticated, isAdmin, async (req: any, res) => {
-  try {
-    const defaults = pdfDefaultsSchema.parse(req.body);
-    const userId = getRequiredUserId(req);
-    const ipAddress = req.ip || '127.0.0.1';
+/**
+ * Save PDF security defaults
+ */
+router.post('/pdf-defaults', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+  const defaults = pdfDefaultsSchema.parse(req.body);
+  const userId = getRequiredUserId(req);
+  const ipAddress = req.ip || '127.0.0.1';
 
-    const success = await systemConfigService.setPDFDefaults(defaults, userId, ipAddress);
+  const success = await systemConfigService.setPDFDefaults(defaults, userId, ipAddress);
 
-    if (!success) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to save PDF defaults',
-      });
-    }
-
-    logger.info('PDF defaults updated by admin', {
-      userId,
-      defaults,
-    });
-
-    res.json({
-      success: true,
-      message: 'PDF defaults updated successfully',
-      note: 'New defaults will apply to future PDF security operations',
-    });
-  } catch (error: any) {
-    logger.error('Failed to save PDF defaults', { error: error.message });
-    res.status(400).json({
-      success: false,
-      message: error.message || 'Failed to save PDF defaults',
-    });
+  if (!success) {
+    throw new AppError('Failed to save PDF defaults');
   }
-});
+
+  logger.info('PDF defaults updated by admin', {
+    userId,
+    defaults,
+  });
+
+  res.json({
+    success: true,
+    message: 'PDF defaults updated successfully',
+    note: 'New defaults will apply to future PDF security operations',
+  });
+}));
 
 /**
  * Get all cloud integrations across organization
  */
-router.get('/cloud-integrations', isAuthenticated, isAdmin, async (req: any, res) => {
-  try {
-    const integrations = await db.query.cloudIntegrations.findMany({
-      orderBy: [cloudIntegrations.createdAt],
-      with: {
-        user: {
-          columns: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-          },
+/**
+ * Get all cloud integrations across organization
+ */
+router.get('/cloud-integrations', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+  const integrations = await db.query.cloudIntegrations.findMany({
+    orderBy: [cloudIntegrations.createdAt],
+    with: {
+      user: {
+        columns: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
         },
       },
-    });
+    },
+  });
 
-    // Remove sensitive data before sending
-    const sanitizedIntegrations = integrations.map(integration => ({
-      id: integration.id,
-      provider: integration.provider,
-      displayName: integration.displayName,
-      email: integration.email,
-      isActive: integration.isActive,
-      lastSyncAt: integration.lastSyncAt,
-      syncStatus: integration.syncStatus,
-      createdAt: integration.createdAt,
-      user: integration.user,
-    }));
+  // Remove sensitive data before sending
+  const sanitizedIntegrations = integrations.map(integration => ({
+    id: integration.id,
+    provider: integration.provider,
+    displayName: integration.displayName,
+    email: integration.email,
+    isActive: integration.isActive,
+    lastSyncAt: integration.lastSyncAt,
+    syncStatus: integration.syncStatus,
+    createdAt: integration.createdAt,
+    user: integration.user,
+  }));
 
-    res.json({
-      success: true,
-      integrations: sanitizedIntegrations,
-    });
-  } catch (error: any) {
-    logger.error('Failed to get cloud integrations', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve cloud integrations',
-    });
-  }
-});
+  res.json({
+    success: true,
+    integrations: sanitizedIntegrations,
+  });
+}));
 
 /**
  * Delete cloud integration (admin)
  */
-router.delete('/cloud-integrations/:integrationId', isAuthenticated, isAdmin, async (req: any, res) => {
-  try {
-    const { integrationId } = req.params;
-    const userId = getRequiredUserId(req);
+/**
+ * Delete cloud integration (admin)
+ */
+router.delete('/cloud-integrations/:integrationId', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+  const { integrationId } = req.params;
+  const userId = getRequiredUserId(req);
 
-    const integration = await db.query.cloudIntegrations.findFirst({
-      where: eq(cloudIntegrations.id, integrationId),
-    });
+  const integration = await db.query.cloudIntegrations.findFirst({
+    where: eq(cloudIntegrations.id, integrationId),
+  });
 
-    if (!integration) {
-      return res.status(404).json({
-        success: false,
-        message: 'Integration not found',
-      });
-    }
-
-    await db.delete(cloudIntegrations)
-      .where(eq(cloudIntegrations.id, integrationId));
-
-    // Audit log
-    await auditService.logAuditEvent({
-      userId,
-      action: AuditAction.DELETE,
-      resourceType: 'cloud_integration',
-      resourceId: integrationId,
-      ipAddress: req.ip || '127.0.0.1',
-      riskLevel: RiskLevel.HIGH,
-      additionalContext: {
-        provider: integration.provider,
-        targetUser: integration.userId,
-        adminAction: true,
-      },
-    });
-
-    logger.info('Cloud integration deleted by admin', {
-      integrationId,
-      provider: integration.provider,
-      adminUserId: userId,
-      targetUser: integration.userId,
-    });
-
-    res.json({
-      success: true,
-      message: 'Integration deleted successfully',
-    });
-  } catch (error: any) {
-    logger.error('Failed to delete cloud integration', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete integration',
-    });
+  if (!integration) {
+    throw new NotFoundError('Integration not found');
   }
-});
+
+  await db.delete(cloudIntegrations)
+    .where(eq(cloudIntegrations.id, integrationId));
+
+  // Audit log
+  await auditService.logAuditEvent({
+    userId,
+    action: AuditAction.DELETE,
+    resourceType: 'cloud_integration',
+    resourceId: integrationId,
+    ipAddress: req.ip || '127.0.0.1',
+    riskLevel: RiskLevel.HIGH,
+    additionalContext: {
+      provider: integration.provider,
+      targetUser: integration.userId,
+      adminAction: true,
+    },
+  });
+
+  logger.info('Cloud integration deleted by admin', {
+    integrationId,
+    provider: integration.provider,
+    adminUserId: userId,
+    targetUser: integration.userId,
+  });
+
+  res.json({
+    success: true,
+    message: 'Integration deleted successfully',
+  });
+}));
 
 /**
  * Get comprehensive system monitoring dashboard
  */
-router.get('/monitoring', isAuthenticated, isAdmin, async (req: any, res) => {
-  try {
-    const { performanceService } = await import('../services/performanceService');
-    const { alertingService } = await import('../services/alertingService');
-    const { threatDetectionService } = await import('../services/threatDetectionService');
-    const { healthCheckHandler } = await import('../utils/health');
+/**
+ * Get comprehensive system monitoring dashboard
+ */
+router.get('/monitoring', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+  const { performanceService } = await import('../services/performanceService');
+  const { alertingService } = await import('../services/alertingService');
+  const { threatDetectionService } = await import('../services/threatDetectionService');
 
-    const [performance, alerts, security] = await Promise.all([
-      performanceService.getMetrics(),
-      alertingService.getAlertMetrics(),
-      threatDetectionService.getSecurityMetrics()
-    ]);
+  const [performance, alerts, security] = await Promise.all([
+    performanceService.getMetrics(),
+    alertingService.getAlertMetrics(),
+    threatDetectionService.getSecurityMetrics()
+  ]);
 
-    res.json({
-      success: true,
-      monitoring: {
-        performance,
-        alerts,
-        security,
-        health: {
-          status: 'healthy',
-          uptime: process.uptime(),
-          timestamp: new Date().toISOString()
-        }
+  res.json({
+    success: true,
+    monitoring: {
+      performance,
+      alerts,
+      security,
+      health: {
+        status: 'healthy',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
       }
-    });
-  } catch (error: any) {
-    logger.error('Failed to get monitoring data', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve monitoring data'
-    });
-  }
-});
+    }
+  });
+}));
 
 /**
  * Get system statistics (admin dashboard)
  */
-router.get('/stats', isAuthenticated, isAdmin, async (req: any, res) => {
-  try {
-    // Get various system statistics
-    const [
-      totalUsers,
-      activeIntegrations,
-      totalCloudFiles,
-      recentAudits,
-    ] = await Promise.all([
-      db.query.users.findMany(),
-      db.query.cloudIntegrations.findMany({ where: eq(cloudIntegrations.isActive, true) }),
-      db.query.cloudFiles.findMany(),
-      // Get recent audit logs (simplified)
-      db.query.auditLogs?.findMany({ 
-        limit: 10,
-        orderBy: (table) => [table.timestamp],
-      }) || [],
-    ]);
+/**
+ * Get system statistics (admin dashboard)
+ */
+router.get('/stats', isAuthenticated, isAdmin, asyncHandler(async (req, res) => {
+  // Get various system statistics
+  const [
+    totalUsers,
+    activeIntegrations,
+    totalCloudFiles,
+    recentAudits,
+  ] = await Promise.all([
+    db.query.users.findMany(),
+    db.query.cloudIntegrations.findMany({ where: eq(cloudIntegrations.isActive, true) }),
+    db.query.cloudFiles.findMany(),
+    // Get recent audit logs (simplified)
+    db.query.auditLogs?.findMany({ 
+      limit: 10,
+      orderBy: (table) => [table.timestamp],
+    }) || [],
+  ]);
 
-    const stats = {
-      users: {
-        total: totalUsers.length,
-        admins: totalUsers.filter(u => u.role === 'admin').length,
-        active: totalUsers.filter(u => u.isActive).length,
+  const stats = {
+    users: {
+      total: totalUsers.length,
+      admins: totalUsers.filter(u => u.role === 'admin').length,
+      active: totalUsers.filter(u => u.isActive).length,
+    },
+    integrations: {
+      total: activeIntegrations.length,
+      google: activeIntegrations.filter(i => i.provider === 'google_drive').length,
+      microsoft: activeIntegrations.filter(i => i.provider === 'onedrive').length,
+    },
+    files: {
+      total: totalCloudFiles.length,
+      secured: totalCloudFiles.filter(f => f.isSecurityLocked).length,
+      byType: {
+        pdf: totalCloudFiles.filter(f => f.fileType === 'pdf').length,
+        docx: totalCloudFiles.filter(f => f.fileType === 'docx').length,
+        xlsx: totalCloudFiles.filter(f => f.fileType === 'xlsx').length,
       },
-      integrations: {
-        total: activeIntegrations.length,
-        google: activeIntegrations.filter(i => i.provider === 'google_drive').length,
-        microsoft: activeIntegrations.filter(i => i.provider === 'onedrive').length,
-      },
-      files: {
-        total: totalCloudFiles.length,
-        secured: totalCloudFiles.filter(f => f.isSecurityLocked).length,
-        byType: {
-          pdf: totalCloudFiles.filter(f => f.fileType === 'pdf').length,
-          docx: totalCloudFiles.filter(f => f.fileType === 'docx').length,
-          xlsx: totalCloudFiles.filter(f => f.fileType === 'xlsx').length,
-        },
-      },
-      security: {
-        mfaEnabled: totalUsers.filter(u => u.twoFactorEnabled).length,
-        recentAudits: recentAudits.length,
-      },
-    };
+    },
+    security: {
+      mfaEnabled: totalUsers.filter(u => u.twoFactorEnabled).length,
+      recentAudits: recentAudits.length,
+    },
+  };
 
-    res.json({
-      success: true,
-      stats,
-    });
-  } catch (error: any) {
-    logger.error('Failed to get admin stats', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve system statistics',
-    });
-  }
-});
+  res.json({
+    success: true,
+    stats,
+  });
+}));
 
 export default router;

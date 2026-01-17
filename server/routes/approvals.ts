@@ -2,6 +2,7 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { isAuthenticated } from "../replitAuth";
 import { logger } from "../utils/logger";
+import { asyncHandler, NotFoundError } from "../utils/routeHelpers";
 import { z } from "zod";
 
 const approvalActionSchema = z.object({
@@ -9,102 +10,76 @@ const approvalActionSchema = z.object({
 });
 
 export function registerApprovalsRoutes(router: Router) {
-  router.get("/", isAuthenticated, async (req: any, res) => {
-    try {
-      const status = req.query.status as string | undefined;
-      const approvals = await storage.getDocumentApprovals(status);
-      
-      const enrichedApprovals = await Promise.all(
-        approvals.map(async (approval) => {
-          const document = await storage.getDocument(approval.documentId);
-          return {
-            ...approval,
-            documentTitle: document?.title ?? "Unknown Document",
-            documentFramework: document?.framework ?? "Unknown",
-          };
-        })
-      );
-      
-      res.json(enrichedApprovals);
-    } catch (error: any) {
-      logger.error("Failed to fetch approvals", { error: error.message });
-      res.status(500).json({ message: "Failed to fetch approvals" });
-    }
-  });
+  router.get("/", isAuthenticated, asyncHandler(async (req, res) => {
+    const status = req.query.status as string | undefined;
+    const approvals = await storage.getDocumentApprovals(status);
+    
+    const enrichedApprovals = await Promise.all(
+      approvals.map(async (approval) => {
+        const document = await storage.getDocument(approval.documentId);
+        return {
+          ...approval,
+          documentTitle: document?.title ?? "Unknown Document",
+          documentFramework: document?.framework ?? "Unknown",
+        };
+      })
+    );
+    
+    res.json(enrichedApprovals);
+  }));
 
-  router.get("/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const approval = await storage.getDocumentApproval(id);
-      
-      if (!approval) {
-        return res.status(404).json({ message: "Approval not found" });
-      }
-      
-      const document = await storage.getDocument(approval.documentId);
-      
-      res.json({
-        ...approval,
-        documentTitle: document?.title ?? "Unknown Document",
-        documentFramework: document?.framework ?? "Unknown",
-      });
-    } catch (error: any) {
-      logger.error("Failed to fetch approval", { error: error.message, id: req.params.id });
-      res.status(500).json({ message: "Failed to fetch approval" });
+  router.get("/:id", isAuthenticated, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const approval = await storage.getDocumentApproval(id);
+    
+    if (!approval) {
+      throw new NotFoundError("Approval not found");
     }
-  });
+    
+    const document = await storage.getDocument(approval.documentId);
+    
+    res.json({
+      ...approval,
+      documentTitle: document?.title ?? "Unknown Document",
+      documentFramework: document?.framework ?? "Unknown",
+    });
+  }));
 
-  router.post("/:id/approve", isAuthenticated, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const validated = approvalActionSchema.parse(req.body);
-      
-      const existing = await storage.getDocumentApproval(id);
-      if (!existing) {
-        return res.status(404).json({ message: "Approval not found" });
-      }
-      
-      const approval = await storage.updateDocumentApproval(id, {
-        status: "approved",
-        comments: validated.comment || existing.comments,
-        approvedAt: new Date(),
-      });
-      
-      logger.info("Approval approved", { id, userId: req.user?.claims?.sub });
-      res.json(approval);
-    } catch (error: any) {
-      if (error.name === "ZodError") {
-        return res.status(400).json({ message: "Invalid request body", errors: error.errors });
-      }
-      logger.error("Failed to approve", { error: error.message, id: req.params.id });
-      res.status(500).json({ message: "Failed to approve" });
+  router.post("/:id/approve", isAuthenticated, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const validated = approvalActionSchema.parse(req.body);
+    
+    const existing = await storage.getDocumentApproval(id);
+    if (!existing) {
+      throw new NotFoundError("Approval not found");
     }
-  });
+    
+    const approval = await storage.updateDocumentApproval(id, {
+      status: "approved",
+      comments: validated.comment || existing.comments,
+      approvedAt: new Date(),
+    });
+    
+    logger.info("Approval approved", { id, userId: req.user?.claims?.sub });
+    res.json(approval);
+  }));
 
-  router.post("/:id/reject", isAuthenticated, async (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const validated = approvalActionSchema.parse(req.body);
-      
-      const existing = await storage.getDocumentApproval(id);
-      if (!existing) {
-        return res.status(404).json({ message: "Approval not found" });
-      }
-      
-      const approval = await storage.updateDocumentApproval(id, {
-        status: "rejected",
-        comments: validated.comment || existing.comments,
-        rejectedAt: new Date(),
-      });
-      
-      logger.info("Approval rejected", { id, userId: req.user?.claims?.sub });
-      res.json(approval);
-    } catch (error: any) {
-      if (error.name === "ZodError") {
-        return res.status(400).json({ message: "Invalid request body", errors: error.errors });
-      }
-      logger.error("Failed to reject", { error: error.message, id: req.params.id });
-      res.status(500).json({ message: "Failed to reject" });
+  router.post("/:id/reject", isAuthenticated, asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const validated = approvalActionSchema.parse(req.body);
+    
+    const existing = await storage.getDocumentApproval(id);
+    if (!existing) {
+      throw new NotFoundError("Approval not found");
     }
-  });
+    
+    const approval = await storage.updateDocumentApproval(id, {
+      status: "rejected",
+      comments: validated.comment || existing.comments,
+      rejectedAt: new Date(),
+    });
+    
+    logger.info("Approval rejected", { id, userId: req.user?.claims?.sub });
+    res.json(approval);
+  }));
 }
