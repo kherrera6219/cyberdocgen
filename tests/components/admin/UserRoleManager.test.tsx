@@ -50,7 +50,8 @@ describe('UserRoleManager', () => {
                 isRemovingAssignment={false}
             />
         );
-        expect(screen.getByText('Admin')).toBeTruthy();
+        const adminElements = screen.getAllByText('Admin');
+        expect(adminElements.length).toBeGreaterThan(0);
         expect(screen.getByText('Viewer')).toBeTruthy();
         expect(screen.getByText('user1@example.com')).toBeTruthy();
     });

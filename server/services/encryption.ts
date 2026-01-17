@@ -282,9 +282,13 @@ export async function decryptDataAtRest(data: any): Promise<any> {
   }
 
   for (const [key, value] of Object.entries(decrypted)) {
-    if (typeof value === 'string' && key !== '_encryption') {
+    if (key !== '_encryption') {
       try {
-        decrypted[key] = await decrypt(value);
+        if (typeof value === 'string') {
+          decrypted[key] = await decrypt(value);
+        } else if (typeof value === 'object' && value !== null && 'encryptedValue' in value) {
+           decrypted[key] = await decrypt(value as EncryptedData);
+        }
       } catch {
         decrypted[key] = value;
       }

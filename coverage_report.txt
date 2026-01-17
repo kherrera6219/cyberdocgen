@@ -1,0 +1,4 @@
+
+> rest-express@2.0.1 test:coverage
+> vitest --coverage --reporter=text
+

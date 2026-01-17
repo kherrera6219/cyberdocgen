@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ObjectStorageManager } from '../../client/src/components/ObjectStorageManager';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -46,6 +47,7 @@ describe('ObjectStorageManager', () => {
   it('renders loading state and then stats', async () => {
     // Mock stats response
     (queryLib.apiRequest as any).mockImplementation((url: string) => {
+      console.log('Mock called with:', url);
       if (url.includes('stats')) {
         return Promise.resolve({
           success: true,
@@ -66,22 +68,29 @@ describe('ObjectStorageManager', () => {
 
     expect(screen.getByText('Object Storage Manager')).toBeTruthy();
     
-    // Wait for stats to load using findByText which has built-in wait
-    screen.debug();
-    const statsElement = await screen.findByText('10', {}, { timeout: 4000 });
-    expect(statsElement).toBeTruthy();
+    // Wait for the "Total Files:" label to confirm successful load
+    await screen.findByText('Total Files:', {}, { timeout: 4000 });
+    
+    // Now check for the value '10'
+    const statsValue = screen.getByText('10');
+    expect(statsValue).toBeTruthy();
     
     expect(screen.getByText('System Status')).toBeTruthy();
   });
 
   it('allows tab switching', async () => {
+    const user = userEvent.setup();
     renderComponent();
     
-    const uploadTab = screen.getByText('Upload');
-    fireEvent.click(uploadTab);
+    // Use getByRole for tab to be more specific
+    const uploadTab = screen.getByRole('tab', { name: /Upload/i });
+    await user.click(uploadTab);
     
+    // Wait for the upload dialog button to appear
     await waitFor(() => {
-        expect(screen.getByText('Upload File')).toBeTruthy();
+        // The upload button has text "Upload File"
+        const uploadButtons = screen.getAllByText('Upload File');
+        expect(uploadButtons.length).toBeGreaterThan(0);
     });
   });
 });

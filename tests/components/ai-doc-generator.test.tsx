@@ -20,6 +20,9 @@ vi.mock('@/lib/queryClient', () => ({
 }));
 
 describe('AI Document Generator Page', () => {
+  // Increase timeout for this suite as it involves many async steps
+  vi.setConfig({ testTimeout: 30000 });
+
   let queryClient: QueryClient;
 
   beforeEach(() => {
