@@ -1,9 +1,14 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { logger } from '../utils/logger';
-import { isAuthenticated, getUserId } from '../replitAuth';
-import { validateBody } from '../middleware/routeValidation';
-import { asyncHandler, ForbiddenError, ValidationError } from '../utils/routeHelpers';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
+import { 
+  secureHandler, 
+  validateInput, 
+  ForbiddenError, 
+  ValidationError 
+} from '../utils/errorHandling';
+import { requireOrganization, type MultiTenantRequest } from '../middleware/multiTenant';
 import { aiGuardrailsService } from '../services/aiGuardrailsService';
 import { getAnthropicClient, getGeminiClient } from '../services/aiClients';
 import {
@@ -14,9 +19,9 @@ import {
 } from '../validation/requestSchemas';
 
 export function registerAnalyticsRoutes(router: Router) {
-  router.post('/risk-assessment', isAuthenticated, validateBody(riskAssessmentRequestSchema), asyncHandler(async (req, res) => {
+  router.post('/risk-assessment', isAuthenticated, requireOrganization, validateInput(riskAssessmentRequestSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { companyProfile } = req.body;
-    const userId = getUserId(req);
+    const userId = getRequiredUserId(req);
     const requestId = crypto.randomUUID();
 
     // Build prompt content for guardrails check
@@ -24,7 +29,7 @@ export function registerAnalyticsRoutes(router: Router) {
 
     // Run guardrails check
     const guardrailResult = await aiGuardrailsService.checkGuardrails(promptContent, null, {
-      userId: userId || undefined,
+      userId,
       requestId,
       modelProvider: 'anthropic',
       modelName: 'claude-sonnet-4-20250514',
@@ -61,22 +66,24 @@ export function registerAnalyticsRoutes(router: Router) {
 
     res.json({
       success: true,
-      riskAssessment: analysisText,
-      model: "claude-sonnet-4-20250514",
-      usage: response.usage
+      data: {
+        riskAssessment: analysisText,
+        model: "claude-sonnet-4-20250514",
+        usage: response.usage
+      }
     });
   }));
 
-  router.post('/compliance-analysis', isAuthenticated, validateBody(complianceAnalysisRequestSchema), asyncHandler(async (req, res) => {
+  router.post('/compliance-analysis', isAuthenticated, requireOrganization, validateInput(complianceAnalysisRequestSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { framework, currentControls, requirements } = req.body;
-    const userId = getUserId(req);
+    const userId = getRequiredUserId(req);
     const requestId = crypto.randomUUID();
     
     const prompt = `Analyze compliance gaps for ${framework}. Current controls: ${currentControls.join(', ')}. Requirements: ${requirements.join(', ')}. Provide detailed gap analysis and recommendations.`;
     
     // Run guardrails check
     const guardrailResult = await aiGuardrailsService.checkGuardrails(prompt, null, {
-      userId: userId || undefined,
+      userId,
       requestId,
       modelProvider: 'gemini',
       modelName: 'gemini-2.5-pro',
@@ -112,14 +119,16 @@ export function registerAnalyticsRoutes(router: Router) {
 
     res.json({
       success: true,
-      gapAnalysis: analysisText,
-      model: "gemini-2.0-flash"
+      data: {
+        gapAnalysis: analysisText,
+        model: "gemini-2.0-flash"
+      }
     });
   }));
 
   // Compliance gap analysis endpoint
   // Compliance gap analysis endpoint
-  router.post('/analyze-compliance-gaps', isAuthenticated, asyncHandler(async (req, res) => {
+  router.post('/analyze-compliance-gaps', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { framework, currentControls, requirements } = req.body;
 
     if (!framework) {
@@ -151,41 +160,43 @@ export function registerAnalyticsRoutes(router: Router) {
 
     res.json({
       success: true,
-      framework,
-      gaps, // Backward compatibility: top-level gaps array
-      summary: {
-        totalRequirements,
-        implementedControls: implementedCount,
-        gaps: gaps.length,
-        compliancePercentage
-      },
-      gapsByPriority: {
-        critical: criticalGaps,
-        high: highGaps,
-        medium: mediumGaps,
-        low: lowGaps
-      },
-      implementedControls: implemented,
-      recommendations: gaps.length > 0
-        ? [
-            `Address ${criticalGaps.length} critical gaps first to improve security posture`,
-            `Focus on high-priority gaps (${highGaps.length}) for quick compliance wins`,
-            `Plan medium and low priority implementations in phased approach`
-          ]
-        : ['All requirements are currently implemented - maintain regular reviews']
+      data: {
+        framework,
+        gaps, // Backward compatibility: top-level gaps array
+        summary: {
+          totalRequirements,
+          implementedControls: implementedCount,
+          gaps: gaps.length,
+          compliancePercentage
+        },
+        gapsByPriority: {
+          critical: criticalGaps,
+          high: highGaps,
+          medium: mediumGaps,
+          low: lowGaps
+        },
+        implementedControls: implemented,
+        recommendations: gaps.length > 0
+          ? [
+              `Address ${criticalGaps.length} critical gaps first to improve security posture`,
+              `Focus on high-priority gaps (${highGaps.length}) for quick compliance wins`,
+              `Plan medium and low priority implementations in phased approach`
+            ]
+          : ['All requirements are currently implemented - maintain regular reviews']
+      }
     });
   }));
 
   // Document quality analysis requires authentication to prevent abuse of AI credits
   // Document quality analysis requires authentication to prevent abuse of AI credits
-  router.post('/analyze-document-quality', isAuthenticated, validateBody(documentQualityAnalysisSchema), asyncHandler(async (req, res) => {
+  router.post('/analyze-document-quality', isAuthenticated, requireOrganization, validateInput(documentQualityAnalysisSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { content, framework, documentType } = req.body;
-    const userId = getUserId(req);
+    const userId = getRequiredUserId(req);
     const requestId = crypto.randomUUID();
 
     // Run guardrails check on document content
     const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
-      userId: userId || undefined,
+      userId,
       requestId,
       modelProvider: 'anthropic',
       modelName: 'claude-sonnet-4-20250514',
@@ -220,19 +231,21 @@ export function registerAnalyticsRoutes(router: Router) {
 
     res.json({
       success: true,
-      qualityAnalysis: qualityText,
-      model: "claude-sonnet-4-20250514"
+      data: {
+        qualityAnalysis: qualityText,
+        model: "claude-sonnet-4-20250514"
+      }
     });
   }));
 
-  router.post('/compliance-chat', isAuthenticated, validateBody(complianceChatRequestSchema), asyncHandler(async (req, res) => {
+  router.post('/compliance-chat', isAuthenticated, requireOrganization, validateInput(complianceChatRequestSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { message, context, framework } = req.body;
-    const userId = getUserId(req);
+    const userId = getRequiredUserId(req);
     const requestId = crypto.randomUUID();
 
     // Run guardrails check on user message
     const guardrailResult = await aiGuardrailsService.checkGuardrails(message, null, {
-      userId: userId || undefined,
+      userId,
       requestId,
       modelProvider: 'anthropic',
       modelName: 'claude-sonnet-4-20250514',
@@ -270,8 +283,10 @@ export function registerAnalyticsRoutes(router: Router) {
 
     res.json({
       success: true,
-      reply: replyText,
-      model: "claude-sonnet-4-20250514"
+      data: {
+        reply: replyText,
+        model: "claude-sonnet-4-20250514"
+      }
     });
   }));
 }

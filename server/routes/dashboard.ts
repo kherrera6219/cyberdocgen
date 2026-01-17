@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { isAuthenticated } from '../replitAuth';
 import { db } from '../db';
 import { documents, companyProfiles, auditLogs, frameworkControlStatuses, gapAnalysisReports } from '@shared/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
-// logger removed as it is handled by global error handler
-import { asyncHandler } from '../utils/routeHelpers';
+import { secureHandler } from '../utils/errorHandling';
+import { requireOrganization, type MultiTenantRequest } from '../middleware/multiTenant';
 
 export function registerDashboardRoutes(app: Router) {
   const router = Router();
@@ -23,9 +23,8 @@ export function registerDashboardRoutes(app: Router) {
    *       401:
    *         description: Unauthorized
    */
-  router.get('/stats', isAuthenticated, asyncHandler(async (req, res) => {
-    const user = req.user!;
-    const organizationId = user.organizationId || 'default';
+  router.get('/stats', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
 
     // Get company profiles for this organization to scope documents
     const orgProfiles = await db
@@ -65,7 +64,7 @@ export function registerDashboardRoutes(app: Router) {
     for (const framework of Object.keys(frameworkTargets)) {
       const frameworkDocs = allDocs.filter(d => d.framework === framework);
       const frameworkCompleted = frameworkDocs.filter(d => d.status === 'complete').length;
-      const target = frameworkTargets[framework];
+      const target = (frameworkTargets as any)[framework];
       frameworkStats[framework] = {
         total: frameworkDocs.length,
         completed: frameworkCompleted,
@@ -94,7 +93,7 @@ export function registerDashboardRoutes(app: Router) {
 
     res.json({
       success: true,
-      stats: {
+      data: {
         documents: {
           total: allDocs.length,
           completed: completedDocs.length,
@@ -135,9 +134,8 @@ export function registerDashboardRoutes(app: Router) {
    *       401:
    *         description: Unauthorized
    */
-  router.get('/activity', isAuthenticated, asyncHandler(async (req, res) => {
-    const user = req.user!;
-    const organizationId = user.organizationId || 'default';
+  router.get('/activity', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
     const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
 
     // Get recent audit logs scoped to organization
@@ -161,8 +159,10 @@ export function registerDashboardRoutes(app: Router) {
 
     res.json({
       success: true,
-      activities,
-      count: activities.length
+      data: {
+        activities,
+        count: activities.length
+      }
     });
   }));
 
@@ -180,9 +180,8 @@ export function registerDashboardRoutes(app: Router) {
    *       401:
    *         description: Unauthorized
    */
-  router.get('/compliance-trend', isAuthenticated, asyncHandler(async (req, res) => {
-    const user = req.user!;
-    const organizationId = user.organizationId || 'default';
+  router.get('/compliance-trend', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
 
     // Get gap analysis reports scoped to organization
     const reports = await db
@@ -201,7 +200,9 @@ export function registerDashboardRoutes(app: Router) {
 
     res.json({
       success: true,
-      trend: trendData
+      data: {
+        trend: trendData
+      }
     });
   }));
 

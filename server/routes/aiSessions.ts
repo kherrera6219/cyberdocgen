@@ -1,54 +1,63 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { eq, and, desc } from 'drizzle-orm';
 import { db } from '../db';
 import { aiSessions, aiMessages, insertAiSessionSchema, insertAiMessageSchema } from '@shared/schema';
-import { isAuthenticated, getUserId } from '../replitAuth';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
-import { asyncHandler, UnauthorizedError, NotFoundError, ValidationError } from '../utils/routeHelpers';
+import { secureHandler, NotFoundError, ValidationError } from '../utils/errorHandling';
+import { type MultiTenantRequest, requireOrganization } from '../middleware/multiTenant';
 
 const router = Router();
 
-router.get('/', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
-  const userId = getUserId(req);
-  if (!userId) {
-    throw new UnauthorizedError('User not authenticated');
-  }
+router.get('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
+  const organizationId = req.organizationId!;
 
   const sessions = await db
     .select()
     .from(aiSessions)
-    .where(eq(aiSessions.userId, userId))
+    .where(and(eq(aiSessions.userId, userId), eq(aiSessions.organizationId, organizationId)))
     .orderBy(desc(aiSessions.lastMessageAt));
 
-  res.json(sessions);
+  res.json({
+    success: true,
+    data: sessions
+  });
 }));
 
-router.get('/:id', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
-  const userId = getUserId(req);
+router.get('/:id', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
+  const organizationId = req.organizationId!;
   const sessionId = req.params.id;
 
   const [session] = await db
     .select()
     .from(aiSessions)
-    .where(and(eq(aiSessions.id, sessionId), eq(aiSessions.userId, userId!)))
+    .where(and(
+      eq(aiSessions.id, sessionId), 
+      eq(aiSessions.userId, userId),
+      eq(aiSessions.organizationId, organizationId)
+    ))
     .limit(1);
 
   if (!session) {
     throw new NotFoundError('Session not found');
   }
 
-  res.json(session);
+  res.json({
+    success: true,
+    data: session
+  });
 }));
 
-router.post('/', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
-  const userId = getUserId(req);
-  if (!userId) {
-    throw new UnauthorizedError('User not authenticated');
-  }
+router.post('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
+  const organizationId = req.organizationId!;
 
   const sessionData = {
     ...req.body,
     userId,
+    organizationId,
     lastMessageAt: new Date(),
   };
 
@@ -58,18 +67,27 @@ router.post('/', isAuthenticated, asyncHandler(async (req: Request, res: Respons
   }
 
   const [newSession] = await db.insert(aiSessions).values(parsed.data).returning();
-  logger.info('AI session created', { sessionId: newSession.id, userId });
-  res.status(201).json(newSession);
+  logger.info('AI session created', { sessionId: newSession.id, userId, organizationId });
+  
+  res.status(201).json({
+    success: true,
+    data: newSession
+  });
 }));
 
-router.patch('/:id', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
-  const userId = getUserId(req);
+router.patch('/:id', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
+  const organizationId = req.organizationId!;
   const sessionId = req.params.id;
 
   const [session] = await db
     .select()
     .from(aiSessions)
-    .where(and(eq(aiSessions.id, sessionId), eq(aiSessions.userId, userId!)))
+    .where(and(
+      eq(aiSessions.id, sessionId), 
+      eq(aiSessions.userId, userId),
+      eq(aiSessions.organizationId, organizationId)
+    ))
     .limit(1);
 
   if (!session) {
@@ -89,17 +107,25 @@ router.patch('/:id', isAuthenticated, asyncHandler(async (req: Request, res: Res
     .where(eq(aiSessions.id, sessionId))
     .returning();
 
-  res.json(updated);
+  res.json({
+    success: true,
+    data: updated
+  });
 }));
 
-router.delete('/:id', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
-  const userId = getUserId(req);
+router.delete('/:id', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
+  const organizationId = req.organizationId!;
   const sessionId = req.params.id;
 
   const [session] = await db
     .select()
     .from(aiSessions)
-    .where(and(eq(aiSessions.id, sessionId), eq(aiSessions.userId, userId!)))
+    .where(and(
+      eq(aiSessions.id, sessionId), 
+      eq(aiSessions.userId, userId),
+      eq(aiSessions.organizationId, organizationId)
+    ))
     .limit(1);
 
   if (!session) {
@@ -107,22 +133,31 @@ router.delete('/:id', isAuthenticated, asyncHandler(async (req: Request, res: Re
   }
 
   await db.delete(aiSessions).where(eq(aiSessions.id, sessionId));
-  logger.info('AI session deleted', { sessionId, userId });
-  res.json({ message: 'Session deleted' });
+  logger.info('AI session deleted', { sessionId, userId, organizationId });
+  
+  res.json({
+    success: true,
+    data: { message: 'Session deleted' }
+  });
 }));
 
-router.get('/:id/messages', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
-  const userId = getUserId(req);
+router.get('/:id/messages', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
+  const organizationId = req.organizationId!;
   const sessionId = req.params.id;
 
   const [session] = await db
     .select()
     .from(aiSessions)
-    .where(and(eq(aiSessions.id, sessionId), eq(aiSessions.userId, userId!)))
+    .where(and(
+      eq(aiSessions.id, sessionId), 
+      eq(aiSessions.userId, userId),
+      eq(aiSessions.organizationId, organizationId)
+    ))
     .limit(1);
 
   if (!session) {
-    throw new NotFoundError('Session not found');
+    throw new NotFoundError('Session not found or access denied');
   }
 
   const messages = await db
@@ -131,21 +166,29 @@ router.get('/:id/messages', isAuthenticated, asyncHandler(async (req: Request, r
     .where(eq(aiMessages.sessionId, sessionId))
     .orderBy(aiMessages.createdAt);
 
-  res.json(messages);
+  res.json({
+    success: true,
+    data: messages
+  });
 }));
 
-router.post('/:id/messages', isAuthenticated, asyncHandler(async (req: Request, res: Response) => {
-  const userId = getUserId(req);
+router.post('/:id/messages', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  const userId = getRequiredUserId(req);
+  const organizationId = req.organizationId!;
   const sessionId = req.params.id;
 
   const [session] = await db
     .select()
     .from(aiSessions)
-    .where(and(eq(aiSessions.id, sessionId), eq(aiSessions.userId, userId!)))
+    .where(and(
+      eq(aiSessions.id, sessionId), 
+      eq(aiSessions.userId, userId),
+      eq(aiSessions.organizationId, organizationId)
+    ))
     .limit(1);
 
   if (!session) {
-    throw new NotFoundError('Session not found');
+    throw new NotFoundError('Session not found or access denied');
   }
 
   const messageData = { ...req.body, sessionId };
@@ -161,7 +204,10 @@ router.post('/:id/messages', isAuthenticated, asyncHandler(async (req: Request, 
     .set({ lastMessageAt: new Date() })
     .where(eq(aiSessions.id, sessionId));
 
-  res.status(201).json(newMessage);
+  res.status(201).json({
+    success: true,
+    data: newMessage
+  });
 }));
 
 export default router;

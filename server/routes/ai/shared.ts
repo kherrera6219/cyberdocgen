@@ -1,8 +1,15 @@
 // Shared imports and utilities for AI routes
 import { isAuthenticated, getRequiredUserId, getUserId } from '../../replitAuth';
 import { logger } from '../../utils/logger';
-import { asyncHandler, AppError, ValidationError, NotFoundError, ForbiddenError } from '../../utils/routeHelpers';
-import { validateBody } from '../../middleware/routeValidation';
+import { 
+  secureHandler, 
+  validateInput,
+  AppError, 
+  ValidationError, 
+  NotFoundError, 
+  ForbiddenError 
+} from '../../utils/errorHandling';
+import { requireOrganization, type MultiTenantRequest } from '../../middleware/multiTenant';
 import { validateAIRequestSize, aiLimiter } from '../../middleware/rateLimiter';
 import { generationLimiter } from '../../middleware/security';
 import { auditService } from '../../services/auditService';
@@ -16,12 +23,14 @@ export {
   getRequiredUserId,
   getUserId,
   logger,
-  asyncHandler,
+  secureHandler,
+  validateInput,
+  requireOrganization,
+  MultiTenantRequest,
   AppError,
   ValidationError,
   NotFoundError,
   ForbiddenError,
-  validateBody,
   validateAIRequestSize,
   aiLimiter,
   generationLimiter,

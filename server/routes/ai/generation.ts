@@ -1,14 +1,16 @@
 // AI Generation Routes
 // Document generation and job management
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { storage } from '../../storage';
 import { aiOrchestrator } from '../../services/aiOrchestrator';
 import {
   isAuthenticated,
   getRequiredUserId,
-  asyncHandler,
+  secureHandler,
   NotFoundError,
-  validateBody,
+  validateInput,
+  requireOrganization,
+  type MultiTenantRequest,
   validateAIRequestSize,
   generationLimiter
 } from './shared';
@@ -19,53 +21,43 @@ export function registerGenerationRoutes(router: Router) {
    * POST /api/ai/generate-compliance-docs
    * Start asynchronous document generation job
    */
-  router.post('/generate-compliance-docs', isAuthenticated, generationLimiter, validateAIRequestSize, validateBody(generateComplianceDocsSchema), asyncHandler(async (req, res) => {
+  router.post('/generate-compliance-docs', isAuthenticated, requireOrganization, generationLimiter, validateAIRequestSize, validateInput(generateComplianceDocsSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { companyInfo, frameworks, soc2Options, fedrampOptions } = req.body;
     const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     
-    const userOrgs = await storage.getUserOrganizations(userId);
-    let organizationId = userOrgs[0]?.organizationId;
+    // Create or get company profile for this organization
+    let companyProfile = (await storage.getCompanyProfiles(organizationId))[0];
     
-    if (!organizationId) {
-      const org = await storage.createOrganization({
-        name: companyInfo.companyName,
-        slug: companyInfo.companyName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Date.now()
+    if (!companyProfile) {
+      companyProfile = await storage.createCompanyProfile({
+        organizationId,
+        createdBy: userId,
+        companyName: companyInfo.companyName,
+        industry: companyInfo.industry || 'Technology',
+        companySize: companyInfo.companySize || '51-200',
+        headquarters: companyInfo.headquarters || 'United States',
+        cloudInfrastructure: companyInfo.cloudProviders || ['AWS'],
+        dataClassification: companyInfo.dataClassification || 'Confidential',
+        businessApplications: companyInfo.businessApplications || 'Enterprise applications',
+        complianceFrameworks: frameworks,
+        frameworkConfigs: {
+          soc2: soc2Options ? {
+            trustServices: soc2Options.trustPrinciples || ['security'],
+            reportType: 'type2' as const
+          } : undefined,
+          fedramp: fedrampOptions ? {
+            level: (fedrampOptions.impactLevel || 'moderate') as 'low' | 'moderate' | 'high',
+            impactLevel: {
+              confidentiality: (fedrampOptions.impactLevel || 'moderate') as 'low' | 'moderate' | 'high',
+              integrity: (fedrampOptions.impactLevel || 'moderate') as 'low' | 'moderate' | 'high',
+              availability: (fedrampOptions.impactLevel || 'moderate') as 'low' | 'moderate' | 'high'
+            },
+            selectedControls: []
+          } : undefined
+        }
       });
-      await storage.addUserToOrganization({
-        userId,
-        organizationId: org.id,
-        role: 'owner'
-      });
-      organizationId = org.id;
     }
-    
-    const companyProfile = await storage.createCompanyProfile({
-      organizationId,
-      createdBy: userId,
-      companyName: companyInfo.companyName,
-      industry: companyInfo.industry || 'Technology',
-      companySize: companyInfo.companySize || '51-200',
-      headquarters: companyInfo.headquarters || 'United States',
-      cloudInfrastructure: companyInfo.cloudProviders || ['AWS'],
-      dataClassification: companyInfo.dataClassification || 'Confidential',
-      businessApplications: companyInfo.businessApplications || 'Enterprise applications',
-      complianceFrameworks: frameworks,
-      frameworkConfigs: {
-        soc2: soc2Options ? {
-          trustServices: soc2Options.trustPrinciples || ['security'],
-          reportType: 'type2' as const
-        } : undefined,
-        fedramp: fedrampOptions ? {
-          level: (fedrampOptions.impactLevel || 'moderate') as 'low' | 'moderate' | 'high',
-          impactLevel: {
-            confidentiality: (fedrampOptions.impactLevel || 'moderate') as 'low' | 'moderate' | 'high',
-            integrity: (fedrampOptions.impactLevel || 'moderate') as 'low' | 'moderate' | 'high',
-            availability: (fedrampOptions.impactLevel || 'moderate') as 'low' | 'moderate' | 'high'
-          },
-          selectedControls: []
-        } : undefined
-      }
-    });
 
     const job = await storage.createGenerationJob({
       companyProfileId: companyProfile.id,
@@ -79,16 +71,19 @@ export function registerGenerationRoutes(router: Router) {
 
     res.json({ 
       success: true, 
-      jobId: job.id,
-      companyProfileId: companyProfile.id,
-      message: 'Document generation started',
-      estimatedDocuments: frameworks.length * 3
+      data: {
+        jobId: job.id,
+        companyProfileId: companyProfile.id,
+        message: 'Document generation started',
+        estimatedDocuments: frameworks.length * 3
+      }
     });
 
     // Start generation in background
+    // We wrap this but don't await so the response returns immediately
     (async () => {
       try {
-        const generatedDocs: any[] = [];
+        const generatedDocs: unknown[] = [];
         
         for (const framework of frameworks) {
           const profileForAI = {
@@ -97,7 +92,7 @@ export function registerGenerationRoutes(router: Router) {
           };
           
           const results = await aiOrchestrator.generateComplianceDocuments(
-            profileForAI as any,
+            profileForAI,
             framework,
             { model: 'auto', includeQualityAnalysis: true },
             (p) => {
@@ -142,11 +137,24 @@ export function registerGenerationRoutes(router: Router) {
    * GET /api/ai/generation-jobs/:id
    * Get job status
    */
-  router.get('/generation-jobs/:id', isAuthenticated, asyncHandler(async (req, res) => {
-    const job = await storage.getGenerationJob(req.params.id);
+  router.get('/generation-jobs/:id', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
+    const jobId = req.params.id;
+
+    const job = await storage.getGenerationJob(jobId);
     if (!job) {
       throw new NotFoundError("Job not found");
     }
-    res.json(job);
+
+    // Check ownership via company profile
+    const profile = await storage.getCompanyProfile(job.companyProfileId);
+    if (!profile || profile.organizationId !== organizationId) {
+      throw new NotFoundError("Job not found");
+    }
+
+    res.json({
+      success: true,
+      data: job
+    });
   }));
 }

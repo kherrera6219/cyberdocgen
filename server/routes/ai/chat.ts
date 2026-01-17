@@ -1,34 +1,57 @@
 // AI Chat Routes
 // Interactive chat and multimodal support
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { complianceChatbot } from '../../services/chatbot';
 import { analyzeImage } from '../../services/geminiVision';
 import {
   isAuthenticated,
   getRequiredUserId,
-  asyncHandler,
-  validateBody,
+  secureHandler,
+  validateInput,
+  requireOrganization,
+  type MultiTenantRequest,
   aiLimiter,
   validateAIRequestSize,
   auditService,
   metricsCollector,
-  logger
+  logger,
+  crypto,
+  NotFoundError
 } from './shared';
 import { chatMessageSchema, multimodalChatSchema } from '../../validation/requestSchemas';
+import { db } from '../../db';
+import { aiSessions } from '@shared/schema';
+import { and, eq } from 'drizzle-orm';
 
 export function registerChatRoutes(router: Router) {
   /**
    * POST /api/ai/chat
    * Compliance chatbot interface
    */
-  router.post("/chat", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(chatMessageSchema), asyncHandler(async (req, res) => {
+  router.post("/chat", isAuthenticated, requireOrganization, aiLimiter, validateAIRequestSize, validateInput(chatMessageSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { message, framework, sessionId } = req.body;
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
 
-    const userIdStr = req.user?.claims?.sub || getRequiredUserId(req).toString();
+    // Verify session ownership if sessionId is provided
+    if (sessionId) {
+      const [session] = await db
+        .select()
+        .from(aiSessions)
+        .where(and(
+          eq(aiSessions.id, sessionId),
+          eq(aiSessions.organizationId, organizationId)
+        ))
+        .limit(1);
+
+      if (!session) {
+        throw new NotFoundError('Conversation session not found');
+      }
+    }
 
     const response = await complianceChatbot.processMessage(
       message,
-      userIdStr,
+      userId,
       sessionId,
       framework
     );
@@ -36,38 +59,62 @@ export function registerChatRoutes(router: Router) {
     await auditService.logAction({
       action: "chat",
       entityType: "ai_conversation",
-      entityId: sessionId || `chat_${Date.now()}`,
-      userId: userIdStr,
-      ipAddress: req.ip || '127.0.0.1',
+      entityId: sessionId || `chat_${crypto.randomUUID()}`,
+      userId: userId,
+      ipAddress: req.ip || 'unknown',
       userAgent: req.get('User-Agent'),
-      metadata: { framework, messageLength: message.length }
+      metadata: { framework, messageLength: message.length, organizationId }
     });
 
-    res.json(response);
+    res.json({
+      success: true,
+      data: response
+    });
   }));
 
   /**
    * GET /api/ai/chat/suggestions
    * Get suggested questions for compliance implementation
    */
-  router.get("/chat/suggestions", isAuthenticated, asyncHandler(async (req, res) => {
+  router.get("/chat/suggestions", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const framework = req.query.framework as string;
     const suggestions = complianceChatbot.getSuggestedQuestions(framework);
-    res.json(suggestions);
+    
+    res.json({
+      success: true,
+      data: suggestions
+    });
   }));
 
   /**
    * POST /api/ai/multimodal-chat
    * Chat with image/document attachments
    */
-  router.post("/multimodal-chat", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(multimodalChatSchema), asyncHandler(async (req, res) => {
+  router.post("/multimodal-chat", isAuthenticated, requireOrganization, aiLimiter, validateAIRequestSize, validateInput(multimodalChatSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
     const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10MB
     
     const { message, framework, sessionId, attachments } = req.body;
     const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
 
-    const imageAnalysisResults: any[] = [];
+    // Verify session ownership if sessionId is provided
+    if (sessionId) {
+      const [session] = await db
+        .select()
+        .from(aiSessions)
+        .where(and(
+          eq(aiSessions.id, sessionId),
+          eq(aiSessions.organizationId, organizationId)
+        ))
+        .limit(1);
+
+      if (!session) {
+        throw new NotFoundError('Conversation session not found');
+      }
+    }
+
+    const imageAnalysisResults: { fileName: string; analysis: string; complianceRelevance?: { controls?: string[]; risks?: string[]; recommendations?: string[] } }[] = [];
     const unsupportedFiles: string[] = [];
     const documentContents: string[] = [];
     
@@ -114,7 +161,7 @@ export function registerChatRoutes(router: Router) {
     
     if (imageAnalysisResults.length > 0) {
       enhancedMessage += '\n\n[Image Analysis Results]:\n';
-      imageAnalysisResults.forEach((result, i) => {
+      imageAnalysisResults.forEach((result) => {
         const truncatedAnalysis = result.analysis.length > 1000 
           ? result.analysis.substring(0, 1000) + '...' 
           : result.analysis;
@@ -144,12 +191,13 @@ export function registerChatRoutes(router: Router) {
     await auditService.logAction({
       action: "multimodal_chat",
       entityType: "ai_conversation",
-      entityId: sessionId || `chat_${Date.now()}`,
+      entityId: sessionId || `chat_${crypto.randomUUID()}`,
       userId,
-      ipAddress: req.ip || '127.0.0.1',
+      ipAddress: req.ip || 'unknown',
       userAgent: req.get('User-Agent'),
       metadata: {
         framework,
+        organizationId,
         messageLength: message.length,
         attachmentCount: attachments?.length || 0,
         imageAnalysisCount: imageAnalysisResults.length,
@@ -158,14 +206,17 @@ export function registerChatRoutes(router: Router) {
     });
 
     res.json({
-      ...response,
-      processingDetails: {
-        processedImages: imageAnalysisResults.map(r => r.fileName),
-        unsupportedFiles,
-        documents: documentContents.length
-      },
-      imageAnalysis: imageAnalysisResults.length > 0 ? imageAnalysisResults : undefined,
-      unsupportedFiles: unsupportedFiles.length > 0 ? unsupportedFiles : undefined
+      success: true,
+      data: {
+        ...response,
+        processingDetails: {
+          processedImages: imageAnalysisResults.map(r => r.fileName),
+          unsupportedFiles,
+          documents: documentContents.length
+        },
+        imageAnalysis: imageAnalysisResults.length > 0 ? imageAnalysisResults : undefined,
+        unsupportedFiles: unsupportedFiles.length > 0 ? unsupportedFiles : undefined
+      }
     });
   }));
 }

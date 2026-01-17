@@ -1,19 +1,22 @@
 // AI Vision Routes
 // Image analysis and computer vision support
-import { Router } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { analyzeImage } from '../../services/geminiVision';
 import {
   isAuthenticated,
   getRequiredUserId,
-  asyncHandler,
+  secureHandler,
   AppError,
   ValidationError,
-  validateBody,
+  validateInput,
+  requireOrganization,
+  type MultiTenantRequest,
   aiLimiter,
   validateAIRequestSize,
   auditService,
   metricsCollector,
-  logger
+  logger,
+  crypto
 } from './shared';
 import { analyzeImageSchema } from '../../validation/requestSchemas';
 
@@ -22,11 +25,12 @@ export function registerVisionRoutes(router: Router) {
    * POST /api/ai/analyze-image
    * Analyze image for compliance risks or content
    */
-  router.post("/analyze-image", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(analyzeImageSchema), asyncHandler(async (req, res) => {
+  router.post("/analyze-image", isAuthenticated, requireOrganization, aiLimiter, validateAIRequestSize, validateInput(analyzeImageSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const SUPPORTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
     
     const { imageData, prompt, framework, analysisType } = req.body;
     const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
 
     // Validate image data format and extract MIME type
     let mimeType = 'image/png';
@@ -63,18 +67,21 @@ export function registerVisionRoutes(router: Router) {
       await auditService.logAction({
         action: "analyze_image",
         entityType: "image",
-        entityId: `img_${Date.now()}`,
-        userId,
-        ipAddress: req.ip || '127.0.0.1',
+        entityId: `img_${crypto.randomUUID()}`,
+        userId: userId.toString(),
+        ipAddress: req.ip || 'unknown',
         userAgent: req.get('User-Agent'),
-        metadata: { analysisType, framework, mimeType, hasComplianceRelevance: !!result.complianceRelevance }
+        metadata: { analysisType, framework, mimeType, hasComplianceRelevance: !!result.complianceRelevance, organizationId }
       });
 
-      res.json({ success: true, ...result });
+      res.json({ 
+        success: true, 
+        data: result 
+      });
     } catch (error: unknown) {
       metricsCollector.trackAIOperation('vision_analysis', false);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error("Image analysis failed", { error: errorMessage, userId: req.user?.claims?.sub });
+      logger.error("Image analysis failed", { error: errorMessage, userId });
 
       if (errorMessage.includes('GOOGLE_API_KEY')) {
         throw new AppError("Image analysis service is temporarily unavailable. Please try again later.", 503);
