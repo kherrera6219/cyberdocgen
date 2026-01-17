@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { encryptionService, DataClassification, EncryptedData } from '../../server/services/encryption';
+import { 
+  encryptionService, 
+  DataClassification, 
+  EncryptedData,
+  encrypt,
+  decrypt,
+  shouldEncryptField,
+  encryptCompanyProfile
+} from '../../server/services/encryption';
 import crypto from 'crypto';
 
 // Mock logger
@@ -184,8 +192,6 @@ describe('EncryptionService', () => {
   describe('helper functions', () => {
     describe('encrypt/decrypt wrappers', () => {
       it('encrypt wrapper works with sensitive field encryption', async () => {
-        const { encrypt, decrypt } = require('../../server/services/encryption');
-        
         const encrypted = await encrypt(testData);
         const decrypted = await decrypt(encrypted);
 
@@ -194,8 +200,6 @@ describe('EncryptionService', () => {
     });
 
     describe('shouldEncryptField', () => {
-      const { shouldEncryptField } = require('../../server/services/encryption');
-
       it('encrypts sensitive field names', () => {
         expect(shouldEncryptField('password', 'user')).toBe(true);
         expect(shouldEncryptField('apiKey', 'service')).toBe(true);
@@ -213,8 +217,6 @@ describe('EncryptionService', () => {
 
   describe('field-level encryption', () => {
     it('encrypts company profile sensitive fields', async () => {
-      const { encryptCompanyProfile } = require('../../server/services/encryption');
-      
       const profile = {
         companyName: 'Test Corp',
         apiKey: 'secret-api-key-123',

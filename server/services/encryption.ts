@@ -190,12 +190,12 @@ export class EncryptionService {
 
 export const encryptionService = new EncryptionService();
 
-async function encrypt(data: string): Promise<EncryptedData> {
+export async function encrypt(data: string): Promise<EncryptedData> {
   const service = new EncryptionService();
   return service.encryptSensitiveField(data, DataClassification.RESTRICTED);
 }
 
-async function decrypt(encryptedData: string | EncryptedData): Promise<string> {
+export async function decrypt(encryptedData: string | EncryptedData): Promise<string> {
   const service = new EncryptionService();
   if (typeof encryptedData === 'string') {
     try {
@@ -301,7 +301,7 @@ export async function decryptDataAtRest(data: any): Promise<any> {
 /**
  * Determine if field should be encrypted based on data type and field name
  */
-function shouldEncryptField(fieldName: string, dataType: string): boolean {
+export function shouldEncryptField(fieldName: string, dataType: string): boolean {
   const sensitiveFields = [
     'password', 'secret', 'key', 'token', 'credential',
     'ssn', 'taxId', 'bankAccount', 'routingNumber',
