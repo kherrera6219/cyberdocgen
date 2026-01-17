@@ -21,7 +21,11 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 ### Backend Architecture
 - **Runtime**: Node.js 20 with Express.js 4.21 framework
 - **Language**: TypeScript 5.9 for type safety
-- **Database**: PostgreSQL 16 with Drizzle ORM 0.39
+- **Database**: PostgreSQL 16 with Drizzle ORM 0.39 (Neon serverless)
+  - Connection pool with error handling and retry logic (3x exponential backoff)
+  - Health checks and connection testing on startup
+  - Query timeout configuration (10s connection, 30s idle)
+  - Graceful shutdown with proper cleanup
 - **Authentication**: Enterprise authentication with MFA support
 - **AI Integration**: Multi-model orchestration (OpenAI GPT-5.1, Anthropic Claude Opus 4.5, Google Gemini 3.0 Pro)
 - **Storage**: Cloud object storage for document assets (Google Cloud Storage)
@@ -32,11 +36,14 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 ### Database Design
 - **Primary Database**: PostgreSQL 16 (Neon serverless)
 - **ORM**: Drizzle ORM 0.39 with type-safe queries
+- **Connection Pool**: Configured with max 20 connections, automatic retry on failure
+- **Resilience**: Health checks, connection testing, graceful degradation
 - **Schema**: Multi-tenant with organization-based data isolation (40+ tables, 1,670+ lines)
 - **Migrations**: Automated through Drizzle Kit
 - **Audit Trail**: Comprehensive activity logging with integrity verification
 - **Indexes**: 40+ optimized indexes for performance
 - **Data Models**: Complete coverage for users, organizations, documents, compliance, AI, security
+- **Data Retention**: Automated GDPR/CCPA-compliant deletion with policy-driven retention periods
 
 ## AI Services Architecture
 
@@ -163,13 +170,19 @@ The system implements intelligent model selection based on task requirements wit
 CyberDocGen implements the Model Context Protocol to enable programmatic access for Claude Code and other AI agents:
 
 **Components**:
-- **MCP Server** (`server/mcp/server.ts`): Protocol server implementation
+- **MCP Server** (`server/mcp/server.ts`): Protocol server implementation with authentication
 - **Agent Client** (`server/mcp/agentClient.ts`): Client for agent communication
 - **Tool Registry** (`server/mcp/toolRegistry.ts`): Registry of available tools and capabilities
 - **Tool Implementations**:
   - Internal tools (`server/mcp/tools/internal.ts`): Core system operations
   - External tools (`server/mcp/tools/external.ts`): External API integrations
   - Advanced tools (`server/mcp/tools/advanced.ts`): Complex analysis operations
+
+**Security**:
+- All MCP endpoints require authentication (`isAuthenticated` middleware)
+- Organization context enforced for multi-tenant isolation
+- Comprehensive audit logging of all tool and agent executions
+- Rate limiting protection (inherits from general API limiter)
 
 **Capabilities Exposed via MCP**:
 - Document generation and analysis

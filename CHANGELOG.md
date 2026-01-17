@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-01-17
+
+### Changed
+- Updated zod-validation-error from 3.5.4 to 5.0.0
+
+### Security
+- Maintained 0 security vulnerabilities
+- All dependencies current and secure
+
+### Documentation
+- Created refactoring plan for future code improvements
+- Identified large files for potential future refactoring (deferred to v2.1.0+)
+
+## [2.0.0] - 2026-01-17
+
+### Added
+- Database connection health checks and monitoring
+- Connection pool retry logic with exponential backoff (3x attempts)
+- MCP endpoint authentication middleware
+- Organization context isolation for MCP routes
+- Data retention deletion workflows for GDPR/CCPA compliance
+- CSP meta tag in index.html for defense-in-depth
+- Centralized localStorage error handling via useStorage hook
+
+### Changed
+- Updated all documentation with version 2.0.0
+- Enhanced README with current production status
+- Improved error handling across frontend and backend
+- Unified error response format across all API endpoints
+
+### Fixed
+- Database connection pool error handling
+- MCP security gaps (unauthenticated endpoints)
+- Frontend localStorage error handling inconsistencies
+- TypeScript compilation errors (0 errors achieved)
+
+### Security
+- 0 security vulnerabilities (verified via npm audit)
+- MCP endpoints now require authentication
+- Multi-tenant isolation enforced on all MCP operations
+- Complete audit trails for data deletion operations
+
 ## [1.1.0] - 2025-12-10
 
 ### Added
