@@ -202,3 +202,38 @@ export async function healthCheckHandler(req: Request, res: Response) {
   }
 }
 
+export async function readinessCheckHandler(req: Request, res: Response) {
+  try {
+    // Check if application is ready to serve traffic
+    const dbCheck = await healthCheckService.checkDatabase();
+
+    if (dbCheck.status === 'fail') {
+      return res.status(503).json({
+        status: 'not ready',
+        message: 'Database not available',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    res.status(200).json({
+      status: 'ready',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'not ready',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+export async function livenessCheckHandler(req: Request, res: Response) {
+  // Simple liveness check - just confirm the process is running
+  res.status(200).json({
+    status: 'alive',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+}
+

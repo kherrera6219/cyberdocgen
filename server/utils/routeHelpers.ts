@@ -23,8 +23,8 @@ export class AppError extends Error {
  * 404 Not Found Error
  */
 export class NotFoundError extends AppError {
-  constructor(message: string = 'Resource not found') {
-    super(message, 404, 'NOT_FOUND');
+  constructor(message: string = 'Resource not found', details?: any) {
+    super(message, 404, 'NOT_FOUND', details);
   }
 }
 
@@ -60,8 +60,8 @@ export class UnauthorizedError extends AppError {
  * Matches err.name === 'ForbiddenError' in security.ts
  */
 export class ForbiddenError extends AppError {
-  constructor(message: string = 'Access denied') {
-    super(message, 403, 'FORBIDDEN');
+  constructor(message: string = 'Access denied', details?: any) {
+    super(message, 403, 'FORBIDDEN', details);
   }
 }
 
