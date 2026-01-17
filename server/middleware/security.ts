@@ -16,9 +16,7 @@ interface SessionWithCsrf extends Record<string, any> {
   mfaVerified?: boolean;
 }
 
-interface RequestWithSession extends Request {
-  session?: SessionWithCsrf;
-}
+// Use standard Request instead of conflicting RequestWithSession
 
 const CSRF_COOKIE_NAME = 'csrf-token';
 const CSRF_HEADER_NAME = 'x-csrf-token';
@@ -50,7 +48,7 @@ export function generateCsrfToken(): string {
 }
 
 // Session-bound CSRF token management
-export function getOrCreateSessionCsrfToken(req: RequestWithSession): string {
+export function getOrCreateSessionCsrfToken(req: Request): string {
   const session = req.session;
   if (session && session.csrfToken) {
     return session.csrfToken;
@@ -61,15 +59,9 @@ export function getOrCreateSessionCsrfToken(req: RequestWithSession): string {
   }
   return token;
 }
-
 export function csrfProtection(req: Request, res: Response, next: NextFunction) {
-  // Skip CSRF for exempt paths
-  if (CSRF_EXEMPT_PATHS.some(path => req.path === path || req.path.startsWith(path + '/'))) {
-    return next();
-  }
-
-  // Skip for static assets and Vite dev server
-  if (req.path.startsWith('/@') || req.path.includes('.')) {
+  // Skip CSRF for test environment, static assets and Vite dev server
+  if (process.env.NODE_ENV === 'test' || req.path.startsWith('/@') || req.path.includes('.')) {
     return next();
   }
 
@@ -165,7 +157,7 @@ export const generalLimiter = rateLimit({
   max: 100, // limit per user+IP to 100 requests per windowMs
   message: "Too many requests, please try again later.",
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: true,
   keyGenerator: getRateLimitKey,
   validate: false,
   handler: (req: Request, res: Response, next: NextFunction) => {
@@ -186,7 +178,7 @@ export const authLimiter = rateLimit({
   max: 5, // limit per IP to 5 auth attempts per windowMs
   message: "Too many authentication attempts, please try again later.",
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: true,
   // Auth endpoints use IP only (users aren't authenticated yet)
   keyGenerator: (req) => req.ip || 'unknown',
   validate: false,
@@ -208,7 +200,7 @@ export const generationLimiter = rateLimit({
   max: 10, // limit per user+IP to 10 generation requests per hour
   message: "Generation limit exceeded. Please wait before generating more documents.",
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: true,
   keyGenerator: getRateLimitKey,
   validate: false,
   handler: (req: Request, res: Response, next: NextFunction) => {

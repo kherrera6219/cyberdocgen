@@ -14,6 +14,7 @@ import { randomUUID } from 'crypto';
 
 // Extend Express Request to include trace context
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       traceId?: string;

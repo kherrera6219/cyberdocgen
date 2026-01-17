@@ -1,17 +1,37 @@
-import type { Express } from "express";
+import express, { Express, Router } from "express";
 import { createServer, type Server } from "http";
-import { Router } from "express";
 import crypto from "crypto";
+import cookieParser from "cookie-parser";
+import compression from "compression";
+import cors from "cors";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, getSession } from "./replitAuth";
 import { auditService, AuditAction } from "./services/auditService";
 import { logger } from "./utils/logger";
 import { metricsCollector } from "./monitoring/metrics";
 import { aiOrchestrator } from "./services/aiOrchestrator";
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
-import { generalLimiter, authLimiter, authStrictLimiter, aiLimiter, apiLimiter } from './middleware/rateLimiter';
 import { extractOrganizationContext } from './middleware/multiTenant';
+import { 
+  healthCheckHandler, 
+  readinessCheckHandler, 
+  livenessCheckHandler 
+} from "./utils/health";
+import { 
+  securityHeaders,
+  csrfProtection,
+  threatDetection,
+  auditLogger,
+  requireMFAForHighRisk,
+  validateRequest,
+  generalLimiter,
+  authLimiter,
+  aiLimiter
+} from "./middleware/security";
+import { tracingMiddleware } from "./middleware/tracing";
+import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
+import { egressControlMiddleware } from "./middleware/egressControl";
 
 import { insertContactMessageSchema } from "@shared/schema";
 import { registerOrganizationsRoutes } from "./routes/organizations";
@@ -39,19 +59,63 @@ import { registerFrameworkControlStatusesRoutes } from "./routes/frameworkContro
 import { registerClientErrorRoutes } from "./routes/clientErrors";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add metrics collection middleware
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // 1. Fundamental defensive and observability stack (Priority 1)
+  app.use(securityHeaders);
   app.use(metricsCollector.requestMetrics());
-
-  // Add security headers middleware
-  app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    next();
-  });
-
-  // Apply general rate limiting to all routes
+  app.use(tracingMiddleware());
+  app.use(cookieParser());
   app.use(generalLimiter);
+  app.use(threatDetection);
+  app.use(auditLogger);
+
+  // 2. Base request processing
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+  app.use(validateRequest);
+
+  // 3. Basic health checks
+  app.get('/health', healthCheckHandler);
+  app.get('/ready', readinessCheckHandler);
+  app.get('/live', livenessCheckHandler);
+
+  // 4. Performance and CORS
+  if (isProduction) {
+    app.use(compression());
+  }
+  
+  // Configure secure CORS
+  const corsOptions = {
+    origin: isProduction 
+      ? (process.env.ALLOWED_ORIGINS?.split(',') || [/\.replit\.dev$/, /\.repl\.co$/, /\.replit\.app$/])
+      : true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Request-ID']
+  };
+  app.use(cors(corsOptions));
+  
+  // 5. Session management (Must be before CSRF)
+  app.use(getSession());
+  
+  // 6. Protection
+  app.use(csrfProtection);
+
+  // 6. Egress control and route validation
+  app.use(egressControlMiddleware({ 
+    strictMode: true, 
+    logBlocked: true,
+    bypassPaths: ['/api/webhooks']
+  }));
+  app.use(validateRouteAccess);
+  app.use(logRoutePerformance);
+  
+  // 8. Authentication setup (Uses sessions)
+  await setupAuth(app);
+
+  // 9. High-risk operation protection
+  app.use('/api', requireMFAForHighRisk);
 
   /**
    * @openapi
@@ -80,26 +144,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *                 error:
    *                   type: string
    */
-  app.get("/health", async (req, res) => {
-    try {
-      const metrics = metricsCollector.getMetrics();
-      const healthStatus = {
-        status: "healthy",
-        timestamp: new Date().toISOString(),
-        uptime: metrics.uptime,
-        version: "1.0.0",
-        environment: process.env.NODE_ENV || "development",
-        metrics: {
-          requests: metrics.requests.total,
-          avgResponseTime: metrics.computedMetrics.avgResponseTime,
-          errorRate: metrics.computedMetrics.errorRate
-        }
-      };
-      res.json(healthStatus);
-    } catch (error) {
-      res.status(500).json({ status: "unhealthy", error: "Health check failed" });
-    }
-  });
 
   // Metrics endpoint for monitoring - protected by default
   // Only allow public access if ENABLE_PUBLIC_METRICS=true is explicitly set
@@ -120,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const metrics = metricsCollector.getMetrics();
       res.json(metrics);
-    } catch (error) {
+    } catch {
       res.status(500).json({ error: "Failed to retrieve metrics" });
     }
   });
@@ -187,9 +231,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } else {
     logger.info('API documentation disabled in production (set ENABLE_SWAGGER=true to enable)');
   }
-
-  // Auth middleware - IMPORTANT: This must come before any authenticated routes
-  await setupAuth(app);
 
   // Multi-tenant context extraction - extracts organization context for authenticated users
   app.use('/api', extractOrganizationContext);
@@ -584,15 +625,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
-}
-
-// Helper function for content types
-function getContentType(format: string): string {
-  const contentTypes: Record<string, string> = {
-    'pdf': 'application/pdf',
-    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'txt': 'text/plain',
-    'html': 'text/html'
-  };
-  return contentTypes[format.toLowerCase()] || 'text/plain';
 }

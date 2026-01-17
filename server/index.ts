@@ -1,34 +1,8 @@
 import express from "express";
 import crypto from "crypto";
-import cookieParser from "cookie-parser";
-import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
-import cors from "cors";
-import { getSession } from "./replitAuth";
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    interface Request {
-      requestId?: string;
-      traceId?: string;
-      spanId?: string;
-    }
-  }
-}
-import {
-  generalLimiter,
-  validateRequest,
-  securityHeaders,
-  threatDetection,
-  auditLogger,
-  csrfProtection
-} from "./middleware/security";
-import { globalErrorHandler } from "./utils/errorHandling";
-import { tracingMiddleware } from "./middleware/tracing";
-import { egressControlMiddleware } from "./middleware/egressControl";
-import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
 import { validateEnvironment } from "./utils/validation";
 import { logger } from "./utils/logger";
 import { healthCheckHandler, readinessCheckHandler, livenessCheckHandler } from "./utils/health";
@@ -42,90 +16,12 @@ const app = express();
 // Trust proxy for rate limiting in Replit environment
 app.set('trust proxy', true);
 
-// Health check endpoints (no auth required)
+// Basic health checks (should be registered before other things)
 app.get('/health', healthCheckHandler);
 app.get('/ready', readinessCheckHandler);
 app.get('/live', livenessCheckHandler);
 
-// Production environment detection
-const isProduction = process.env.NODE_ENV === 'production';
-
-// CORS configuration with secure production defaults
-const getAllowedOrigins = () => {
-  if (!isProduction) return true;
-  
-  const origins = process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean);
-  
-  // Use configured origins if provided and non-empty, otherwise fallback to Replit domains
-  if (origins && origins.length > 0) {
-    return origins;
-  }
-  
-  // Default whitelist for Replit platform domains
-  return [/\.replit\.dev$/, /\.repl\.co$/, /\.replit\.app$/];
-};
-
-const corsOptions = {
-  origin: getAllowedOrigins(),
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Request-ID']
-};
-
-// Compression middleware for production performance
-if (isProduction) {
-  app.use(compression({
-    level: 6,
-    threshold: 1024,
-    filter: (req, res) => {
-      if (req.headers['x-no-compression']) {
-        return false;
-      }
-      return compression.filter(req, res);
-    }
-  }));
-}
-
-// Security middleware - only apply to API routes
-app.use(securityHeaders);
-app.use(cors(corsOptions));
-app.use(cookieParser());
-
-// Distributed tracing - add correlation IDs for observability
-app.use(tracingMiddleware());
-
-// Session middleware MUST be initialized BEFORE CSRF protection
-// CSRF requires session to store and validate tokens
-app.use(getSession());
-
-// CSRF protection middleware - now has access to session
-app.use(csrfProtection);
-
-// Security and performance monitoring
-app.use(threatDetection);
-
-// Comprehensive audit logging for compliance
-app.use(auditLogger);
-
-// SSRF egress control - validate external URLs in requests
-app.use('/api', egressControlMiddleware({ 
-  strictMode: true, 
-  logBlocked: true,
-  bypassPaths: ['/api/webhooks'] // Allow webhooks to receive external URLs
-}));
-
-// Request logging and validation
-app.use('/api', validateRouteAccess);
-app.use('/api', logRoutePerformance);
-app.use('/api', generalLimiter);
-
-// MFA enforcement for high-risk operations
-app.use('/api', requireMFAForHighRisk);
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-app.use('/api', validateRequest);
-
+// Request ID assignment for lifecycle logging
 app.use((req, res, next) => {
   const requestId = crypto.randomUUID();
   req.requestId = requestId;
@@ -159,9 +55,6 @@ app.use((req, res, next) => {
   }
 
   const server = await registerRoutes(app);
-
-  // Use the enhanced global error handler
-  app.use(globalErrorHandler);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
@@ -230,7 +123,7 @@ app.use((req, res, next) => {
     gracefulShutdown('uncaughtException', 1);
   });
   
-  process.on('unhandledRejection', (reason, promise) => {
+  process.on('unhandledRejection', (reason) => {
     logger.error('Unhandled rejection', { reason: String(reason) });
   });
 })();

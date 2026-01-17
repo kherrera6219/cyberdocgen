@@ -12,6 +12,40 @@ import { type MultiTenantRequest, requireOrganization } from '../middleware/mult
 
 export function registerGapAnalysisRoutes(router: Router) {
   /**
+   * Update recommendation status
+   */
+  router.patch("/recommendations/:id", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    // Handler content (restored from below)
+    const { id } = req.params;
+    const { status } = req.body;
+    const organizationId = req.organizationId!;
+    
+    const recommendation = await storage.getRemediationRecommendation(id);
+    if (!recommendation) {
+      throw new NotFoundError("Recommendation not found");
+    }
+    
+    // Validate ownership via finding then report
+    const finding = await storage.getGapAnalysisFinding(recommendation.findingId);
+    if (!finding) {
+        throw new NotFoundError("Recommendation finding not found");
+    }
+    const report = await storage.getGapAnalysisReport(finding.reportId);
+    if (!report || report.organizationId !== organizationId) {
+      throw new NotFoundError("Recommendation not found");
+    }
+
+    const updates: Partial<RemediationRecommendation> = { status };
+    if (status === 'completed') {
+      updates.completedDate = new Date();
+    }
+
+    const updated = await storage.updateRemediationRecommendation(id, updates);
+
+    res.json({ success: true, data: updated });
+  }, { audit: { action: 'update', entityType: 'recommendation', getEntityId: (req) => req.params.id } }));
+
+  /**
    * Get gap analysis reports
    */
   router.get("/", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
@@ -261,36 +295,4 @@ export function registerGapAnalysisRoutes(router: Router) {
     });
   }, { audit: { action: 'create', entityType: 'gapAnalysis' } }));
 
-  /**
-   * Update recommendation status
-   */
-  router.patch("/recommendations/:id", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-    const { id } = req.params;
-    const { status } = req.body;
-    const organizationId = req.organizationId!;
-    
-    const recommendation = await storage.getRemediationRecommendation(id);
-    if (!recommendation) {
-      throw new NotFoundError("Recommendation not found");
-    }
-    
-    // Validate ownership via finding then report
-    const finding = await storage.getGapAnalysisFinding(recommendation.findingId);
-    if (!finding) {
-        throw new NotFoundError("Recommendation finding not found");
-    }
-    const report = await storage.getGapAnalysisReport(finding.reportId);
-    if (!report || report.organizationId !== organizationId) {
-      throw new NotFoundError("Recommendation not found");
-    }
-
-    const updates: Partial<RemediationRecommendation> = { status };
-    if (status === 'completed') {
-      updates.completedDate = new Date();
-    }
-
-    const updated = await storage.updateRemediationRecommendation(id, updates);
-
-    res.json({ success: true, data: updated });
-  }, { audit: { action: 'update', entityType: 'recommendation', getEntityId: (req) => req.params.id } }));
 }

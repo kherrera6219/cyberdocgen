@@ -1,0 +1,1278 @@
+
+> rest-express@1.0.0 test:run
+> vitest --run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/software/cyberdocgen[39m
+
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/ai/evaluation-suite.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/unit/logger.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/unit/validation.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/integration/critical-user-flows.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/unit/documents.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/unit/storage.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/unit/auth.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/integration/workflow-integration.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/unit/gap-analysis.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/unit/aiGuardrails.test.ts [2m([22m[2m40 tests[22m[2m)[22m[32m 220[2mms[22m[39m
+stderr | tests/integration/health.test.ts > Health Check Endpoints > GET /health > should return health status
+2026-01-17T15:34:21.297Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > GET /health > should include check results
+2026-01-17T15:34:21.323Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > GET /health > should return overall status based on checks
+2026-01-17T15:34:21.334Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > GET /ready > should return readiness status
+2026-01-17T15:34:21.344Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.405Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.406Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.407Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.407Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.408Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.409Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.410Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.411Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.412Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+stderr | tests/integration/health.test.ts > Health Check Endpoints > Health check reliability > should not crash on concurrent health checks
+2026-01-17T15:34:21.416Z [ERROR] Database health check failed {"error":"Unknown error"}
+
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/integration/health.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 264[2mms[22m[39m
+ [32mΓ£ô[39m [30m[42m unit [49m[39m tests/unit/aiOrchestrator.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+stderr | tests/components/ErrorBoundary.test.tsx > ErrorBoundary > should hide error message in production mode
+[2026-01-17T15:34:22.318Z] [WARN] Failed to fetch CSRF token
+
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ErrorBoundary.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 330[2mms[22m[39m
+stderr | tests/components/dashboard.test.tsx > Dashboard Component > Initial Rendering > should render dashboard title
+Warning: A suspended resource finished loading inside a test, but the event was not wrapped in act(...).
+
+When testing, code that resolves suspended data should be wrapped into act(...):
+
+act(() => {
+  /* finish loading suspended data */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+Warning: A suspended resource finished loading inside a test, but the event was not wrapped in act(...).
+
+When testing, code that resolves suspended data should be wrapped into act(...):
+
+act(() => {
+  /* finish loading suspended data */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+Warning: A suspended resource finished loading inside a test, but the event was not wrapped in act(...).
+
+When testing, code that resolves suspended data should be wrapped into act(...):
+
+act(() => {
+  /* finish loading suspended data */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests
+[22m[39m[32m2026-01-17T15:34:23.830Z [INFO] API documentation disabled in production (set ENABLE_SWAGGER=true to enable)[0m
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests
+[22m[39m[32m2026-01-17T15:34:23.831Z [INFO] API documentation disabled in production (set ENABLE_SWAGGER=true to enable)[0m
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests
+[22m[39m[32m2026-01-17T15:34:23.831Z [INFO] API documentation disabled in production (set ENABLE_SWAGGER=true to enable)[0m
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests
+[22m[39m[32m2026-01-17T15:34:23.832Z [INFO] API documentation disabled in production (set ENABLE_SWAGGER=true to enable)[0m
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests
+[22m[39m[32m2026-01-17T15:34:23.858Z [INFO] API documentation disabled in production (set ENABLE_SWAGGER=true to enable)[0m
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mPublic Endpoints[2m > [22m[2mshould allow access to health check
+[22m[39m[32m2026-01-17T15:34:24.068Z [INFO] GET /health {"method":"GET","url":"/health","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.068Z"}[0m
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mHealth Endpoints[2m > [22m[2mshould return system health status
+[22m[39m[32m2026-01-17T15:34:24.068Z [INFO] GET /health {"method":"GET","url":"/health","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.068Z"}[0m
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Templates[2m > [22m[2mshould return document templates
+[22m[39m{"type":"request_start","traceId":"321cd9d7-41a9-4ed8-bca5-ab64734b8fab","spanId":"06c86723","method":"GET","path":"/api/document-templates","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.067Z"}
+[32m2026-01-17T15:34:24.069Z [INFO] GET /api/document-templates {"method":"GET","url":"/api/document-templates","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.069Z"}[0m
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Templates > should return document templates
+2026-01-17T15:34:24.076Z [WARN] Unknown API route accessed {"path":"/document-templates","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mOnboarding Flow[2m > [22m[2mOrganization Setup[2m > [22m[2mshould require authentication for organization creation
+[22m[39m{"type":"request_start","traceId":"b9b95cce-c092-4505-9523-aef74f239765","spanId":"70b13d4c","method":"POST","path":"/api/organizations","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.073Z"}
+{"type":"request_end","traceId":"b9b95cce-c092-4505-9523-aef74f239765","spanId":"70b13d4c","method":"POST","path":"/api/organizations","statusCode":403,"duration":7,"timestamp":"2026-01-17T15:34:24.079Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Onboarding Flow > Organization Setup > should require authentication for organization creation
+2026-01-17T15:34:24.074Z [WARN] CSRF token missing {"path":"/api/organizations","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mGap Analysis Creation[2m > [22m[2mshould require authentication for gap analysis
+[22m[39m{"type":"request_start","traceId":"02b6734f-f8b8-45b2-93be-a07636dd2bda","spanId":"4f2e62f9","method":"POST","path":"/api/gap-analysis","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.076Z"}
+{"type":"request_end","traceId":"02b6734f-f8b8-45b2-93be-a07636dd2bda","spanId":"4f2e62f9","method":"POST","path":"/api/gap-analysis","statusCode":403,"duration":8,"timestamp":"2026-01-17T15:34:24.083Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Gap Analysis Creation > should require authentication for gap analysis
+2026-01-17T15:34:24.077Z [WARN] CSRF token missing {"path":"/api/gap-analysis","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mHealth Endpoints[2m > [22m[2mshould return AI health status
+[22m[39m[32m2026-01-17T15:34:24.092Z [INFO] GET /api/ai/health {"method":"GET","url":"/api/ai/health","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.092Z"}[0m
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mPublic Endpoints[2m > [22m[2mshould allow access to AI health endpoint
+[22m[39m[32m2026-01-17T15:34:24.092Z [INFO] GET /api/ai/health {"method":"GET","url":"/api/ai/health","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.092Z"}[0m
+
+stderr | tests/integration/auth.test.ts > Authentication Integration Tests > Public Endpoints > should allow access to AI health endpoint
+2026-01-17T15:34:24.093Z [WARN] Unknown API route accessed {"path":"/ai/health","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/api.test.ts > API Integration Tests > Health Endpoints > should return AI health status
+2026-01-17T15:34:24.093Z [WARN] Unknown API route accessed {"path":"/ai/health","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mOnboarding Flow[2m > [22m[2mOrganization Setup[2m > [22m[2mshould require authentication to list organizations
+[22m[39m{"type":"request_start","traceId":"10a64d5d-d1ff-4544-9415-7f854436d0e5","spanId":"7934d86f","method":"GET","path":"/api/organizations","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.092Z"}
+[32m2026-01-17T15:34:24.094Z [INFO] GET /api/organizations {"method":"GET","url":"/api/organizations","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.094Z"}[0m
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mGap Analysis Creation[2m > [22m[2mshould require authentication to update recommendations
+[22m[39m{"type":"request_start","traceId":"2de3af6f-284a-4e55-a2cd-5997c40a83cb","spanId":"1bc079e6","method":"PATCH","path":"/api/gap-analysis/recommendations/test-id","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.098Z"}
+{"type":"request_end","traceId":"2de3af6f-284a-4e55-a2cd-5997c40a83cb","spanId":"1bc079e6","method":"PATCH","path":"/api/gap-analysis/recommendations/test-id","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.100Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Gap Analysis Creation > should require authentication to update recommendations
+2026-01-17T15:34:24.099Z [WARN] CSRF token missing {"path":"/api/gap-analysis/recommendations/test-id","method":"PATCH","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Templates[2m > [22m[2mshould return document templates
+[22m[39m{"type":"request_end","traceId":"321cd9d7-41a9-4ed8-bca5-ab64734b8fab","spanId":"06c86723","method":"GET","path":"/","statusCode":200,"duration":34,"timestamp":"2026-01-17T15:34:24.100Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Onboarding Flow > Organization Setup > should require authentication to list organizations
+2026-01-17T15:34:24.101Z [WARN] Unknown API route accessed {"path":"/organizations","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mCompliance Analysis Endpoint[2m > [22m[2mshould analyze compliance gaps
+[22m[39m{"type":"request_start","traceId":"353a7712-ca22-43c7-9908-c529d488ffcc","spanId":"e0cfe370","method":"POST","path":"/api/analyze-compliance-gaps","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.106Z"}
+{"type":"request_end","traceId":"353a7712-ca22-43c7-9908-c529d488ffcc","spanId":"e0cfe370","method":"POST","path":"/api/analyze-compliance-gaps","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.107Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Analysis Endpoint > should analyze compliance gaps
+2026-01-17T15:34:24.106Z [WARN] CSRF token missing {"path":"/api/analyze-compliance-gaps","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mAuthentication Required Endpoints[2m > [22m[2mshould require authentication for user profile
+[22m[39m{"type":"request_start","traceId":"72058194-8b71-487d-b2f0-452e1fd90db6","spanId":"abf8633e","method":"GET","path":"/api/auth/user","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.111Z"}
+[32m2026-01-17T15:34:24.111Z [INFO] GET /api/auth/user {"method":"GET","url":"/api/auth/user","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.111Z"}[0m
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for /api/auth/user
+[22m[39m{"type":"request_start","traceId":"13263c2a-502b-420c-b816-281f93106d52","spanId":"a9b2f77d","method":"GET","path":"/api/auth/user","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.115Z"}
+[32m2026-01-17T15:34:24.116Z [INFO] GET /api/auth/user {"method":"GET","url":"/api/auth/user","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.116Z"}[0m
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mAuthentication Required Endpoints[2m > [22m[2mshould require authentication for user profile
+[22m[39m[32m2026-01-17T15:34:24.112Z [INFO] API route accessed {"path":"/auth/user","method":"GET","requiresAuth":true,"requiresMfa":false,"rateLimitTier":"medium","ip":"[IP_REDACTED]:[IP_REDACTED]"}[0m
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mOnboarding Flow[2m > [22m[2mOrganization Setup[2m > [22m[2mshould require authentication to list organizations
+[22m[39m{"type":"request_end","traceId":"10a64d5d-d1ff-4544-9415-7f854436d0e5","spanId":"7934d86f","method":"GET","path":"/api/organizations","statusCode":401,"duration":25,"timestamp":"2026-01-17T15:34:24.117Z"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mCompliance Frameworks[2m > [22m[2mshould handle SOC2 framework gap analysis request
+[22m[39m{"type":"request_start","traceId":"29d88a28-1dc1-4167-a13a-702b9b8a23ab","spanId":"43ef395d","method":"POST","path":"/api/gap-analysis","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.117Z"}
+{"type":"request_end","traceId":"29d88a28-1dc1-4167-a13a-702b9b8a23ab","spanId":"43ef395d","method":"POST","path":"/api/gap-analysis","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.118Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Frameworks > should handle SOC2 framework gap analysis request
+2026-01-17T15:34:24.117Z [WARN] CSRF token missing {"path":"/api/gap-analysis","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mAuthentication Required Endpoints[2m > [22m[2mshould require authentication for user profile
+[22m[39m{"type":"request_end","traceId":"72058194-8b71-487d-b2f0-452e1fd90db6","spanId":"abf8633e","method":"GET","path":"/api/auth/user","statusCode":401,"duration":8,"timestamp":"2026-01-17T15:34:24.119Z"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Templates[2m > [22m[2mshould get a specific template by ID
+[22m[39m{"type":"request_start","traceId":"d920d24e-5a76-41ab-957e-2df4c17cdd12","spanId":"a6490c40","method":"GET","path":"/api/document-templates","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.118Z"}
+[32m2026-01-17T15:34:24.119Z [INFO] GET /api/document-templates {"method":"GET","url":"/api/document-templates","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.119Z"}[0m
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Templates > should get a specific template by ID
+2026-01-17T15:34:24.120Z [WARN] Unknown API route accessed {"path":"/document-templates","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for /api/auth/user
+[22m[39m[32m2026-01-17T15:34:24.116Z [INFO] API route accessed {"path":"/auth/user","method":"GET","requiresAuth":true,"requiresMfa":false,"rateLimitTier":"medium","ip":"[IP_REDACTED]:[IP_REDACTED]"}[0m
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for /api/auth/user
+[22m[39m{"type":"request_end","traceId":"13263c2a-502b-420c-b816-281f93106d52","spanId":"a9b2f77d","method":"GET","path":"/api/auth/user","statusCode":401,"duration":7,"timestamp":"2026-01-17T15:34:24.122Z"}
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mAuthentication Required Endpoints[2m > [22m[2mshould require authentication for company profiles
+[22m[39m{"type":"request_start","traceId":"18306ec3-f8ed-4981-9812-ef909262dbcb","spanId":"b6fcb9a8","method":"GET","path":"/api/company-profiles","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.123Z"}
+[32m2026-01-17T15:34:24.123Z [INFO] GET /api/company-profiles {"method":"GET","url":"/api/company-profiles","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.123Z"}[0m
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mOnboarding Flow[2m > [22m[2mCompany Profile Creation[2m > [22m[2mshould require authentication for company profile creation
+[22m[39m{"type":"request_start","traceId":"1a91e43b-bae6-4e24-93b5-0d2eb59b2a00","spanId":"e9c34879","method":"POST","path":"/api/company-profiles","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.123Z"}
+{"type":"request_end","traceId":"1a91e43b-bae6-4e24-93b5-0d2eb59b2a00","spanId":"e9c34879","method":"POST","path":"/api/company-profiles","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.124Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Onboarding Flow > Company Profile Creation > should require authentication for company profile creation
+2026-01-17T15:34:24.123Z [WARN] CSRF token missing {"path":"/api/company-profiles","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for /api/company-profiles
+[22m[39m{"type":"request_start","traceId":"0b61925c-8e2d-4cbf-a821-adec781bce56","spanId":"9026b3f0","method":"GET","path":"/api/company-profiles","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.126Z"}
+[32m2026-01-17T15:34:24.127Z [INFO] GET /api/company-profiles {"method":"GET","url":"/api/company-profiles","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.127Z"}[0m
+
+stderr | tests/integration/api.test.ts > API Integration Tests > Authentication Required Endpoints > should require authentication for company profiles
+2026-01-17T15:34:24.126Z [WARN] Unknown API route accessed {"path":"/company-profiles","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/auth.test.ts > Authentication Integration Tests > Protected Endpoints > should require authentication for /api/company-profiles
+2026-01-17T15:34:24.127Z [WARN] Unknown API route accessed {"path":"/company-profiles","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mAuthentication Required Endpoints[2m > [22m[2mshould require authentication for company profiles
+[22m[39m{"type":"request_end","traceId":"18306ec3-f8ed-4981-9812-ef909262dbcb","spanId":"b6fcb9a8","method":"GET","path":"/api/company-profiles","statusCode":401,"duration":5,"timestamp":"2026-01-17T15:34:24.128Z"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mCompliance Frameworks[2m > [22m[2mshould handle ISO27001 framework gap analysis request
+[22m[39m{"type":"request_start","traceId":"a7341e1f-1695-4049-8af9-82655992dab7","spanId":"9385fdb4","method":"POST","path":"/api/gap-analysis","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.127Z"}
+{"type":"request_end","traceId":"a7341e1f-1695-4049-8af9-82655992dab7","spanId":"9385fdb4","method":"POST","path":"/api/gap-analysis","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.128Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Frameworks > should handle ISO27001 framework gap analysis request
+2026-01-17T15:34:24.127Z [WARN] CSRF token missing {"path":"/api/gap-analysis","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Templates[2m > [22m[2mshould get a specific template by ID
+[22m[39m{"type":"request_end","traceId":"d920d24e-5a76-41ab-957e-2df4c17cdd12","spanId":"a6490c40","method":"GET","path":"/","statusCode":200,"duration":10,"timestamp":"2026-01-17T15:34:24.128Z"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for /api/company-profiles
+[22m[39m{"type":"request_end","traceId":"0b61925c-8e2d-4cbf-a821-adec781bce56","spanId":"9026b3f0","method":"GET","path":"/api/company-profiles","statusCode":401,"duration":3,"timestamp":"2026-01-17T15:34:24.129Z"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mOnboarding Flow[2m > [22m[2mCompany Profile Creation[2m > [22m[2mshould require authentication to get company profile
+[22m[39m{"type":"request_start","traceId":"d5c8f0d9-7f99-4a9e-9696-dee55c32c4d6","spanId":"2239efd2","method":"GET","path":"/api/company-profiles","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.129Z"}
+[32m2026-01-17T15:34:24.130Z [INFO] GET /api/company-profiles {"method":"GET","url":"/api/company-profiles","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.130Z"}[0m
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Onboarding Flow > Company Profile Creation > should require authentication to get company profile
+2026-01-17T15:34:24.131Z [WARN] Unknown API route accessed {"path":"/company-profiles","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mAuthentication Required Endpoints[2m > [22m[2mshould require authentication for documents
+[22m[39m{"type":"request_start","traceId":"2342d123-a28d-4f5a-946e-395a948d16f0","spanId":"b7e0ac80","method":"GET","path":"/api/documents","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.132Z"}
+[32m2026-01-17T15:34:24.132Z [INFO] GET /api/documents {"method":"GET","url":"/api/documents","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.132Z"}[0m
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mOnboarding Flow[2m > [22m[2mCompany Profile Creation[2m > [22m[2mshould require authentication to get company profile
+[22m[39m{"type":"request_end","traceId":"d5c8f0d9-7f99-4a9e-9696-dee55c32c4d6","spanId":"2239efd2","method":"GET","path":"/api/company-profiles","statusCode":401,"duration":4,"timestamp":"2026-01-17T15:34:24.133Z"}
+
+stderr | tests/integration/api.test.ts > API Integration Tests > Authentication Required Endpoints > should require authentication for documents
+2026-01-17T15:34:24.133Z [WARN] Unknown API route accessed {"path":"/documents","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mAuthentication Required Endpoints[2m > [22m[2mshould require authentication for documents
+[22m[39m{"type":"request_end","traceId":"2342d123-a28d-4f5a-946e-395a948d16f0","spanId":"b7e0ac80","method":"GET","path":"/api/documents","statusCode":401,"duration":2,"timestamp":"2026-01-17T15:34:24.134Z"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mCompliance Frameworks[2m > [22m[2mshould handle FedRAMP framework gap analysis request
+[22m[39m{"type":"request_start","traceId":"40037db1-f9f8-4c72-b848-41f157bdd2a0","spanId":"8d267c87","method":"POST","path":"/api/gap-analysis","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.133Z"}
+{"type":"request_end","traceId":"40037db1-f9f8-4c72-b848-41f157bdd2a0","spanId":"8d267c87","method":"POST","path":"/api/gap-analysis","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.135Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Frameworks > should handle FedRAMP framework gap analysis request
+2026-01-17T15:34:24.134Z [WARN] CSRF token missing {"path":"/api/gap-analysis","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mOnboarding Flow[2m > [22m[2mInitial Framework Selection[2m > [22m[2mshould require authentication to update framework preferences
+[22m[39m{"type":"request_start","traceId":"86436f4b-9d03-424e-afe4-422e807c11bb","spanId":"885531c8","method":"PATCH","path":"/api/company-profiles/1","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.138Z"}
+{"type":"request_end","traceId":"86436f4b-9d03-424e-afe4-422e807c11bb","spanId":"885531c8","method":"PATCH","path":"/api/company-profiles/1","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.139Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Onboarding Flow > Initial Framework Selection > should require authentication to update framework preferences
+2026-01-17T15:34:24.138Z [WARN] CSRF token missing {"path":"/api/company-profiles/1","method":"PATCH","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mCompliance Frameworks[2m > [22m[2mshould handle NIST framework gap analysis request
+[22m[39m{"type":"request_start","traceId":"fee13d39-8a83-4c1b-ae31-d9c17f8418cb","spanId":"18f988e8","method":"POST","path":"/api/gap-analysis","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.139Z"}
+{"type":"request_end","traceId":"fee13d39-8a83-4c1b-ae31-d9c17f8418cb","spanId":"18f988e8","method":"POST","path":"/api/gap-analysis","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.140Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Frameworks > should handle NIST framework gap analysis request
+2026-01-17T15:34:24.139Z [WARN] CSRF token missing {"path":"/api/gap-analysis","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for document generation
+[22m[39m{"type":"request_start","traceId":"038584ec-5ffd-4b8b-ae6b-925ed266ec6a","spanId":"7f5846e2","method":"POST","path":"/api/documents/generate","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.140Z"}
+{"type":"request_end","traceId":"038584ec-5ffd-4b8b-ae6b-925ed266ec6a","spanId":"7f5846e2","method":"POST","path":"/api/documents/generate","statusCode":403,"duration":3,"timestamp":"2026-01-17T15:34:24.143Z"}
+stderr | tests/integration/auth.test.ts > Authentication Integration Tests > Protected Endpoints > should require authentication for document generation
+2026-01-17T15:34:24.141Z [WARN] CSRF token missing {"path":"/api/documents/generate","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mDocument Generation[2m > [22m[2mshould require authentication for AI document generation
+[22m[39m{"type":"request_start","traceId":"20e4ba5c-c941-4456-a00e-6ef0e0e50b1e","spanId":"974fab69","method":"POST","path":"/api/ai/generate","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.143Z"}
+{"type":"request_end","traceId":"20e4ba5c-c941-4456-a00e-6ef0e0e50b1e","spanId":"974fab69","method":"POST","path":"/api/ai/generate","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.145Z"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mDocument Quality for Compliance[2m > [22m[2mshould analyze document quality against framework
+[22m[39m{"type":"request_start","traceId":"8e693706-4c1e-4668-9e32-793193089f68","spanId":"12a982be","method":"POST","path":"/api/analyze-document-quality","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.144Z"}
+{"type":"request_end","traceId":"8e693706-4c1e-4668-9e32-793193089f68","spanId":"12a982be","method":"POST","path":"/api/analyze-document-quality","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.145Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Document Generation > should require authentication for AI document generation
+2026-01-17T15:34:24.143Z [WARN] CSRF token missing {"path":"/api/ai/generate","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Document Quality for Compliance > should analyze document quality against framework
+2026-01-17T15:34:24.144Z [WARN] CSRF token missing {"path":"/api/analyze-document-quality","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Generation Endpoints > should require authentication for document generation
+2026-01-17T15:34:24.146Z [WARN] CSRF token missing {"path":"/api/documents/generate","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Generation Endpoints[2m > [22m[2mshould require authentication for document generation
+[22m[39m{"type":"request_start","traceId":"ff237668-fea1-4b4f-bfdc-eea93a7fc88e","spanId":"75ab1d91","method":"POST","path":"/api/documents/generate","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.146Z"}
+{"type":"request_end","traceId":"ff237668-fea1-4b4f-bfdc-eea93a7fc88e","spanId":"75ab1d91","method":"POST","path":"/api/documents/generate","statusCode":403,"duration":3,"timestamp":"2026-01-17T15:34:24.150Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Document Generation > should require authentication for AI document analysis
+2026-01-17T15:34:24.151Z [WARN] CSRF token missing {"path":"/api/ai/analyze","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/auth.test.ts > Authentication Integration Tests > Protected Endpoints > should require authentication for gap analysis
+2026-01-17T15:34:24.151Z [WARN] CSRF token missing {"path":"/api/gap-analysis","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Generation Endpoints > should require authentication for document upload
+2026-01-17T15:34:24.156Z [WARN] CSRF token missing {"path":"/api/documents/upload-and-extract","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/api.test.ts > API Integration Tests > Data Validation > should validate company profile creation payload
+2026-01-17T15:34:24.154Z [WARN] CSRF token missing {"path":"/api/company-profiles","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Document Generation > should return AI service health status
+2026-01-17T15:34:24.160Z [WARN] Unknown API route accessed {"path":"/ai/health","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/auth.test.ts > Authentication Integration Tests > Protected Endpoints > should require authentication for audit logs
+2026-01-17T15:34:24.159Z [WARN] Unknown API route accessed {"path":"/audit-logs","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mDocument Generation[2m > [22m[2mshould require authentication for AI document analysis
+[22m[39m{"type":"request_start","traceId":"663bd3de-6317-42ce-9583-832b9e111480","spanId":"dd8d9485","method":"POST","path":"/api/ai/analyze","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.151Z"}
+{"type":"request_end","traceId":"663bd3de-6317-42ce-9583-832b9e111480","spanId":"dd8d9485","method":"POST","path":"/api/ai/analyze","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.152Z"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for gap analysis
+[22m[39m{"type":"request_start","traceId":"c03db7c9-beb1-49ff-8780-f1956b922d9e","spanId":"aec0fc54","method":"POST","path":"/api/gap-analysis","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.151Z"}
+{"type":"request_end","traceId":"c03db7c9-beb1-49ff-8780-f1956b922d9e","spanId":"aec0fc54","method":"POST","path":"/api/gap-analysis","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.153Z"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mGap Analysis Reports[2m > [22m[2mshould require authentication for report access
+[22m[39m{"type":"request_start","traceId":"13c2ab77-be6b-4191-8356-e72cf28f5d49","spanId":"88b84ea9","method":"GET","path":"/api/gap-analysis/reports","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.151Z"}
+[32m2026-01-17T15:34:24.153Z [INFO] GET /api/gap-analysis/reports {"method":"GET","url":"/api/gap-analysis/reports","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.153Z"}[0m
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Generation Endpoints[2m > [22m[2mshould require authentication for document upload
+[22m[39m{"type":"request_start","traceId":"f27eaa9a-3203-4542-b9cd-88f44a84be85","spanId":"6bdb7adf","method":"POST","path":"/api/documents/upload-and-extract","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.156Z"}
+{"type":"request_end","traceId":"f27eaa9a-3203-4542-b9cd-88f44a84be85","spanId":"6bdb7adf","method":"POST","path":"/api/documents/upload-and-extract","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.157Z"}
+
+[90mstdout[2m | tests/integration/api.test.ts[2m > [22m[2mAPI Integration Tests[2m > [22m[2mData Validation[2m > [22m[2mshould validate company profile creation payload
+[22m[39m{"type":"request_start","traceId":"053e10f7-5984-4096-9fa9-2bffc0b95857","spanId":"b9e83136","method":"POST","path":"/api/company-profiles","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.154Z"}
+{"type":"request_end","traceId":"053e10f7-5984-4096-9fa9-2bffc0b95857","spanId":"b9e83136","method":"POST","path":"/api/company-profiles","statusCode":403,"duration":3,"timestamp":"2026-01-17T15:34:24.157Z"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for audit logs
+[22m[39m{"type":"request_start","traceId":"8b488343-563c-46b6-bbe8-bff60f43ae40","spanId":"eeed850d","method":"GET","path":"/api/audit-logs","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.158Z"}
+[32m2026-01-17T15:34:24.159Z [INFO] GET /api/audit-logs {"method":"GET","url":"/api/audit-logs","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.159Z"}[0m
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mDocument Generation[2m > [22m[2mshould return AI service health status
+[22m[39m[32m2026-01-17T15:34:24.159Z [INFO] GET /api/ai/health {"method":"GET","url":"/api/ai/health","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.159Z"}[0m
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for audit logs
+[22m[39m{"type":"request_end","traceId":"8b488343-563c-46b6-bbe8-bff60f43ae40","spanId":"eeed850d","method":"GET","path":"/api/audit-logs","statusCode":401,"duration":3,"timestamp":"2026-01-17T15:34:24.161Z"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Export[2m > [22m[2mshould export document as markdown
+[22m[39m{"type":"request_start","traceId":"9e60bfb9-0dea-458a-865e-beb20a6f87dd","spanId":"74939c9d","method":"POST","path":"/api/export-document","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.162Z"}
+{"type":"request_end","traceId":"9e60bfb9-0dea-458a-865e-beb20a6f87dd","spanId":"74939c9d","method":"POST","path":"/api/export-document","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.163Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Gap Analysis Reports > should require authentication for report access
+2026-01-17T15:34:24.163Z [WARN] Unknown API route accessed {"path":"/gap-analysis/reports","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mEvidence Upload[2m > [22m[2mshould require authentication for evidence upload
+[22m[39m{"type":"request_start","traceId":"7b05a410-c9f2-447b-a4b2-5cea5db9b01e","spanId":"8e91c66b","method":"POST","path":"/api/evidence","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.167Z"}
+{"type":"request_end","traceId":"7b05a410-c9f2-447b-a4b2-5cea5db9b01e","spanId":"8e91c66b","method":"POST","path":"/api/evidence","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.169Z"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mProtected Endpoints[2m > [22m[2mshould require authentication for MFA setup
+[22m[39m{"type":"request_start","traceId":"4a51d368-c939-4fec-8855-cc89213ab4a8","spanId":"0af5c546","method":"POST","path":"/api/auth/mfa/setup","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.165Z"}
+{"type":"request_end","traceId":"4a51d368-c939-4fec-8855-cc89213ab4a8","spanId":"0af5c546","method":"POST","path":"/api/auth/mfa/setup","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.167Z"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Export > should export document as markdown
+2026-01-17T15:34:24.162Z [WARN] CSRF token missing {"path":"/api/export-document","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Evidence Upload > should require authentication for evidence upload
+2026-01-17T15:34:24.168Z [WARN] CSRF token missing {"path":"/api/evidence","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/auth.test.ts > Authentication Integration Tests > Protected Endpoints > should require authentication for MFA setup
+2026-01-17T15:34:24.166Z [WARN] CSRF token missing {"path":"/api/auth/mfa/setup","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Export[2m > [22m[2mshould handle export without content
+[22m[39m{"type":"request_start","traceId":"9ea4e126-5a93-42d8-a23b-732e559c50ba","spanId":"45a0304c","method":"POST","path":"/api/export-document","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.168Z"}
+{"type":"request_end","traceId":"9ea4e126-5a93-42d8-a23b-732e559c50ba","spanId":"45a0304c","method":"POST","path":"/api/export-document","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.169Z"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Export > should handle export without content
+2026-01-17T15:34:24.168Z [WARN] CSRF token missing {"path":"/api/export-document","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+ [31mΓ¥»[39m [30m[42m unit [49m[39m tests/integration/api.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 381[2mms[22m[39m
+   [32mΓ£ô[39m API Integration Tests[2m > [22mHealth Endpoints[2m > [22mshould return system health status[32m 34[2mms[22m[39m
+   [32mΓ£ô[39m API Integration Tests[2m > [22mHealth Endpoints[2m > [22mshould return AI health status[32m 21[2mms[22m[39m
+   [32mΓ£ô[39m API Integration Tests[2m > [22mAuthentication Required Endpoints[2m > [22mshould require authentication for user profile[32m 13[2mms[22m[39m
+   [32mΓ£ô[39m API Integration Tests[2m > [22mAuthentication Required Endpoints[2m > [22mshould require authentication for company profiles[32m 9[2mms[22m[39m
+   [32mΓ£ô[39m API Integration Tests[2m > [22mAuthentication Required Endpoints[2m > [22mshould require authentication for documents[32m 6[2mms[22m[39m
+[31m   [31m├ù[31m API Integration Tests[2m > [22mData Validation[2m > [22mshould validate company profile creation payload[39m[32m 25[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mEvidence Upload[2m > [22m[2mshould require authentication to list evidence
+[22m[39m{"type":"request_start","traceId":"95008f96-f094-4939-8a85-e336814e70ab","spanId":"b1936c5e","method":"GET","path":"/api/evidence","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.172Z"}
+[32m2026-01-17T15:34:24.173Z [INFO] GET /api/evidence {"method":"GET","url":"/api/evidence","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.173Z"}[0m
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument AI Generation[2m > [22m[2mshould reject generation request without framework
+[22m[39m{"type":"request_start","traceId":"c7a35fd9-33a6-4e0a-b332-e7ff94655443","spanId":"a7a0d28e","method":"POST","path":"/api/generate-document","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.172Z"}
+{"type":"request_end","traceId":"c7a35fd9-33a6-4e0a-b332-e7ff94655443","spanId":"a7a0d28e","method":"POST","path":"/api/generate-document","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.173Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Evidence Upload > should require authentication to list evidence
+2026-01-17T15:34:24.173Z [WARN] Unknown API route accessed {"path":"/evidence","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document AI Generation > should reject generation request without framework
+2026-01-17T15:34:24.172Z [WARN] CSRF token missing {"path":"/api/generate-document","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mSession Handling[2m > [22m[2mshould return 401 for invalid session
+[22m[39m{"type":"request_start","traceId":"04042385-f50b-4289-9f54-281a70760507","spanId":"d051bb67","method":"GET","path":"/api/auth/user","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.174Z"}
+[32m2026-01-17T15:34:24.175Z [INFO] GET /api/auth/user {"method":"GET","url":"/api/auth/user","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.175Z"}[0m
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mEvidence Upload[2m > [22m[2mshould require authentication to list evidence
+[22m[39m{"type":"request_end","traceId":"95008f96-f094-4939-8a85-e336814e70ab","spanId":"b1936c5e","method":"GET","path":"/api/evidence","statusCode":401,"duration":3,"timestamp":"2026-01-17T15:34:24.175Z"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mSession Handling[2m > [22m[2mshould return 401 for invalid session
+[22m[39m[32m2026-01-17T15:34:24.176Z [INFO] API route accessed {"path":"/auth/user","method":"GET","requiresAuth":true,"requiresMfa":false,"rateLimitTier":"medium","ip":"[IP_REDACTED]:[IP_REDACTED]"}[0m
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mSession Handling[2m > [22m[2mshould return 401 for invalid session
+[22m[39m{"type":"request_end","traceId":"04042385-f50b-4289-9f54-281a70760507","spanId":"d051bb67","method":"GET","path":"/api/auth/user","statusCode":401,"duration":4,"timestamp":"2026-01-17T15:34:24.178Z"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mGap Analysis Reports[2m > [22m[2mshould require authentication for report access
+[22m[39m{"type":"request_end","traceId":"13c2ab77-be6b-4191-8356-e72cf28f5d49","spanId":"88b84ea9","method":"GET","path":"/api/gap-analysis/reports","statusCode":401,"duration":28,"timestamp":"2026-01-17T15:34:24.179Z"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Quality Analysis[2m > [22m[2mshould allow document quality analysis without auth
+[22m[39m{"type":"request_start","traceId":"82ebf94e-9d93-4fe9-acc9-636100ae5fd3","spanId":"9803c9d0","method":"POST","path":"/api/analyze-document-quality","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.178Z"}
+{"type":"request_end","traceId":"82ebf94e-9d93-4fe9-acc9-636100ae5fd3","spanId":"9803c9d0","method":"POST","path":"/api/analyze-document-quality","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.180Z"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Quality Analysis > should allow document quality analysis without auth
+2026-01-17T15:34:24.179Z [WARN] CSRF token missing {"path":"/api/analyze-document-quality","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mControl Approvals[2m > [22m[2mshould require authentication to list pending approvals
+[22m[39m{"type":"request_start","traceId":"601ca8a4-160e-4161-961f-65a2fb76d398","spanId":"9630ca24","method":"GET","path":"/api/controls/approvals","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.180Z"}
+[32m2026-01-17T15:34:24.180Z [INFO] GET /api/controls/approvals {"method":"GET","url":"/api/controls/approvals","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.180Z"}[0m
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Control Approvals > should require authentication to list pending approvals
+2026-01-17T15:34:24.181Z [WARN] Unknown API route accessed {"path":"/controls/approvals","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mControl Approvals[2m > [22m[2mshould require authentication to list pending approvals
+[22m[39m{"type":"request_end","traceId":"601ca8a4-160e-4161-961f-65a2fb76d398","spanId":"9630ca24","method":"GET","path":"/api/controls/approvals","statusCode":401,"duration":3,"timestamp":"2026-01-17T15:34:24.183Z"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mRate Limiting[2m > [22m[2mshould include rate limit headers
+[22m[39m[32m2026-01-17T15:34:24.184Z [INFO] GET /health {"method":"GET","url":"/health","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.184Z"}[0m
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mGap Analysis Reports[2m > [22m[2mshould require authentication for specific report
+[22m[39m{"type":"request_start","traceId":"c0e8d146-7e64-4aa1-afdc-14d74aac74b6","spanId":"7bee6c50","method":"GET","path":"/api/gap-analysis/reports/test-report-id","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.187Z"}
+[32m2026-01-17T15:34:24.187Z [INFO] GET /api/gap-analysis/reports/test-report-id {"method":"GET","url":"/api/gap-analysis/reports/test-report-id","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.187Z"}[0m
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Gap Analysis Reports > should require authentication for specific report
+2026-01-17T15:34:24.188Z [WARN] Unknown API route accessed {"path":"/gap-analysis/reports/test-report-id","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Versioning[2m > [22m[2mshould require authentication for version history
+[22m[39m{"type":"request_start","traceId":"cb9a7dae-1876-4b6f-85e5-8f1e3ad3cac3","spanId":"483c8261","method":"GET","path":"/api/documents/test-id/versions","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.188Z"}
+[32m2026-01-17T15:34:24.189Z [INFO] GET /api/documents/test-id/versions {"method":"GET","url":"/api/documents/test-id/versions","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.189Z"}[0m
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mGap Analysis Reports[2m > [22m[2mshould require authentication for specific report
+[22m[39m{"type":"request_end","traceId":"c0e8d146-7e64-4aa1-afdc-14d74aac74b6","spanId":"7bee6c50","method":"GET","path":"/api/gap-analysis/reports/test-report-id","statusCode":401,"duration":2,"timestamp":"2026-01-17T15:34:24.189Z"}
+
+[90mstdout[2m | tests/integration/auth.test.ts[2m > [22m[2mAuthentication Integration Tests[2m > [22m[2mSecurity Headers[2m > [22m[2mshould include security headers
+[22m[39m[32m2026-01-17T15:34:24.190Z [INFO] GET /health {"method":"GET","url":"/health","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.190Z"}[0m
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAI Generation Flow[2m > [22m[2mControl Approvals[2m > [22m[2mshould require authentication to approve a control
+[22m[39m{"type":"request_start","traceId":"983c1233-174b-4907-9a6b-89429ffb0bb8","spanId":"80704c30","method":"POST","path":"/api/controls/1/approve","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.187Z"}
+{"type":"request_end","traceId":"983c1233-174b-4907-9a6b-89429ffb0bb8","spanId":"80704c30","method":"POST","path":"/api/controls/1/approve","statusCode":403,"duration":4,"timestamp":"2026-01-17T15:34:24.191Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Control Approvals > should require authentication to approve a control
+2026-01-17T15:34:24.188Z [WARN] CSRF token missing {"path":"/api/controls/1/approve","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Versioning > should require authentication for version history
+2026-01-17T15:34:24.189Z [WARN] Unknown API route accessed {"path":"/documents/test-id/versions","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Versioning[2m > [22m[2mshould require authentication for version history
+[22m[39m{"type":"request_end","traceId":"cb9a7dae-1876-4b6f-85e5-8f1e3ad3cac3","spanId":"483c8261","method":"GET","path":"/api/documents/test-id/versions","statusCode":401,"duration":4,"timestamp":"2026-01-17T15:34:24.192Z"}
+
+ [31mΓ¥»[39m [30m[42m unit [49m[39m tests/integration/auth.test.ts [2m([22m[2m11 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 413[2mms[22m[39m
+   [32mΓ£ô[39m Authentication Integration Tests[2m > [22mPublic Endpoints[2m > [22mshould allow access to health check[32m 29[2mms[22m[39m
+   [32mΓ£ô[39m Authentication Integration Tests[2m > [22mPublic Endpoints[2m > [22mshould allow access to AI health endpoint[32m 28[2mms[22m[39m
+   [32mΓ£ô[39m Authentication Integration Tests[2m > [22mProtected Endpoints[2m > [22mshould require authentication for /api/auth/user[32m 12[2mms[22m[39m
+   [32mΓ£ô[39m Authentication Integration Tests[2m > [22mProtected Endpoints[2m > [22mshould require authentication for /api/company-profiles[32m 6[2mms[22m[39m
+[31m   [31m├ù[31m Authentication Integration Tests[2m > [22mProtected Endpoints[2m > [22mshould require authentication for document generation[39m[32m 17[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m Authentication Integration Tests[2m > [22mProtected Endpoints[2m > [22mshould require authentication for gap analysis[39m[32m 8[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m Authentication Integration Tests[2m > [22mProtected Endpoints[2m > [22mshould require authentication for audit logs[32m 7[2mms[22m[39m
+[31m   [31m├ù[31m Authentication Integration Tests[2m > [22mProtected Endpoints[2m > [22mshould require authentication for MFA setup[39m[32m 7[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m Authentication Integration Tests[2m > [22mSession Handling[2m > [22mshould return 401 for invalid session[32m 11[2mms[22m[39m
+[31m   [31m├ù[31m Authentication Integration Tests[2m > [22mRate Limiting[2m > [22mshould include rate limit headers[39m[32m 8[2mms[22m[39m
+[31m     ΓåÆ expected { 'x-powered-by': 'Express', ΓÇª(19) } to have property "x-ratelimit-limit"[39m
+   [32mΓ£ô[39m Authentication Integration Tests[2m > [22mSecurity Headers[2m > [22mshould include security headers[32m 4[2mms[22m[39m
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mRemediation Tracking[2m > [22m[2mshould require authentication for remediation updates
+[22m[39m{"type":"request_start","traceId":"7c3e3be1-76fe-4498-858d-ab7dfac1aa6f","spanId":"dd774d12","method":"PATCH","path":"/api/gap-analysis/recommendations/test-rec-id","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.193Z"}
+{"type":"request_end","traceId":"7c3e3be1-76fe-4498-858d-ab7dfac1aa6f","spanId":"dd774d12","method":"PATCH","path":"/api/gap-analysis/recommendations/test-rec-id","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.194Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Remediation Tracking > should require authentication for remediation updates
+2026-01-17T15:34:24.193Z [WARN] CSRF token missing {"path":"/api/gap-analysis/recommendations/test-rec-id","method":"PATCH","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAudit Trail Access[2m > [22m[2mshould require authentication to view audit trail
+[22m[39m{"type":"request_start","traceId":"a29bb334-2ac3-4822-b25b-b9c80d4c0dbd","spanId":"26623fe2","method":"GET","path":"/api/audit-trail","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.197Z"}
+[32m2026-01-17T15:34:24.198Z [INFO] GET /api/audit-trail {"method":"GET","url":"/api/audit-trail","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.198Z"}[0m
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mRisk Assessment[2m > [22m[2mshould handle risk assessment requests
+[22m[39m{"type":"request_start","traceId":"bcf8697f-c0f1-4cd7-b934-167df6374cfc","spanId":"6bd91821","method":"POST","path":"/api/assess-risk","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.198Z"}
+{"type":"request_end","traceId":"bcf8697f-c0f1-4cd7-b934-167df6374cfc","spanId":"6bd91821","method":"POST","path":"/api/assess-risk","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.199Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Audit Flow > Audit Trail Access > should require authentication to view audit trail
+2026-01-17T15:34:24.198Z [WARN] Unknown API route accessed {"path":"/audit-trail","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Risk Assessment > should handle risk assessment requests
+2026-01-17T15:34:24.198Z [WARN] CSRF token missing {"path":"/api/assess-risk","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAudit Trail Access[2m > [22m[2mshould require authentication to view audit trail
+[22m[39m{"type":"request_end","traceId":"a29bb334-2ac3-4822-b25b-b9c80d4c0dbd","spanId":"26623fe2","method":"GET","path":"/api/audit-trail","statusCode":401,"duration":2,"timestamp":"2026-01-17T15:34:24.199Z"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAudit Trail Access[2m > [22m[2mshould require authentication to get audit entry details
+[22m[39m{"type":"request_start","traceId":"7f0df72a-a527-4425-8670-eb32f1bccfaf","spanId":"aca463e4","method":"GET","path":"/api/audit-trail/1","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.202Z"}
+[32m2026-01-17T15:34:24.202Z [INFO] GET /api/audit-trail/1 {"method":"GET","url":"/api/audit-trail/1","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.202Z"}[0m
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mCompliance Scoring[2m > [22m[2mshould calculate compliance score
+[22m[39m{"type":"request_start","traceId":"ca4257b3-0b1f-42f4-b384-dc0f06b3fe02","spanId":"4aba0e07","method":"POST","path":"/api/calculate-compliance-score","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.202Z"}
+{"type":"request_end","traceId":"ca4257b3-0b1f-42f4-b384-dc0f06b3fe02","spanId":"4aba0e07","method":"POST","path":"/api/calculate-compliance-score","statusCode":403,"duration":0,"timestamp":"2026-01-17T15:34:24.202Z"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Versioning[2m > [22m[2mshould require authentication for version creation
+[22m[39m{"type":"request_start","traceId":"5bd8c07b-cd9e-40b0-a66a-0266f4d16b5e","spanId":"76ff2a2f","method":"POST","path":"/api/documents/test-id/versions","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.201Z"}
+{"type":"request_end","traceId":"5bd8c07b-cd9e-40b0-a66a-0266f4d16b5e","spanId":"76ff2a2f","method":"POST","path":"/api/documents/test-id/versions","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.202Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Scoring > should calculate compliance score
+2026-01-17T15:34:24.202Z [WARN] CSRF token missing {"path":"/api/calculate-compliance-score","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Versioning > should require authentication for version creation
+2026-01-17T15:34:24.201Z [WARN] CSRF token missing {"path":"/api/documents/test-id/versions","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Audit Flow > Audit Trail Access > should require authentication to get audit entry details
+2026-01-17T15:34:24.203Z [WARN] Unknown API route accessed {"path":"/audit-trail/1","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAudit Trail Access[2m > [22m[2mshould require authentication to get audit entry details
+[22m[39m{"type":"request_end","traceId":"7f0df72a-a527-4425-8670-eb32f1bccfaf","spanId":"aca463e4","method":"GET","path":"/api/audit-trail/1","statusCode":401,"duration":3,"timestamp":"2026-01-17T15:34:24.205Z"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mAI-Powered Analysis[2m > [22m[2mshould require authentication for AI gap analysis
+[22m[39m{"type":"request_start","traceId":"551ef192-d4e1-4fa8-8611-ba0e4d1a59e3","spanId":"3bb356e6","method":"POST","path":"/api/ai/analyze-gaps","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.206Z"}
+{"type":"request_end","traceId":"551ef192-d4e1-4fa8-8611-ba0e4d1a59e3","spanId":"3bb356e6","method":"POST","path":"/api/ai/analyze-gaps","statusCode":403,"duration":2,"timestamp":"2026-01-17T15:34:24.208Z"}
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > AI-Powered Analysis > should require authentication for AI gap analysis
+2026-01-17T15:34:24.207Z [WARN] CSRF token missing {"path":"/api/ai/analyze-gaps","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAuditor Workspace[2m > [22m[2mshould require authentication for auditor workspace access
+[22m[39m{"type":"request_start","traceId":"9f6a8928-be35-47d0-9fd0-52bdf8058ce6","spanId":"3f86ec73","method":"GET","path":"/api/auditor/documents","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.209Z"}
+[32m2026-01-17T15:34:24.209Z [INFO] GET /api/auditor/documents {"method":"GET","url":"/api/auditor/documents","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.209Z"}[0m
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Versioning[2m > [22m[2mshould require authentication for version restore
+[22m[39m{"type":"request_start","traceId":"8b4a0fc1-d0a3-4251-a95b-58c89e2c0412","spanId":"bd22f88d","method":"POST","path":"/api/documents/test-id/versions/version-id/restore","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.209Z"}
+{"type":"request_end","traceId":"8b4a0fc1-d0a3-4251-a95b-58c89e2c0412","spanId":"bd22f88d","method":"POST","path":"/api/documents/test-id/versions/version-id/restore","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.210Z"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Versioning > should require authentication for version restore
+2026-01-17T15:34:24.209Z [WARN] CSRF token missing {"path":"/api/documents/test-id/versions/version-id/restore","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Audit Flow > Auditor Workspace > should require authentication for auditor workspace access
+2026-01-17T15:34:24.210Z [WARN] Unknown API route accessed {"path":"/auditor/documents","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAuditor Workspace[2m > [22m[2mshould require authentication for auditor workspace access
+[22m[39m{"type":"request_end","traceId":"9f6a8928-be35-47d0-9fd0-52bdf8058ce6","spanId":"3f86ec73","method":"GET","path":"/api/auditor/documents","statusCode":401,"duration":2,"timestamp":"2026-01-17T15:34:24.211Z"}
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mFramework Requirements[2m > [22m[2mshould return framework control requirements
+[22m[39m{"type":"request_start","traceId":"b8e6e601-88d0-4593-b858-baabf2ae3e7d","spanId":"c303669d","method":"GET","path":"/api/frameworks/SOC2/controls","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.211Z"}
+[32m2026-01-17T15:34:24.212Z [INFO] GET /api/frameworks/SOC2/controls {"method":"GET","url":"/api/frameworks/SOC2/controls","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.212Z"}[0m
+
+stderr | tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Framework Requirements > should return framework control requirements
+2026-01-17T15:34:24.212Z [WARN] Unknown API route accessed {"path":"/frameworks/SOC2/controls","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Comparison[2m > [22m[2mshould require authentication for version comparison
+[22m[39m{"type":"request_start","traceId":"badeb46c-f864-4614-b05e-ceb9eb5e8046","spanId":"5593fb1b","method":"GET","path":"/api/documents/test-id/versions/1/compare/2","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.213Z"}
+[32m2026-01-17T15:34:24.213Z [INFO] GET /api/documents/test-id/versions/1/compare/2 {"method":"GET","url":"/api/documents/test-id/versions/1/compare/2","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.213Z"}[0m
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAuditor Workspace[2m > [22m[2mshould require authentication to view compliance overview
+[22m[39m{"type":"request_start","traceId":"6d9f66e2-4841-4776-a726-0451dcb09458","spanId":"7e294680","method":"GET","path":"/api/auditor/overview","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.213Z"}
+[32m2026-01-17T15:34:24.214Z [INFO] GET /api/auditor/overview {"method":"GET","url":"/api/auditor/overview","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.214Z"}[0m
+
+[90mstdout[2m | tests/integration/gap-analysis.test.ts[2m > [22m[2mGap Analysis Integration Tests[2m > [22m[2mFramework Requirements[2m > [22m[2mshould return framework control requirements
+[22m[39m{"type":"request_end","traceId":"b8e6e601-88d0-4593-b858-baabf2ae3e7d","spanId":"c303669d","method":"GET","path":"/api/frameworks/SOC2/controls","statusCode":404,"duration":3,"timestamp":"2026-01-17T15:34:24.214Z"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Comparison > should require authentication for version comparison
+2026-01-17T15:34:24.213Z [WARN] Unknown API route accessed {"path":"/documents/test-id/versions/1/compare/2","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Audit Flow > Auditor Workspace > should require authentication to view compliance overview
+2026-01-17T15:34:24.214Z [WARN] Unknown API route accessed {"path":"/auditor/overview","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Comparison[2m > [22m[2mshould require authentication for version comparison
+[22m[39m{"type":"request_end","traceId":"badeb46c-f864-4614-b05e-ceb9eb5e8046","spanId":"5593fb1b","method":"GET","path":"/api/documents/test-id/versions/1/compare/2","statusCode":401,"duration":3,"timestamp":"2026-01-17T15:34:24.215Z"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAuditor Workspace[2m > [22m[2mshould require authentication to view compliance overview
+[22m[39m{"type":"request_end","traceId":"6d9f66e2-4841-4776-a726-0451dcb09458","spanId":"7e294680","method":"GET","path":"/api/auditor/overview","statusCode":401,"duration":3,"timestamp":"2026-01-17T15:34:24.216Z"}
+
+ [31mΓ¥»[39m [30m[42m unit [49m[39m tests/integration/gap-analysis.test.ts [2m([22m[2m15 tests[22m[2m | [22m[31m9 failed[39m[2m)[22m[33m 431[2mms[22m[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mGap Analysis Creation[2m > [22mshould require authentication for gap analysis[39m[32m 39[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mGap Analysis Creation[2m > [22mshould require authentication to update recommendations[39m[32m 9[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mCompliance Analysis Endpoint[2m > [22mshould analyze compliance gaps[39m[32m 11[2mms[22m[39m
+[31m     ΓåÆ expected [ 500, 503 ] to include 403[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mCompliance Frameworks[2m > [22mshould handle SOC2 framework gap analysis request[39m[32m 10[2mms[22m[39m
+[31m     ΓåÆ expected 403 to be 401 // Object.is equality[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mCompliance Frameworks[2m > [22mshould handle ISO27001 framework gap analysis request[39m[32m 7[2mms[22m[39m
+[31m     ΓåÆ expected 403 to be 401 // Object.is equality[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mCompliance Frameworks[2m > [22mshould handle FedRAMP framework gap analysis request[39m[32m 6[2mms[22m[39m
+[31m     ΓåÆ expected 403 to be 401 // Object.is equality[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mCompliance Frameworks[2m > [22mshould handle NIST framework gap analysis request[39m[32m 4[2mms[22m[39m
+[31m     ΓåÆ expected 403 to be 401 // Object.is equality[39m
+   [32mΓ£ô[39m Gap Analysis Integration Tests[2m > [22mDocument Quality for Compliance[2m > [22mshould analyze document quality against framework[32m 5[2mms[22m[39m
+   [32mΓ£ô[39m Gap Analysis Integration Tests[2m > [22mGap Analysis Reports[2m > [22mshould require authentication for report access[32m 35[2mms[22m[39m
+   [32mΓ£ô[39m Gap Analysis Integration Tests[2m > [22mGap Analysis Reports[2m > [22mshould require authentication for specific report[32m 9[2mms[22m[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mRemediation Tracking[2m > [22mshould require authentication for remediation updates[39m[32m 5[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m Gap Analysis Integration Tests[2m > [22mRisk Assessment[2m > [22mshould handle risk assessment requests[32m 4[2mms[22m[39m
+   [32mΓ£ô[39m Gap Analysis Integration Tests[2m > [22mCompliance Scoring[2m > [22mshould calculate compliance score[32m 4[2mms[22m[39m
+[31m   [31m├ù[31m Gap Analysis Integration Tests[2m > [22mAI-Powered Analysis[2m > [22mshould require authentication for AI gap analysis[39m[32m 6[2mms[22m[39m
+[31m     ΓåÆ expected [ 401, 404 ] to include 403[39m
+   [32mΓ£ô[39m Gap Analysis Integration Tests[2m > [22mFramework Requirements[2m > [22mshould return framework control requirements[32m 6[2mms[22m[39m
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Saving[2m > [22m[2mshould save a document with valid data
+[22m[39m{"type":"request_start","traceId":"c3474c7a-6bd1-46fa-af0e-bdb30fb5a0a9","spanId":"25f914e1","method":"POST","path":"/api/save-document","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.218Z"}
+{"type":"request_end","traceId":"c3474c7a-6bd1-46fa-af0e-bdb30fb5a0a9","spanId":"25f914e1","method":"POST","path":"/api/save-document","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.219Z"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Saving > should save a document with valid data
+2026-01-17T15:34:24.218Z [WARN] CSRF token missing {"path":"/api/save-document","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAuditor Workspace[2m > [22m[2mshould require authentication to export audit reports
+[22m[39m{"type":"request_start","traceId":"2911d75d-0e25-43b4-b6ea-cad513cff225","spanId":"9eef66e8","method":"GET","path":"/api/auditor/export","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.219Z"}
+[32m2026-01-17T15:34:24.220Z [INFO] GET /api/auditor/export {"method":"GET","url":"/api/auditor/export","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.220Z"}[0m
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Audit Flow > Auditor Workspace > should require authentication to export audit reports
+2026-01-17T15:34:24.220Z [WARN] Unknown API route accessed {"path":"/auditor/export","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mAuditor Workspace[2m > [22m[2mshould require authentication to export audit reports
+[22m[39m{"type":"request_end","traceId":"2911d75d-0e25-43b4-b6ea-cad513cff225","spanId":"9eef66e8","method":"GET","path":"/api/auditor/export","statusCode":401,"duration":2,"timestamp":"2026-01-17T15:34:24.221Z"}
+
+[90mstdout[2m | tests/integration/documents.test.ts[2m > [22m[2mDocument Integration Tests[2m > [22m[2mDocument Saving[2m > [22m[2mshould reject save request without required fields
+[22m[39m{"type":"request_start","traceId":"099b7fa3-c4c7-4887-b5b9-8f2322eb515c","spanId":"64d67494","method":"POST","path":"/api/save-document","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.222Z"}
+{"type":"request_end","traceId":"099b7fa3-c4c7-4887-b5b9-8f2322eb515c","spanId":"64d67494","method":"POST","path":"/api/save-document","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.223Z"}
+
+stderr | tests/integration/documents.test.ts > Document Integration Tests > Document Saving > should reject save request without required fields
+2026-01-17T15:34:24.222Z [WARN] CSRF token missing {"path":"/api/save-document","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+ [31mΓ¥»[39m [30m[42m unit [49m[39m tests/integration/documents.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[33m 445[2mms[22m[39m
+[31m   [31m├ù[31m Document Integration Tests[2m > [22mDocument Templates[2m > [22mshould return document templates[39m[32m 61[2mms[22m[39m
+[31m     ΓåÆ expected { success: true, data: { ΓÇª(5) } } to have property "templates"[39m
+   [32mΓ£ô[39m Document Integration Tests[2m > [22mDocument Templates[2m > [22mshould get a specific template by ID[32m 19[2mms[22m[39m
+[31m   [31m├ù[31m Document Integration Tests[2m > [22mDocument Generation Endpoints[2m > [22mshould require authentication for document generation[39m[32m 18[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m Document Integration Tests[2m > [22mDocument Generation Endpoints[2m > [22mshould require authentication for document upload[39m[32m 7[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m Document Integration Tests[2m > [22mDocument Export[2m > [22mshould export document as markdown[39m[32m 7[2mms[22m[39m
+[31m     ΓåÆ expected 200 "OK", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m Document Integration Tests[2m > [22mDocument Export[2m > [22mshould handle export without content[39m[32m 5[2mms[22m[39m
+[31m     ΓåÆ expected 400 "Bad Request", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m Document Integration Tests[2m > [22mDocument AI Generation[2m > [22mshould reject generation request without framework[32m 5[2mms[22m[39m
+[31m   [31m├ù[31m Document Integration Tests[2m > [22mDocument Quality Analysis[2m > [22mshould allow document quality analysis without auth[39m[32m 10[2mms[22m[39m
+[31m     ΓåÆ expected [ 200, 500, 503 ] to include 403[39m
+   [32mΓ£ô[39m Document Integration Tests[2m > [22mDocument Versioning[2m > [22mshould require authentication for version history[32m 12[2mms[22m[39m
+[31m   [31m├ù[31m Document Integration Tests[2m > [22mDocument Versioning[2m > [22mshould require authentication for version creation[39m[32m 7[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m Document Integration Tests[2m > [22mDocument Versioning[2m > [22mshould require authentication for version restore[39m[32m 6[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m Document Integration Tests[2m > [22mDocument Comparison[2m > [22mshould require authentication for version comparison[32m 5[2mms[22m[39m
+   [32mΓ£ô[39m Document Integration Tests[2m > [22mDocument Saving[2m > [22mshould save a document with valid data[32m 4[2mms[22m[39m
+   [32mΓ£ô[39m Document Integration Tests[2m > [22mDocument Saving[2m > [22mshould reject save request without required fields[32m 4[2mms[22m[39m
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mGap Analysis[2m > [22m[2mshould require authentication for gap analysis
+[22m[39m{"type":"request_start","traceId":"c7061345-ba0d-4c24-b27c-2b1c427afa99","spanId":"c9b4e8c1","method":"GET","path":"/api/gap-analysis","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.227Z"}
+[32m2026-01-17T15:34:24.227Z [INFO] GET /api/gap-analysis {"method":"GET","url":"/api/gap-analysis","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.227Z"}[0m
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Audit Flow > Gap Analysis > should require authentication for gap analysis
+2026-01-17T15:34:24.227Z [WARN] Unknown API route accessed {"path":"/gap-analysis","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mGap Analysis[2m > [22m[2mshould require authentication for gap analysis
+[22m[39m{"type":"request_end","traceId":"c7061345-ba0d-4c24-b27c-2b1c427afa99","spanId":"c9b4e8c1","method":"GET","path":"/api/gap-analysis","statusCode":401,"duration":1,"timestamp":"2026-01-17T15:34:24.228Z"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mGap Analysis[2m > [22m[2mshould require authentication for gap analysis by framework
+[22m[39m{"type":"request_start","traceId":"8f2b8eb1-5af7-4256-a98b-b98b760713ae","spanId":"260716fb","method":"GET","path":"/api/gap-analysis/ISO27001","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.231Z"}
+[32m2026-01-17T15:34:24.232Z [INFO] GET /api/gap-analysis/ISO27001 {"method":"GET","url":"/api/gap-analysis/ISO27001","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.232Z"}[0m
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Audit Flow > Gap Analysis > should require authentication for gap analysis by framework
+2026-01-17T15:34:24.232Z [WARN] Unknown API route accessed {"path":"/gap-analysis/ISO27001","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mAudit Flow[2m > [22m[2mGap Analysis[2m > [22m[2mshould require authentication for gap analysis by framework
+[22m[39m{"type":"request_end","traceId":"8f2b8eb1-5af7-4256-a98b-b98b760713ae","spanId":"260716fb","method":"GET","path":"/api/gap-analysis/ISO27001","statusCode":401,"duration":2,"timestamp":"2026-01-17T15:34:24.233Z"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mCross-Flow Integration[2m > [22m[2mDocument to Audit Trail[2m > [22m[2mshould require authentication to track document changes
+[22m[39m{"type":"request_start","traceId":"98b0c392-3959-42b2-9cbe-e7d129782d00","spanId":"d3d8518e","method":"GET","path":"/api/documents/1/history","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.237Z"}
+[32m2026-01-17T15:34:24.238Z [INFO] GET /api/documents/1/history {"method":"GET","url":"/api/documents/1/history","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.238Z"}[0m
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Cross-Flow Integration > Document to Audit Trail > should require authentication to track document changes
+2026-01-17T15:34:24.238Z [WARN] Unknown API route accessed {"path":"/documents/1/history","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mCross-Flow Integration[2m > [22m[2mDocument to Audit Trail[2m > [22m[2mshould require authentication to track document changes
+[22m[39m{"type":"request_end","traceId":"98b0c392-3959-42b2-9cbe-e7d129782d00","spanId":"d3d8518e","method":"GET","path":"/api/documents/1/history","statusCode":401,"duration":3,"timestamp":"2026-01-17T15:34:24.240Z"}
+
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-components.test.tsx [2m([22m[2m48 tests[22m[2m)[22m[33m 1957[2mms[22m[39m
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mCross-Flow Integration[2m > [22m[2mEvidence to Control Mapping[2m > [22m[2mshould require authentication to map evidence to controls
+[22m[39m{"type":"request_start","traceId":"8d79850d-caaa-4c5b-8ec2-8602521d62a6","spanId":"6d593205","method":"POST","path":"/api/evidence/1/controls","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.244Z"}
+{"type":"request_end","traceId":"8d79850d-caaa-4c5b-8ec2-8602521d62a6","spanId":"6d593205","method":"POST","path":"/api/evidence/1/controls","statusCode":403,"duration":1,"timestamp":"2026-01-17T15:34:24.245Z"}
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Cross-Flow Integration > Evidence to Control Mapping > should require authentication to map evidence to controls
+2026-01-17T15:34:24.244Z [WARN] CSRF token missing {"path":"/api/evidence/1/controls","method":"POST","hasSession":false,"hasCookie":false,"hasHeader":false,"ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mCross-Flow Integration[2m > [22m[2mAI Hub Stats[2m > [22m[2mshould require authentication for AI stats
+[22m[39m{"type":"request_start","traceId":"b0a7ebda-6b0e-458d-bb0f-bb3c2a3ce82e","spanId":"ec119b0e","method":"GET","path":"/api/ai/stats","ip":"::ffff:127.0.0.1","timestamp":"2026-01-17T15:34:24.248Z"}
+[32m2026-01-17T15:34:24.248Z [INFO] GET /api/ai/stats {"method":"GET","url":"/api/ai/stats","ip":"[IP_REDACTED]:[IP_REDACTED]","timestamp":"2026-01-17T15:34:24.248Z"}[0m
+
+stderr | tests/integration/e2e-flows.test.ts > E2E Flow Tests > Cross-Flow Integration > AI Hub Stats > should require authentication for AI stats
+2026-01-17T15:34:24.248Z [WARN] Unknown API route accessed {"path":"/ai/stats","method":"GET","ip":"[IP_REDACTED]:[IP_REDACTED]"}
+
+[90mstdout[2m | tests/integration/e2e-flows.test.ts[2m > [22m[2mE2E Flow Tests[2m > [22m[2mCross-Flow Integration[2m > [22m[2mAI Hub Stats[2m > [22m[2mshould require authentication for AI stats
+[22m[39m{"type":"request_end","traceId":"b0a7ebda-6b0e-458d-bb0f-bb3c2a3ce82e","spanId":"ec119b0e","method":"GET","path":"/api/ai/stats","statusCode":401,"duration":2,"timestamp":"2026-01-17T15:34:24.250Z"}
+
+ [31mΓ¥»[39m [30m[42m unit [49m[39m tests/integration/e2e-flows.test.ts [2m([22m[2m22 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[33m 467[2mms[22m[39m
+[31m   [31m├ù[31m E2E Flow Tests[2m > [22mOnboarding Flow[2m > [22mOrganization Setup[2m > [22mshould require authentication for organization creation[39m[32m 36[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mOnboarding Flow[2m > [22mOrganization Setup[2m > [22mshould require authentication to list organizations[32m 30[2mms[22m[39m
+[31m   [31m├ù[31m E2E Flow Tests[2m > [22mOnboarding Flow[2m > [22mCompany Profile Creation[2m > [22mshould require authentication for company profile creation[39m[32m 6[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mOnboarding Flow[2m > [22mCompany Profile Creation[2m > [22mshould require authentication to get company profile[32m 10[2mms[22m[39m
+[31m   [31m├ù[31m E2E Flow Tests[2m > [22mOnboarding Flow[2m > [22mInitial Framework Selection[2m > [22mshould require authentication to update framework preferences[39m[32m 5[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m E2E Flow Tests[2m > [22mAI Generation Flow[2m > [22mDocument Generation[2m > [22mshould require authentication for AI document generation[39m[32m 7[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+[31m   [31m├ù[31m E2E Flow Tests[2m > [22mAI Generation Flow[2m > [22mDocument Generation[2m > [22mshould require authentication for AI document analysis[39m[32m 8[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAI Generation Flow[2m > [22mDocument Generation[2m > [22mshould return AI service health status[32m 9[2mms[22m[39m
+[31m   [31m├ù[31m E2E Flow Tests[2m > [22mAI Generation Flow[2m > [22mEvidence Upload[2m > [22mshould require authentication for evidence upload[39m[32m 6[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAI Generation Flow[2m > [22mEvidence Upload[2m > [22mshould require authentication to list evidence[32m 7[2mms[22m[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAI Generation Flow[2m > [22mControl Approvals[2m > [22mshould require authentication to list pending approvals[32m 8[2mms[22m[39m
+[31m   [31m├ù[31m E2E Flow Tests[2m > [22mAI Generation Flow[2m > [22mControl Approvals[2m > [22mshould require authentication to approve a control[39m[32m 7[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAudit Flow[2m > [22mAudit Trail Access[2m > [22mshould require authentication to view audit trail[32m 7[2mms[22m[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAudit Flow[2m > [22mAudit Trail Access[2m > [22mshould require authentication to get audit entry details[32m 6[2mms[22m[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAudit Flow[2m > [22mAuditor Workspace[2m > [22mshould require authentication for auditor workspace access[32m 5[2mms[22m[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAudit Flow[2m > [22mAuditor Workspace[2m > [22mshould require authentication to view compliance overview[32m 5[2mms[22m[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAudit Flow[2m > [22mAuditor Workspace[2m > [22mshould require authentication to export audit reports[32m 5[2mms[22m[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAudit Flow[2m > [22mGap Analysis[2m > [22mshould require authentication for gap analysis[32m 7[2mms[22m[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mAudit Flow[2m > [22mGap Analysis[2m > [22mshould require authentication for gap analysis by framework[32m 4[2mms[22m[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mCross-Flow Integration[2m > [22mDocument to Audit Trail[2m > [22mshould require authentication to track document changes[32m 8[2mms[22m[39m
+[31m   [31m├ù[31m E2E Flow Tests[2m > [22mCross-Flow Integration[2m > [22mEvidence to Control Mapping[2m > [22mshould require authentication to map evidence to controls[39m[32m 4[2mms[22m[39m
+[31m     ΓåÆ expected 401 "Unauthorized", got 403 "Forbidden"[39m
+   [32mΓ£ô[39m E2E Flow Tests[2m > [22mCross-Flow Integration[2m > [22mAI Hub Stats[2m > [22mshould require authentication for AI stats[32m 5[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/dashboard.test.tsx [2m([22m[2m37 tests[22m[2m)[22m[33m 1789[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Dashboard Component[2m > [22mDocument Generation[2m > [22mshould start generation when button clicked [33m 388[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/documents.test.tsx [2m([22m[2m44 tests[22m[2m)[22m[33m 5080[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Documents Page[2m > [22mEmpty States[2m > [22mshould display message when no documents match filters [33m 496[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Documents Page[2m > [22mSearch Functionality[2m > [22mshould filter documents by title search [33m 343[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Documents Page[2m > [22mSearch Functionality[2m > [22mshould filter documents by description search [33m 309[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Documents Page[2m > [22mSearch Functionality[2m > [22mshould perform case-insensitive search [33m 324[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Documents Page[2m > [22mStatus Filter[2m > [22mshould reset to all documents when selecting "All Status" [33m 330[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Documents Page[2m > [22mCombined Filters[2m > [22mshould apply both search and status filters [33m 346[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx [2m([22m[2m56 tests[22m[2m)[22m[33m 5309[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Gap Analysis Page[2m > [22mInitial Rendering[2m > [22mshould render page header with title [33m 308[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Gap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould filter categories by selection [33m 360[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Gap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould reset filters when selecting "All" [33m 432[2mms[22m[39m
+stderr | tests/components/ai-doc-generator.test.tsx > AI Document Generator Page > Step 5: Generation Results > should show loading state during generation
+Not implemented: HTMLFormElement's requestSubmit() method
+
+stderr | tests/components/ai-doc-generator.test.tsx > AI Document Generator Page > Step 5: Generation Results > should show error state on generation failure
+Not implemented: HTMLFormElement's requestSubmit() method
+
+stderr | tests/components/ai-doc-generator.test.tsx > AI Document Generator Page > Step 5: Generation Results > should show completed state with generated documents
+Not implemented: HTMLFormElement's requestSubmit() method
+
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx [2m([22m[2m44 tests[22m[2m)[22m[33m 49088[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould allow valid company name input [33m 342[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould allow industry selection [33m 419[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould allow headquarters input [33m 401[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould proceed to step 2 with valid data [33m 1070[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould render infrastructure fields [33m 1013[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould render all cloud provider checkboxes [33m 1068[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould allow selecting multiple cloud providers [33m 1104[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould require at least one cloud provider [33m 1150[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould allow data classification selection [33m 1228[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould allow business applications input [33m 1707[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould allow going back to step 1 [33m 1134[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould proceed to step 3 with valid data [33m 1800[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould render framework selection fields [33m 1585[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould allow selecting multiple frameworks [33m 1898[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould show SOC2 trust principles when SOC2 is selected [33m 1816[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould hide SOC2 trust principles when SOC2 is deselected [33m 1890[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould show FedRAMP level when FedRAMP is selected [33m 1711[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould allow selecting FedRAMP level [33m 1910[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould require at least one framework [33m 1802[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould proceed to step 4 with valid data [33m 1896[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould display company information review [33m 1923[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould display infrastructure review [33m 1761[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould display selected frameworks [33m 1815[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould show estimated document count [33m 1892[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould render generate button [33m 1876[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould only show previous button, not next [33m 1676[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould allow going back to step 3 [33m 1845[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 5: Generation Results[2m > [22mshould show loading state during generation [33m 1887[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 5: Generation Results[2m > [22mshould show error state on generation failure [33m 1848[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mStep 5: Generation Results[2m > [22mshould show completed state with generated documents [33m 1923[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mForm Validation[2m > [22mshould validate business applications minimum length [33m 1350[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m AI Document Generator Page[2m > [22mNavigation[2m > [22mshould maintain form data when navigating back and forth [33m 1070[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 30 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL   unit  tests/integration/api.test.ts > API Integration Tests > Data Validation > should validate company profile creation payload
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/api.test.ts:74:10
+     72|         .post('/api/company-profiles')
+     73|         .send(invalidPayload)
+     74|         .expect(401); // Will be 401 due to auth, but would be 400 witΓÇª
+       |          ^
+     75|     });
+     76|   });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/30]ΓÄ»
+
+ FAIL   unit  tests/integration/auth.test.ts > Authentication Integration Tests > Protected Endpoints > should require authentication for document generation
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/auth.test.ts:61:10
+     59|           category: 'policy'
+     60|         })
+     61|         .expect(401);
+       |          ^
+     62|     });
+     63| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/30]ΓÄ»
+
+ FAIL   unit  tests/integration/auth.test.ts > Authentication Integration Tests > Protected Endpoints > should require authentication for gap analysis
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/auth.test.ts:71:10
+     69|           companyProfileId: 'test-id'
+     70|         })
+     71|         .expect(401);
+       |          ^
+     72|     });
+     73| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/30]ΓÄ»
+
+ FAIL   unit  tests/integration/auth.test.ts > Authentication Integration Tests > Protected Endpoints > should require authentication for MFA setup
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/auth.test.ts:83:10
+     81|       await request(app)
+     82|         .post('/api/auth/mfa/setup')
+     83|         .expect(401);
+       |          ^
+     84|     });
+     85|   });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/30]ΓÄ»
+
+ FAIL   unit  tests/integration/auth.test.ts > Authentication Integration Tests > Rate Limiting > should include rate limit headers
+AssertionError: expected { 'x-powered-by': 'Express', ΓÇª(19) } to have property "x-ratelimit-limit"
+ Γ¥» tests/integration/auth.test.ts:101:32
+     99|         .get('/health');
+    100| 
+    101|       expect(response.headers).toHaveProperty('x-ratelimit-limit');
+       |                                ^
+    102|       expect(response.headers).toHaveProperty('x-ratelimit-remaining');
+    103|     });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/30]ΓÄ»
+
+ FAIL   unit  tests/integration/documents.test.ts > Document Integration Tests > Document Templates > should return document templates
+AssertionError: expected { success: true, data: { ΓÇª(5) } } to have property "templates"
+ Γ¥» tests/integration/documents.test.ts:28:29
+     26|         .expect(200);
+     27| 
+     28|       expect(response.body).toHaveProperty('templates');
+       |                             ^
+     29|       expect(Array.isArray(response.body.templates)).toBe(true);
+     30|     });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/30]ΓÄ»
+
+ FAIL   unit  tests/integration/documents.test.ts > Document Integration Tests > Document Generation Endpoints > should require authentication for document generation
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/documents.test.ts:57:10
+     55|           category: 'policy'
+     56|         })
+     57|         .expect(401);
+       |          ^
+     58|     });
+     59| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/30]ΓÄ»
+
+ FAIL   unit  tests/integration/documents.test.ts > Document Integration Tests > Document Generation Endpoints > should require authentication for document upload
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/documents.test.ts:66:10
+     64|           files: []
+     65|         })
+     66|         .expect(401);
+       |          ^
+     67|     });
+     68|   });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/30]ΓÄ»
+
+ FAIL   unit  tests/integration/documents.test.ts > Document Integration Tests > Document Export > should export document as markdown
+Error: expected 200 "OK", got 403 "Forbidden"
+ Γ¥» tests/integration/documents.test.ts:79:10
+     77|           filename: 'test-doc'
+     78|         })
+     79|         .expect(200);
+       |          ^
+     80| 
+     81|       expect(response.headers['content-type']).toContain('text/markdowΓÇª
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/30]ΓÄ»
+
+ FAIL   unit  tests/integration/documents.test.ts > Document Integration Tests > Document Export > should handle export without content
+Error: expected 400 "Bad Request", got 403 "Forbidden"
+ Γ¥» tests/integration/documents.test.ts:90:10
+     88|           format: 'md'
+     89|         })
+     90|         .expect(400);
+       |          ^
+     91|     });
+     92|   });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[10/30]ΓÄ»
+
+ FAIL   unit  tests/integration/documents.test.ts > Document Integration Tests > Document Quality Analysis > should allow document quality analysis without auth
+AssertionError: expected [ 200, 500, 503 ] to include 403
+ Γ¥» tests/integration/documents.test.ts:120:31
+    118|         });
+    119| 
+    120|       expect([200, 500, 503]).toContain(response.status);
+       |                               ^
+    121|     });
+    122|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[11/30]ΓÄ»
+
+ FAIL   unit  tests/integration/documents.test.ts > Document Integration Tests > Document Versioning > should require authentication for version creation
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/documents.test.ts:138:10
+    136|           changeDescription: 'Updated policy'
+    137|         })
+    138|         .expect(401);
+       |          ^
+    139|     });
+    140| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[12/30]ΓÄ»
+
+ FAIL   unit  tests/integration/documents.test.ts > Document Integration Tests > Document Versioning > should require authentication for version restore
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/documents.test.ts:144:10
+    142|       await request(app)
+    143|         .post('/api/documents/test-id/versions/version-id/restore')
+    144|         .expect(401);
+       |          ^
+    145|     });
+    146|   });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[13/30]ΓÄ»
+
+ FAIL   unit  tests/integration/e2e-flows.test.ts > E2E Flow Tests > Onboarding Flow > Organization Setup > should require authentication for organization creation
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/e2e-flows.test.ts:32:12
+     30|             size: 'medium'
+     31|           })
+     32|           .expect(401);
+       |            ^
+     33|       });
+     34| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[14/30]ΓÄ»
+
+ FAIL   unit  tests/integration/e2e-flows.test.ts > E2E Flow Tests > Onboarding Flow > Company Profile Creation > should require authentication for company profile creation
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/e2e-flows.test.ts:55:12
+     53|           .post('/api/company-profiles')
+     54|           .send(profileData)
+     55|           .expect(401);
+       |            ^
+     56|       });
+     57| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[15/30]ΓÄ»
+
+ FAIL   unit  tests/integration/e2e-flows.test.ts > E2E Flow Tests > Onboarding Flow > Initial Framework Selection > should require authentication to update framework preferences
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/e2e-flows.test.ts:72:12
+     70|             complianceFrameworks: ['ISO 27001', 'SOC 2', 'FedRAMP']
+     71|           })
+     72|           .expect(401);
+       |            ^
+     73|       });
+     74|     });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[16/30]ΓÄ»
+
+ FAIL   unit  tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Document Generation > should require authentication for AI document generation
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/e2e-flows.test.ts:88:12
+     86|             context: 'Enterprise SaaS company'
+     87|           })
+     88|           .expect(401);
+       |            ^
+     89|       });
+     90| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[17/30]ΓÄ»
+
+ FAIL   unit  tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Document Generation > should require authentication for AI document analysis
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/e2e-flows.test.ts:98:12
+     96|             analysisType: 'gap-analysis'
+     97|           })
+     98|           .expect(401);
+       |            ^
+     99|       });
+    100| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[18/30]ΓÄ»
+
+ FAIL   unit  tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Evidence Upload > should require authentication for evidence upload
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/e2e-flows.test.ts:120:12
+    118|             description: 'Test evidence document'
+    119|           })
+    120|           .expect(401);
+       |            ^
+    121|       });
+    122| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[19/30]ΓÄ»
+
+ FAIL   unit  tests/integration/e2e-flows.test.ts > E2E Flow Tests > AI Generation Flow > Control Approvals > should require authentication to approve a control
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/e2e-flows.test.ts:144:12
+    142|             comments: 'Approved after review'
+    143|           })
+    144|           .expect(401);
+       |            ^
+    145|       });
+    146|     });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[20/30]ΓÄ»
+
+ FAIL   unit  tests/integration/e2e-flows.test.ts > E2E Flow Tests > Cross-Flow Integration > Evidence to Control Mapping > should require authentication to map evidence to controls
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/e2e-flows.test.ts:215:12
+    213|             controlIds: ['CC6.1', 'CC6.7']
+    214|           })
+    215|           .expect(401);
+       |            ^
+    216|       });
+    217|     });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[21/30]ΓÄ»
+
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Gap Analysis Creation > should require authentication for gap analysis
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/gap-analysis.test.ts:30:10
+     28|           companyProfileId: 'test-profile-id'
+     29|         })
+     30|         .expect(401);
+       |          ^
+     31|     });
+     32| 
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[22/30]ΓÄ»
+
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Gap Analysis Creation > should require authentication to update recommendations
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/gap-analysis.test.ts:39:10
+     37|           status: 'in_progress'
+     38|         })
+     39|         .expect(401);
+       |          ^
+     40|     });
+     41|   });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[23/30]ΓÄ»
+
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Analysis Endpoint > should analyze compliance gaps
+AssertionError: expected [ 500, 503 ] to include 403
+ Γ¥» tests/integration/gap-analysis.test.ts:57:28
+     55|         expect(response.body).toHaveProperty('recommendations');
+     56|       } else {
+     57|         expect([500, 503]).toContain(response.status);
+       |                            ^
+     58|       }
+     59|     });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[24/30]ΓÄ»
+
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Frameworks > should handle SOC2 framework gap analysis request
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Frameworks > should handle ISO27001 framework gap analysis request
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Frameworks > should handle FedRAMP framework gap analysis request
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Compliance Frameworks > should handle NIST framework gap analysis request
+AssertionError: expected 403 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 403
+
+ Γ¥» tests/integration/gap-analysis.test.ts:74:33
+     72|           });
+     73| 
+     74|         expect(response.status).toBe(401);
+       |                                 ^
+     75|       });
+     76|     });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[25/30]ΓÄ»
+
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > Remediation Tracking > should require authentication for remediation updates
+Error: expected 401 "Unauthorized", got 403 "Forbidden"
+ Γ¥» tests/integration/gap-analysis.test.ts:129:10
+    127|           completedAt: new Date().toISOString()
+    128|         })
+    129|         .expect(401);
+       |          ^
+    130|     });
+    131|   });
+ Γ¥» Test._assertStatus node_modules/supertest/lib/test.js:309:14
+ Γ¥» node_modules/supertest/lib/test.js:365:13
+ Γ¥» Test._assertFunction node_modules/supertest/lib/test.js:342:13
+ Γ¥» Test.assert node_modules/supertest/lib/test.js:195:23
+ Γ¥» localAssert node_modules/supertest/lib/test.js:138:14
+ Γ¥» Server.<anonymous> node_modules/supertest/lib/test.js:152:11
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[26/30]ΓÄ»
+
+ FAIL   unit  tests/integration/gap-analysis.test.ts > Gap Analysis Integration Tests > AI-Powered Analysis > should require authentication for AI gap analysis
+
+AssertionError: expected [ 401, 404 ] to include 403
+[2m Test Files [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m18 passed[39m[22m[90m (23)[39m
+[2m      Tests [22m [1m[31m30 failed[39m[22m[2m | [22m[1m[32m485 passed[39m[22m[90m (515)[39m
+[2m   Start at [22m 07:34:17
+[2m   Duration [22m 53.70s[2m (transform 6.06s, setup 8.59s, collect 42.12s, tests 66.35s, environment 12.02s, prepare 15.03s)[22m
+
+ Γ¥» tests/integration/gap-analysis.test.ts:184:26
+    182|         });
+    183| 
+    184|       expect([401, 404]).toContain(response.status);
+       |                          ^
+    185|     });
+    186|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[27/30]ΓÄ»
+

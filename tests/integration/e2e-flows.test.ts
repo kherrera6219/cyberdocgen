@@ -78,22 +78,21 @@ describe('E2E Flow Tests', () => {
     describe('Document Generation', () => {
       it('should require authentication for AI document generation', async () => {
         await request(app)
-          .post('/api/ai/generate')
+          .post('/api/ai/generate-compliance-docs')
           .send({
-            documentType: 'policy',
-            framework: 'ISO 27001',
-            title: 'Information Security Policy',
-            context: 'Enterprise SaaS company'
+            companyInfo: { companyName: 'Test' },
+            frameworks: ['ISO 27001']
           })
           .expect(401);
       });
 
       it('should require authentication for AI document analysis', async () => {
         await request(app)
-          .post('/api/ai/analyze')
+          .post('/api/ai/analyze-document')
           .send({
-            documentId: 'test-doc-123',
-            analysisType: 'gap-analysis'
+            content: 'test',
+            filename: 'test.txt',
+            framework: 'ISO 27001'
           })
           .expect(401);
       });

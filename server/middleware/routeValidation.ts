@@ -138,8 +138,17 @@ export const API_ROUTES: RouteInfo[] = [
   { path: '/api/storage/*', method: 'ALL', requiresAuth: true, requiresMfa: false, rateLimitTier: 'medium' },
   { path: '/api/storage/backups/*', method: 'ALL', requiresAuth: true, requiresMfa: true, rateLimitTier: 'high' },
   { path: '/api/admin/*', method: 'ALL', requiresAuth: true, requiresMfa: true, rateLimitTier: 'critical' },
+  { path: '/api/organizations*', method: 'ALL', requiresAuth: true, requiresMfa: false, rateLimitTier: 'medium' },
   { path: '/api/audit-trail/*', method: 'ALL', requiresAuth: true, requiresMfa: true, rateLimitTier: 'high' },
-  { path: '/api/gap-analysis/*', method: 'ALL', requiresAuth: true, requiresMfa: false, rateLimitTier: 'high' }
+  { path: '/api/audit-logs/*', method: 'ALL', requiresAuth: true, requiresMfa: true, rateLimitTier: 'high' },
+  { path: '/api/gap-analysis/*', method: 'ALL', requiresAuth: true, requiresMfa: false, rateLimitTier: 'high' },
+  { path: '/api/document-templates*', method: 'GET', requiresAuth: false, requiresMfa: false, rateLimitTier: 'low' },
+  { path: '/api/frameworks*', method: 'GET', requiresAuth: true, requiresMfa: false, rateLimitTier: 'medium' },
+  { path: '/api/export-document', method: 'POST', requiresAuth: false, requiresMfa: false, rateLimitTier: 'medium' },
+  { path: '/api/analyze-document-quality', method: 'POST', requiresAuth: true, requiresMfa: false, rateLimitTier: 'high' },
+  { path: '/api/generate-document', method: 'POST', requiresAuth: true, requiresMfa: false, rateLimitTier: 'high' },
+  { path: '/api/save-document', method: 'POST', requiresAuth: true, requiresMfa: false, rateLimitTier: 'medium' },
+  { path: '/api/analytics/*', method: 'ALL', requiresAuth: true, requiresMfa: false, rateLimitTier: 'medium' }
 ];
 
 export const validateRouteAccess = (req: Request, res: Response, next: NextFunction) => {

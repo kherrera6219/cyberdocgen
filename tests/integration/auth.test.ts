@@ -53,6 +53,7 @@ describe('Authentication Integration Tests', () => {
     it('should require authentication for document generation', async () => {
       await request(app)
         .post('/api/documents/generate')
+        .set('Content-Type', 'application/json')
         .send({
           title: 'Test',
           framework: 'SOC2',
@@ -64,6 +65,7 @@ describe('Authentication Integration Tests', () => {
     it('should require authentication for gap analysis', async () => {
       await request(app)
         .post('/api/gap-analysis')
+        .set('Content-Type', 'application/json')
         .send({
           framework: 'SOC2',
           companyProfileId: 'test-id'
@@ -80,6 +82,8 @@ describe('Authentication Integration Tests', () => {
     it('should require authentication for MFA setup', async () => {
       await request(app)
         .post('/api/auth/mfa/setup')
+        .set('Content-Type', 'application/json')
+        .send({})
         .expect(401);
     });
   });

@@ -25,8 +25,8 @@ describe('Document Integration Tests', () => {
         .get('/api/document-templates')
         .expect(200);
 
-      expect(response.body).toHaveProperty('templates');
-      expect(Array.isArray(response.body.templates)).toBe(true);
+      expect(response.body.data).toHaveProperty('templates');
+      expect(Array.isArray(response.body.data.templates)).toBe(true);
     });
 
     it('should get a specific template by ID', async () => {
@@ -34,13 +34,13 @@ describe('Document Integration Tests', () => {
         .get('/api/document-templates')
         .expect(200);
 
-      if (templatesResponse.body.templates && templatesResponse.body.templates.length > 0) {
-        const templateId = templatesResponse.body.templates[0].id;
+      if (templatesResponse.body.data.templates && templatesResponse.body.data.templates.length > 0) {
+        const templateId = templatesResponse.body.data.templates[0].id;
         const response = await request(app)
           .get(`/api/document-templates/${templateId}`)
           .expect(200);
 
-        expect(response.body).toHaveProperty('template');
+        expect(response.body.data).toHaveProperty('template');
       }
     });
   });
@@ -109,15 +109,15 @@ describe('Document Integration Tests', () => {
   });
 
   describe('Document Quality Analysis', () => {
-    it('should allow document quality analysis without auth', async () => {
+    it('should require authentication for document quality analysis', async () => {
       const response = await request(app)
         .post('/api/analyze-document-quality')
         .send({
-          content: 'Test content for quality analysis',
-          framework: 'SOC2'
+          content: 'Test content',
+          framework: 'SOC2',
+          documentType: 'policy'
         });
-
-      expect([200, 500, 503]).toContain(response.status);
+      expect(response.status).toBe(401);
     });
   });
 
@@ -140,7 +140,9 @@ describe('Document Integration Tests', () => {
 
     it('should require authentication for version restore', async () => {
       await request(app)
-        .post('/api/documents/test-id/versions/version-id/restore')
+        .post('/api/documents/123/versions/1/restore')
+        .set('Content-Type', 'application/json')
+        .send({})
         .expect(401);
     });
   });
@@ -171,7 +173,7 @@ describe('Document Integration Tests', () => {
 
       if (response.status === 200) {
         expect(response.body).toHaveProperty('success', true);
-        expect(response.body).toHaveProperty('document');
+        expect(response.body.data).toHaveProperty('document');
       }
     });
 
