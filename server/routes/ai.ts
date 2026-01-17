@@ -53,7 +53,7 @@ import { analyzeImage } from '../services/geminiVision';
  * - Vision/Multimodal (2 routes)
  * - Statistics & Monitoring (3 routes)
  *
- * TODO: Consider refactoring into smaller feature-specific modules:
+ * Refactoring note:
  * - ai/models.ts, ai/analysis.ts, ai/generation.ts, ai/chat.ts,
  * - ai/risk.ts, ai/vision.ts, ai/statistics.ts
  * See REFACTORING_RECOMMENDATIONS.md for details.

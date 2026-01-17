@@ -293,19 +293,16 @@ LOG_LEVEL=info
 
 ---
 
-### 10. Frontend TODOs (Partial - 1 of 2 fixed)
+### 10. Frontend TODOs ✅ ALL FIXED
 
 #### Error Boundary (`client/src/components/ErrorBoundary.tsx`)
-- **Line 51:** `// TODO: Send to error tracking service (e.g., Sentry)`
-- **Impact:** Errors not tracked in production
+- **Status:** ✅ Client error reporting now posts to backend logging for production visibility.
 
-#### Company Profile (`client/src/pages/enhanced-company-profile.tsx`) ✅ FIXED
-- **Line 125:** `createdBy: "temp-user-id" // TODO: Get from authenticated user`
-- **Impact:** Hardcoded user ID
-- **Status:** ✅ **FIXED in Phase 5.4** - Now uses authenticated user context
+#### Company Profile (`client/src/pages/enhanced-company-profile.tsx`)
+- **Status:** ✅ Uses authenticated user context for `createdBy`.
 
 **Priority:** 🔵 **LOW** - Non-critical features
-**Effort:** 1 hour (company profile = fixed, error tracking = optional)
+**Effort:** Completed
 
 ---
 

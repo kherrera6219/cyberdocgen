@@ -2,6 +2,7 @@ import { Component, ErrorInfo, ReactNode, ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Props {
   children: ReactNode;
@@ -50,8 +51,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // In production, send to error tracking service
     if (isProd) {
-      // TODO: Send to error tracking service (e.g., Sentry, Azure Application Insights)
-      this.logErrorToService(error, errorInfo);
+      void this.logErrorToService(error, errorInfo);
     }
   }
 
@@ -62,8 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
-  private logErrorToService(error: Error, errorInfo: ErrorInfo): void {
-    // Placeholder for external error logging service
+  private async logErrorToService(error: Error, errorInfo: ErrorInfo): Promise<void> {
     const errorReport = {
       message: error.message,
       stack: error.stack,
@@ -74,8 +73,14 @@ export class ErrorBoundary extends Component<Props, State> {
       url: window.location.href,
     };
 
-    // Send to external service
-    console.error("Error reported:", errorReport);
+    try {
+      await apiRequest("/api/client-errors", {
+        method: "POST",
+        body: errorReport,
+      });
+    } catch (reportError) {
+      console.error("Failed to report client error:", reportError);
+    }
   }
 
   private handleRetry = (): void => {

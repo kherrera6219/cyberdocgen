@@ -5,6 +5,7 @@ import { mfaService } from '../services/mfaService';
 import { logger } from '../utils/logger';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { authStrictLimiter, authLimiter } from '../middleware/rateLimiter';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../services/emailService';
 
 const router = Router();
 
@@ -159,8 +160,8 @@ router.post('/signup', authStrictLimiter, async (req, res) => {
     
     const result = await enterpriseAuthService.createAccount(validatedData, ipAddress);
     
-    // TODO: Integrate email service (SendGrid/Resend) for production email sending
-    // await emailService.sendVerificationEmail(result.user.email, result.emailToken);
+    const verificationUrl = `${req.protocol}://${req.get('host')}/api/enterprise-auth/verify-email?token=${result.emailToken}`;
+    await sendVerificationEmail(result.user.email, verificationUrl);
     
     logger.info('Enterprise account creation initiated', {
       userId: result.user.id,
@@ -180,7 +181,7 @@ router.post('/signup', authStrictLimiter, async (req, res) => {
       // Include token in development for testing
       ...(isDevelopment && { 
         emailVerificationToken: result.emailToken,
-        verificationUrl: `/api/enterprise-auth/verify-email?token=${result.emailToken}`,
+        verificationUrl,
       }),
     });
   } catch (error: any) {
@@ -282,15 +283,15 @@ router.post('/forgot-password', authStrictLimiter, async (req, res) => {
       resetUrl: `${req.protocol}://${req.get('host')}/reset-password`,
     }, ipAddress);
     
-    // In production, send reset email here
-    // await emailService.sendPasswordResetEmail(email, resetToken);
+    const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+    await sendPasswordResetEmail(email, resetUrl);
     
     // Always return success to prevent email enumeration
     res.json({
       success: true,
       message: 'If an account with that email exists, a password reset link has been sent.',
       // Don't send token in production - it should be emailed
-      resetToken: resetToken, // DEV ONLY
+      ...(process.env.NODE_ENV !== 'production' && { resetToken }),
     });
   } catch (error: any) {
     logger.error('Password reset request failed', { error: error.message });

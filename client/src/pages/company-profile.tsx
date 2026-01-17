@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import { useEffect } from "react";
 interface PersonnelFieldProps {
   title: string;
   fieldPrefix: string;
-  form: any; // TODO: Type this properly with UseFormReturn
+  form: UseFormReturn<InsertCompanyProfile>;
 }
 
 function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
