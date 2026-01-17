@@ -36,6 +36,7 @@ import aiSessionsRoutes from "./routes/aiSessions";
 import { registerNotificationRoutes } from "./routes/notifications";
 import { registerDashboardRoutes } from "./routes/dashboard";
 import { registerFrameworkControlStatusesRoutes } from "./routes/frameworkControlStatuses";
+import { registerClientErrorRoutes } from "./routes/clientErrors";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add metrics collection middleware
@@ -523,6 +524,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const approvalsRouter = Router();
   registerApprovalsRoutes(approvalsRouter);
   app.use('/api/approvals', approvalsRouter);
+
+  const clientErrorsRouter = Router();
+  registerClientErrorRoutes(clientErrorsRouter);
+  app.use('/api/client-errors', clientErrorsRouter);
 
   // Evidence routes
   registerEvidenceRoutes(app);

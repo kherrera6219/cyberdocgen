@@ -104,7 +104,7 @@ export interface PaginatedResult<T> {
  * - Contact Messages (5 methods)
  * - Utility Methods (34 methods)
  *
- * TODO: Consider refactoring into repository pattern:
+ * Refactoring note:
  * - repositories/userRepository.ts
  * - repositories/organizationRepository.ts
  * - repositories/documentRepository.ts

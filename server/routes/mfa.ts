@@ -1,7 +1,5 @@
 import { Router, Request } from 'express';
-import crypto from 'crypto';
 import { mfaService } from '../services/mfaService';
-import { encryptionService, DataClassification } from '../services/encryption';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
@@ -108,17 +106,11 @@ router.post('/setup/totp', async (req: Request, res) => {
     setupTOTPSchema.parse(req.body);
 
     const mfaSetup = await mfaService.setupTOTP(userId);
-
-    // Encrypt and store the secret (in production implementation)
-    await encryptionService.encryptSensitiveField(
+    await mfaService.storeTOTPSettings(
+      userId,
       mfaSetup.secret,
-      DataClassification.RESTRICTED
-    );
-
-    // Encrypt backup codes
-    await encryptionService.encryptSensitiveField(
-      JSON.stringify(mfaSetup.backupCodes),
-      DataClassification.RESTRICTED
+      mfaSetup.backupCodes,
+      mfaSetup.qrCodeUrl
     );
 
     // Response includes QR code URL for setup but not the raw secret
@@ -161,21 +153,22 @@ router.post('/verify/totp', async (req: Request, res) => {
 
     const { token, backupCode } = verifyTOTPSchema.parse(req.body);
 
-    // In production, fetch encrypted secret from database
-    // TODO: Replace with actual database lookup for user's TOTP secret
-    const mockSecret = process.env.MFA_DEV_SECRET || crypto.randomBytes(10).toString('base64').replace(/\+/g, 'A').replace(/\//g, 'B').replace(/=/g, '').slice(0, 16);
+    const totpSettings = await mfaService.getTOTPSettings(userId);
+    if (!totpSettings) {
+      return res.status(400).json({ message: 'TOTP setup not found. Please set up MFA first.' });
+    }
 
     let verified = false;
     let usedBackupCode = false;
 
     if (backupCode) {
-      // Verify backup code
-      const mockBackupCodes = ['ABC123', 'DEF456', 'GHI789']; // From database
-      verified = await mfaService.verifyBackupCode(userId, backupCode, mockBackupCodes);
+      verified = await mfaService.verifyBackupCode(userId, backupCode, totpSettings.backupCodes);
       usedBackupCode = verified;
+      if (verified) {
+        await mfaService.updateBackupCodes(userId, totpSettings.backupCodes);
+      }
     } else {
-      // Verify TOTP token
-      const verification = await mfaService.verifyTOTP(userId, token, mockSecret);
+      const verification = await mfaService.verifyTOTP(userId, token, totpSettings.secret);
       verified = verification.verified;
     }
 
@@ -185,6 +178,8 @@ router.post('/verify/totp', async (req: Request, res) => {
         req.session.mfaVerified = true;
         req.session.mfaVerifiedAt = new Date();
       }
+
+      await mfaService.markTOTPVerified(userId);
 
       res.json({
         verified: true,

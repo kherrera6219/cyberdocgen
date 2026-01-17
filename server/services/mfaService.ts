@@ -1,9 +1,10 @@
 import crypto from 'crypto';
-import { count, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { db } from '../db';
 import { mfaSettings, passkeyCredentials } from '@shared/schema';
 import { logger } from '../utils/logger';
 import { auditService, AuditAction, RiskLevel } from './auditService';
+import { encryptionService, type EncryptedData, DataClassification } from './encryption';
 
 export interface MFASetup {
   userId: string;
@@ -27,6 +28,13 @@ export interface SMSConfig {
   phoneNumber?: string;
   verificationCode?: string;
   expiresAt?: Date;
+}
+
+export interface TOTPSettings {
+  secret: string;
+  backupCodes: string[];
+  isEnabled: boolean;
+  isVerified: boolean;
 }
 
 export class MFAService {
@@ -89,6 +97,88 @@ export class MFAService {
       logger.error('MFA TOTP setup failed', { error: error.message, userId });
       throw new Error('Failed to setup TOTP MFA');
     }
+  }
+
+  async storeTOTPSettings(userId: string, secret: string, backupCodes: string[], qrCodeUrl: string): Promise<void> {
+    const secretEncrypted = JSON.stringify(await encryptionService.encryptSensitiveField(
+      secret,
+      DataClassification.RESTRICTED
+    ));
+    const backupCodesEncrypted = JSON.stringify(await encryptionService.encryptSensitiveField(
+      JSON.stringify(backupCodes),
+      DataClassification.RESTRICTED
+    ));
+
+    await db.insert(mfaSettings).values({
+      userId,
+      mfaType: 'totp',
+      secretEncrypted,
+      backupCodesEncrypted,
+      authenticatorName: 'Authenticator App',
+      qrCodeUrl,
+      isEnabled: false,
+      isVerified: false,
+    }).onConflictDoUpdate({
+      target: [mfaSettings.userId, mfaSettings.mfaType],
+      set: {
+        secretEncrypted,
+        backupCodesEncrypted,
+        qrCodeUrl,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async getTOTPSettings(userId: string): Promise<TOTPSettings | null> {
+    const [setting] = await db.select()
+      .from(mfaSettings)
+      .where(and(eq(mfaSettings.userId, userId), eq(mfaSettings.mfaType, 'totp')))
+      .limit(1);
+
+    if (!setting?.secretEncrypted || !setting.backupCodesEncrypted) {
+      return null;
+    }
+
+    const secret = await encryptionService.decryptSensitiveField(
+      JSON.parse(setting.secretEncrypted) as EncryptedData,
+      DataClassification.RESTRICTED
+    );
+    const backupCodes = await encryptionService.decryptSensitiveField(
+      JSON.parse(setting.backupCodesEncrypted) as EncryptedData,
+      DataClassification.RESTRICTED
+    );
+
+    return {
+      secret,
+      backupCodes: JSON.parse(backupCodes),
+      isEnabled: setting.isEnabled,
+      isVerified: setting.isVerified,
+    };
+  }
+
+  async updateBackupCodes(userId: string, backupCodes: string[]): Promise<void> {
+    const backupCodesEncrypted = JSON.stringify(await encryptionService.encryptSensitiveField(
+      JSON.stringify(backupCodes),
+      DataClassification.RESTRICTED
+    ));
+
+    await db.update(mfaSettings)
+      .set({
+        backupCodesEncrypted,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(mfaSettings.userId, userId), eq(mfaSettings.mfaType, 'totp')));
+  }
+
+  async markTOTPVerified(userId: string): Promise<void> {
+    await db.update(mfaSettings)
+      .set({
+        isEnabled: true,
+        isVerified: true,
+        lastUsedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(mfaSettings.userId, userId), eq(mfaSettings.mfaType, 'totp')));
   }
 
   /**

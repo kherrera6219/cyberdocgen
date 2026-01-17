@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -33,7 +34,7 @@ import {
   Eye,
   Zap
 } from "lucide-react";
-import type { Document, GenerationJob } from "@shared/schema";
+import type { Document, DocumentApproval, GenerationJob } from "@shared/schema";
 
 const GENERATION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
 
@@ -84,6 +85,10 @@ export default function Dashboard() {
     refetch: refetchDocuments
   } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
+  });
+
+  const { data: approvals = [] } = useQuery<DocumentApproval[]>({
+    queryKey: ["/api/approvals?status=pending"],
   });
 
   // Cleanup function for generation
@@ -254,6 +259,16 @@ export default function Dashboard() {
     ?.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 3) ?? [];
 
+  const nextApprovalDeadline = useMemo(() => {
+    const pendingDeadlines = approvals
+      .filter((approval) => approval.status === "pending" && approval.dueDate)
+      .map((approval) => new Date(approval.dueDate as Date | string))
+      .filter((date) => !Number.isNaN(date.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    return pendingDeadlines[0] ?? null;
+  }, [approvals]);
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
@@ -321,8 +336,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Next Deadline</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white" data-testid="text-next-deadline">
-                  {/* TODO: Connect to remediationRecommendations or documentApprovals dueDate when data exists */}
-                  N/A
+                  {nextApprovalDeadline ? format(nextApprovalDeadline, "MMM d, yyyy") : "N/A"}
                 </p>
               </div>
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-red-500/10 to-red-500/20 rounded-lg flex items-center justify-center shadow-sm">
