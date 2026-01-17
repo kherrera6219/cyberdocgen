@@ -18,8 +18,6 @@ import {
   Eye, 
   EyeOff,
   AlertCircle,
-  CheckCircle,
-  Copy,
   ExternalLink,
   Trash2,
   Folder,
@@ -33,7 +31,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '../utils/logger';
 
 const oauthConfigSchema = z.object({
   googleClientId: z.string().optional(),
@@ -73,16 +70,6 @@ interface CloudIntegration {
   createdAt: string;
 }
 
-interface OrgUser {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  role: string;
-  isActive: boolean;
-  createdAt: string;
-}
-
 interface Role {
   id: string;
   name: string;
@@ -110,22 +97,8 @@ export default function AdminSettings() {
   const queryClient = useQueryClient();
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [selectedOrgId, setSelectedOrgId] = useState<string>('');
-  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
-
-  // Check if user is admin
-  if (!user || user.role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Alert className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Access denied. Administrator privileges required.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const [selectedUserId, setSelectedUserId] = useState<string>(''); // Kept for future use
+  const [selectedRoleId, setSelectedRoleId] = useState<string>(''); // Kept for future use
 
   const oauthForm = useForm<OAuthConfigForm>({
     resolver: zodResolver(oauthConfigSchema),
@@ -153,11 +126,6 @@ export default function AdminSettings() {
   // Get current OAuth settings
   const { data: oauthSettings } = useQuery<OAuthSettings>({
     queryKey: ['/api/admin/oauth-settings'],
-  });
-
-  // Get PDF security defaults
-  const { data: pdfDefaults } = useQuery({
-    queryKey: ['/api/admin/pdf-defaults'],
   });
 
   // Get all organization cloud integrations
@@ -194,7 +162,7 @@ export default function AdminSettings() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/oauth-settings'] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Save Failed',
         description: error.message || 'Failed to save OAuth settings',
@@ -215,7 +183,7 @@ export default function AdminSettings() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/pdf-defaults'] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Save Failed',
         description: error.message || 'Failed to save PDF defaults',
@@ -236,33 +204,10 @@ export default function AdminSettings() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/cloud-integrations'] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Delete Failed',
         description: error.message || 'Failed to delete integration',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Assign role to user
-  const assignRoleMutation = useMutation({
-    mutationFn: async ({ userId, roleId, organizationId }: { userId: string; roleId: string; organizationId: string }) => {
-      return apiRequest('/api/roles/assignments', 'POST', { userId, roleId, organizationId });
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Role Assigned',
-        description: 'Role has been assigned to the user.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/roles/assignments/organization', selectedOrgId] });
-      setSelectedUserId('');
-      setSelectedRoleId('');
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Assignment Failed',
-        description: error.message || 'Failed to assign role',
         variant: 'destructive',
       });
     },
@@ -280,7 +225,7 @@ export default function AdminSettings() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/roles/assignments/organization', selectedOrgId] });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Removal Failed',
         description: error.message || 'Failed to remove role assignment',
@@ -296,14 +241,6 @@ export default function AdminSettings() {
     }));
   };
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: 'Copied!',
-      description: `${label} copied to clipboard`,
-    });
-  };
-
   const onSaveOAuth = (data: OAuthConfigForm) => {
     saveOAuthMutation.mutate(data);
   };
@@ -311,6 +248,24 @@ export default function AdminSettings() {
   const onSavePDFDefaults = (data: PDFSecurityDefaultsForm) => {
     savePDFDefaultsMutation.mutate(data);
   };
+
+  // Check if user is admin - moved after hooks
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Alert className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Access denied. Administrator privileges required.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Prevent unused var warning for state setters if not used yet
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _unused = { selectedUserId, selectedRoleId, setSelectedUserId, setSelectedRoleId };
 
   return (
     <div className="space-y-6 sm:space-y-8">

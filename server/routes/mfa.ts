@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import crypto from 'crypto';
 import { mfaService } from '../services/mfaService';
 import { encryptionService, DataClassification } from '../services/encryption';
@@ -6,6 +6,21 @@ import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
 import { getUserId } from '../replitAuth';
+
+// Extend Express Request types locally for this file to avoid global conflicts
+interface AuthUser {
+  claims?: {
+    sub: string;
+  };
+}
+
+// Add session properties
+declare module 'express-session' {
+  interface SessionData {
+    mfaVerified?: boolean;
+    mfaVerifiedAt?: Date;
+  }
+}
 
 const router = Router();
 
@@ -20,7 +35,7 @@ const verifyTOTPSchema = z.object({
 });
 
 const setupSMSSchema = z.object({
-  phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]+$/, 'Invalid phone number format')
+  phoneNumber: z.string().regex(/^\+?[\d\s\-()]+$/, 'Invalid phone number format')
 });
 
 const verifySMSSchema = z.object({
@@ -31,7 +46,7 @@ const verifySMSSchema = z.object({
  * GET /api/auth/mfa/status
  * Get user's current MFA configuration status
  */
-router.get('/status', async (req: any, res) => {
+router.get('/status', async (req: Request, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -51,15 +66,17 @@ router.get('/status', async (req: any, res) => {
       action: AuditAction.READ,
       resourceType: 'mfa_status',
       resourceId: userId,
-      ipAddress: req.ip,
+      ipAddress: req.ip || 'unknown',
       riskLevel: RiskLevel.LOW,
       additionalContext: { status: mfaStatus }
     });
 
     res.json(mfaStatus);
 
-  } catch (error: any) {
-    logger.error('MFA status check failed', { error: error.message, userId: req.user?.claims?.sub });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const user = req.user as AuthUser | undefined;
+    logger.error('MFA status check failed', { error: errorMessage, userId: user?.claims?.sub });
     res.status(500).json({ message: 'Failed to retrieve MFA status' });
   }
 });
@@ -68,7 +85,7 @@ router.get('/status', async (req: any, res) => {
  * POST /api/auth/mfa/setup
  * Generic setup endpoint (returns 401 to require authentication)
  */
-router.post('/setup', async (req: any, res) => {
+router.post('/setup', async (req: Request, res) => {
   const userId = getUserId(req);
   if (!userId) {
     return res.status(401).json({ message: 'Unauthorized - Please use /setup/totp or /setup/sms' });
@@ -80,24 +97,26 @@ router.post('/setup', async (req: any, res) => {
  * POST /api/auth/mfa/setup/totp
  * Initialize TOTP setup for user
  */
-router.post('/setup/totp', async (req: any, res) => {
+router.post('/setup/totp', async (req: Request, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const { enable } = setupTOTPSchema.parse(req.body);
+    // Just validate input, verify 'enable' is boolean if present
+    setupTOTPSchema.parse(req.body);
 
     const mfaSetup = await mfaService.setupTOTP(userId);
 
     // Encrypt and store the secret (in production implementation)
-    const encryptedSecret = await encryptionService.encryptSensitiveField(
+    await encryptionService.encryptSensitiveField(
       mfaSetup.secret,
       DataClassification.RESTRICTED
     );
 
-    const encryptedBackupCodes = await encryptionService.encryptSensitiveField(
+    // Encrypt backup codes
+    await encryptionService.encryptSensitiveField(
       JSON.stringify(mfaSetup.backupCodes),
       DataClassification.RESTRICTED
     );
@@ -114,7 +133,7 @@ router.post('/setup/totp', async (req: any, res) => {
       }
     });
 
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
         message: 'Invalid input', 
@@ -122,7 +141,9 @@ router.post('/setup/totp', async (req: any, res) => {
       });
     }
 
-    logger.error('TOTP setup failed', { error: error.message, userId: req.user?.claims?.sub });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const user = req.user as AuthUser | undefined;
+    logger.error('TOTP setup failed', { error: errorMessage, userId: user?.claims?.sub });
     res.status(500).json({ message: 'Failed to setup TOTP MFA' });
   }
 });
@@ -131,7 +152,7 @@ router.post('/setup/totp', async (req: any, res) => {
  * POST /api/auth/mfa/verify/totp
  * Verify TOTP token to complete setup or authenticate
  */
-router.post('/verify/totp', async (req: any, res) => {
+router.post('/verify/totp', async (req: Request, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -160,8 +181,10 @@ router.post('/verify/totp', async (req: any, res) => {
 
     if (verified) {
       // Mark session as MFA verified
-      req.session.mfaVerified = true;
-      req.session.mfaVerifiedAt = new Date();
+      if (req.session) {
+        req.session.mfaVerified = true;
+        req.session.mfaVerifiedAt = new Date();
+      }
 
       res.json({
         verified: true,
@@ -179,7 +202,7 @@ router.post('/verify/totp', async (req: any, res) => {
       });
     }
 
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
         message: 'Invalid input', 
@@ -187,7 +210,9 @@ router.post('/verify/totp', async (req: any, res) => {
       });
     }
 
-    logger.error('TOTP verification failed', { error: error.message, userId: req.user?.claims?.sub });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const user = req.user as AuthUser | undefined;
+    logger.error('TOTP verification failed', { error: errorMessage, userId: user?.claims?.sub });
     res.status(500).json({ message: 'Failed to verify TOTP token' });
   }
 });
@@ -196,7 +221,7 @@ router.post('/verify/totp', async (req: any, res) => {
  * POST /api/auth/mfa/setup/sms
  * Setup SMS-based MFA
  */
-router.post('/setup/sms', async (req: any, res) => {
+router.post('/setup/sms', async (req: Request, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -216,7 +241,7 @@ router.post('/setup/sms', async (req: any, res) => {
       devCode: smsConfig.verificationCode
     });
 
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
         message: 'Invalid phone number format', 
@@ -224,7 +249,9 @@ router.post('/setup/sms', async (req: any, res) => {
       });
     }
 
-    logger.error('SMS MFA setup failed', { error: error.message, userId: req.user?.claims?.sub });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const user = req.user as AuthUser | undefined;
+    logger.error('SMS MFA setup failed', { error: errorMessage, userId: user?.claims?.sub });
     res.status(500).json({ message: 'Failed to setup SMS MFA' });
   }
 });
@@ -233,7 +260,7 @@ router.post('/setup/sms', async (req: any, res) => {
  * POST /api/auth/mfa/verify/sms
  * Verify SMS code
  */
-router.post('/verify/sms', async (req: any, res) => {
+router.post('/verify/sms', async (req: Request, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -253,8 +280,10 @@ router.post('/verify/sms', async (req: any, res) => {
     const verified = await mfaService.verifySMS(userId, code, mockSMSConfig);
 
     if (verified) {
-      req.session.mfaVerified = true;
-      req.session.mfaVerifiedAt = new Date();
+      if (req.session) {
+        req.session.mfaVerified = true;
+        req.session.mfaVerifiedAt = new Date();
+      }
 
       res.json({
         verified: true,
@@ -268,7 +297,7 @@ router.post('/verify/sms', async (req: any, res) => {
       });
     }
 
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
         message: 'Invalid input', 
@@ -276,7 +305,9 @@ router.post('/verify/sms', async (req: any, res) => {
       });
     }
 
-    logger.error('SMS verification failed', { error: error.message, userId: req.user?.claims?.sub });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const user = req.user as AuthUser | undefined;
+    logger.error('SMS verification failed', { error: errorMessage, userId: user?.claims?.sub });
     res.status(500).json({ message: 'Failed to verify SMS code' });
   }
 });
@@ -285,7 +316,7 @@ router.post('/verify/sms', async (req: any, res) => {
  * POST /api/auth/mfa/challenge
  * Request MFA challenge for high-risk operations
  */
-router.post('/challenge', async (req: any, res) => {
+router.post('/challenge', async (req: Request, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -299,7 +330,7 @@ router.post('/challenge', async (req: any, res) => {
       action: AuditAction.READ,
       resourceType: 'mfa_challenge_request',
       resourceId: userId,
-      ipAddress: req.ip,
+      ipAddress: req.ip || 'unknown',
       riskLevel: RiskLevel.MEDIUM,
       additionalContext: { 
         availableMethods,
@@ -317,8 +348,10 @@ router.post('/challenge', async (req: any, res) => {
       }
     });
 
-  } catch (error: any) {
-    logger.error('MFA challenge request failed', { error: error.message, userId: req.user?.claims?.sub });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const user = req.user as AuthUser | undefined;
+    logger.error('MFA challenge request failed', { error: errorMessage, userId: user?.claims?.sub });
     res.status(500).json({ message: 'Failed to create MFA challenge' });
   }
 });
@@ -327,7 +360,7 @@ router.post('/challenge', async (req: any, res) => {
  * POST /api/auth/mfa/backup-codes
  * Generate backup codes for user
  */
-router.post('/backup-codes', async (req: any, res) => {
+router.post('/backup-codes', async (req: Request, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -337,7 +370,7 @@ router.post('/backup-codes', async (req: any, res) => {
     const mfaSetup = await mfaService.setupTOTP(userId); // Re-using TOTP setup for backup code generation logic
 
     // Encrypt and store the backup codes (in production implementation)
-    const encryptedBackupCodes = await encryptionService.encryptSensitiveField(
+    await encryptionService.encryptSensitiveField(
       JSON.stringify(mfaSetup.backupCodes),
       DataClassification.RESTRICTED
     );
@@ -346,7 +379,7 @@ router.post('/backup-codes', async (req: any, res) => {
       action: AuditAction.CREATE,
       resourceType: 'mfa_backup_codes',
       resourceId: userId,
-      ipAddress: req.ip,
+      ipAddress: req.ip || 'unknown',
       riskLevel: RiskLevel.MEDIUM,
       additionalContext: { codesCount: mfaSetup.backupCodes.length }
     });
@@ -356,8 +389,10 @@ router.post('/backup-codes', async (req: any, res) => {
       message: 'Backup codes generated successfully. Please save them securely.'
     });
 
-  } catch (error: any) {
-    logger.error('MFA backup codes generation failed', { error: error.message, userId: req.user?.claims?.sub });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const user = req.user as AuthUser | undefined;
+    logger.error('MFA backup codes generation failed', { error: errorMessage, userId: user?.claims?.sub });
     res.status(500).json({ message: 'Failed to generate backup codes' });
   }
 });
@@ -366,7 +401,7 @@ router.post('/backup-codes', async (req: any, res) => {
  * DELETE /api/auth/mfa/disable
  * Disable MFA for user (requires current MFA verification)
  */
-router.delete('/disable', async (req: any, res) => {
+router.delete('/disable', async (req: Request, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -374,7 +409,7 @@ router.delete('/disable', async (req: any, res) => {
     }
 
     // Require MFA verification to disable MFA (security best practice)
-    if (!req.session.mfaVerified) {
+    if (!req.session?.mfaVerified) {
       return res.status(403).json({
         message: 'MFA verification required to disable MFA',
         mfaRequired: true
@@ -386,7 +421,7 @@ router.delete('/disable', async (req: any, res) => {
       action: AuditAction.DELETE,
       resourceType: 'mfa_settings',
       resourceId: userId,
-      ipAddress: req.ip,
+      ipAddress: req.ip || 'unknown',
       riskLevel: RiskLevel.HIGH,
       additionalContext: { 
         action: 'mfa_disabled',
@@ -401,8 +436,10 @@ router.delete('/disable', async (req: any, res) => {
       mfaEnabled: false
     });
 
-  } catch (error: any) {
-    logger.error('MFA disable failed', { error: error.message, userId: req.user?.claims?.sub });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const user = req.user as AuthUser | undefined;
+    logger.error('MFA disable failed', { error: errorMessage, userId: user?.claims?.sub });
     res.status(500).json({ message: 'Failed to disable MFA' });
   }
 });

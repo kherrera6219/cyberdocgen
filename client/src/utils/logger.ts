@@ -3,12 +3,14 @@
  * Provides structured logging with environment-aware output
  */
 
+/* eslint-env node, browser */
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 class ClientLogger {
-  private isDevelopment = import.meta.env.DEV || process.env.NODE_ENV !== 'production';
+  private isDevelopment = import.meta.env.DEV || (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production');
 
-  private log(level: LogLevel, message: string, data?: any) {
+  private log(level: LogLevel, message: string, data?: Record<string, unknown> | unknown) {
     // In production, only log warnings and errors
     if (!this.isDevelopment && (level === 'debug' || level === 'info')) {
       return;
@@ -19,33 +21,49 @@ class ClientLogger {
 
     switch (level) {
       case 'error':
-        data ? console.error(prefix, message, data) : console.error(prefix, message);
+        if (data) {
+          console.error(prefix, message, data);
+        } else {
+          console.error(prefix, message);
+        }
         break;
       case 'warn':
-        data ? console.warn(prefix, message, data) : console.warn(prefix, message);
+        if (data) {
+          console.warn(prefix, message, data);
+        } else {
+          console.warn(prefix, message);
+        }
         break;
       case 'info':
-        data ? console.info(prefix, message, data) : console.info(prefix, message);
+        if (data) {
+          console.info(prefix, message, data);
+        } else {
+          console.info(prefix, message);
+        }
         break;
       case 'debug':
-        data ? console.debug(prefix, message, data) : console.debug(prefix, message);
+        if (data) {
+          console.debug(prefix, message, data);
+        } else {
+          console.debug(prefix, message);
+        }
         break;
     }
   }
 
-  debug(message: string, data?: any) {
+  debug(message: string, data?: Record<string, unknown> | unknown) {
     this.log('debug', message, data);
   }
 
-  info(message: string, data?: any) {
+  info(message: string, data?: Record<string, unknown> | unknown) {
     this.log('info', message, data);
   }
 
-  warn(message: string, data?: any) {
+  warn(message: string, data?: Record<string, unknown> | unknown) {
     this.log('warn', message, data);
   }
 
-  error(message: string, data?: any) {
+  error(message: string, data?: Record<string, unknown> | unknown) {
     this.log('error', message, data);
   }
 }

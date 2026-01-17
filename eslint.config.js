@@ -14,8 +14,12 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['./tsconfig.json'],
+        project: ['./tsconfig.eslint.json'],
         tsconfigRootDir: process.cwd(),
+      },
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
       },
     },
     plugins: {
@@ -41,6 +45,29 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', '.cache/**', '.local/**', '.upm/**'],
+    ignores: ['dist/**', 'node_modules/**', '.cache/**', '.local/**', '.upm/**', 'development-archive/**', 'client/public/sw.js'],
+  },
+  {
+    files: ['**/tests/**', '**/*.test.ts', '**/*.test.tsx'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        vi: 'readonly',
+        test: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      'security/detect-object-injection': 'off',
+      'security/detect-non-literal-regexp': 'off',
+      'security/detect-unsafe-regex': 'off',
+      'no-undef': 'off',
+    },
   },
 ];

@@ -68,12 +68,13 @@ class DataRetentionService {
       logger.info("Data retention policy created", { policyId: policy.id });
 
       return policy as DataRetentionPolicy;
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to create data retention policy", {
-        error: error.message,
+        error: errorMessage,
         input,
       });
-      throw new Error(`Failed to create data retention policy: ${error.message}`);
+      throw new Error(`Failed to create data retention policy: ${errorMessage}`);
     }
   }
 
@@ -88,12 +89,13 @@ class DataRetentionService {
         .where(eq(dataRetentionPolicies.organizationId, organizationId));
 
       return policies as DataRetentionPolicy[];
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to fetch retention policies", {
-        error: error.message,
+        error: errorMessage,
         organizationId,
       });
-      throw new Error(`Failed to fetch retention policies: ${error.message}`);
+      throw new Error(`Failed to fetch retention policies: ${errorMessage}`);
     }
   }
 
@@ -113,12 +115,13 @@ class DataRetentionService {
         );
 
       return policies as DataRetentionPolicy[];
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to fetch active retention policies", {
-        error: error.message,
+        error: errorMessage,
         organizationId,
       });
-      throw new Error(`Failed to fetch active retention policies: ${error.message}`);
+      throw new Error(`Failed to fetch active retention policies: ${errorMessage}`);
     }
   }
 
@@ -143,9 +146,10 @@ class DataRetentionService {
         .limit(1);
 
       return (policy as DataRetentionPolicy) || null;
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to fetch retention policy for data type", {
-        error: error.message,
+        error: errorMessage,
         organizationId,
         dataType,
       });
@@ -180,9 +184,10 @@ class DataRetentionService {
         policy,
         daysRemaining: Math.max(0, daysRemaining),
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to check retention status", {
-        error: error.message,
+        error: errorMessage,
         organizationId,
         dataType,
       });
@@ -220,10 +225,11 @@ class DataRetentionService {
             .update(dataRetentionPolicies)
             .set({ lastEnforcedAt: new Date(), updatedAt: new Date() })
             .where(eq(dataRetentionPolicies.id, policy.id));
-        } catch (error: any) {
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           errorCount++;
           logger.error("Failed to enforce retention policy", {
-            error: error.message,
+            error: errorMessage,
             policyId: policy.id,
           });
         }
@@ -241,12 +247,13 @@ class DataRetentionService {
         deleted: deletedCount,
         errors: errorCount,
       };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to enforce retention policies", {
-        error: error.message,
+        error: errorMessage,
         organizationId,
       });
-      throw new Error(`Failed to enforce retention policies: ${error.message}`);
+      throw new Error(`Failed to enforce retention policies: ${errorMessage}`);
     }
   }
 
@@ -271,7 +278,7 @@ class DataRetentionService {
     // Implement data cleanup based on dataType
     try {
       switch (policy.dataType.toLowerCase()) {
-        case 'documents':
+        case 'documents': {
           // Delete or archive old documents
           const oldDocuments = await db
             .select()
@@ -284,7 +291,7 @@ class DataRetentionService {
             );
 
           if (policy.deleteAfterExpiry) {
-            const deleteResult = await db
+            await db
               .delete(documents)
               .where(
                 and(
@@ -298,8 +305,9 @@ class DataRetentionService {
             archived = oldDocuments.length;
           }
           break;
+        }
 
-        case 'ai_guardrails_logs':
+        case 'ai_guardrails_logs': {
           // Clean up old AI guardrail logs
           const oldGuardrailLogs = await db
             .select()
@@ -325,8 +333,9 @@ class DataRetentionService {
             archived = oldGuardrailLogs.length;
           }
           break;
+        }
 
-        case 'audit_logs':
+        case 'audit_logs': {
           // Clean up old audit logs
           const oldAuditLogs = await db
             .select()
@@ -352,8 +361,9 @@ class DataRetentionService {
             archived = oldAuditLogs.length;
           }
           break;
+        }
 
-        case 'cloud_files':
+        case 'cloud_files': {
           // Clean up old cloud files
           const oldCloudFiles = await db
             .select()
@@ -379,8 +389,9 @@ class DataRetentionService {
             archived = oldCloudFiles.length;
           }
           break;
+        }
 
-        case 'document_versions':
+        case 'document_versions': {
           // Clean up old document versions (keep only recent versions)
           const oldVersions = await db
             .select()
@@ -396,6 +407,7 @@ class DataRetentionService {
             archived = oldVersions.length;
           }
           break;
+        }
 
         default:
           logger.warn("Unknown data type for retention policy", {
@@ -413,9 +425,10 @@ class DataRetentionService {
       });
 
       return { archived, deleted };
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to enforce retention policy", {
-        error: error.message,
+        error: errorMessage,
         policyId: policy.id,
         dataType: policy.dataType
       });
@@ -437,13 +450,14 @@ class DataRetentionService {
         .where(eq(dataRetentionPolicies.id, policyId));
 
       logger.info("Data retention policy status updated", { policyId, status });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to update policy status", {
-        error: error.message,
+        error: errorMessage,
         policyId,
         status,
       });
-      throw new Error(`Failed to update policy status: ${error.message}`);
+      throw new Error(`Failed to update policy status: ${errorMessage}`);
     }
   }
 
@@ -456,12 +470,13 @@ class DataRetentionService {
       await this.updatePolicyStatus(policyId, "inactive");
 
       logger.info("Data retention policy deactivated", { policyId });
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error("Failed to delete policy", {
-        error: error.message,
+        error: errorMessage,
         policyId,
       });
-      throw new Error(`Failed to delete policy: ${error.message}`);
+      throw new Error(`Failed to delete policy: ${errorMessage}`);
     }
   }
 }
