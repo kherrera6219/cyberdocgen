@@ -289,8 +289,8 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   try {
     // MVP Development Mode: Auto-authenticate as admin user
     // This bypasses login for faster development iteration
-    // SECURITY: This is ONLY enabled when NODE_ENV !== 'production'
-    if (process.env.NODE_ENV !== 'production') {
+    // SECURITY: This is ONLY enabled in development mode, NOT in test or production
+    if (process.env.NODE_ENV === 'development') {
       const session = req.session as any;
       
       // If no session userId, set up dev admin user
