@@ -42,7 +42,7 @@
 
 **December 24, 2025** - Complete codebase documentation and duplicate code analysis completed:
 - ✅ [Comprehensive Codebase Documentation](docs/COMPREHENSIVE_CODEBASE_DOCUMENTATION.md) - Complete analysis of all components, services, and architecture
-- ⚠️ [Duplicate Code Report](DUPLICATE_CODE_REPORT.md) - Identified 5,000-7,000+ lines of duplicate code with refactoring recommendations
+- ⚠️ [Duplicate Code Report](development-archive/phase-5-wrap-up/DUPLICATE_CODE_REPORT.md) - Identified 5,000-7,000+ lines of duplicate code with refactoring recommendations
 
 ## Overview
 
@@ -448,7 +448,7 @@ This application has:
 - 🎯 OpenTelemetry observability integration
 - 🎯 Advanced PWA features (background sync, push notifications)
 
-See [Phase 5 Final Summary](PHASE_5_FINAL_SUMMARY.md) for detailed completion report.
+See [Phase 5 Final Summary](development-archive/phase-5-wrap-up/PHASE_5_FINAL_SUMMARY.md) for detailed completion report.
 
 ### Recent Updates (December 2025)
 

@@ -397,7 +397,7 @@ All Phase 1 critical items have been completed (December 19, 2025):
 
 **Phase 5 Status:** ✅ **COMPLETE & PRODUCTION READY**
 
-See [Phase 5 Final Summary](../PHASE_5_FINAL_SUMMARY.md) for detailed completion report.
+See [Phase 5 Final Summary](../development-archive/phase-5-wrap-up/PHASE_5_FINAL_SUMMARY.md) for detailed completion report.
 
 ---
 
