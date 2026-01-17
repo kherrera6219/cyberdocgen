@@ -37,11 +37,41 @@ import {
 } from '../validation/requestSchemas';
 import { analyzeImage } from '../services/geminiVision';
 
+/**
+ * AI Routes Module
+ *
+ * This file contains 24 AI-related endpoints organized into the following categories:
+ * - Model Management (1 route)
+ * - Quality Analysis (2 routes)
+ * - Document Generation (3 routes)
+ * - Document Analysis (2 routes)
+ * - Chat Interface (3 routes)
+ * - Risk Assessment (2 routes)
+ * - Quality Scoring (2 routes)
+ * - Industry Data (2 routes)
+ * - Fine-Tuning (2 routes)
+ * - Vision/Multimodal (2 routes)
+ * - Statistics & Monitoring (3 routes)
+ *
+ * TODO: Consider refactoring into smaller feature-specific modules:
+ * - ai/models.ts, ai/analysis.ts, ai/generation.ts, ai/chat.ts,
+ * - ai/risk.ts, ai/vision.ts, ai/statistics.ts
+ * See REFACTORING_RECOMMENDATIONS.md for details.
+ */
 export function registerAIRoutes(router: Router) {
+
+  // ============================================================================
+  // MODEL MANAGEMENT
+  // ============================================================================
+
   router.get("/models", isAuthenticated, asyncHandler(async (req, res) => {
     const models = aiOrchestrator.getAvailableModels();
     res.json({ models });
   }));
+
+  // ============================================================================
+  // QUALITY ANALYSIS
+  // ============================================================================
 
   router.post("/analyze-quality", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(analyzeQualitySchema), asyncHandler(async (req, res) => {
     const { content, framework } = req.body;
@@ -97,6 +127,10 @@ export function registerAIRoutes(router: Router) {
 
     res.json(insights);
   }));
+
+  // ============================================================================
+  // DOCUMENT GENERATION
+  // ============================================================================
 
   router.post('/generate-compliance-docs', isAuthenticated, generationLimiter, validateAIRequestSize, validateBody(generateComplianceDocsSchema), asyncHandler(async (req, res) => {
     const { companyInfo, frameworks, soc2Options, fedrampOptions } = req.body;
@@ -283,6 +317,10 @@ export function registerAIRoutes(router: Router) {
     res.json(extractedProfile);
   }));
 
+  // ============================================================================
+  // CHAT INTERFACE
+  // ============================================================================
+
   router.post("/chat", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(chatMessageSchema), asyncHandler(async (req, res) => {
     const { message, framework, sessionId } = req.body;
 
@@ -313,6 +351,10 @@ export function registerAIRoutes(router: Router) {
     const suggestions = complianceChatbot.getSuggestedQuestions(framework);
     res.json(suggestions);
   }));
+
+  // ============================================================================
+  // RISK ASSESSMENT
+  // ============================================================================
 
   router.post("/risk-assessment", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(riskAssessmentSchema), asyncHandler(async (req, res) => {
     const { frameworks, includeDocuments } = req.body;
@@ -370,6 +412,10 @@ export function registerAIRoutes(router: Router) {
 
     res.json(threatAnalysis);
   }));
+
+  // ============================================================================
+  // QUALITY SCORING
+  // ============================================================================
 
   router.post("/quality-score", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(qualityScoreSchema), asyncHandler(async (req, res) => {
     const { content, title, framework, documentType } = req.body;
@@ -449,6 +495,10 @@ export function registerAIRoutes(router: Router) {
     
     res.json(alignment);
   }));
+
+  // ============================================================================
+  // INDUSTRY DATA
+  // ============================================================================
 
   router.get("/industries", isAuthenticated, asyncHandler(async (req, res) => {
     const { AIFineTuningService } = await import('../services/aiFineTuningService');

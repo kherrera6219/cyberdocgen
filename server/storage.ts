@@ -84,6 +84,34 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
+/**
+ * Storage Layer Interface
+ *
+ * This file contains the complete data access layer with 192 methods across multiple domains:
+ * - User Management (15 methods)
+ * - Organization Management (12 methods)
+ * - Company Profiles (8 methods)
+ * - Documents (20 methods)
+ * - Generation Jobs (8 methods)
+ * - Gap Analysis (15 methods)
+ * - Audit Trail (10 methods)
+ * - Document Approvals (8 methods)
+ * - Roles & Permissions (12 methods)
+ * - Framework Control Statuses (15 methods)
+ * - Notifications (12 methods)
+ * - User Invitations (8 methods)
+ * - User Sessions (10 methods)
+ * - Contact Messages (5 methods)
+ * - Utility Methods (34 methods)
+ *
+ * TODO: Consider refactoring into repository pattern:
+ * - repositories/userRepository.ts
+ * - repositories/organizationRepository.ts
+ * - repositories/documentRepository.ts
+ * - repositories/auditRepository.ts
+ * - etc.
+ * See REFACTORING_RECOMMENDATIONS.md for details.
+ */
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
