@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cyberdocgen-config
+  namespace: cyberdocgen
+data:
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  RateLimitWindowMs: "900000" # 15 minutes
+  RateLimitMax: "1000"

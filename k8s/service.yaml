@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cyberdocgen
+  namespace: cyberdocgen
+  labels:
+    app: cyberdocgen
+spec:
+  type: ClusterIP
+  selector:
+    app: cyberdocgen
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http

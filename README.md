@@ -392,6 +392,36 @@ NODE_ENV=production npm start
 
 See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
 
+## 🚀 Multi-Cloud Deployment
+
+CyberDocGen supports deployment across all major cloud providers and container platforms.
+
+### 🐳 Container Deployment (Docker)
+```bash
+# Production Build
+docker build -t cyberdocgen .
+docker run -p 5000:5000 cyberdocgen
+
+# Local Development
+docker compose up
+```
+
+### ☸️ Kubernetes (K8s)
+Complete manifests available in `k8s/` directory.
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+```
+
+### ☁️ Cloud Providers
+- **AWS**: Use `aws/buildspec.yml` with AWS CodeBuild/ECS
+- **Google Cloud**: Use `gcp/cloudbuild.yaml` with Cloud Build/Run
+- **Azure**: Use `azure/pipeline.yaml` with Azure DevOps/AKS
+
+### 💻 Development Environments
+- **GitHub Codespaces**: Pre-configured via `.devcontainer/`
+- **VS Code Remote**: Full container support included
+
 ## 📈 Production Status
 
 ✅ **PRODUCTION READY - Version 2.0.1**
