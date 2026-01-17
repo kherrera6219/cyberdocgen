@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">29.16% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>7/24</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">29.16% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>7/24</span>
+                <span class='fraction'>0/24</span>
             </div>
         
             
@@ -112,39 +112,20 @@
 <a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -153,12 +134,31 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// AI Industry Routes
 // Industry-specific configuration and data
 import { Router, Response, NextFunction } from 'express';
-import {
+<span class="cstat-no" title="statement not covered" >import {</span>
   isAuthenticated,
   secureHandler,
   requireOrganization,
@@ -166,12 +166,12 @@ import {
   NotFoundError
 } from './shared';
 &nbsp;
-export function registerIndustryRoutes(router: Router) {
+<span class="cstat-no" title="statement not covered" >export function registerIndustryRoutes(router: Router) {</span>
   /**
    * GET /api/ai/industries
    * Get available industry configurations
    */
-  router.get("/industries", isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, res: Response, _next: NextFunction) =&gt; {
+<span class="cstat-no" title="statement not covered" >  router.get("/industries", isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, res: Response, _next: NextFunction) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const { AIFineTuningService } = await import('../../services/aiFineTuningService');</span>
 <span class="cstat-no" title="statement not covered" >    const service = new AIFineTuningService();</span>
 <span class="cstat-no" title="statement not covered" >    const configurations = service.getIndustryConfigurations();</span>
@@ -180,13 +180,13 @@ export function registerIndustryRoutes(router: Router) {
 <span class="cstat-no" title="statement not covered" >      success: true, </span>
 <span class="cstat-no" title="statement not covered" >      data: { configurations } </span>
 <span class="cstat-no" title="statement not covered" >    });</span>
-  }));
+<span class="cstat-no" title="statement not covered" >  }));</span>
 &nbsp;
   /**
    * GET /api/ai/industries/:industryId
    * Get specific industry configuration
    */
-  router.get("/industries/:industryId", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) =&gt; {
+<span class="cstat-no" title="statement not covered" >  router.get("/industries/:industryId", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    const { AIFineTuningService } = await import('../../services/aiFineTuningService');</span>
 <span class="cstat-no" title="statement not covered" >    const service = new AIFineTuningService();</span>
 <span class="cstat-no" title="statement not covered" >    const configuration = service.getIndustryConfiguration(req.params.industryId);</span>
@@ -199,8 +199,8 @@ export function registerIndustryRoutes(router: Router) {
 <span class="cstat-no" title="statement not covered" >      success: true, </span>
 <span class="cstat-no" title="statement not covered" >      data: { configuration } </span>
 <span class="cstat-no" title="statement not covered" >    });</span>
-  }));
-}
+<span class="cstat-no" title="statement not covered" >  }));</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -208,7 +208,7 @@ export function registerIndustryRoutes(router: Router) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-17T21:42:19.687Z
+                at 2026-01-17T22:23:46.314Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
