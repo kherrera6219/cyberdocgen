@@ -9,3 +9,5 @@ vite.config.ts.*
 .env
 .env.local
 .env.production
+*storybook.log
+storybook-static

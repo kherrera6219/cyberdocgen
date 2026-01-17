@@ -1,3 +1,8 @@
+import { initTelemetry } from "./monitoring/telemetry";
+
+// Initialize OpenTelemetry
+initTelemetry();
+
 import express from "express";
 import crypto from "crypto";
 import { registerRoutes } from "./routes";
