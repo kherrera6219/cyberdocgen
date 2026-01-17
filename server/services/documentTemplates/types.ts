@@ -49,12 +49,13 @@ export interface DocumentTemplate {
     | 'minutes'
     | 'worksheet'
     | 'reference'
-    | 'matrix';
+    | 'matrix'
+    | 'workbook';
   required: boolean;
   templateContent: string;
   templateVariables: {
     [key: string]: {
-      type: 'text' | 'number' | 'date' | 'select';
+      type: 'text' | 'number' | 'date' | 'select' | 'multiselect';
       label: string;
       required: boolean;
       options?: string[];

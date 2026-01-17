@@ -370,7 +370,7 @@ Based on the analysis above, is a PIA required?
       notice_format: { type: 'text', label: 'Notice Format', required: false },
       obtains_consent: { type: 'select', label: 'Consent Obtained?', required: true, options: ['Yes', 'No'] },
       consent_mechanism: { type: 'text', label: 'Consent Mechanism', required: false },
-      opt-out_available: { type: 'select', label: 'Opt-out Available?', required: true, options: ['Yes', 'No'] },
+      opt_out_available: { type: 'select', label: 'Opt-out Available?', required: true, options: ['Yes', 'No'] },
       individual_access: { type: 'select', label: 'Access Provided?', required: true, options: ['Yes', 'No'] },
       access_method: { type: 'text', label: 'Access Method', required: false },
       amendment_rights: { type: 'select', label: 'Amendment Rights?', required: true, options: ['Yes', 'No'] },

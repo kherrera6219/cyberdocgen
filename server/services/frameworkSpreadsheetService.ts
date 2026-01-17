@@ -6,7 +6,7 @@ import {
   FedRAMPLowTemplates,
   FedRAMPModerateTemplates,
   FedRAMPHighTemplates,
-  NIST80053Templates,
+  NISTTemplates,
   type DocumentTemplate
 } from "./documentTemplates";
 import { aiOrchestrator } from "./aiOrchestrator";
@@ -17,7 +17,7 @@ export interface SpreadsheetField {
   fieldName: string;
   variableKey: string;
   label: string;
-  type: 'text' | 'number' | 'date' | 'select';
+  type: 'text' | 'number' | 'date' | 'select' | 'multiselect';
   currentValue: string;
   status: 'empty' | 'mapped' | 'ai_filled' | 'manual';
   required: boolean;
@@ -48,8 +48,8 @@ const FRAMEWORK_TEMPLATES: Record<string, DocumentTemplate[]> = {
   'FedRAMP-Low': FedRAMPLowTemplates,
   'FedRAMP-Moderate': FedRAMPModerateTemplates,
   'FedRAMP-High': FedRAMPHighTemplates,
-  'NIST': NIST80053Templates,
-  'NIST-800-53': NIST80053Templates,
+  'NIST': NISTTemplates,
+  'NIST-800-53': NISTTemplates,
 };
 
 /**
@@ -230,7 +230,7 @@ function templateToSpreadsheetFields(
 ): SpreadsheetField[] {
   const fields: SpreadsheetField[] = [];
 
-  for (const [key, variable] of Object.entries(template.templateVariables)) {
+  for (const [key, variable] of Object.entries(template.templateVariables || {})) {
     const mappedValue = mappedValues[key] || '';
     
     fields.push({

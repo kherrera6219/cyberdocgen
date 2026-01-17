@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-export const templateVariableTypes = ['text', 'number', 'date', 'select'] as const;
+export const templateVariableTypes = ['text', 'number', 'date', 'select', 'multiselect'] as const;
 
 export const documentTypeValues = [
   'policy', 'procedure', 'plan', 'assessment', 'standard', 'control', 
   'framework', 'training', 'report', 'poster', 'appointment', 
-  'specification', 'checklist', 'statement', 'memorandum'
+  'specification', 'checklist', 'statement', 'memorandum', 'workbook'
 ] as const;
 
 export const frameworkValues = [
@@ -44,7 +44,7 @@ export type DocumentTemplateSchema = z.infer<typeof documentTemplateSchema>;
 export type TemplateVariableConfig = z.infer<typeof templateVariableConfigSchema>;
 
 export interface SimpleTemplateVariableConfig {
-  type: 'text' | 'number' | 'date' | 'select';
+  type: 'text' | 'number' | 'date' | 'select' | 'multiselect';
   label: string;
   required: boolean;
   options?: string[];
@@ -76,6 +76,17 @@ export function createDynamicVariableSchema(
           fieldSchema = z.enum(config.options as [string, ...string[]]);
         } else {
           fieldSchema = z.string().min(1);
+        }
+        break;
+
+      case 'multiselect':
+        if (config.options && config.options.length > 0) {
+          fieldSchema = z.union([
+            z.array(z.enum(config.options as [string, ...string[]])),
+            z.array(z.string())
+          ]);
+        } else {
+          fieldSchema = z.array(z.string());
         }
         break;
 
