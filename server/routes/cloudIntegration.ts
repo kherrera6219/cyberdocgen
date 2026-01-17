@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
+import { asyncHandler, AppError } from '../utils/routeHelpers';
 
 const router = Router();
 
@@ -40,126 +41,103 @@ const pdfSecuritySchema = z.object({
 /**
  * Initiate Google Drive OAuth (placeholder)
  */
-router.get('/auth/google', isAuthenticated, async (req: any, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'Google OAuth integration requires admin configuration. Please contact your administrator to set up Google Drive credentials.',
-    requiresAdmin: true,
-  });
-});
+router.get('/auth/google', isAuthenticated, asyncHandler(async (req, res) => {
+  throw new AppError(
+    'Google OAuth integration requires admin configuration. Please contact your administrator to set up Google Drive credentials.',
+    501,
+    'NOT_IMPLEMENTED',
+    { requiresAdmin: true }
+  );
+}));
 
 /**
  * Google Drive OAuth callback (placeholder)
  */
-router.get('/auth/google/callback', (req, res) => {
+router.get('/auth/google/callback', asyncHandler(async (req, res) => {
   res.redirect('/cloud-integrations?error=not_configured');
-});
+}));
 
 /**
  * Initiate Microsoft OneDrive OAuth (placeholder)
  */
-router.get('/auth/microsoft', isAuthenticated, async (req: any, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'Microsoft OAuth integration requires admin configuration. Please contact your administrator to set up OneDrive credentials.',
-    requiresAdmin: true,
-  });
-});
+router.get('/auth/microsoft', isAuthenticated, asyncHandler(async (req, res) => {
+  throw new AppError(
+    'Microsoft OAuth integration requires admin configuration. Please contact your administrator to set up OneDrive credentials.',
+    501,
+    'NOT_IMPLEMENTED',
+    { requiresAdmin: true }
+  );
+}));
 
 /**
  * Microsoft OneDrive OAuth callback (placeholder)
  */
-router.get('/auth/microsoft/callback', (req, res) => {
+router.get('/auth/microsoft/callback', asyncHandler(async (req, res) => {
   res.redirect('/cloud-integrations?error=not_configured');
-});
+}));
 
 /**
  * Get user's cloud integrations
  */
-router.get('/integrations', isAuthenticated, async (req: any, res) => {
-  try {
-    // Return empty integrations for now
-    res.json({
-      success: true,
-      integrations: [],
-      note: 'Cloud integrations require admin configuration of OAuth credentials',
-    });
-  } catch (error: any) {
-    logger.error('Failed to get integrations', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve integrations',
-    });
-  }
-});
+router.get('/integrations', isAuthenticated, asyncHandler(async (req, res) => {
+  // Return empty integrations for now
+  res.json({
+    success: true,
+    integrations: [],
+    note: 'Cloud integrations require admin configuration of OAuth credentials',
+  });
+}));
 
 /**
  * Sync files from cloud provider
  */
-router.post('/sync', isAuthenticated, async (req: any, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'File sync requires active cloud integrations. Please configure OAuth credentials first.',
-  });
-});
+router.post('/sync', isAuthenticated, asyncHandler(async (req, res) => {
+  throw new AppError(
+    'File sync requires active cloud integrations. Please configure OAuth credentials first.',
+    501
+  );
+}));
 
 /**
  * Get organization files
  */
-router.get('/files', isAuthenticated, async (req: any, res) => {
-  try {
-    res.json({
-      success: true,
-      files: [],
-      note: 'No files available until cloud integrations are configured',
-    });
-  } catch (error: any) {
-    logger.error('Failed to get files', { error: error.message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve files',
-    });
-  }
-});
+router.get('/files', isAuthenticated, asyncHandler(async (req, res) => {
+  res.json({
+    success: true,
+    files: [],
+    note: 'No files available until cloud integrations are configured',
+  });
+}));
 
 /**
  * Apply PDF security settings (placeholder)
  */
-router.post('/pdf/secure', isAuthenticated, async (req: any, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'PDF security features require additional package installation. Contact your administrator.',
-  });
-});
+router.post('/pdf/secure', isAuthenticated, asyncHandler(async (req, res) => {
+  throw new AppError(
+    'PDF security features require additional package installation. Contact your administrator.',
+    501
+  );
+}));
 
 /**
  * Get PDF security settings (placeholder)
  */
-router.get('/pdf/security/:fileId', isAuthenticated, async (req, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'PDF security features are not yet configured',
-  });
-});
+router.get('/pdf/security/:fileId', isAuthenticated, asyncHandler(async (req, res) => {
+  throw new AppError('PDF security features are not yet configured', 501);
+}));
 
 /**
  * Delete cloud integration (placeholder)
  */
-router.delete('/integrations/:integrationId', isAuthenticated, async (req: any, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'Cloud integration management requires full setup',
-  });
-});
+router.delete('/integrations/:integrationId', isAuthenticated, asyncHandler(async (req, res) => {
+  throw new AppError('Cloud integration management requires full setup', 501);
+}));
 
 /**
  * Remove PDF security (placeholder)
  */
-router.delete('/pdf/security/:fileId', isAuthenticated, async (req: any, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'PDF security features are not yet configured',
-  });
-});
+router.delete('/pdf/security/:fileId', isAuthenticated, asyncHandler(async (req, res) => {
+  throw new AppError('PDF security features are not yet configured', 501);
+}));
 
 export default router;
