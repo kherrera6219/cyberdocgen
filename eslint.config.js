@@ -15,6 +15,7 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
         project: ['./tsconfig.eslint.json'],
+        // eslint-disable-next-line no-undef
         tsconfigRootDir: process.cwd(),
       },
       globals: {
@@ -22,6 +23,7 @@ export default [
         console: 'readonly',
       },
     },
+
     plugins: {
       '@typescript-eslint': typescript,
       'react-hooks': reactHooks,

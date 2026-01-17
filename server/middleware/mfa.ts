@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { mfaService } from '../services/mfaService';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { logger } from '../utils/logger';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       mfaRequired?: boolean;
@@ -12,15 +12,24 @@ declare global {
   }
 }
 
+interface AuthUser {
+  claims?: {
+    sub: string;
+  };
+  id?: string;
+}
+
 /**
  * Middleware to check if MFA is required for the current user
  */
-export function requireMFA(req: Request & any, res: Response, next: NextFunction) {
+export function requireMFA(req: Request, res: Response, next: NextFunction) {
   try {
     // Get userId from either OAuth claims, session userId (enterprise/temp), or serialized user
-    const userId = req.user?.claims?.sub || req.session?.userId || req.user?.id;
+    // Cast to expected types safely
+    const user = req.user as AuthUser | undefined;
+    const userId = user?.claims?.sub || req.session?.userId || user?.id;
     const userAgent = req.get('User-Agent') || 'unknown';
-    const ipAddress = req.ip;
+    const ipAddress = req.ip || 'unknown';
 
     // Bypass MFA for temporary sessions - they are demo accounts
     if (req.session?.isTemporary || (typeof userId === 'string' && userId.startsWith('temp-'))) {
@@ -73,7 +82,7 @@ export function requireMFA(req: Request & any, res: Response, next: NextFunction
         // This part would need more sophisticated logic (e.g., checking user risk score)
         // For now, let's assume MFA is required for medium routes if not verified recently
         const mfaTimeout = 30 * 60 * 1000; // 30 minutes
-        const mfaVerifiedAt = req.session.mfaVerifiedAt;
+        const mfaVerifiedAt = req.session?.mfaVerifiedAt;
         if (!mfaVerifiedAt || new Date().getTime() - new Date(mfaVerifiedAt).getTime() > mfaTimeout) {
           requiresMFA = true;
         }
@@ -82,7 +91,7 @@ export function requireMFA(req: Request & any, res: Response, next: NextFunction
 
     req.mfaRequired = requiresMFA;
 
-    if (requiresMFA && !req.session.mfaVerified) {
+    if (requiresMFA && !req.session?.mfaVerified) {
       // Log MFA requirement
       auditService.logAuditEvent({
         action: AuditAction.READ,
@@ -107,8 +116,9 @@ export function requireMFA(req: Request & any, res: Response, next: NextFunction
 
     next();
 
-  } catch (error: any) {
-    logger.error('MFA middleware error', { error: error.message });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('MFA middleware error', { error: errorMessage });
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -116,10 +126,11 @@ export function requireMFA(req: Request & any, res: Response, next: NextFunction
 /**
  * Middleware to verify MFA token from request headers
  */
-export function verifyMFA(req: Request & any, res: Response, next: NextFunction) {
+export function verifyMFA(req: Request, res: Response, next: NextFunction) {
   try {
     const mfaToken = req.headers['x-mfa-token'] as string;
-    const userId = req.user?.claims?.sub;
+    const user = req.user as AuthUser | undefined;
+    const userId = user?.claims?.sub;
 
     if (!userId) {
       return res.status(401).json({ message: 'Authentication required' });
@@ -140,15 +151,17 @@ export function verifyMFA(req: Request & any, res: Response, next: NextFunction)
     // In a full implementation, verify the MFA token here
     // For now, mark as verified if token is present
     req.mfaVerified = true;
-    req.session.mfaVerified = true;
-    req.session.mfaVerifiedAt = new Date();
+    if (req.session) {
+      req.session.mfaVerified = true;
+      req.session.mfaVerifiedAt = new Date();
+    }
 
     // Log successful MFA verification
     auditService.logAuditEvent({
       action: AuditAction.READ,
       resourceType: 'mfa_verification',
       resourceId: userId,
-      ipAddress: req.ip,
+      ipAddress: req.ip || 'unknown',
       riskLevel: RiskLevel.LOW,
       additionalContext: {
         tokenProvided: true,
@@ -159,8 +172,9 @@ export function verifyMFA(req: Request & any, res: Response, next: NextFunction)
 
     next();
 
-  } catch (error: any) {
-    logger.error('MFA verification error', { error: error.message });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('MFA verification error', { error: errorMessage });
     res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -168,26 +182,30 @@ export function verifyMFA(req: Request & any, res: Response, next: NextFunction)
 /**
  * Middleware to enforce session-based MFA verification timeout
  */
-export function enforceMFATimeout(req: Request & any, res: Response, next: NextFunction) {
+export function enforceMFATimeout(req: Request, res: Response, next: NextFunction) {
   try {
     const mfaTimeout = 30 * 60 * 1000; // 30 minutes
-    const mfaVerifiedAt = req.session.mfaVerifiedAt;
+    const mfaVerifiedAt = req.session?.mfaVerifiedAt;
 
     // Only enforce timeout if MFA was actually required and verified
-    if (req.mfaRequired && req.session.mfaVerified && mfaVerifiedAt) {
+    if (req.mfaRequired && req.session?.mfaVerified && mfaVerifiedAt) {
       const now = new Date();
       const verifiedAt = new Date(mfaVerifiedAt);
 
       if (now.getTime() - verifiedAt.getTime() > mfaTimeout) {
         // MFA verification expired
-        req.session.mfaVerified = false;
-        req.session.mfaVerifiedAt = null;
+        if (req.session) {
+          req.session.mfaVerified = false;
+          req.session.mfaVerifiedAt = undefined;
+        }
+
+        const user = req.user as AuthUser | undefined;
 
         auditService.logAuditEvent({
           action: AuditAction.UPDATE,
           resourceType: 'mfa_session',
-          resourceId: req.user?.claims?.sub,
-          ipAddress: req.ip,
+          resourceId: user?.claims?.sub || 'unknown',
+          ipAddress: req.ip || 'unknown',
           riskLevel: RiskLevel.MEDIUM,
           additionalContext: {
             reason: 'mfa_timeout',
@@ -205,8 +223,9 @@ export function enforceMFATimeout(req: Request & any, res: Response, next: NextF
 
     next();
 
-  } catch (error: any) {
-    logger.error('MFA timeout enforcement error', { error: error.message });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('MFA timeout enforcement error', { error: errorMessage });
     next(); // Continue on error to avoid blocking legitimate requests
   }
 }

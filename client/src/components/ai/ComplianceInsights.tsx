@@ -23,7 +23,7 @@ interface ComplianceInsightsProps {
   className?: string;
 }
 
-interface ComplianceInsights {
+interface ComplianceInsightsData {
   riskScore: number;
   keyRisks: string[];
   recommendations: string[];
@@ -35,17 +35,17 @@ export function ComplianceInsights({
   framework,
   className,
 }: ComplianceInsightsProps) {
-  const [insights, setInsights] = useState<ComplianceInsights | null>(null);
+  const [insights, setInsights] = useState<ComplianceInsightsData | null>(null);
 
   const generateInsights = useMutation({
-    mutationFn: async (): Promise<ComplianceInsights> => {
+    mutationFn: async (): Promise<ComplianceInsightsData> => {
       const response = await apiRequest("/api/ai/generate-insights", {
         method: "POST", 
         body: { companyProfileId, framework }
       });
       return response;
     },
-    onSuccess: (data: ComplianceInsights) => {
+    onSuccess: (data: ComplianceInsightsData) => {
       setInsights(data);
     },
   });

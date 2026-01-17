@@ -13,10 +13,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { HelpTooltip } from "@/components/help/ContextualHelp";
-import { insertCompanyProfileSchema } from "@shared/schema";
-import type { CompanyProfile, InsertCompanyProfile } from "@shared/schema";
+import { insertCompanyProfileSchema, type CompanyProfile as CompanyProfileType, type InsertCompanyProfile } from "@shared/schema";
 import { 
-  Building, Save, Globe, Users, Briefcase, MapPin, Shield, 
+  Building, Save, Globe, Briefcase, MapPin, Shield, 
   RefreshCw, Truck, Plus, Trash2, Building2, UserCheck
 } from "lucide-react";
 import { useEffect } from "react";
@@ -24,7 +23,7 @@ import { useEffect } from "react";
 interface PersonnelFieldProps {
   title: string;
   fieldPrefix: string;
-  form: any;
+  form: any; // TODO: Type this properly with UseFormReturn
 }
 
 function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
@@ -93,7 +92,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
 export default function CompanyProfile() {
   const { toast } = useToast();
 
-  const { data: profiles = [], isLoading } = useQuery<CompanyProfile[]>({
+  const { data: profiles = [], isLoading } = useQuery<CompanyProfileType[]>({
     queryKey: ["/api/company-profiles"],
   });
 

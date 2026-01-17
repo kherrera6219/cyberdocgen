@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+
 import { 
   Eye, 
   Download, 
@@ -17,7 +17,7 @@ import {
   Filter,
   History,
   User,
-  Calendar,
+
   Activity,
   AlertCircle,
   CheckCircle,
@@ -27,20 +27,12 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import type { AuditTrail } from "@shared/schema";
+import type { AuditTrail as AuditTrailType } from "@shared/schema";
 
-interface AuditQueryParams {
-  page?: number;
-  limit?: number;
-  entityType?: string;
-  action?: string;
-  search?: string;
-  dateFrom?: string;
-  dateTo?: string;
-}
+
 
 interface AuditResponse {
-  data: AuditTrail[];
+  data: AuditTrailType[];
   pagination: {
     page: number;
     limit: number;
@@ -57,7 +49,7 @@ interface AuditStats {
 }
 
 export default function AuditTrail() {
-  const { user } = useAuth();
+  useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEntityType, setSelectedEntityType] = useState("all");
   const [selectedAction, setSelectedAction] = useState("all");
