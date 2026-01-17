@@ -69,6 +69,17 @@ describe('geminiVision', () => {
             expect(result.diagramElements?.[0].description).toBe('Component: Database Server');
         });
 
+        it('handles document analysis', async () => {
+            const mockText = 'This is extracted document text';
+            mockGenerateContent.mockResolvedValue({ text: mockText });
+
+            const result = await analyzeImage('data:image/png;base64,abc', {
+                analysisType: 'document'
+            });
+
+            expect(result.extractedText).toBe(mockText);
+        });
+
         it('throws on invalid image format', async () => {
             await expect(analyzeImage('data:invalid-format'))
                 .rejects.toThrow('Invalid base64 image format');

@@ -2,11 +2,36 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mfaService } from '../../server/services/mfaService';
 
 // Mock dependencies
-vi.mock('../db', () => ({
+vi.mock('../../server/db', () => ({
   db: {
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
+    select: vi.fn((arg) => {
+      // Handle both empty select() and select({ total: count() })
+      const result = arg ? [{ total: 0 }] : [];
+      return {
+        from: vi.fn(() => {
+          const whereChain = {
+            where: vi.fn(() => {
+              const limitResult = Promise.resolve(result);
+              limitResult.limit = vi.fn(() => Promise.resolve(result));
+              return limitResult;
+            })
+          };
+          // Make the where chain itself a thenable for getPasskeyCount
+          whereChain.where.then = (resolve: any) => resolve(result);
+          return whereChain;
+        })
+      };
+    }),
+    insert: vi.fn(() => ({
+      values: vi.fn(() => ({
+        onConflictDoUpdate: vi.fn(() => Promise.resolve())
+      }))
+    })),
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => Promise.resolve())
+      }))
+    })),
     delete: vi.fn(),
   }
 }));
@@ -41,7 +66,8 @@ vi.mock('../../server/services/encryption', () => ({
     decryptSensitiveField: vi.fn((data) => Promise.resolve(data.encryptedValue.replace('encrypted_', ''))),
   },
   DataClassification: {
-    CONFIDENTIAL: 'confidential'
+    CONFIDENTIAL: 'confidential',
+    RESTRICTED: 'restricted'
   }
 }));
 
@@ -261,7 +287,7 @@ describe('MFAService', () => {
     it('accepts valid unexpired code', async () => {
       const userId = 'user-123';
       const futureDate = new Date(Date.now() + 600000); // 10 minutes from now
-      
+
       const smsConfig = {
         enabled: true,
         phoneNumber: '+1234567890',
@@ -276,7 +302,7 @@ describe('MFAService', () => {
     it('rejects expired code', async () => {
       const userId = 'user-123';
       const pastDate = new Date(Date.now() - 1000); // 1 second ago
-      
+
       const smsConfig = {
         enabled: true,
         phoneNumber: '+1234567890',
@@ -291,7 +317,7 @@ describe('MFAService', () => {
     it('rejects incorrect code', async () => {
       const userId = 'user-123';
       const futureDate = new Date(Date.now() + 600000);
-      
+
       const smsConfig = {
         enabled: true,
         phoneNumber: '+1234567890',
@@ -301,6 +327,126 @@ describe('MFAService', () => {
 
       const isValid = await mfaService.verifySMS(userId, '999999', smsConfig);
       expect(isValid).toBe(false);
+    });
+  });
+
+  describe('getAllMFASettings', () => {
+    it('retrieves all MFA settings for a user', async () => {
+      const userId = 'user-123';
+
+      const settings = await mfaService.getAllMFASettings(userId);
+
+      expect(Array.isArray(settings)).toBe(true);
+    });
+  });
+
+  describe('getPasskeyCount', () => {
+    it('returns passkey count for user', async () => {
+      const userId = 'user-123';
+
+      const count = await mfaService.getPasskeyCount(userId);
+
+      expect(typeof count).toBe('number');
+      expect(count).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('storeTOTPSettings', () => {
+    it('stores TOTP settings for a user', async () => {
+      const userId = 'user-123';
+      const secret = 'TESTSECRET123';
+      const backupCodes = ['ABC123', 'DEF456'];
+      const qrCodeUrl = 'https://example.com/qr';
+
+      await expect(
+        mfaService.storeTOTPSettings(userId, secret, backupCodes, qrCodeUrl)
+      ).resolves.not.toThrow();
+    });
+  });
+
+  describe('getTOTPSettings', () => {
+    it('retrieves TOTP settings for a user', async () => {
+      const userId = 'user-123';
+
+      const settings = await mfaService.getTOTPSettings(userId);
+
+      // Can be null if not set up yet
+      expect(settings === null || typeof settings === 'object').toBe(true);
+    });
+  });
+
+  describe('updateBackupCodes', () => {
+    it('updates backup codes for a user', async () => {
+      const userId = 'user-123';
+      const newBackupCodes = ['XYZ789', 'UVW012'];
+
+      await expect(
+        mfaService.updateBackupCodes(userId, newBackupCodes)
+      ).resolves.not.toThrow();
+    });
+  });
+
+  describe('markTOTPVerified', () => {
+    it('marks TOTP as verified for a user', async () => {
+      const userId = 'user-123';
+
+      await expect(
+        mfaService.markTOTPVerified(userId)
+      ).resolves.not.toThrow();
+    });
+  });
+
+  describe('verifyTOTP', () => {
+    it('verifies valid TOTP token', async () => {
+      const userId = 'user-123';
+      const secret = 'TESTSECRET123';
+      const timestamp = Date.now();
+      const token = mfaService.generateTOTPToken(secret, Math.floor(timestamp / 30000));
+
+      const result = await mfaService.verifyTOTP(userId, token, secret);
+
+      expect(result).toHaveProperty('userId', userId);
+      expect(result).toHaveProperty('verified');
+      expect(result).toHaveProperty('remainingAttempts');
+      expect(result.verified).toBe(true);
+    });
+
+    it('rejects invalid TOTP token', async () => {
+      const userId = 'user-123';
+      const secret = 'TESTSECRET123';
+      const invalidToken = '000000';
+
+      const result = await mfaService.verifyTOTP(userId, invalidToken, secret);
+
+      expect(result.verified).toBe(false);
+      expect(result.remainingAttempts).toBeLessThan(3);
+    });
+  });
+
+  describe('verifyBackupCode', () => {
+    it('verifies valid backup code', async () => {
+      const userId = 'user-123';
+      const backupCodes = ['CODE123', 'CODE456', 'CODE789'];
+      const validCode = 'CODE456';
+
+      const isValid = await mfaService.verifyBackupCode(userId, validCode, backupCodes);
+
+      expect(isValid).toBe(true);
+      // Backup code should be removed after use
+      expect(backupCodes).toHaveLength(2);
+      expect(backupCodes).not.toContain(validCode);
+    });
+
+    it('rejects invalid backup code', async () => {
+      const userId = 'user-123';
+      const backupCodes = ['CODE123', 'CODE456', 'CODE789'];
+      const invalidCode = 'INVALID';
+
+      const isValid = await mfaService.verifyBackupCode(userId, invalidCode, backupCodes);
+
+      expect(isValid).toBe(false);
+      // Backup codes should remain unchanged
+      expect(backupCodes).toHaveLength(3);
     });
   });
 });
