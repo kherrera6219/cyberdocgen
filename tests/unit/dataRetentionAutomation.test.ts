@@ -109,6 +109,76 @@ describe('DataRetentionService', () => {
           expect(report.policies).toBeDefined();
           expect(report.pendingCount).toBeDefined();
           expect(report.completedLast30Days).toBeDefined();
+          expect(report.failedLast30Days).toBeDefined();
+      });
+  });
+
+  describe('request management', () => {
+      it('gets request status by ID', async () => {
+          const request = await dataRetentionService.scheduleDeletion('test_type', 'status-check', {
+              userId: 'user-status'
+          });
+
+          const status = dataRetentionService.getRequestStatus(request.id);
+          expect(status).toBeDefined();
+          expect(status?.id).toBe(request.id);
+          expect(status?.dataType).toBe('test_type');
+      });
+
+      it('lists pending requests with userId filter', async () => {
+          await dataRetentionService.scheduleDeletion('test_type', 'list-1', { userId: 'user-filter-1' });
+          await dataRetentionService.scheduleDeletion('test_type', 'list-2', { userId: 'user-filter-2' });
+
+          const filtered = dataRetentionService.listPendingRequests({ userId: 'user-filter-1' });
+          expect(filtered.length).toBeGreaterThanOrEqual(1);
+          filtered.forEach(req => {
+              expect(req.userId).toBe('user-filter-1');
+          });
+      });
+
+      it('lists pending requests with organizationId filter', async () => {
+          await dataRetentionService.scheduleDeletion('test_type', 'org-1', { 
+              userId: 'user-org',
+              organizationId: 'org-123'
+          });
+
+          const filtered = dataRetentionService.listPendingRequests({ organizationId: 'org-123' });
+          expect(filtered.length).toBeGreaterThanOrEqual(1);
+          filtered.forEach(req => {
+              expect(req.organizationId).toBe('org-123');
+          });
+      });
+
+      it('lists pending requests with status filter', async () => {
+          const request = await dataRetentionService.scheduleDeletion('test_type', 'status-filter', {
+              userId: 'user-status-filter'
+          });
+
+          const filtered = dataRetentionService.listPendingRequests({ status: 'approved' });
+          expect(filtered.length).toBeGreaterThanOrEqual(1);
+          filtered.forEach(req => {
+              expect(req.status).toBe('approved');
+          });
+      });
+
+      it('lists pending requests with multiple filters', async () => {
+          await dataRetentionService.scheduleDeletion('test_type', 'multi-filter', {
+              userId: 'user-multi',
+              organizationId: 'org-multi'
+          });
+
+          const filtered = dataRetentionService.listPendingRequests({
+              userId: 'user-multi',
+              organizationId: 'org-multi',
+              status: 'approved'
+          });
+
+          expect(filtered.length).toBeGreaterThanOrEqual(1);
+          filtered.forEach(req => {
+              expect(req.userId).toBe('user-multi');
+              expect(req.organizationId).toBe('org-multi');
+              expect(req.status).toBe('approved');
+          });
       });
   });
 });

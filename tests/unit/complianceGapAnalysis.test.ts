@@ -156,5 +156,24 @@ describe('ComplianceGapAnalysisService', () => {
       expect(result.executiveSummary.topRisks).toBeInstanceOf(Array);
       expect(result.executiveSummary.estimatedRemediationTime).toBeDefined();
     });
+
+    it('handles remediation generation errors gracefully', async () => {
+      // Mock successful gap analysis but failing remediation for specific controls
+      (aiOrchestrator.generateContent as any)
+        .mockResolvedValueOnce({ result: { content: JSON.stringify(mockFindings) } })
+        .mockRejectedValueOnce(new Error('Remediation generation failed'));
+
+      const result = await complianceGapAnalysisService.analyzeComplianceGaps(
+        'org-1',
+        mockProfile,
+        { framework: 'iso27001', includeMaturityAssessment: false }
+      );
+
+      // Should still return results even if remediation fails
+      expect(result.report).toBeDefined();
+      expect(result.findings).toHaveLength(2);
+      // Recommendations should be empty array due to failure
+      expect(result.recommendations).toEqual([]);
+    });
   });
 });

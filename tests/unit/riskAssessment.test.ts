@@ -124,5 +124,36 @@ describe('RiskAssessmentService', () => {
             expect(result.phases).toHaveLength(1);
             expect(result.totalCost).toBe('$10k');
         });
+
+        it('handles AI service errors when generating roadmap', async () => {
+            mockOpenAIClient.chat.completions.create.mockRejectedValue(new Error('OpenAI unavailable'));
+
+            await expect(
+                riskAssessmentService.generateMitigationRoadmap([], [], 'medium', 'short')
+            ).rejects.toThrow('Failed to generate mitigation roadmap');
+        });
+    });
+
+    describe('calculateComplianceReadiness - Error Handling', () => {
+        it('throws error when calculation fails', async () => {
+            mockAnthropicClient.messages.create.mockRejectedValue(new Error('Database connection failed'));
+
+            await expect(
+                riskAssessmentService.calculateComplianceReadiness('iso27001', mockProfile, [])
+            ).rejects.toThrow('Failed to calculate compliance readiness');
+        });
+    });
+
+    describe('parseRiskAssessmentText - Medium Risk Level', () => {
+        it('correctly identifies medium risk level', async () => {
+            // Test with text that should result in medium risk (26-50)
+            mockAnthropicClient.messages.create.mockResolvedValue({
+                content: [{ type: 'text', text: 'Risk assessment shows a Risk Score of 40 indicating moderate concerns.' }]
+            });
+
+            const result = await riskAssessmentService.assessOrganizationalRisk(mockProfile, ['iso27001']);
+            expect(result.overallRiskScore).toBe(40);
+            expect(result.riskLevel).toBe('medium');
+        });
     });
 });

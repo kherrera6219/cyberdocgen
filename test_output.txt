@@ -138,3 +138,26 @@ Button Disabled: [33mfalse[39m
 
 [1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2mpackage.json [22m[34mx2 [34m[39m
+       [2m Filename pattern: [22m[34mtests/components/FrameworkSpreadsheet.test.tsx[39m
+
+[90mstdout[2m | tests/components/FrameworkSpreadsheet.test.tsx[2m > [22m[2mFrameworkSpreadsheet Component[2m > [22m[2mcalls save API when "Save All Changes" is clicked
+[22m[39mButton HTML: <button class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:size-4 [&amp;_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" data-testid="button-save-all-changes"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-save h-4 w-4 mr-2" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path><path d="M7 3v4a1 1 0 0 0 1 1h7"></path></svg>Save All Changes</button>
+Button Disabled: [33mfalse[39m
+
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/FrameworkSpreadsheet.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 11637[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m FrameworkSpreadsheet Component[2m > [22mrenders the spreadsheet title [33m 2900[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m FrameworkSpreadsheet Component[2m > [22mrenders templates from API [33m 1163[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m FrameworkSpreadsheet Component[2m > [22mshows empty state if no templates [33m 474[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m FrameworkSpreadsheet Component[2m > [22mallows searching templates [33m 4285[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m FrameworkSpreadsheet Component[2m > [22mopens accordion to show fields [33m 735[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m FrameworkSpreadsheet Component[2m > [22mallows editing a field [33m 847[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m FrameworkSpreadsheet Component[2m > [22mcalls save API when "Save All Changes" is clicked [33m 1230[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 12:35:39
+[2m   Duration [22m 71.47s
+
+[1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
