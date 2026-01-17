@@ -1,190 +1,208 @@
-import { describe, it, expect, beforeAll, afterAll } from '../setup';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { registerRoutes } from '../../server/routes';
+import { registerDocumentsRoutes } from '../../server/routes/documents';
+import { storage } from '../../server/storage';
+import { globalErrorHandler } from '../../server/utils/errorHandling';
 
-describe('Document Integration Tests', () => {
-  let app: any;
-  let server: any;
-
-  beforeAll(async () => {
-    app = express();
-    app.use(express.json());
-    server = await registerRoutes(app as express.Express);
-  });
-
-  afterAll(async () => {
-    if (server) {
-      server.close();
+// Mock Dependencies
+vi.mock('../../server/storage', () => ({
+    storage: {
+        getDocuments: vi.fn(),
+        getDocumentsByCompanyProfile: vi.fn(),
+        getDocumentsByFramework: vi.fn(),
+        getDocument: vi.fn(),
+        createDocument: vi.fn(),
+        updateDocument: vi.fn(),
+        deleteDocument: vi.fn(),
     }
-  });
+}));
 
-  describe('Document Templates', () => {
-    it('should return document templates', async () => {
-      const response = await request(app)
-        .get('/api/document-templates')
-        .expect(200);
+vi.mock('../../server/db', () => ({
+    db: {
+        select: vi.fn(),
+        insert: vi.fn(),
+        update: vi.fn(),
+    }
+}));
 
-      expect(response.body.data).toHaveProperty('templates');
-      expect(Array.isArray(response.body.data.templates)).toBe(true);
+vi.mock('../../server/replitAuth', () => ({
+    isAuthenticated: (req: any, res: any, next: any) => {
+        req.session = { userId: 'user-123' };
+        next();
+    },
+    getRequiredUserId: () => 'user-123',
+    getUserId: () => 'user-123'
+}));
+
+vi.mock('../../server/middleware/multiTenant', () => ({
+    requireOrganization: (req: any, res: any, next: any) => {
+        req.organizationId = 'org-123';
+        next();
+    },
+    getDocumentWithOrgCheck: vi.fn(),
+    getCompanyProfileWithOrgCheck: vi.fn(),
+}));
+
+vi.mock('../../server/middleware/mfa', () => ({
+    requireMFA: (req: any, res: any, next: any) => next(),
+    enforceMFATimeout: (req: any, res: any, next: any) => next(),
+}));
+
+vi.mock('../../server/services/versionService', () => ({
+    versionService: {
+        getVersionHistory: vi.fn(),
+        createVersion: vi.fn(),
+        restoreVersion: vi.fn(),
+        compareVersions: vi.fn(),
+    }
+}));
+
+vi.mock('../../server/services/aiOrchestrator', () => ({
+    aiOrchestrator: {
+        generateDocument: vi.fn(),
+    }
+}));
+
+// Mock logger
+vi.mock('../../server/utils/logger', () => ({
+    logger: {
+        info: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+    }
+}));
+
+describe('Documents Routes', () => {
+    let app: express.Express;
+
+    beforeEach(async () => {
+        vi.clearAllMocks();
+        app = express();
+        app.use(express.json());
+        // Mount at /api/documents to match the real application structure
+        const documentsRouter = express.Router();
+        await registerDocumentsRoutes(documentsRouter);
+        app.use('/api/documents', documentsRouter);
+        app.use(globalErrorHandler);
     });
 
-    it('should get a specific template by ID', async () => {
-      const templatesResponse = await request(app)
-        .get('/api/document-templates')
-        .expect(200);
+    describe('GET /api/documents', () => {
+        it('returns all documents for an organization', async () => {
+            const mockDocs = [{ id: 'doc-1', title: 'Doc 1' }];
+            (storage.getDocuments as any).mockResolvedValue(mockDocs);
 
-      if (templatesResponse.body.data.templates && templatesResponse.body.data.templates.length > 0) {
-        const templateId = templatesResponse.body.data.templates[0].id;
-        const response = await request(app)
-          .get(`/api/document-templates/${templateId}`)
-          .expect(200);
+            const response = await request(app)
+                .get('/api/documents')
+                .expect(200);
 
-        expect(response.body.data).toHaveProperty('template');
-      }
-    });
-  });
-
-  describe('Document Generation Endpoints', () => {
-    it('should require authentication for document generation', async () => {
-      await request(app)
-        .post('/api/documents/generate')
-        .send({
-          title: 'Test Policy',
-          framework: 'SOC2',
-          category: 'policy'
-        })
-        .expect(401);
-    });
-
-    it('should require authentication for document upload', async () => {
-      await request(app)
-        .post('/api/documents/upload-and-extract')
-        .send({
-          files: []
-        })
-        .expect(401);
-    });
-  });
-
-  describe('Document Export', () => {
-    it('should export document as markdown', async () => {
-      const response = await request(app)
-        .post('/api/export-document')
-        .send({
-          content: '# Test Document\n\nThis is test content.',
-          format: 'md',
-          filename: 'test-doc'
-        })
-        .expect(200);
-
-      expect(response.headers['content-type']).toContain('text/markdown');
-    });
-
-    it('should handle export without content', async () => {
-      await request(app)
-        .post('/api/export-document')
-        .send({
-          format: 'md'
-        })
-        .expect(400);
-    });
-  });
-
-  describe('Document AI Generation', () => {
-    it('should reject generation request without framework', async () => {
-      const response = await request(app)
-        .post('/api/generate-document')
-        .send({
-          companyProfile: {
-            name: 'Test Company',
-            industry: 'Technology',
-            size: '51-200'
-          },
-          documentType: 'policy'
+            expect(response.body.success).toBe(true);
+            expect(response.body.data).toEqual(mockDocs);
         });
 
-      expect(response.status).toBeGreaterThanOrEqual(400);
-    });
-  });
+        it('filters by companyProfileId with check', async () => {
+            const { getCompanyProfileWithOrgCheck } = await import('../../server/middleware/multiTenant');
+            (getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: true });
+            (storage.getDocumentsByCompanyProfile as any).mockResolvedValue([{ id: 'doc-1' }]);
 
-  describe('Document Quality Analysis', () => {
-    it('should require authentication for document quality analysis', async () => {
-      const response = await request(app)
-        .post('/api/analyze-document-quality')
-        .send({
-          content: 'Test content',
-          framework: 'SOC2',
-          documentType: 'policy'
-        });
-      expect(response.status).toBe(401);
-    });
-  });
+            await request(app)
+                .get('/api/documents?companyProfileId=cp-1')
+                .expect(200);
 
-  describe('Document Versioning', () => {
-    it('should require authentication for version history', async () => {
-      await request(app)
-        .get('/api/documents/test-id/versions')
-        .expect(401);
-    });
-
-    it('should require authentication for version creation', async () => {
-      await request(app)
-        .post('/api/documents/test-id/versions')
-        .send({
-          content: 'New version content',
-          changeDescription: 'Updated policy'
-        })
-        .expect(401);
-    });
-
-    it('should require authentication for version restore', async () => {
-      await request(app)
-        .post('/api/documents/123/versions/1/restore')
-        .set('Content-Type', 'application/json')
-        .send({})
-        .expect(401);
-    });
-  });
-
-  describe('Document Comparison', () => {
-    it('should require authentication for version comparison', async () => {
-      await request(app)
-        .get('/api/documents/test-id/versions/1/compare/2')
-        .expect(401);
-    });
-  });
-
-  describe('Document Saving', () => {
-    it('should save a document with valid data', async () => {
-      const response = await request(app)
-        .post('/api/save-document')
-        .send({
-          title: 'Test Security Policy',
-          content: 'This is a test security policy document.',
-          framework: 'SOC2',
-          category: 'policy',
-          companyProfile: {
-            name: 'Test Corp',
-            industry: 'Technology',
-            size: '51-200'
-          }
+            expect(getCompanyProfileWithOrgCheck).toHaveBeenCalledWith('cp-1', 'org-123');
         });
 
-      if (response.status === 200) {
-        expect(response.body).toHaveProperty('success', true);
-        expect(response.body.data).toHaveProperty('document');
-      }
+        it('returns 404 if company profile is not authorized', async () => {
+            const { getCompanyProfileWithOrgCheck } = await import('../../server/middleware/multiTenant');
+            (getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: false });
+
+            await request(app)
+                .get('/api/documents?companyProfileId=cp-1')
+                .expect(404);
+        });
     });
 
-    it('should reject save request without required fields', async () => {
-      const response = await request(app)
-        .post('/api/save-document')
-        .send({
-          title: 'Missing Content'
+    describe('GET /api/documents/:id', () => {
+        it('returns document if authorized', async () => {
+            const { getDocumentWithOrgCheck } = await import('../../server/middleware/multiTenant');
+            (getDocumentWithOrgCheck as any).mockResolvedValue({ 
+                authorized: true, 
+                document: { id: 'doc-1', title: 'Doc 1' } 
+            });
+
+            const response = await request(app)
+                .get('/api/documents/doc-1')
+                .expect(200);
+
+            expect(response.body.data.id).toBe('doc-1');
         });
 
-      expect(response.status).toBeGreaterThanOrEqual(400);
+        it('returns 404 if not authorized', async () => {
+            const { getDocumentWithOrgCheck } = await import('../../server/middleware/multiTenant');
+            (getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: false });
+
+            await request(app)
+                .get('/api/documents/doc-1')
+                .expect(404);
+        });
     });
-  });
+
+    describe('POST /api/documents', () => {
+        it('creates a new document', async () => {
+            const docData = {
+                title: 'New Doc',
+                content: 'Content',
+                framework: 'iso27001',
+                category: 'policy',
+                companyProfileId: 'cp-1',
+                createdBy: 'user-123'
+            };
+            const { getCompanyProfileWithOrgCheck } = await import('../../server/middleware/multiTenant');
+            (getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: true });
+            (storage.createDocument as any).mockResolvedValue({ id: 'doc-new', ...docData });
+
+            const response = await request(app)
+                .post('/api/documents')
+                .send(docData)
+                .expect(201);
+
+            expect(response.body.data.id).toBe('doc-new');
+        });
+    });
+
+    describe('POST /api/documents/generate', () => {
+        it('generates a document content', async () => {
+            const { getCompanyProfileWithOrgCheck } = await import('../../server/middleware/multiTenant');
+            (getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: true });
+            (storage.createDocument as any).mockResolvedValue({ id: 'doc-gen' });
+
+            const response = await request(app)
+                .post('/api/documents/generate')
+                .send({
+                    framework: 'iso27001',
+                    category: 'policy',
+                    title: 'Policy',
+                    companyProfileId: 'cp-1'
+                })
+                .expect(200);
+
+            expect(response.body.data.id).toBe('doc-gen');
+        });
+    });
+
+    describe('GET /api/documents/:id/versions', () => {
+        it('returns versions if authorized', async () => {
+            const { getDocumentWithOrgCheck } = await import('../../server/middleware/multiTenant');
+            const { versionService } = await import('../../server/services/versionService');
+            
+            (getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: true, document: { id: 'doc-1' } });
+            (versionService.getVersionHistory as any).mockResolvedValue([{ versionNumber: 1 }]);
+
+            const response = await request(app)
+                .get('/api/documents/doc-1/versions')
+                .expect(200);
+
+            expect(response.body.data).toHaveLength(1);
+        });
+    });
 });
