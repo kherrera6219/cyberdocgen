@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction, QueryKey, UseQueryOptions } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, QueryKey, UseQueryOptions, QueryCache } from "@tanstack/react-query";
 import { logger } from '../utils/logger';
 
 // Cache time constants (in milliseconds)
@@ -232,21 +232,45 @@ export const queryClient = new QueryClient({
       staleTime: CACHE_TIMES.DEFAULT.staleTime,
       gcTime: CACHE_TIMES.DEFAULT.gcTime,
       retry: (failureCount, error) => {
-        // Don't retry on client errors (4xx) - these won't succeed on retry
         if (error instanceof ApiError && error.isClientError) {
           return false;
         }
-        // Don't retry on network errors that are permanent
         if (error instanceof TypeError && error.message === 'Failed to fetch') {
-          return failureCount < 1; // Try once more for network glitches
+          return failureCount < 1;
         }
-        // Retry server errors (5xx) up to 2 times with backoff
         return failureCount < 2;
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
       retry: false,
+      onError: (error) => {
+        // Global error handler for mutations
+        const message = error instanceof Error ? error.message : "An unexpected error occurred";
+        // We need to dynamically import or use a singleton for toast because hooks can't be used here directly
+        // However, for simplicity in this setup, we'll log it. 
+        // Ideally, we would dispatch an event that the toaster listens to, or use a toast utility that works outside components.
+        console.error("Mutation Error:", message);
+        
+        // Dispatch a custom event that the App can listen to for showing toasts
+        window.dispatchEvent(new CustomEvent('app:error', { 
+          detail: { message, title: 'Action Failed' } 
+        }));
+      }
     },
   },
+  queryCache: new QueryCache({
+    onError: (error) => {
+      // Global error handler for queries
+      const message = error instanceof Error ? error.message : "An unexpected error occurred";
+      console.error("Query Error:", message);
+      
+      // Only show toast for 5xx errors or specific critical failures to avoid spamming
+      if (error instanceof ApiError && error.isServerError) {
+        window.dispatchEvent(new CustomEvent('app:error', { 
+          detail: { message, title: 'Data Load Failed' } 
+        }));
+      }
+    }
+  })
 });

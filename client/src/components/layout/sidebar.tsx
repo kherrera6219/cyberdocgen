@@ -82,12 +82,15 @@ interface NavLinkProps {
 function NavLink({ item, isActive }: NavLinkProps) {
   return (
     <Link href={item.href} data-testid={`nav-link-${item.href.replace(/\//g, '-').slice(1) || 'home'}`}>
-      <a className={cn(
+      <a 
+        className={cn(
         "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
         isActive
           ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
           : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-      )}>
+      )}
+      aria-current={isActive ? "page" : undefined}
+      >
         <item.icon className="w-5 h-5 mr-3" />
         {item.label}
         {item.badge && (

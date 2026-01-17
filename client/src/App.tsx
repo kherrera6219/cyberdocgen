@@ -1,13 +1,14 @@
 import { lazy, Suspense, useState, useEffect, useDeferredValue } from "react";
-import { Switch, Route } from "wouter";
+
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
-import { useParams } from "wouter";
+import { Switch, Route, useParams } from "wouter";
 import Layout from "./components/layout";
 
 // Lazy load all pages for code splitting
@@ -182,6 +183,22 @@ function AppContent() {
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  // Global error handler for actions/queries outside of components
+  const { toast } = useToast();
+  useEffect(() => {
+    const handleAppError = (event: CustomEvent<{ message: string; title?: string }>) => {
+      const { message, title } = event.detail;
+      toast({
+        title: title || "Error",
+        description: message,
+        variant: "destructive",
+      });
+    };
+
+    window.addEventListener('app:error', handleAppError as EventListener);
+    return () => window.removeEventListener('app:error', handleAppError as EventListener);
+  }, [toast]);
 
   // Also stop showing loading when auth check completes
   useEffect(() => {
