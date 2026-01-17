@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

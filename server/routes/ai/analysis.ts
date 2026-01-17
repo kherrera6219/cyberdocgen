@@ -1,8 +1,9 @@
 // AI Analysis Routes
-// Quality analysis and insights generation
+// Quality analysis, document analysis, and insights generation
 import { Router } from 'express';
 import { storage } from '../../storage';
 import { aiOrchestrator } from '../../services/aiOrchestrator';
+import { documentAnalysisService } from '../../services/documentAnalysis';
 import {
   isAuthenticated,
   getRequiredUserId,
@@ -20,7 +21,9 @@ import {
 } from './shared';
 import {
   analyzeQualitySchema,
-  generateInsightsSchema
+  generateInsightsSchema,
+  analyzeDocumentSchema,
+  extractProfileSchema
 } from '../../validation/requestSchemas';
 import { logger } from '../../utils/logger';
 
@@ -44,10 +47,10 @@ export function registerAnalysisRoutes(router: Router) {
     });
 
     if (!guardrailResult.allowed) {
-      logger.warn("AI request blocked by guardrails", {
-        userId,
+      logger.warn("AI request blocked by guardrails", { 
+        userId, 
         action: guardrailResult.action,
-        severity: guardrailResult.severity
+        severity: guardrailResult.severity 
       });
       throw new ForbiddenError("Request blocked for security reasons", { action: guardrailResult.action });
     }
@@ -73,7 +76,7 @@ export function registerAnalysisRoutes(router: Router) {
     }
 
     const insights = await aiOrchestrator.generateInsights(companyProfile, framework);
-
+    
     metricsCollector.trackAIOperation('analysis', true);
     await auditService.logAction({
       action: "generate_insights",
@@ -86,5 +89,71 @@ export function registerAnalysisRoutes(router: Router) {
     });
 
     res.json(insights);
+  }));
+
+  /**
+   * POST /api/ai/analyze-document
+   * Analyze document content against compliance frameworks
+   */
+  router.post("/analyze-document", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(analyzeDocumentSchema), asyncHandler(async (req, res) => {
+    const { content, filename, framework } = req.body;
+    const userId = getUserId(req);
+    const requestId = crypto.randomUUID();
+
+    // Run guardrails check on document content
+    const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
+      userId: userId || undefined,
+      requestId,
+      modelProvider: 'openai',
+      modelName: 'gpt-4o-mini',
+      ipAddress: req.ip
+    });
+
+    if (!guardrailResult.allowed) {
+      logger.warn("Document analysis blocked by guardrails", { 
+        userId, 
+        action: guardrailResult.action,
+        severity: guardrailResult.severity 
+      });
+      throw new ForbiddenError("Document content blocked for security reasons", { action: guardrailResult.action });
+    }
+
+    // Use sanitized content
+    const sanitizedContent = guardrailResult.sanitizedPrompt || content;
+    const analysis = await documentAnalysisService.analyzeDocument(sanitizedContent, filename, framework);
+    
+    await auditService.logAction({
+      action: "analyze",
+      entityType: "document",
+      entityId: filename,
+      userId: req.user?.claims?.sub || getRequiredUserId(req).toString(),
+      ipAddress: req.ip || '127.0.0.1',
+      userAgent: req.get('User-Agent'),
+      metadata: { framework, analysisType: "document" }
+    });
+
+    res.json(analysis);
+  }));
+
+  /**
+   * POST /api/ai/extract-profile
+   * Extract company profile information from text
+   */
+  router.post("/extract-profile", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(extractProfileSchema), asyncHandler(async (req, res) => {
+    const { content } = req.body;
+
+    const extractedProfile = await documentAnalysisService.extractCompanyProfile(content);
+    
+    await auditService.logAction({
+      action: "extract",
+      entityType: "company_profile",
+      entityId: `profile_${Date.now()}`,
+      userId: req.user?.claims?.sub || getRequiredUserId(req).toString(),
+      ipAddress: req.ip || '127.0.0.1',
+      userAgent: req.get('User-Agent'),
+      metadata: { extractionType: "profile" }
+    });
+
+    res.json(extractedProfile);
   }));
 }

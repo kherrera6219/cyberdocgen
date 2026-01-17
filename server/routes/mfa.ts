@@ -4,6 +4,7 @@ import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
 import { getUserId } from '../replitAuth';
+import { encryptionService, DataClassification } from '../services/encryption';
 
 // Extend Express Request types locally for this file to avoid global conflicts
 interface AuthUser {
