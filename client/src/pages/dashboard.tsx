@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -14,27 +12,20 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorCard } from "@/components/ui/loading-error-states";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { logger } from '../utils/logger';
+import { Layers } from "lucide-react";
+import type { Document, DocumentApproval, GenerationJob } from "@shared/schema";
+
+// Sub-components
+import { QuickStats } from "@/components/dashboard/QuickStats";
+import { CompanyProfileSummary } from "@/components/dashboard/CompanyProfileSummary";
+import { FrameworkGenerationCards } from "@/components/dashboard/FrameworkGenerationCards";
+import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
+import { GenerationProgressDialog } from "@/components/dashboard/GenerationProgressDialog";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
 
 const AIInsightsDashboard = lazy(() => import("@/components/ai/AIInsightsDashboard").then(m => ({ default: m.AIInsightsDashboard })));
 const RiskHeatmap = lazy(() => import("@/components/ai/RiskHeatmap").then(m => ({ default: m.RiskHeatmap })));
 const ControlPrioritizer = lazy(() => import("@/components/ai/ControlPrioritizer").then(m => ({ default: m.ControlPrioritizer })));
-import { ActivityFeed } from "@/components/activity/ActivityFeed";
-import {
-  TrendingUp,
-  FileText,
-  Layers,
-  Clock,
-  ShieldCheck,
-  Shield,
-  Flag,
-  Lock,
-  Wand2,
-  Edit,
-  CheckCircle,
-  Eye,
-  Zap
-} from "lucide-react";
-import type { Document, DocumentApproval, GenerationJob } from "@shared/schema";
 
 const GENERATION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
 
@@ -251,8 +242,6 @@ export default function Dashboard() {
     );
   }
 
-
-
   const handleGenerateDocuments = (framework: string) => {
     if (!profile) {
       toast({
@@ -272,8 +261,6 @@ export default function Dashboard() {
     handleGenerateDocuments(framework);
   };
 
-
-
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
@@ -289,68 +276,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Enhanced Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-accent dark:bg-gray-800">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Completion Rate</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white" data-testid="text-completion-rate">
-                  {documents.length > 0 ? Math.round((completedDocs / documents.length) * 100) : 0}%
-                </p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-accent/10 to-accent/20 rounded-lg flex items-center justify-center shadow-sm">
-                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary dark:bg-gray-800">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Documents Generated</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white" data-testid="text-documents-generated">{completedDocs}</p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg flex items-center justify-center shadow-sm">
-                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-yellow-500 dark:bg-gray-800">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Active Frameworks</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white" data-testid="text-active-frameworks">{activeFrameworks}</p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-yellow-500/10 to-yellow-500/20 rounded-lg flex items-center justify-center shadow-sm">
-                <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500 dark:bg-gray-800">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Next Deadline</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white" data-testid="text-next-deadline">
-                  {nextApprovalDeadline ? format(nextApprovalDeadline, "MMM d, yyyy") : "N/A"}
-                </p>
-              </div>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-red-500/10 to-red-500/20 rounded-lg flex items-center justify-center shadow-sm">
-                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <QuickStats 
+        documents={documents}
+        completedDocs={completedDocs}
+        activeFrameworks={activeFrameworks}
+        nextApprovalDeadline={nextApprovalDeadline}
+      />
 
       {/* AI Insights Dashboard wrapped with ErrorBoundary and Suspense for code-splitting */}
       <ErrorBoundary
@@ -455,281 +386,38 @@ export default function Dashboard() {
         </ErrorBoundary>
       </div>
 
-      {/* Company Profile Section - with guard for undefined profile */}
-      {profile && (
-        <Card className="mb-6 sm:mb-8">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">Company Profile</CardTitle>
-              <Button size="sm" className="self-start sm:self-auto">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
-            </div>
-          </CardHeader>
+      <CompanyProfileSummary 
+        profile={profile}
+        onEdit={() => {}} // No edit action defined in original except maybe navigation? Original button had no onClick.
+      />
 
-          <CardContent className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-              <div>
-                <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Basic Information</h3>
-                <div className="space-y-2">
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Company:</span> {profile.companyName}</p>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Industry:</span> {profile.industry}</p>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Size:</span> {profile.companySize}</p>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Location:</span> {profile.headquarters}</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Technical Environment</h3>
-                <div className="space-y-2">
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Cloud:</span> {profile.cloudInfrastructure?.join(', ') ?? 'Not specified'}</p>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Data Classification:</span> {profile.dataClassification ?? 'Not specified'}</p>
-                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Applications:</span> {profile.businessApplications ?? 'Not specified'}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Document Generation Section */}
-      <Card className="mb-6 sm:mb-8">
-        <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-          <CardTitle className="text-lg sm:text-xl text-gray-900 dark:text-white">AI Document Generation</CardTitle>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Generate compliance documentation based on your company profile</p>
-        </CardHeader>
-
-        <CardContent className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* ISO 27001 Card */}
-            <Card className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-accent/10 to-accent/20 rounded-xl flex items-center justify-center shadow-sm">
-                      <ShieldCheck className="w-6 h-6 text-accent" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">ISO 27001</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Information Security Management</p>
-                    </div>
-                  </div>
-                  <span className="text-xs bg-gradient-to-r from-accent to-accent/80 text-white px-3 py-1.5 rounded-full shadow-sm">
-                    {iso27001Progress}% Complete
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <Button
-                    className="w-full bg-accent hover:bg-accent/90"
-                    onClick={() => handleGenerateDocuments("ISO27001")}
-                    disabled={!profile || isGenerating}
-                    data-testid="button-generate-iso27001"
-                  >
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Generate Documents
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setPreviewFramework("ISO27001");
-                      setShowPreview(true);
-                    }}
-                    data-testid="button-preview-iso27001"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Preview Templates
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* SOC 2 Type 2 Card */}
-            <Card className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-primary/10 to-primary/20 rounded-xl flex items-center justify-center shadow-sm">
-                      <Shield className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">SOC 2 Type 2</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">System & Organization Controls</p>
-                    </div>
-                  </div>
-                  <span className="text-xs bg-gradient-to-r from-warning to-warning/80 text-white px-3 py-1.5 rounded-full shadow-sm">
-                    {soc2Progress}% Complete
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <Button
-                    className="w-full"
-                    onClick={() => handleGenerateDocuments("SOC2")}
-                    disabled={!profile || isGenerating}
-                    data-testid="button-generate-soc2"
-                  >
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Generate Documents
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setPreviewFramework("SOC2");
-                      setShowPreview(true);
-                    }}
-                    data-testid="button-preview-soc2"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Preview Templates
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Additional Frameworks Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            {/* FedRAMP Card */}
-            <Card className="border border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <Flag className="w-5 h-5 text-gray-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">FedRAMP</h3>
-                      <p className="text-sm text-gray-600">Federal Risk Authorization</p>
-                    </div>
-                  </div>
-                  <span className="text-xs bg-gray-400 text-white px-2 py-1 rounded-full">Not Started</span>
-                </div>
-
-                <Button
-                  className="w-full"
-                  onClick={() => handleGenerateDocuments("FedRAMP")}
-                  disabled={!profile || isGenerating}
-                  data-testid="button-generate-fedramp"
-                >
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generate Documents
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* NIST Card */}
-            <Card className="border border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <Lock className="w-5 h-5 text-gray-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">NIST CSF</h3>
-                      <p className="text-sm text-gray-600">Cybersecurity Framework</p>
-                    </div>
-                  </div>
-                  <span className="text-xs bg-gray-400 text-white px-2 py-1 rounded-full">Not Started</span>
-                </div>
-
-                <Button
-                  className="w-full"
-                  onClick={() => handleGenerateDocuments("NIST")}
-                  disabled={!profile || isGenerating}
-                  data-testid="button-generate-nist"
-                >
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generate Documents
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </CardContent>
-      </Card>
+      <FrameworkGenerationCards 
+        profile={profile}
+        iso27001Progress={iso27001Progress}
+        soc2Progress={soc2Progress}
+        isGenerating={isGenerating}
+        onGenerate={handleGenerateDocuments}
+        onPreview={(framework) => {
+          setPreviewFramework(framework);
+          setShowPreview(true);
+        }}
+      />
 
       {/* Recent Documents and Activity Feed Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Documents */}
-        {recentDocuments.length > 0 && (
-          <Card>
-            <CardHeader className="border-b border-gray-200">
-              <CardTitle>Recent Documents</CardTitle>
-            </CardHeader>
-
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {recentDocuments.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg" data-testid={`document-item-${doc.id}`}>
-                    <div className="flex items-center space-x-3">
-                      <FileText className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <h4 className="font-medium text-gray-900">{doc.title}</h4>
-                        <p className="text-sm text-gray-500">{doc.framework} - {doc.category}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      <span className="text-sm text-gray-500">Complete</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Activity Feed */}
+        <RecentDocuments documents={recentDocuments} />
         <ActivityFeed limit={8} compact={true} />
       </div>
 
-      {/* Generation Progress Dialog */}
-      <Dialog open={isGenerating} onOpenChange={(open) => {
-        if (!open) {
-          cleanupGeneration();
-        }
-      }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-primary" />
-              <span>Generating {currentFramework} Documents</span>
-            </DialogTitle>
-            <DialogDescription>
-              AI is generating customized compliance documents based on your company profile. This process typically takes 10-15 minutes.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span>Progress</span>
-                <span>{generationProgress}%</span>
-              </div>
-              <Progress value={generationProgress} className="w-full" />
-            </div>
-
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <p className="text-xs text-blue-700">
-                Tip: You can continue using other features while generation is in progress.
-              </p>
-            </div>
-
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={cleanupGeneration}
-              data-testid="button-cancel-generation"
-            >
-              Cancel Generation
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <GenerationProgressDialog 
+        isOpen={isGenerating}
+        onOpenChange={(open) => {
+          if (!open) cleanupGeneration();
+        }}
+        currentFramework={currentFramework}
+        progress={generationProgress}
+        onCancel={cleanupGeneration}
+      />
 
       {/* Document Templates Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>

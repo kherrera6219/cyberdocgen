@@ -66,7 +66,7 @@ export interface DeadlineUpdateRequest {
   assigneeId?: string;
 }
 
-class ComplianceDeadlineService {
+export class ComplianceDeadlineService {
   private deadlines: Map<string, ComplianceDeadline> = new Map();
   private deadlineCounter = 0;
 

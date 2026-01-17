@@ -62,7 +62,7 @@ export interface RotationResult {
   error?: string;
 }
 
-class KeyRotationService {
+export class KeyRotationService {
   private readonly DEFAULT_ROTATION_POLICIES: Record<string, KeyRotationPolicy> = {
     encryption_key: {
       keyName: "encryption_key",

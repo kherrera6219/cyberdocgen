@@ -37,7 +37,7 @@ export interface CreateRetentionPolicyInput {
   createdBy: string;
 }
 
-class DataRetentionService {
+export class DataRetentionService {
   /**
    * Create a new data retention policy
    */

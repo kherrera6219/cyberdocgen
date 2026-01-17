@@ -42,6 +42,7 @@ export function UploadDialog({ onUpload, isUploading }: UploadDialogProps) {
               id="folder-select"
               value={uploadFolder}
               onChange={(e) => setUploadFolder(e.target.value)}
+              aria-label="Upload Folder"
               className="w-full mt-1 px-3 py-2 border rounded-md"
             >
               <option value="files">Files</option>

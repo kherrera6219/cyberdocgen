@@ -66,10 +66,10 @@ describe('ObjectStorageManager', () => {
 
     expect(screen.getByText('Object Storage Manager')).toBeTruthy();
     
-    // Wait for stats to load
-    await waitFor(() => {
-      expect(screen.getByText('10')).toBeTruthy(); // Total files
-    });
+    // Wait for stats to load using findByText which has built-in wait
+    screen.debug();
+    const statsElement = await screen.findByText('10', {}, { timeout: 4000 });
+    expect(statsElement).toBeTruthy();
     
     expect(screen.getByText('System Status')).toBeTruthy();
   });

@@ -238,6 +238,36 @@ describe('Logger', () => {
     );
   });
 });
+
+**Example: Testing Complex Services (e.g. Threat Detection)**
+
+```typescript
+// tests/unit/threatDetectionService.test.ts
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { ThreatDetectionService } from '../../server/services/threatDetectionService';
+
+describe('ThreatDetectionService', () => {
+  let service: ThreatDetectionService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    service = new ThreatDetectionService();
+  });
+
+  it('should detect SQL injection patterns', () => {
+    const req = {
+      url: '/api/users',
+      query: { id: "' OR '1'='1" },
+      body: {},
+      ip: '127.0.0.1',
+      get: vi.fn()
+    };
+
+    const event = service.analyzeRequest(req);
+    expect(event).toBeDefined();
+    expect(event?.type).toBe('sql_injection');
+  });
+});
 ```
 
 ### Integration Tests
