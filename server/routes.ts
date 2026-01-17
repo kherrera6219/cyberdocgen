@@ -588,9 +588,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth');
   app.use('/api/auth/enterprise', enterpriseAuthRoutes);
 
-  // MCP (Model Context Protocol) Routes
+  // MCP (Model Context Protocol) Routes - secured with authentication and organization context
   const { default: mcpRoutes } = await import('./mcp/server');
-  app.use('/api/mcp', isAuthenticated, mcpRoutes);
+  app.use('/api/mcp', isAuthenticated, extractOrganizationContext, mcpRoutes);
 
   // Cloud Integration Routes
   const { default: cloudIntegrationRoutes } = await import('./routes/cloudIntegration');

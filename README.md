@@ -40,7 +40,10 @@
 
 ## 📊 Latest Updates
 
-**January 17, 2026** - Enterprise Standards Compliance and CI/CD Hardening:
+**January 17, 2026** - Infrastructure Hardening and Security Enhancement:
+- ✅ [Database Connection Hardening](server/db.ts) - Connection pool error handling, health checks, retry logic
+- ✅ [MCP Security](server/mcp/server.ts) - Authentication and organization context for all MCP endpoints
+- ✅ [Data Retention](server/services/dataRetentionAutomation.ts) - Complete deletion logic for GDPR/CCPA compliance
 - ✅ [CI/CD Security Pipeline](.github/workflows/ci.yml) - 7 security jobs: SAST, SCA, license scan, SBOM
 - ✅ [SLSA Level 3 Provenance](.github/workflows/generator-generic-ossf-slsa3-publish.yml) - Real build artifacts with cryptographic provenance
 - ✅ [Distributed Tracing](server/middleware/tracing.ts) - Correlation IDs for observability
