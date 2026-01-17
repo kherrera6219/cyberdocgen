@@ -8,7 +8,7 @@ import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { systemConfigService } from '../services/systemConfigService';
 import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
-import { asyncHandler, ForbiddenError, UnauthorizedError, ValidationError, NotFoundError } from '../utils/routeHelpers';
+import { asyncHandler, AppError, ForbiddenError, UnauthorizedError, ValidationError, NotFoundError } from '../utils/routeHelpers';
 
 const router = Router();
 

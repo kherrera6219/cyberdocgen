@@ -90,7 +90,7 @@ export function registerAIRoutes(router: Router) {
       entityType: "company_profile",
       entityId: companyProfileId,
       userId: userId,
-      ipAddress: req.ip,
+      ipAddress: req.ip || '127.0.0.1',
       userAgent: req.get('User-Agent'),
       details: { framework, riskScore: insights.riskScore }
     });
@@ -256,8 +256,8 @@ export function registerAIRoutes(router: Router) {
       action: "analyze",
       entityType: "document",
       entityId: filename,
-      userId: req.user.claims.sub,
-      ipAddress: req.ip,
+      userId: req.user?.claims?.sub || getRequiredUserId(req).toString(),
+      ipAddress: req.ip || '127.0.0.1',
       userAgent: req.get('User-Agent'),
       metadata: { framework, analysisType: "document" }
     });
@@ -274,8 +274,8 @@ export function registerAIRoutes(router: Router) {
       action: "extract",
       entityType: "company_profile",
       entityId: `profile_${Date.now()}`,
-      userId: req.user.claims.sub,
-      ipAddress: req.ip,
+      userId: req.user?.claims?.sub || getRequiredUserId(req).toString(),
+      ipAddress: req.ip || '127.0.0.1',
       userAgent: req.get('User-Agent'),
       metadata: { extractionType: "profile" }
     });
@@ -286,19 +286,21 @@ export function registerAIRoutes(router: Router) {
   router.post("/chat", isAuthenticated, aiLimiter, validateAIRequestSize, validateBody(chatMessageSchema), asyncHandler(async (req, res) => {
     const { message, framework, sessionId } = req.body;
 
+    const userIdStr = req.user?.claims?.sub || getRequiredUserId(req).toString();
+
     const response = await complianceChatbot.processMessage(
       message,
-      req.user.claims.sub,
+      userIdStr,
       sessionId,
       framework
     );
-    
+
     await auditService.logAction({
       action: "chat",
       entityType: "ai_conversation",
       entityId: sessionId || `chat_${Date.now()}`,
-      userId: req.user.claims.sub,
-      ipAddress: req.ip,
+      userId: userIdStr,
+      ipAddress: req.ip || '127.0.0.1',
       userAgent: req.get('User-Agent'),
       metadata: { framework, messageLength: message.length }
     });
@@ -338,8 +340,8 @@ export function registerAIRoutes(router: Router) {
       action: "assess",
       entityType: "risk_assessment",
       entityId: `risk_${Date.now()}`,
-      userId: req.user.claims.sub,
-      ipAddress: req.ip,
+      userId: req.user?.claims?.sub || getRequiredUserId(req).toString(),
+      ipAddress: req.ip || '127.0.0.1',
       userAgent: req.get('User-Agent'),
       metadata: { frameworks, includeDocuments }
     });
@@ -360,8 +362,8 @@ export function registerAIRoutes(router: Router) {
       action: "analyze",
       entityType: "threat_landscape",
       entityId: `threat_${Date.now()}`,
-      userId: req.user.claims.sub,
-      ipAddress: req.ip,
+      userId: req.user?.claims?.sub || getRequiredUserId(req).toString(),
+      ipAddress: req.ip || '127.0.0.1',
       userAgent: req.get('User-Agent'),
       metadata: { industry, companySize, frameworks }
     });
@@ -405,8 +407,8 @@ export function registerAIRoutes(router: Router) {
       action: "score",
       entityType: "document_quality",
       entityId: `quality_${Date.now()}`,
-      userId: req.user.claims.sub,
-      ipAddress: req.ip,
+      userId: req.user?.claims?.sub || getRequiredUserId(req).toString(),
+      ipAddress: req.ip || '127.0.0.1',
       userAgent: req.get('User-Agent'),
       metadata: { title, framework, documentType, score: qualityScore.overallScore }
     });
@@ -580,7 +582,7 @@ export function registerAIRoutes(router: Router) {
         entityType: "image",
         entityId: `img_${Date.now()}`,
         userId,
-        ipAddress: req.ip,
+        ipAddress: req.ip || '127.0.0.1',
         userAgent: req.get('User-Agent'),
         metadata: { analysisType, framework, mimeType, hasComplianceRelevance: !!result.complianceRelevance }
       });
@@ -687,11 +689,11 @@ export function registerAIRoutes(router: Router) {
       entityType: "ai_conversation",
       entityId: sessionId || `chat_${Date.now()}`,
       userId,
-      ipAddress: req.ip,
+      ipAddress: req.ip || '127.0.0.1',
       userAgent: req.get('User-Agent'),
-      metadata: { 
-        framework, 
-        messageLength: message.length, 
+      metadata: {
+        framework,
+        messageLength: message.length,
         attachmentCount: attachments?.length || 0,
         imageAnalysisCount: imageAnalysisResults.length,
         unsupportedFiles: unsupportedFiles.length
@@ -807,22 +809,22 @@ export function registerAIRoutes(router: Router) {
           byAction: guardrailStats.reduce((acc, stat) => {
             acc[stat.action] = (acc[stat.action] || 0) + stat.count;
             return acc;
-          }, {}),
+          }, {} as Record<string, number>),
           bySeverity: guardrailStats.reduce((acc, stat) => {
             acc[stat.severity] = (acc[stat.severity] || 0) + stat.count;
             return acc;
-          }, {})
+          }, {} as Record<string, number>)
         },
         usage: {
           total: totalUsageActions,
           byActionType: usageStats.reduce((acc, stat) => {
             acc[stat.actionType] = (acc[stat.actionType] || 0) + stat.count;
             return acc;
-          }, {}),
+          }, {} as Record<string, number>),
           byModelProvider: usageStats.reduce((acc, stat) => {
             acc[stat.modelProvider] = (acc[stat.modelProvider] || 0) + stat.count;
             return acc;
-          }, {})
+          }, {} as Record<string, number>)
         },
         documents: {
           aiGenerated: aiDocsResult.count
