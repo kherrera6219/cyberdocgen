@@ -12,6 +12,8 @@ declare global {
   namespace Express {
     interface Request {
       requestId?: string;
+      traceId?: string;
+      spanId?: string;
     }
   }
 }
@@ -26,6 +28,8 @@ import {
   requireMFAForHighRisk,
   csrfProtection
 } from "./middleware/security";
+import { tracingMiddleware } from "./middleware/tracing";
+import { egressControlMiddleware } from "./middleware/egressControl";
 import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
 import { validateEnvironment } from "./utils/validation";
 import { logger } from "./utils/logger";
@@ -93,6 +97,9 @@ app.use(securityHeaders);
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
+// Distributed tracing - add correlation IDs for observability
+app.use(tracingMiddleware());
+
 // Session middleware MUST be initialized BEFORE CSRF protection
 // CSRF requires session to store and validate tokens
 app.use(getSession());
@@ -105,6 +112,13 @@ app.use(threatDetection);
 
 // Comprehensive audit logging for compliance
 app.use(auditLogger);
+
+// SSRF egress control - validate external URLs in requests
+app.use('/api', egressControlMiddleware({ 
+  strictMode: true, 
+  logBlocked: true,
+  bypassPaths: ['/api/webhooks'] // Allow webhooks to receive external URLs
+}));
 
 // Request logging and validation
 app.use('/api', validateRouteAccess);

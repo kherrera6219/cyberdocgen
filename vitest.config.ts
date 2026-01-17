@@ -27,7 +27,14 @@ export default defineConfig({
         'dist/',
         'client/',
         '**/*.d.ts'
-      ]
+      ],
+      // Enforce 80% minimum coverage for enterprise standards
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80
+      }
     },
     projects: [
       {

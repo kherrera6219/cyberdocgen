@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response as ExpressResponse, NextFunction } from 'express';
 import { URL } from 'url';
 
 /**
@@ -170,7 +170,7 @@ export function validateUrl(
  * Use this to validate URL parameters in requests before making external calls.
  */
 export function egressControlMiddleware(options: EgressControlOptions = {}) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: ExpressResponse, next: NextFunction) => {
     // Check if path is bypassed
     if (options.bypassPaths?.some(path => req.path.startsWith(path))) {
       return next();
@@ -181,15 +181,16 @@ export function egressControlMiddleware(options: EgressControlOptions = {}) {
     const body = req.body || {};
     
     for (const field of urlFields) {
-      if (body[field]) {
-        const validation = validateUrl(body[field], options);
+      const fieldValue = body[field];
+      if (fieldValue && typeof fieldValue === 'string') {
+        const validation = validateUrl(fieldValue, options);
         
         if (!validation.valid) {
           if (options.logBlocked) {
-            console.log(JSON.stringify({
+            console.warn(JSON.stringify({
               type: 'ssrf_blocked',
               field,
-              url: body[field],
+              url: fieldValue,
               reason: validation.reason,
               ip: req.ip,
               path: req.path,
@@ -218,14 +219,14 @@ export async function safeFetch(
   url: string,
   options: RequestInit = {},
   egressOptions: EgressControlOptions = {}
-): Promise<Response> {
+): Promise<globalThis.Response> {
   const validation = validateUrl(url, { ...egressOptions, strictMode: true });
   
   if (!validation.valid) {
     throw new SSRFError(validation.reason || 'URL validation failed', url);
   }
   
-  return fetch(url, {
+  return globalThis.fetch(url, {
     ...options,
     // Prevent following redirects to blocked URLs
     redirect: 'manual',
