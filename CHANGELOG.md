@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-01-17
+
+### Added
+- Phase 6 comprehensive quality improvements (85% complete)
+- Enhanced test coverage with 783 passing tests (up from 774)
+- Backend service tests for sessionRiskScoringService, validation, emailService, documentTemplates
+- Proper Base32 encoding for MFA secrets (RFC 4648 compliant)
+- Deterministic SHA-256 hashing for data indexing
+
+### Fixed
+- 10 failing tests across encryption and MFA services
+- Encryption field detection now includes 'credit' and 'card' fields
+- MFA TOTP token generation now properly uses time slices
+- MFA QR code URL generation simplified and corrected
+- Hash-for-indexing made deterministic for consistent lookups
+
+### Changed
+- MFA validateTOTPToken now accepts milliseconds (improved API clarity)
+- Encryption shouldEncryptField expanded sensitive field detection
+- encryptCompanyProfile now includes 'apiKey' and 'encryptionKey' fields
+
+### Security
+- Enhanced encryption field detection for credit card data
+- Improved MFA secret generation with proper Base32 encoding
+- All security tests passing with comprehensive coverage
+
 ## [2.0.1] - 2026-01-17
 
 ### Changed
