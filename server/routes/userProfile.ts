@@ -1,13 +1,20 @@
 import { Router, Request, Response } from 'express';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 import { db } from '../db';
 import { users } from '@shared/schema';
-import { isAuthenticated, getUserId } from '../replitAuth';
+import { isAuthenticated } from '../replitAuth';
 import { logger } from '../utils/logger';
-import { z } from 'zod';
+import { 
+  secureHandler, 
+  validateInput,
+  requireAuth, 
+  requireResource 
+} from '../utils/errorHandling';
 
 const router = Router();
 
+// Validation schemas
 const profilePreferencesSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
   language: z.string().optional(),
@@ -36,137 +43,106 @@ const updateProfileSchema = z.object({
   notificationSettings: notificationSettingsSchema.optional(),
 });
 
-router.get('/me', isAuthenticated, async (req: Request, res: Response) => {
-  try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ message: 'User not authenticated' });
-    }
+/**
+ * Get current user profile
+ */
+router.get('/me', isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+  const userId = requireAuth(req);
 
-    const [user] = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        profileImageUrl: users.profileImageUrl,
-        role: users.role,
-        phoneNumber: users.phoneNumber,
-        emailVerified: users.emailVerified,
-        phoneVerified: users.phoneVerified,
-        twoFactorEnabled: users.twoFactorEnabled,
-        profilePreferences: users.profilePreferences,
-        notificationSettings: users.notificationSettings,
-        createdAt: users.createdAt,
-        lastLoginAt: users.lastLoginAt,
-      })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+  const [user] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      profileImageUrl: users.profileImageUrl,
+      role: users.role,
+      phoneNumber: users.phoneNumber,
+      emailVerified: users.emailVerified,
+      phoneVerified: users.phoneVerified,
+      twoFactorEnabled: users.twoFactorEnabled,
+      profilePreferences: users.profilePreferences,
+      notificationSettings: users.notificationSettings,
+      createdAt: users.createdAt,
+      lastLoginAt: users.lastLoginAt,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+  requireResource(user, 'User');
+  res.json({ success: true, data: user });
+}));
 
-    res.json(user);
-  } catch (error) {
-    logger.error('Failed to fetch user profile', { error });
-    res.status(500).json({ message: 'Failed to fetch profile' });
-  }
-});
+/**
+ * Update user profile
+ */
+router.patch('/me', isAuthenticated, validateInput(updateProfileSchema), secureHandler(async (req: Request, res: Response) => {
+  const userId = requireAuth(req);
 
-router.patch('/me', isAuthenticated, async (req: Request, res: Response) => {
-  try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ message: 'User not authenticated' });
-    }
+  const updates: Record<string, unknown> = {
+    updatedAt: new Date(),
+  };
 
-    const parsed = updateProfileSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ message: 'Invalid request body', errors: parsed.error.flatten() });
-    }
+  const { firstName, lastName, phoneNumber, profilePreferences, notificationSettings } = req.body;
 
-    const updates: Record<string, any> = {
-      updatedAt: new Date(),
-    };
+  if (firstName !== undefined) updates.firstName = firstName;
+  if (lastName !== undefined) updates.lastName = lastName;
+  if (phoneNumber !== undefined) updates.phoneNumber = phoneNumber;
+  if (profilePreferences !== undefined) updates.profilePreferences = profilePreferences;
+  if (notificationSettings !== undefined) updates.notificationSettings = notificationSettings;
 
-    if (parsed.data.firstName !== undefined) updates.firstName = parsed.data.firstName;
-    if (parsed.data.lastName !== undefined) updates.lastName = parsed.data.lastName;
-    if (parsed.data.phoneNumber !== undefined) updates.phoneNumber = parsed.data.phoneNumber;
-    if (parsed.data.profilePreferences !== undefined) updates.profilePreferences = parsed.data.profilePreferences;
-    if (parsed.data.notificationSettings !== undefined) updates.notificationSettings = parsed.data.notificationSettings;
+  const [updated] = await db
+    .update(users)
+    .set(updates)
+    .where(eq(users.id, userId))
+    .returning();
 
-    const [updated] = await db
-      .update(users)
-      .set(updates)
-      .where(eq(users.id, userId))
-      .returning();
+  requireResource(updated, 'User');
+  logger.info('User profile updated', { userId });
+  res.json({ success: true, data: updated });
+}, { audit: { action: 'update', entityType: 'userProfile' } }));
 
-    logger.info('User profile updated', { userId });
-    res.json(updated);
-  } catch (error) {
-    logger.error('Failed to update user profile', { error });
-    res.status(500).json({ message: 'Failed to update profile' });
-  }
-});
+/**
+ * Update user preferences only
+ */
+router.patch('/me/preferences', isAuthenticated, validateInput(profilePreferencesSchema), secureHandler(async (req: Request, res: Response) => {
+  const userId = requireAuth(req);
 
-router.patch('/me/preferences', isAuthenticated, async (req: Request, res: Response) => {
-  try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ message: 'User not authenticated' });
-    }
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  requireResource(user, 'User');
 
-    const parsed = profilePreferencesSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ message: 'Invalid preferences', errors: parsed.error.flatten() });
-    }
+  const currentPrefs = user.profilePreferences || {};
+  const newPrefs = { ...currentPrefs, ...req.body };
 
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    const currentPrefs = user?.profilePreferences || {};
-    const newPrefs = { ...currentPrefs, ...parsed.data };
+  const [updated] = await db
+    .update(users)
+    .set({ profilePreferences: newPrefs, updatedAt: new Date() })
+    .where(eq(users.id, userId))
+    .returning();
 
-    const [updated] = await db
-      .update(users)
-      .set({ profilePreferences: newPrefs, updatedAt: new Date() })
-      .where(eq(users.id, userId))
-      .returning();
+  res.json({ success: true, data: { profilePreferences: updated.profilePreferences } });
+}, { audit: { action: 'update', entityType: 'userPreferences' } }));
 
-    res.json({ profilePreferences: updated.profilePreferences });
-  } catch (error) {
-    logger.error('Failed to update preferences', { error });
-    res.status(500).json({ message: 'Failed to update preferences' });
-  }
-});
+/**
+ * Update notification settings only
+ */
+router.patch('/me/notifications', isAuthenticated, validateInput(notificationSettingsSchema), secureHandler(async (req: Request, res: Response) => {
+  const userId = requireAuth(req);
 
-router.patch('/me/notifications', isAuthenticated, async (req: Request, res: Response) => {
-  try {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ message: 'User not authenticated' });
-    }
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  requireResource(user, 'User');
 
-    const parsed = notificationSettingsSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ message: 'Invalid notification settings', errors: parsed.error.flatten() });
-    }
+  const currentSettings = user.notificationSettings || {};
+  const newSettings = { ...currentSettings, ...req.body };
 
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    const currentSettings = user?.notificationSettings || {};
-    const newSettings = { ...currentSettings, ...parsed.data };
+  const [updated] = await db
+    .update(users)
+    .set({ notificationSettings: newSettings, updatedAt: new Date() })
+    .where(eq(users.id, userId))
+    .returning();
 
-    const [updated] = await db
-      .update(users)
-      .set({ notificationSettings: newSettings, updatedAt: new Date() })
-      .where(eq(users.id, userId))
-      .returning();
-
-    res.json({ notificationSettings: updated.notificationSettings });
-  } catch (error) {
-    logger.error('Failed to update notification settings', { error });
-    res.status(500).json({ message: 'Failed to update notification settings' });
-  }
-});
+  res.json({ success: true, data: { notificationSettings: updated.notificationSettings } });
+}, { audit: { action: 'update', entityType: 'notificationSettings' } }));
 
 export default router;

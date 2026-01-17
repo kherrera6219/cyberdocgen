@@ -1,74 +1,76 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
+import { z } from 'zod';
 import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
-import { logger } from '../utils/logger';
-import { z } from 'zod';
+import { 
+  secureHandler,
+  validateInput,
+  requireAuth,
+  requireResource
+} from '../utils/errorHandling';
+
+// Validation schemas
+const limitQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+const notificationIdSchema = z.object({
+  id: z.string().min(1, 'Notification ID required'),
+});
 
 export function registerNotificationRoutes(router: Router) {
-  router.get("/", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = getRequiredUserId(req);
-      const limit = parseInt(req.query.limit as string) || 50;
-      
-      const notifications = await storage.getNotifications(userId, limit);
-      res.json(notifications);
-    } catch (error) {
-      logger.error('Failed to fetch notifications', { error });
-      res.status(500).json({ message: "Failed to fetch notifications" });
-    }
-  });
+  /**
+   * Get user notifications
+   */
+  router.get("/", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const limit = parseInt(req.query.limit as string) || 50;
+    
+    const notifications = await storage.getNotifications(userId, limit);
+    res.json({ success: true, data: notifications });
+  }));
 
-  router.get("/unread-count", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = getRequiredUserId(req);
-      const count = await storage.getUnreadNotificationCount(userId);
-      res.json({ count });
-    } catch (error) {
-      logger.error('Failed to fetch unread notification count', { error });
-      res.status(500).json({ message: "Failed to fetch unread count" });
-    }
-  });
+  /**
+   * Get unread notification count
+   */
+  router.get("/unread-count", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const count = await storage.getUnreadNotificationCount(userId);
+    res.json({ success: true, data: { count } });
+  }));
 
-  router.patch("/:id/read", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = getRequiredUserId(req);
-      const { id } = req.params;
-      
-      const notification = await storage.markNotificationAsRead(id, userId);
-      if (!notification) {
-        return res.status(404).json({ message: "Notification not found" });
-      }
-      res.json(notification);
-    } catch (error) {
-      logger.error('Failed to mark notification as read', { error });
-      res.status(500).json({ message: "Failed to mark as read" });
-    }
-  });
+  /**
+   * Mark single notification as read
+   */
+  router.patch("/:id/read", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const { id } = req.params;
+    
+    const notification = await storage.markNotificationAsRead(id, userId);
+    requireResource(notification, 'Notification');
+    
+    res.json({ success: true, data: notification });
+  }, { audit: { action: 'update', entityType: 'notification', getEntityId: (req) => req.params.id } }));
 
-  router.patch("/mark-all-read", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = getRequiredUserId(req);
-      const count = await storage.markAllNotificationsAsRead(userId);
-      res.json({ marked: count });
-    } catch (error) {
-      logger.error('Failed to mark all notifications as read', { error });
-      res.status(500).json({ message: "Failed to mark all as read" });
-    }
-  });
+  /**
+   * Mark all notifications as read
+   */
+  router.patch("/mark-all-read", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const count = await storage.markAllNotificationsAsRead(userId);
+    res.json({ success: true, data: { marked: count } });
+  }, { audit: { action: 'update', entityType: 'notifications' } }));
 
-  router.delete("/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = getRequiredUserId(req);
-      const { id } = req.params;
-      
-      const deleted = await storage.deleteNotification(id, userId);
-      if (!deleted) {
-        return res.status(404).json({ message: "Notification not found" });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      logger.error('Failed to delete notification', { error });
-      res.status(500).json({ message: "Failed to delete notification" });
-    }
-  });
+  /**
+   * Delete notification
+   */
+  router.delete("/:id", isAuthenticated, secureHandler(async (req: Request, res: Response) => {
+    const userId = requireAuth(req);
+    const { id } = req.params;
+    
+    const deleted = await storage.deleteNotification(id, userId);
+    requireResource(deleted ? { id } : null, 'Notification');
+    
+    res.json({ success: true, message: 'Notification deleted' });
+  }, { audit: { action: 'delete', entityType: 'notification', getEntityId: (req) => req.params.id } }));
 }

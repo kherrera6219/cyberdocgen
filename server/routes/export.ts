@@ -1,5 +1,4 @@
-import { Router } from 'express';
-import OpenAI from 'openai';
+import { Router, Request, Response } from 'express';
 import { logger } from '../utils/logger';
 import { storage } from '../storage';
 import { isAuthenticated } from '../replitAuth';
@@ -9,6 +8,10 @@ import {
   saveDocumentRequestSchema,
   generateDocumentRequestSchema
 } from '../validation/requestSchemas';
+import { 
+  secureHandler,
+  AppError
+} from '../utils/errorHandling';
 
 function getContentType(format: string): string {
   const contentTypes: Record<string, string> = {
@@ -23,19 +26,20 @@ function getContentType(format: string): string {
 }
 
 export function registerExportRoutes(router: Router) {
-  // Export is public - no auth required (users can export any content they provide)
-  router.post('/export-document', validateBody(exportDocumentRequestSchema), async (req: any, res) => {
-    try {
-      const { content, format, filename } = req.body;
+  /**
+   * Export document (public - users can export any content they provide)
+   */
+  router.post('/export-document', validateBody(exportDocumentRequestSchema), secureHandler(async (req: Request, res: Response) => {
+    const { content, format, filename } = req.body;
 
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const exportFilename = filename || `document-${timestamp}.${format}`;
-      
-      res.setHeader('Content-Type', getContentType(format));
-      res.setHeader('Content-Disposition', `attachment; filename="${exportFilename}"`);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const exportFilename = filename || `document-${timestamp}.${format}`;
+    
+    res.setHeader('Content-Type', getContentType(format));
+    res.setHeader('Content-Disposition', `attachment; filename="${exportFilename}"`);
 
-      if (format.toLowerCase() === 'html') {
-        const htmlContent = `
+    if (format.toLowerCase() === 'html') {
+      const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -61,112 +65,99 @@ export function registerExportRoutes(router: Router) {
     </div>
 </body>
 </html>`;
-        res.send(htmlContent);
-      } else {
-        res.send(content);
-      }
-
-    } catch (error: any) {
-      logger.error("Document export failed", { error: error.message, format: req.body.format });
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.send(htmlContent);
+    } else {
+      res.send(content);
     }
-  });
+  }));
 
-  router.post('/save-document', isAuthenticated, validateBody(saveDocumentRequestSchema), async (req: any, res) => {
-    try {
-      const { title, content, framework, category, companyProfileId, createdBy } = req.body;
+  /**
+   * Save document to storage
+   */
+  router.post('/save-document', isAuthenticated, validateBody(saveDocumentRequestSchema), secureHandler(async (req: Request, res: Response) => {
+    const { title, content, framework, category, companyProfileId, createdBy } = req.body;
 
-      let finalCompanyProfileId = companyProfileId;
-      
-      if (!finalCompanyProfileId) {
-        let systemUserId = createdBy;
-        if (!systemUserId || systemUserId === 'system') {
-          let systemUser = await storage.getUserByEmail('system@compliance.ai');
-          if (!systemUser) {
-            systemUser = await storage.createUser({
-              email: 'system@compliance.ai',
-              firstName: 'System',
-              lastName: 'Generated'
-            });
-          }
-          systemUserId = systemUser.id;
-        }
-        
-        const systemProfile = await storage.createCompanyProfile({
-          organizationId: 'system-org',
-          companyName: 'System Generated',
-          industry: 'General',
-          companySize: 'Small',
-          headquarters: 'N/A',
-          dataClassification: 'internal',
-          businessApplications: 'Auto-generated profile for standalone documents',
-          createdBy: systemUserId
-        });
-        finalCompanyProfileId = systemProfile.id;
-      }
-
-      const documentData = {
-        title,
-        content,
-        framework,
-        category: category || 'general',
-        status: 'draft' as const,
-        companyProfileId: finalCompanyProfileId,
-        createdBy: createdBy || 'system'
-      };
-
-      const savedDocument = await storage.createDocument(documentData);
-      
-      res.json({
-        success: true,
-        document: savedDocument
-      });
-
-    } catch (error: any) {
-      logger.error("Document save failed", { error: error.message, title: req.body.title });
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
-    }
-  });
-
-  router.post('/generate-document', isAuthenticated, validateBody(generateDocumentRequestSchema), async (req: any, res) => {
-    try {
-      const { framework, companyProfile, documentType, templateId, variables } = req.body;
-      
-      const { DocumentTemplateService } = await import('../services/documentTemplates');
-      
-      if (templateId && variables) {
-        const result = DocumentTemplateService.generateDocument(templateId, variables);
-        
-        if (!result.success) {
-          return res.status(400).json({
-            success: false,
-            error: 'Template validation failed',
-            details: result.errors
+    let finalCompanyProfileId = companyProfileId;
+    
+    if (!finalCompanyProfileId) {
+      let systemUserId = createdBy;
+      if (!systemUserId || systemUserId === 'system') {
+        let systemUser = await storage.getUserByEmail('system@compliance.ai');
+        if (!systemUser) {
+          systemUser = await storage.createUser({
+            email: 'system@compliance.ai',
+            firstName: 'System',
+            lastName: 'Generated'
           });
         }
+        systemUserId = systemUser.id;
+      }
+      
+      const systemProfile = await storage.createCompanyProfile({
+        organizationId: 'system-org',
+        companyName: 'System Generated',
+        industry: 'General',
+        companySize: 'Small',
+        headquarters: 'N/A',
+        dataClassification: 'internal',
+        businessApplications: 'Auto-generated profile for standalone documents',
+        createdBy: systemUserId
+      });
+      finalCompanyProfileId = systemProfile.id;
+    }
 
-        DocumentTemplateService.logTemplateUsage(templateId, framework);
+    const documentData = {
+      title,
+      content,
+      framework,
+      category: category || 'general',
+      status: 'draft' as const,
+      companyProfileId: finalCompanyProfileId,
+      createdBy: createdBy || 'system'
+    };
 
-        return res.json({
-          success: true,
+    const savedDocument = await storage.createDocument(documentData);
+    
+    res.json({
+      success: true,
+      data: { document: savedDocument }
+    });
+  }, { audit: { action: 'create', entityType: 'document' } }));
+
+  /**
+   * Generate document using AI
+   */
+  router.post('/generate-document', isAuthenticated, validateBody(generateDocumentRequestSchema), secureHandler(async (req: Request, res: Response) => {
+    const { framework, companyProfile, documentType, templateId, variables } = req.body;
+    
+    const { DocumentTemplateService } = await import('../services/documentTemplates');
+    
+    if (templateId && variables) {
+      const result = DocumentTemplateService.generateDocument(templateId, variables);
+      
+      if (!result.success) {
+        throw new AppError('Template validation failed', 400, 'TEMPLATE_ERROR', result.errors);
+      }
+
+      DocumentTemplateService.logTemplateUsage(templateId, framework);
+
+      res.json({
+        success: true,
+        data: {
           framework,
           documentType,
           content: result.content,
           templateBased: true,
           templateId
-        });
-      }
-      
-      const { getOpenAIClient } = await import('../services/aiClients');
-      const openai = getOpenAIClient();
-      
-      const systemPrompt = `You are a cybersecurity compliance expert. Generate a comprehensive ${documentType} document for ${framework} compliance framework for the company: ${companyProfile.name} (Industry: ${companyProfile.industry}, Size: ${companyProfile.size}).
+        }
+      });
+      return;
+    }
+    
+    const { getOpenAIClient } = await import('../services/aiClients');
+    const openai = getOpenAIClient();
+    
+    const systemPrompt = `You are a cybersecurity compliance expert. Generate a comprehensive ${documentType} document for ${framework} compliance framework for the company: ${companyProfile.name} (Industry: ${companyProfile.industry}, Size: ${companyProfile.size}).
 
 Create a professional, enterprise-ready document that meets the latest 2025 compliance standards. Include:
 1. Executive Summary
@@ -181,31 +172,26 @@ Create a professional, enterprise-ready document that meets the latest 2025 comp
 10. Related Documents
 
 Format with clear headings, numbered sections, and actionable guidance.`;
-      
-      const response = await openai.chat.completions.create({
-        model: "gpt-5.1",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Generate a detailed ${documentType} document for ${framework} compliance.` }
-        ],
-        max_completion_tokens: 3000,
-      });
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-5.1",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Generate a detailed ${documentType} document for ${framework} compliance.` }
+      ],
+      max_completion_tokens: 3000,
+    });
 
-      res.json({
-        success: true,
+    res.json({
+      success: true,
+      data: {
         framework,
         documentType,
         content: response.choices[0].message.content,
         templateBased: false,
         model: "gpt-5.1",
         usage: response.usage
-      });
-    } catch (error: any) {
-      logger.error("Document generation failed", { error: error.message, framework: req.body.framework, documentType: req.body.documentType });
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
-    }
-  });
+      }
+    });
+  }, { audit: { action: 'create', entityType: 'generatedDocument' } }));
 }
