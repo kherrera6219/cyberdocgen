@@ -186,7 +186,7 @@ export class MFAService {
    */
   async verifyTOTP(userId: string, token: string, secret: string): Promise<MFAVerification> {
     try {
-      const timestamp = Math.floor(Date.now() / 1000);
+      const timestamp = Date.now(); // Use milliseconds for validateTOTPToken
       const verified = this.validateTOTPToken(token, secret, timestamp);
 
       const verification: MFAVerification = {
@@ -365,19 +365,40 @@ export class MFAService {
   /**
    * Generates base32 secret for TOTP
    */
-  private generateBase32Secret(): string {
-    const buffer = crypto.randomBytes(this.secretLength);
-    return buffer.toString('base64')
-      .replace(/\+/g, 'A')
-      .replace(/\//g, 'B')
-      .replace(/=/g, '')
-      .substring(0, this.secretLength);
+  generateBase32Secret(): string {
+    // Proper Base32 encoding using RFC 4648 alphabet (A-Z, 2-7)
+    const buffer = crypto.randomBytes(20); // 20 bytes = 160 bits
+    const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let secret = '';
+
+    for (let i = 0; i < buffer.length; i += 5) {
+      // Process 5 bytes at a time (40 bits) to create 8 base32 characters
+      const chunk = buffer.slice(i, Math.min(i + 5, buffer.length));
+      let bits = 0;
+      let value = 0;
+
+      for (const byte of chunk) {
+        value = (value << 8) | byte;
+        bits += 8;
+
+        while (bits >= 5) {
+          secret += base32Chars[(value >>> (bits - 5)) & 0x1f];
+          bits -= 5;
+        }
+      }
+
+      if (bits > 0) {
+        secret += base32Chars[(value << (5 - bits)) & 0x1f];
+      }
+    }
+
+    return secret;
   }
 
   /**
    * Generates backup codes for MFA recovery
    */
-  private generateBackupCodes(): string[] {
+  generateBackupCodes(): string[] {
     const codes: string[] = [];
     for (let i = 0; i < this.backupCodeCount; i++) {
       const code = crypto.randomBytes(this.backupCodeLength)
@@ -392,7 +413,7 @@ export class MFAService {
   /**
    * Generates numeric verification code
    */
-  private generateNumericCode(length: number): string {
+  generateNumericCode(length: number): string {
     let code = '';
     for (let i = 0; i < length; i++) {
       code += Math.floor(Math.random() * 10).toString();
@@ -403,34 +424,36 @@ export class MFAService {
   /**
    * Generates QR code URL for authenticator apps
    */
-  private generateQRCodeUrl(userId: string, secret: string): string {
-    const issuer = 'ComplianceAI';
+  generateQRCodeUrl(userId: string, secret: string): string {
+    const issuer = 'CyberDocGen';
     const accountName = `${issuer}:${userId}`;
-    
+
     const otpauthUrl = `otpauth://totp/${encodeURIComponent(accountName)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
-    
-    // In production, use proper QR code generation library
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpauthUrl)}`;
+
+    // For testing, return the otpauth URL directly
+    // In production, wrap with QR code generation service
+    return otpauthUrl;
   }
 
   /**
    * Validates TOTP token against secret
+   * @param timestamp - Timestamp in milliseconds (will be converted to 30-second slices)
    */
-  private validateTOTPToken(token: string, secret: string, timestamp: number): boolean {
+  validateTOTPToken(token: string, secret: string, timestamp: number): boolean {
     try {
-      // Simple TOTP validation (in production, use proper TOTP library)
-      const timeSlice = Math.floor(timestamp / this.tokenWindow);
-      
+      // Convert milliseconds to 30-second time slices
+      const timeSlice = Math.floor(timestamp / 30000);
+
       // Check current and adjacent time slices for clock drift tolerance
       for (let i = -1; i <= 1; i++) {
         const testSlice = timeSlice + i;
         const expectedToken = this.generateTOTPToken(secret, testSlice);
-        
+
         if (crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expectedToken))) {
           return true;
         }
       }
-      
+
       return false;
 
     } catch (error) {
@@ -441,16 +464,39 @@ export class MFAService {
   /**
    * Generates TOTP token for given time slice
    */
-  private generateTOTPToken(secret: string, timeSlice: number): string {
+  generateTOTPToken(secret: string, timeSlice: number): string {
     // Simplified TOTP generation - in production use proper TOTP library like 'speakeasy'
-    const hash = crypto.createHmac('sha1', Buffer.from(secret, 'base64'))
-      .update(Buffer.alloc(8))
+    // Convert Base32 secret to buffer for HMAC
+    const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    const secretUpper = secret.toUpperCase();
+    let bits = 0;
+    let value = 0;
+    const secretBytes: number[] = [];
+
+    for (const char of secretUpper) {
+      const idx = base32Chars.indexOf(char);
+      if (idx === -1) continue;
+      value = (value << 5) | idx;
+      bits += 5;
+
+      if (bits >= 8) {
+        secretBytes.push((value >>> (bits - 8)) & 0xff);
+        bits -= 8;
+      }
+    }
+
+    // Create time buffer (8 bytes, big-endian)
+    const timeBuffer = Buffer.alloc(8);
+    timeBuffer.writeBigUInt64BE(BigInt(timeSlice));
+
+    const hash = crypto.createHmac('sha1', Buffer.from(secretBytes))
+      .update(timeBuffer)
       .digest();
-    
+
     const offset = hash[hash.length - 1] & 0xf;
     const truncatedHash = hash.readUInt32BE(offset) & 0x7fffffff;
     const token = (truncatedHash % 1000000).toString().padStart(6, '0');
-    
+
     return token;
   }
 

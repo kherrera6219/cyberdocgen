@@ -1,0 +1,1675 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for cyberdocgen/server/services/documentTemplates/operational/certifications.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../../../index.html">All files</a> / <a href="index.html">cyberdocgen/server/services/documentTemplates/operational</a> certifications.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/152</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/152</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a>
+<a name='L387'></a><a href='#L387'>387</a>
+<a name='L388'></a><a href='#L388'>388</a>
+<a name='L389'></a><a href='#L389'>389</a>
+<a name='L390'></a><a href='#L390'>390</a>
+<a name='L391'></a><a href='#L391'>391</a>
+<a name='L392'></a><a href='#L392'>392</a>
+<a name='L393'></a><a href='#L393'>393</a>
+<a name='L394'></a><a href='#L394'>394</a>
+<a name='L395'></a><a href='#L395'>395</a>
+<a name='L396'></a><a href='#L396'>396</a>
+<a name='L397'></a><a href='#L397'>397</a>
+<a name='L398'></a><a href='#L398'>398</a>
+<a name='L399'></a><a href='#L399'>399</a>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a>
+<a name='L411'></a><a href='#L411'>411</a>
+<a name='L412'></a><a href='#L412'>412</a>
+<a name='L413'></a><a href='#L413'>413</a>
+<a name='L414'></a><a href='#L414'>414</a>
+<a name='L415'></a><a href='#L415'>415</a>
+<a name='L416'></a><a href='#L416'>416</a>
+<a name='L417'></a><a href='#L417'>417</a>
+<a name='L418'></a><a href='#L418'>418</a>
+<a name='L419'></a><a href='#L419'>419</a>
+<a name='L420'></a><a href='#L420'>420</a>
+<a name='L421'></a><a href='#L421'>421</a>
+<a name='L422'></a><a href='#L422'>422</a>
+<a name='L423'></a><a href='#L423'>423</a>
+<a name='L424'></a><a href='#L424'>424</a>
+<a name='L425'></a><a href='#L425'>425</a>
+<a name='L426'></a><a href='#L426'>426</a>
+<a name='L427'></a><a href='#L427'>427</a>
+<a name='L428'></a><a href='#L428'>428</a>
+<a name='L429'></a><a href='#L429'>429</a>
+<a name='L430'></a><a href='#L430'>430</a>
+<a name='L431'></a><a href='#L431'>431</a>
+<a name='L432'></a><a href='#L432'>432</a>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a>
+<a name='L436'></a><a href='#L436'>436</a>
+<a name='L437'></a><a href='#L437'>437</a>
+<a name='L438'></a><a href='#L438'>438</a>
+<a name='L439'></a><a href='#L439'>439</a>
+<a name='L440'></a><a href='#L440'>440</a>
+<a name='L441'></a><a href='#L441'>441</a>
+<a name='L442'></a><a href='#L442'>442</a>
+<a name='L443'></a><a href='#L443'>443</a>
+<a name='L444'></a><a href='#L444'>444</a>
+<a name='L445'></a><a href='#L445'>445</a>
+<a name='L446'></a><a href='#L446'>446</a>
+<a name='L447'></a><a href='#L447'>447</a>
+<a name='L448'></a><a href='#L448'>448</a>
+<a name='L449'></a><a href='#L449'>449</a>
+<a name='L450'></a><a href='#L450'>450</a>
+<a name='L451'></a><a href='#L451'>451</a>
+<a name='L452'></a><a href='#L452'>452</a>
+<a name='L453'></a><a href='#L453'>453</a>
+<a name='L454'></a><a href='#L454'>454</a>
+<a name='L455'></a><a href='#L455'>455</a>
+<a name='L456'></a><a href='#L456'>456</a>
+<a name='L457'></a><a href='#L457'>457</a>
+<a name='L458'></a><a href='#L458'>458</a>
+<a name='L459'></a><a href='#L459'>459</a>
+<a name='L460'></a><a href='#L460'>460</a>
+<a name='L461'></a><a href='#L461'>461</a>
+<a name='L462'></a><a href='#L462'>462</a>
+<a name='L463'></a><a href='#L463'>463</a>
+<a name='L464'></a><a href='#L464'>464</a>
+<a name='L465'></a><a href='#L465'>465</a>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a>
+<a name='L475'></a><a href='#L475'>475</a>
+<a name='L476'></a><a href='#L476'>476</a>
+<a name='L477'></a><a href='#L477'>477</a>
+<a name='L478'></a><a href='#L478'>478</a>
+<a name='L479'></a><a href='#L479'>479</a>
+<a name='L480'></a><a href='#L480'>480</a>
+<a name='L481'></a><a href='#L481'>481</a>
+<a name='L482'></a><a href='#L482'>482</a>
+<a name='L483'></a><a href='#L483'>483</a>
+<a name='L484'></a><a href='#L484'>484</a>
+<a name='L485'></a><a href='#L485'>485</a>
+<a name='L486'></a><a href='#L486'>486</a>
+<a name='L487'></a><a href='#L487'>487</a>
+<a name='L488'></a><a href='#L488'>488</a>
+<a name='L489'></a><a href='#L489'>489</a>
+<a name='L490'></a><a href='#L490'>490</a>
+<a name='L491'></a><a href='#L491'>491</a>
+<a name='L492'></a><a href='#L492'>492</a>
+<a name='L493'></a><a href='#L493'>493</a>
+<a name='L494'></a><a href='#L494'>494</a>
+<a name='L495'></a><a href='#L495'>495</a>
+<a name='L496'></a><a href='#L496'>496</a>
+<a name='L497'></a><a href='#L497'>497</a>
+<a name='L498'></a><a href='#L498'>498</a>
+<a name='L499'></a><a href='#L499'>499</a>
+<a name='L500'></a><a href='#L500'>500</a>
+<a name='L501'></a><a href='#L501'>501</a>
+<a name='L502'></a><a href='#L502'>502</a>
+<a name='L503'></a><a href='#L503'>503</a>
+<a name='L504'></a><a href='#L504'>504</a>
+<a name='L505'></a><a href='#L505'>505</a>
+<a name='L506'></a><a href='#L506'>506</a>
+<a name='L507'></a><a href='#L507'>507</a>
+<a name='L508'></a><a href='#L508'>508</a>
+<a name='L509'></a><a href='#L509'>509</a>
+<a name='L510'></a><a href='#L510'>510</a>
+<a name='L511'></a><a href='#L511'>511</a>
+<a name='L512'></a><a href='#L512'>512</a>
+<a name='L513'></a><a href='#L513'>513</a>
+<a name='L514'></a><a href='#L514'>514</a>
+<a name='L515'></a><a href='#L515'>515</a>
+<a name='L516'></a><a href='#L516'>516</a>
+<a name='L517'></a><a href='#L517'>517</a>
+<a name='L518'></a><a href='#L518'>518</a>
+<a name='L519'></a><a href='#L519'>519</a>
+<a name='L520'></a><a href='#L520'>520</a>
+<a name='L521'></a><a href='#L521'>521</a>
+<a name='L522'></a><a href='#L522'>522</a>
+<a name='L523'></a><a href='#L523'>523</a>
+<a name='L524'></a><a href='#L524'>524</a>
+<a name='L525'></a><a href='#L525'>525</a>
+<a name='L526'></a><a href='#L526'>526</a>
+<a name='L527'></a><a href='#L527'>527</a>
+<a name='L528'></a><a href='#L528'>528</a>
+<a name='L529'></a><a href='#L529'>529</a>
+<a name='L530'></a><a href='#L530'>530</a>
+<a name='L531'></a><a href='#L531'>531</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { DocumentTemplate } from '../types';
+&nbsp;
+<span class="cstat-no" title="statement not covered" >export const CertificationDocumentTemplates: DocumentTemplate[] = [</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    id: 'cert-iso-001',</span>
+<span class="cstat-no" title="statement not covered" >    title: 'ISO 27001 Management Assertion Statement',</span>
+<span class="cstat-no" title="statement not covered" >    description: 'Formal management statement asserting ISMS implementation and commitment',</span>
+<span class="cstat-no" title="statement not covered" >    framework: 'ISO27001',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'statement',</span>
+<span class="cstat-no" title="statement not covered" >    priority: 1,</span>
+<span class="cstat-no" title="statement not covered" >    documentType: 'statement',</span>
+<span class="cstat-no" title="statement not covered" >    required: true,</span>
+<span class="cstat-no" title="statement not covered" >    templateContent: `# Management Assertion Statement - ISO 27001:2022</span>
+&nbsp;
+## Document Information
+**Organization:** {{organization_name}}
+**Date:** {{assertion_date}}
+**ISMS Scope:** {{isms_scope}}
+**Certification Body:** {{certification_body}}
+**Assessment Period:** {{assessment_period}}
+&nbsp;
+## Management Assertion
+&nbsp;
+We, the management of {{organization_name}}, hereby assert that:
+&nbsp;
+### 1. Information Security Management System (ISMS) Implementation
+We have established, implemented, maintained, and continually improved an Information Security Management System (ISMS) in accordance with the requirements of ISO/IEC 27001:2022.
+&nbsp;
+### 2. Management Commitment
+- Senior management demonstrates leadership and commitment to the ISMS
+- Information security policy has been established and is appropriate for the organization
+- Resources necessary for the ISMS have been allocated
+- Regular management reviews are conducted to ensure continuing effectiveness
+&nbsp;
+### 3. Risk Management
+- Information security risks have been identified and assessed using {{risk_methodology}}
+- Appropriate risk treatment options have been implemented
+- Risk acceptance criteria have been defined and applied
+- Regular risk assessments are conducted and documented
+&nbsp;
+### 4. Control Implementation
+The Statement of Applicability documents {{total_controls}} applicable controls from ISO 27001:2022 Annex A:
+- **Implemented Controls:** {{implemented_controls_count}}
+- **Planned Controls:** {{planned_controls_count}}  
+- **Not Applicable Controls:** {{na_controls_count}} (with justification)
+&nbsp;
+### 5. Competence and Awareness
+- Personnel are competent on the basis of education, training, or experience
+- All personnel are aware of the information security policy
+- Security awareness programs are regularly conducted
+- Training records are maintained and reviewed
+&nbsp;
+### 6. Monitoring and Measurement
+- Performance of the ISMS is monitored and measured
+- Internal audits are conducted at planned intervals
+- Management reviews are performed regularly
+- Corrective actions are taken when necessary
+&nbsp;
+### 7. Continuous Improvement
+The ISMS is continually improved through:
+- Regular internal audits findings and recommendations
+- Management review outcomes
+- Corrective and preventive action implementation
+- Performance monitoring results
+&nbsp;
+## Compliance Declaration
+We declare that our ISMS:
+✓ Meets the requirements of ISO/IEC 27001:2022
+✓ Is appropriate for the purpose and context of the organization
+✓ Includes all systems, processes, and personnel within the defined scope
+✓ Addresses all applicable legal, regulatory, and contractual requirements
+&nbsp;
+## Certification Readiness
+We believe our organization is ready for ISO 27001:2022 certification assessment and commit to:
+- Providing full access to personnel, facilities, and documentation
+- Cooperating fully with the certification audit process
+- Addressing any nonconformities identified during assessment
+- Maintaining the ISMS effectiveness post-certification
+&nbsp;
+**Chief Executive Officer**
+Name: {{ceo_name}}
+Signature: _________________
+Date: {{ceo_signature_date}}
+&nbsp;
+**Information Security Officer** 
+Name: {{iso_name}}
+Signature: _________________
+Date: {{iso_signature_date}}
+&nbsp;
+**Document Control**
+Version: {{version}}
+Next Review Date: {{next_review_date}}
+Approved By: {{approved_by}}`,
+<span class="cstat-no" title="statement not covered" >    templateVariables: {</span>
+<span class="cstat-no" title="statement not covered" >      organization_name: { type: 'text', label: 'Organization Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      isms_scope: { type: 'text', label: 'ISMS Scope Statement', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      assertion_date: { type: 'date', label: 'Assertion Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      certification_body: { type: 'text', label: 'Certification Body', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      assessment_period: { type: 'text', label: 'Assessment Period', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      risk_methodology: { type: 'text', label: 'Risk Assessment Methodology', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      total_controls: { type: 'number', label: 'Total Controls', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      implemented_controls_count: { type: 'number', label: 'Implemented Controls Count', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      planned_controls_count: { type: 'number', label: 'Planned Controls Count', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      na_controls_count: { type: 'number', label: 'N/A Controls Count', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ceo_name: { type: 'text', label: 'CEO Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ceo_signature_date: { type: 'date', label: 'CEO Signature Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      iso_name: { type: 'text', label: 'Information Security Officer Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      iso_signature_date: { type: 'date', label: 'ISO Signature Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      version: { type: 'text', label: 'Version', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      next_review_date: { type: 'date', label: 'Next Review Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      approved_by: { type: 'text', label: 'Approved By', required: true }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    id: 'cert-fedramp-001', </span>
+<span class="cstat-no" title="statement not covered" >    title: 'FedRAMP System Characterization and Authorization Memorandum',</span>
+<span class="cstat-no" title="statement not covered" >    description: 'Official memorandum for FedRAMP system authorization and impact level designation',</span>
+<span class="cstat-no" title="statement not covered" >    framework: 'FedRAMP',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'memorandum',</span>
+<span class="cstat-no" title="statement not covered" >    priority: 1,</span>
+<span class="cstat-no" title="statement not covered" >    documentType: 'memorandum',</span>
+<span class="cstat-no" title="statement not covered" >    required: true,</span>
+<span class="cstat-no" title="statement not covered" >    templateContent: `# MEMORANDUM FOR FEDRAMP PROGRAM MANAGEMENT OFFICE</span>
+&nbsp;
+## SUBJECT: System Authorization Request for {{system_name}}
+&nbsp;
+**FROM:** {{authorizing_official_name}}, {{authorizing_official_title}}
+**TO:** FedRAMP Program Management Office
+**DATE:** {{memo_date}}
+**CLASSIFICATION:** {{classification_level}}
+&nbsp;
+## 1. SYSTEM IDENTIFICATION
+&nbsp;
+**System Name:** {{system_name}}
+**System Identifier:** {{system_id}}
+**Cloud Service Provider:** {{csp_name}}
+**Impact Level:** {{impact_level}}
+**Service Model:** {{service_model}}
+**Deployment Model:** {{deployment_model}}
+&nbsp;
+## 2. AUTHORIZATION BASIS
+&nbsp;
+This memorandum requests authorization for the {{system_name}} under the Federal Risk and Authorization Management Program (FedRAMP). The system has been assessed in accordance with:
+&nbsp;
+- FedRAMP Security Assessment Framework (SAF) Version 2.1
+- NIST SP 800-53 Revision 5 Security Controls
+- FedRAMP {{impact_level}} Baseline Requirements
+- FIPS Publication 199 Impact Analysis
+&nbsp;
+## 3. SYSTEM CHARACTERIZATION
+&nbsp;
+### System Description
+{{system_description}}
+&nbsp;
+### Business Purpose
+{{business_purpose}}
+&nbsp;
+### System Environment
+- **Hosting Environment:** {{hosting_environment}}
+- **Geographic Locations:** {{geographic_locations}}
+- **System Boundaries:** {{system_boundaries}}
+- **Network Architecture:** {{network_architecture}}
+&nbsp;
+### Data Types Processed
+{{data_types_processed}}
+&nbsp;
+## 4. SECURITY ASSESSMENT SUMMARY
+&nbsp;
+### Assessment Methodology
+The security assessment was conducted by {{three_pao_name}}, an accredited Third Party Assessment Organization (3PAO), in accordance with FedRAMP requirements.
+&nbsp;
+**Assessment Period:** {{assessment_start_date}} to {{assessment_end_date}}
+&nbsp;
+### Control Implementation Status
+- **Total Controls Assessed:** {{total_controls}}
+- **Fully Implemented:** {{implemented_controls}}
+- **Partially Implemented:** {{partially_implemented}}
+- **Not Implemented:** {{not_implemented}}
+- **Not Applicable:** {{not_applicable}}
+&nbsp;
+### Security Control Families Assessed
+✓ Access Control (AC) - {{ac_controls}} controls
+✓ Audit and Accountability (AU) - {{au_controls}} controls  
+✓ Assessment, Authorization, and Monitoring (CA) - {{ca_controls}} controls
+✓ Configuration Management (CM) - {{cm_controls}} controls
+✓ Contingency Planning (CP) - {{cp_controls}} controls
+✓ Identification and Authentication (IA) - {{ia_controls}} controls
+✓ Incident Response (IR) - {{ir_controls}} controls
+✓ Maintenance (MA) - {{ma_controls}} controls
+✓ Media Protection (MP) - {{mp_controls}} controls
+✓ Physical and Environmental Protection (PE) - {{pe_controls}} controls
+✓ Planning (PL) - {{pl_controls}} controls
+✓ Personnel Security (PS) - {{ps_controls}} controls
+✓ Risk Assessment (RA) - {{ra_controls}} controls
+✓ System and Services Acquisition (SA) - {{sa_controls}} controls
+✓ System and Communications Protection (SC) - {{sc_controls}} controls
+✓ System and Information Integrity (SI) - {{si_controls}} controls
+&nbsp;
+## 5. RISK ASSESSMENT RESULTS
+&nbsp;
+### Overall Risk Rating: {{overall_risk_rating}}
+&nbsp;
+### Critical Findings: {{critical_findings_count}}
+### High Findings: {{high_findings_count}}
+### Medium Findings: {{medium_findings_count}}
+### Low Findings: {{low_findings_count}}
+&nbsp;
+All critical and high-risk findings have been addressed through the Plan of Action &amp; Milestones (POA&amp;M) with approved risk mitigation strategies.
+&nbsp;
+## 6. CONTINUOUS MONITORING
+&nbsp;
+The Cloud Service Provider has implemented a continuous monitoring program that includes:
+- Monthly vulnerability scans by approved scanning vendors
+- Configuration management and change control procedures
+- Incident response and reporting procedures
+- Annual assessment updates
+- Real-time security monitoring and alerting
+&nbsp;
+## 7. AUTHORIZATION RECOMMENDATION
+&nbsp;
+Based on the comprehensive security assessment and risk analysis, I recommend granting a {{authorization_type}} for {{system_name}} with the following conditions:
+&nbsp;
+### Terms and Conditions
+1. Maintain all security controls as documented in the System Security Plan
+2. Execute continuous monitoring requirements per FedRAMP guidelines
+3. Report all significant changes to system boundaries or architecture
+4. Submit monthly continuous monitoring deliverables
+5. Undergo annual assessment by accredited 3PAO
+6. Maintain current POA&amp;M status and remediation timeline
+&nbsp;
+### Authorization Period
+**Effective Date:** {{authorization_effective_date}}
+**Expiration Date:** {{authorization_expiration_date}}
+**Review Cycle:** Annual
+&nbsp;
+## 8. SUPPORTING DOCUMENTATION
+&nbsp;
+The following documents support this authorization request:
+- System Security Plan (SSP) Version {{ssp_version}}
+- Security Assessment Report (SAR) by {{three_pao_name}}
+- Plan of Action &amp; Milestones (POA&amp;M) Version {{poam_version}}
+- Contingency Plan Version {{cp_version}}
+- Continuous Monitoring Strategy Version {{conmon_version}}
+&nbsp;
+## 9. CERTIFICATION
+&nbsp;
+I certify that the information contained in this memorandum accurately represents the security posture of {{system_name}} and that all security controls have been implemented and assessed in accordance with FedRAMP requirements.
+&nbsp;
+**AUTHORIZING OFFICIAL**
+&nbsp;
+{{authorizing_official_name}}
+{{authorizing_official_title}}
+{{organization_name}}
+&nbsp;
+Signature: _________________________
+Date: {{signature_date}}
+&nbsp;
+**CONCURRENCE**
+&nbsp;
+**Chief Information Security Officer**
+{{ciso_name}}
+Signature: _________________________
+Date: {{ciso_signature_date}}
+&nbsp;
+**Distribution:**
+- FedRAMP PMO
+- {{csp_name}} Leadership  
+- Agency Sponsor (if applicable)
+- {{three_pao_name}}
+&nbsp;
+**Classification:** {{classification_level}}
+**Control Number:** {{control_number}}`,
+<span class="cstat-no" title="statement not covered" >    templateVariables: {</span>
+<span class="cstat-no" title="statement not covered" >      system_name: { type: 'text', label: 'System Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      csp_name: { type: 'text', label: 'Cloud Service Provider Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      impact_level: { type: 'select', label: 'FedRAMP Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },</span>
+<span class="cstat-no" title="statement not covered" >      authorizing_official_name: { type: 'text', label: 'Authorizing Official Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      authorizing_official_title: { type: 'text', label: 'Authorizing Official Title', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      memo_date: { type: 'date', label: 'Memorandum Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      classification_level: { type: 'text', label: 'Classification Level', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      system_id: { type: 'text', label: 'System Identifier', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      service_model: { type: 'select', label: 'Service Model', required: true, options: ['IaaS', 'PaaS', 'SaaS'] },</span>
+<span class="cstat-no" title="statement not covered" >      deployment_model: { type: 'select', label: 'Deployment Model', required: true, options: ['Public', 'Private', 'Hybrid', 'Community'] },</span>
+<span class="cstat-no" title="statement not covered" >      system_description: { type: 'text', label: 'System Description', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      business_purpose: { type: 'text', label: 'Business Purpose', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      hosting_environment: { type: 'text', label: 'Hosting Environment', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      geographic_locations: { type: 'text', label: 'Geographic Locations', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      system_boundaries: { type: 'text', label: 'System Boundaries', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      network_architecture: { type: 'text', label: 'Network Architecture', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      data_types_processed: { type: 'text', label: 'Data Types Processed', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      three_pao_name: { type: 'text', label: 'Third Party Assessment Organization', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      assessment_start_date: { type: 'date', label: 'Assessment Start Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      assessment_end_date: { type: 'date', label: 'Assessment End Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      total_controls: { type: 'number', label: 'Total Controls', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      implemented_controls: { type: 'number', label: 'Implemented Controls', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      partially_implemented: { type: 'number', label: 'Partially Implemented', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      not_implemented: { type: 'number', label: 'Not Implemented', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      not_applicable: { type: 'number', label: 'Not Applicable', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ac_controls: { type: 'number', label: 'AC Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      au_controls: { type: 'number', label: 'AU Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      ca_controls: { type: 'number', label: 'CA Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      cm_controls: { type: 'number', label: 'CM Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      cp_controls: { type: 'number', label: 'CP Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      ia_controls: { type: 'number', label: 'IA Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      ir_controls: { type: 'number', label: 'IR Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      ma_controls: { type: 'number', label: 'MA Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      mp_controls: { type: 'number', label: 'MP Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      pe_controls: { type: 'number', label: 'PE Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      pl_controls: { type: 'number', label: 'PL Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      ps_controls: { type: 'number', label: 'PS Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      ra_controls: { type: 'number', label: 'RA Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      sa_controls: { type: 'number', label: 'SA Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      sc_controls: { type: 'number', label: 'SC Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      si_controls: { type: 'number', label: 'SI Controls', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      overall_risk_rating: { type: 'select', label: 'Overall Risk Rating', required: true, options: ['Low', 'Moderate', 'High'] },</span>
+<span class="cstat-no" title="statement not covered" >      critical_findings_count: { type: 'number', label: 'Critical Findings', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      high_findings_count: { type: 'number', label: 'High Findings', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      medium_findings_count: { type: 'number', label: 'Medium Findings', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      low_findings_count: { type: 'number', label: 'Low Findings', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      authorization_type: { type: 'select', label: 'Authorization Recommendation', required: true, options: ['Authority to Operate (ATO)', 'Interim Authority to Operate (IATO)', 'Denial of Authorization'] },</span>
+<span class="cstat-no" title="statement not covered" >      authorization_effective_date: { type: 'date', label: 'Authorization Effective Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      authorization_expiration_date: { type: 'date', label: 'Authorization Expiration Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ssp_version: { type: 'text', label: 'SSP Version', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      poam_version: { type: 'text', label: 'POA&amp;M Version', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      cp_version: { type: 'text', label: 'Contingency Plan Version', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      conmon_version: { type: 'text', label: 'ConMon Strategy Version', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      organization_name: { type: 'text', label: 'Organization Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      signature_date: { type: 'date', label: 'Signature Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ciso_name: { type: 'text', label: 'CISO Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ciso_signature_date: { type: 'date', label: 'CISO Signature Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      control_number: { type: 'text', label: 'Control Number', required: true }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  },</span>
+<span class="cstat-no" title="statement not covered" >  {</span>
+<span class="cstat-no" title="statement not covered" >    id: 'cert-soc2-001',</span>
+<span class="cstat-no" title="statement not covered" >    title: 'SOC 2 Type 2 Management Assertion Letter',</span>
+<span class="cstat-no" title="statement not covered" >    description: 'Management assertion letter for SOC 2 Type 2 attestation engagement',</span>
+<span class="cstat-no" title="statement not covered" >    framework: 'SOC2',</span>
+<span class="cstat-no" title="statement not covered" >    category: 'statement',</span>
+<span class="cstat-no" title="statement not covered" >    priority: 1,</span>
+<span class="cstat-no" title="statement not covered" >    documentType: 'statement',</span>
+<span class="cstat-no" title="statement not covered" >    required: true,</span>
+<span class="cstat-no" title="statement not covered" >    templateContent: `# Management Assertion Letter - SOC 2 Type 2</span>
+&nbsp;
+**TO:** {{auditor_firm_name}}
+**FROM:** {{management_name}}, {{management_title}}
+**DATE:** {{assertion_date}}
+**RE:** SOC 2 Type 2 Attestation Engagement for {{company_name}}
+&nbsp;
+## Management's Assertion
+&nbsp;
+We, the management of {{company_name}}, are responsible for designing, implementing, operating, and maintaining effective controls over our {{service_description}} system to provide reasonable assurance that our service commitments and system requirements were achieved based on the Trust Services Criteria relevant to {{applicable_criteria}} during the period {{audit_period_start}} to {{audit_period_end}}.
+&nbsp;
+## System Description
+&nbsp;
+### Company and Service Overview
+{{company_name}} provides {{detailed_service_description}} to customers across {{geographic_coverage}}. Our mission is {{company_mission}}.
+&nbsp;
+### Service Commitments and System Requirements
+We are committed to:
+- {{service_commitment_1}}
+- {{service_commitment_2}}
+- {{service_commitment_3}}
+- {{service_commitment_4}}
+&nbsp;
+### Principal Service Commitments and System Requirements
+Our principal service commitments to customers include:
+{{principal_service_commitments}}
+&nbsp;
+## Trust Services Categories
+&nbsp;
+We assert that the controls within our system were effective throughout the audit period to meet the following Trust Services Criteria:
+&nbsp;
+### Security (Required for all SOC 2 audits)
+✓ **CC6.1** - Logical and physical access controls restrict access to the system
+✓ **CC6.2** - Access rights are authorized and managed  
+✓ **CC6.3** - Access permissions are removed when access is no longer required
+✓ **CC6.6** - Vulnerabilities are identified and remediated
+✓ **CC6.7** - Data transmission is protected
+✓ **CC6.8** - System operations are protected from unauthorized access
+&nbsp;
+### Availability {{availability_applicable}}
+{{#if availability_applicable}}
+✓ **A1.1** - Availability commitments and system requirements are achieved
+✓ **A1.2** - System capacity is monitored and managed
+✓ **A1.3** - System resilience and backup capabilities are maintained
+{{/if}}
+&nbsp;
+### Processing Integrity {{processing_integrity_applicable}}
+{{#if processing_integrity_applicable}}
+✓ **PI1.1** - Processing integrity commitments are achieved
+✓ **PI1.2** - System processing is accurate and complete
+✓ **PI1.3** - Processing errors are identified and corrected
+{{/if}}
+&nbsp;
+### Confidentiality {{confidentiality_applicable}}
+{{#if confidentiality_applicable}}
+✓ **C1.1** - Confidentiality commitments are achieved
+✓ **C1.2** - Confidential information is protected during processing and storage
+{{/if}}
+&nbsp;
+### Privacy {{privacy_applicable}}
+{{#if privacy_applicable}}
+✓ **P1.1** - Privacy commitments are achieved
+✓ **P2.1** - Privacy notices are provided to data subjects
+✓ **P3.1** - Choice and consent mechanisms are implemented
+{{/if}}
+&nbsp;
+## Control Environment
+&nbsp;
+### Organizational Structure
+{{organizational_structure}}
+&nbsp;
+### Key Personnel and Responsibilities
+- **Chief Executive Officer:** {{ceo_name}} - Overall governance and strategic direction
+- **Chief Technology Officer:** {{cto_name}} - Technology strategy and system oversight
+- **Chief Information Security Officer:** {{ciso_name}} - Security program leadership
+- **Data Protection Officer:** {{dpo_name}} - Privacy program oversight
+- **IT Operations Manager:** {{it_ops_manager}} - Day-to-day system operations
+&nbsp;
+### Control Activities
+Management has implemented the following categories of control activities:
+- **Access Control Procedures** - User provisioning, authentication, authorization
+- **Change Management Controls** - System change approval and testing procedures
+- **Monitoring Controls** - System monitoring, logging, and alerting capabilities
+- **Data Protection Controls** - Encryption, backup, and recovery procedures
+- **Incident Response Procedures** - Security incident detection and response
+- **Vendor Management Controls** - Third-party risk assessment and oversight
+&nbsp;
+## Risk Assessment Process
+&nbsp;
+Management conducts formal risk assessments {{risk_assessment_frequency}} that include:
+- Identification of relevant threats and vulnerabilities
+- Assessment of likelihood and impact of identified risks
+- Implementation of risk mitigation controls
+- Regular review and update of risk registers
+&nbsp;
+## Information and Communication Systems
+&nbsp;
+Our information systems relevant to this SOC 2 examination include:
+{{information_systems_list}}
+&nbsp;
+Communication mechanisms include:
+- Regular security awareness training for all employees
+- Documented policies and procedures accessible to relevant personnel
+- Incident communication protocols for security events
+- Regular reporting to management and customers on security posture
+&nbsp;
+## Monitoring Activities
+&nbsp;
+Management monitors the operating effectiveness of controls through:
+- **Internal audits** conducted {{internal_audit_frequency}}
+- **Management reviews** performed {{mgmt_review_frequency}}  
+- **Third-party assessments** including penetration testing and vulnerability assessments
+- **Continuous monitoring** through automated security tools and manual reviews
+&nbsp;
+## Changes During the Audit Period
+&nbsp;
+Significant changes to our system during the audit period include:
+{{significant_changes}}
+&nbsp;
+## Subsequent Events
+&nbsp;
+{{subsequent_events}}
+&nbsp;
+## Management's Conclusion
+&nbsp;
+Based on our knowledge of the system and the results of our ongoing monitoring activities, we believe the controls within our system were suitably designed and operating effectively during the period {{audit_period_start}} to {{audit_period_end}} to meet our service commitments and system requirements based on the applicable Trust Services Criteria.
+&nbsp;
+## Signatures
+&nbsp;
+**Chief Executive Officer**
+{{ceo_name}}
+Signature: _________________________
+Date: {{ceo_signature_date}}
+&nbsp;
+**Chief Information Security Officer**
+{{ciso_name}}  
+Signature: _________________________
+Date: {{ciso_signature_date}}
+&nbsp;
+**Chief Technology Officer**
+{{cto_name}}
+Signature: _________________________
+Date: {{cto_signature_date}}
+&nbsp;
+---
+&nbsp;
+**Attestation Use Restriction:**
+This report is intended solely for the information and use of {{company_name}}, its customers, and the management of customer entities who have a sufficient understanding to consider it, along with other information including information about controls operated by customers themselves, when assessing the risks arising from interactions with {{company_name}}'s {{service_description}} system.`,
+<span class="cstat-no" title="statement not covered" >    templateVariables: {</span>
+<span class="cstat-no" title="statement not covered" >      auditor_firm_name: { type: 'text', label: 'Auditor Firm Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      management_name: { type: 'text', label: 'Management Representative Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      management_title: { type: 'text', label: 'Management Title', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      assertion_date: { type: 'date', label: 'Assertion Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      company_name: { type: 'text', label: 'Company Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      service_description: { type: 'text', label: 'Service Description (Short)', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      applicable_criteria: { type: 'text', label: 'Applicable Criteria', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      audit_period_start: { type: 'date', label: 'Audit Start Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      audit_period_end: { type: 'date', label: 'Audit End Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      detailed_service_description: { type: 'text', label: 'Detailed Service Description', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      geographic_coverage: { type: 'text', label: 'Geographic Coverage', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      company_mission: { type: 'text', label: 'Company Mission', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      service_commitment_1: { type: 'text', label: 'Service Commitment 1', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      service_commitment_2: { type: 'text', label: 'Service Commitment 2', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      service_commitment_3: { type: 'text', label: 'Service Commitment 3', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      service_commitment_4: { type: 'text', label: 'Service Commitment 4', required: false },</span>
+<span class="cstat-no" title="statement not covered" >      principal_service_commitments: { type: 'text', label: 'Principal Service Commitments', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      availability_applicable: { type: 'select', label: 'Availability Applicable?', required: true, options: ['Yes', 'No'] },</span>
+<span class="cstat-no" title="statement not covered" >      processing_integrity_applicable: { type: 'select', label: 'Processing Integrity Applicable?', required: true, options: ['Yes', 'No'] },</span>
+<span class="cstat-no" title="statement not covered" >      confidentiality_applicable: { type: 'select', label: 'Confidentiality Applicable?', required: true, options: ['Yes', 'No'] },</span>
+<span class="cstat-no" title="statement not covered" >      privacy_applicable: { type: 'select', label: 'Privacy Applicable?', required: true, options: ['Yes', 'No'] },</span>
+<span class="cstat-no" title="statement not covered" >      organizational_structure: { type: 'text', label: 'Organizational Structure Description', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ceo_name: { type: 'text', label: 'CEO Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      cto_name: { type: 'text', label: 'CTO Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ciso_name: { type: 'text', label: 'CISO Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      dpo_name: { type: 'text', label: 'DPO Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      it_ops_manager: { type: 'text', label: 'IT Ops Manager Name', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      risk_assessment_frequency: { type: 'text', label: 'Risk Assessment Frequency', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      information_systems_list: { type: 'text', label: 'Information Systems List', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      internal_audit_frequency: { type: 'text', label: 'Internal Audit Frequency', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      mgmt_review_frequency: { type: 'text', label: 'Management Review Frequency', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      significant_changes: { type: 'text', label: 'Significant Changes', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      subsequent_events: { type: 'text', label: 'Subsequent Events', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ceo_signature_date: { type: 'date', label: 'CEO Signature Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      ciso_signature_date: { type: 'date', label: 'CISO Signature Date', required: true },</span>
+<span class="cstat-no" title="statement not covered" >      cto_signature_date: { type: 'date', label: 'CTO Signature Date', required: true }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >];</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-01-17T22:23:46.314Z
+            </div>
+        <script src="../../../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../../../sorter.js"></script>
+        <script src="../../../../../block-navigation.js"></script>
+    </body>
+</html>
+    

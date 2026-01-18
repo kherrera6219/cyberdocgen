@@ -35,15 +35,16 @@ describe('EncryptionService', () => {
   });
 
   it('hashes for indexing deterministically', async () => {
-      // Note: EncryptionService.hashForIndexing generates a RANDOM salt, so it is NOT deterministic in output per call
-      // unless we control the random bytes?
-      // Actually the function returns salt+hash.
-      // But if we want to search, we usually need the salt stored or a fixed salt?
-      // The implementation uses `crypto.randomBytes(16)`.
-      // So checking equality of two calls will fail.
-      // We just check it returns a string with : separator.
+      // Now uses deterministic SHA-256 hashing for consistent lookups
       const hash1 = await encryptionService.hashForIndexing("test");
-      expect(hash1).toContain(':');
+      const hash2 = await encryptionService.hashForIndexing("test");
+
+      // Should be deterministic
+      expect(hash1).toBe(hash2);
+
+      // Should be 64-character hex string (SHA-256)
+      expect(hash1).toHaveLength(64);
+      expect(/^[0-9a-f]{64}$/i.test(hash1)).toBe(true);
   });
 
   describe('encryptDataAtRest Helper', () => {

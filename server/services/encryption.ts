@@ -176,15 +176,12 @@ export class EncryptionService {
 
   /**
    * Securely hashes data for indexing/searching encrypted fields
+   * Uses deterministic SHA-256 hashing for consistent lookups
    */
   async hashForIndexing(data: string): Promise<string> {
-    const salt = crypto.randomBytes(16);
-    return new Promise((resolve, reject) => {
-      crypto.pbkdf2(data, salt, 100000, 64, 'sha256', (err, derivedKey) => {
-        if (err) reject(err);
-        resolve(salt.toString('hex') + ':' + derivedKey.toString('hex'));
-      });
-    });
+    // Use deterministic SHA-256 hash for consistent indexing/searching
+    const hash = crypto.createHash('sha256').update(data).digest('hex');
+    return hash;
   }
 }
 
@@ -218,7 +215,7 @@ export async function decrypt(encryptedData: string | EncryptedData): Promise<st
 export async function encryptCompanyProfile(profile: any): Promise<any> {
   const sensitiveFields = [
     'taxId', 'ssn', 'bankAccount', 'routingNumber',
-    'apiKeys', 'credentials', 'financialData'
+    'apiKey', 'apiKeys', 'credentials', 'financialData', 'encryptionKey'
   ];
 
   const encrypted = { ...profile };
@@ -305,7 +302,7 @@ export function shouldEncryptField(fieldName: string, dataType: string): boolean
   const sensitiveFields = [
     'password', 'secret', 'key', 'token', 'credential',
     'ssn', 'taxId', 'bankAccount', 'routingNumber',
-    'apiKey', 'privateKey', 'confidential'
+    'apiKey', 'privateKey', 'confidential', 'credit', 'card'
   ];
 
   const fieldLower = fieldName.toLowerCase();
