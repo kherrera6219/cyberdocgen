@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -96,69 +96,69 @@
 <a name='L31'></a><a href='#L31'>31</a>
 <a name='L32'></a><a href='#L32'>32</a>
 <a name='L33'></a><a href='#L33'>33</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Router } from 'express';
-<span class="cstat-no" title="statement not covered" >import { registerModelRoutes } from './models';</span>
-<span class="cstat-no" title="statement not covered" >import { registerAnalysisRoutes } from './analysis';</span>
-<span class="cstat-no" title="statement not covered" >import { registerGenerationRoutes } from './generation';</span>
-<span class="cstat-no" title="statement not covered" >import { registerChatRoutes } from './chat';</span>
-<span class="cstat-no" title="statement not covered" >import { registerRiskRoutes } from './risk';</span>
-<span class="cstat-no" title="statement not covered" >import { registerQualityRoutes } from './quality';</span>
-<span class="cstat-no" title="statement not covered" >import { registerVisionRoutes } from './vision';</span>
-<span class="cstat-no" title="statement not covered" >import { registerIndustryRoutes } from './industry';</span>
-<span class="cstat-no" title="statement not covered" >import { registerFineTuningRoutes } from './fineTuning';</span>
-<span class="cstat-no" title="statement not covered" >import { registerStatsRoutes } from './stats';</span>
+import { registerModelRoutes } from './models';
+import { registerAnalysisRoutes } from './analysis';
+import { registerGenerationRoutes } from './generation';
+import { registerChatRoutes } from './chat';
+import { registerRiskRoutes } from './risk';
+import { registerQualityRoutes } from './quality';
+import { registerVisionRoutes } from './vision';
+import { registerIndustryRoutes } from './industry';
+import { registerFineTuningRoutes } from './fineTuning';
+import { registerStatsRoutes } from './stats';
 &nbsp;
 /**
  * AI Routes Module
  * 
  * Aggregates all AI-related endpoints from sub-modules.
  */
-<span class="cstat-no" title="statement not covered" >export function registerAIRoutes(router: Router) {</span>
+export function registerAIRoutes(router: Router) {
   // Register all sub-modules
   // Note: Order matters if there are overlapping routes, but here they should be distinct
   
-<span class="cstat-no" title="statement not covered" >  registerModelRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerAnalysisRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerGenerationRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerChatRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerRiskRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerQualityRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerVisionRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerIndustryRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerFineTuningRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >  registerStatsRoutes(router);</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+  registerModelRoutes(router);
+  registerAnalysisRoutes(router);
+  registerGenerationRoutes(router);
+  registerChatRoutes(router);
+  registerRiskRoutes(router);
+  registerQualityRoutes(router);
+  registerVisionRoutes(router);
+  registerIndustryRoutes(router);
+  registerFineTuningRoutes(router);
+  registerStatsRoutes(router);
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -166,7 +166,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-17T22:23:46.314Z
+                at 2026-01-18T03:59:32.488Z
             </div>
         <script src="../../../../prettify.js"></script>
         <script>
