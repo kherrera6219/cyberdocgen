@@ -165,6 +165,7 @@ export class CircuitBreaker {
     }
   }
 
+
   /**
    * Get current statistics
    */

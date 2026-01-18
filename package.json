@@ -15,7 +15,8 @@
     "test:ui": "vitest --ui",
     "lint": "eslint .",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "prepare": "husky"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",

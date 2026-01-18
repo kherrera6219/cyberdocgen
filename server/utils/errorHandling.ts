@@ -119,7 +119,7 @@ export function secureHandler(
   options: SecureHandlerOptions = {}
 ): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const requestId = req.requestId || req.headers['x-request-id'] as string;
+    const requestId = req.requestId || req.headers?.['x-request-id'] as string;
     const startTime = Date.now();
 
     try {
@@ -186,7 +186,7 @@ export function globalErrorHandler(
   res: Response,
   next: NextFunction
 ): void {
-  const requestId = req.requestId || (req.headers['x-request-id'] as string);
+  const requestId = req.requestId || (req.headers?.['x-request-id'] as string);
   
   // Log the error
   const statusCode = error instanceof AppError ? error.statusCode : 500;
@@ -226,7 +226,7 @@ export function validateInput<T extends ZodSchema>(
   const { source = 'body' } = options;
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const requestId = req.requestId || req.headers['x-request-id'] as string;
+    const requestId = req.requestId || req.headers?.['x-request-id'] as string;
     
     try {
       const data = source === 'body' ? req.body 

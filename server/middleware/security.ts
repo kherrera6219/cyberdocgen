@@ -65,6 +65,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
     return next();
   }
 
+
   // For GET requests, ensure CSRF cookie is set with session-bound token
   if (req.method === 'GET') {
     const session = (req as any).session;
