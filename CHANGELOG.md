@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-01-18
+
+### Added
+- **Microsoft Entra ID SSO**: Full OIDC + PKCE integration for Enterprise authentication.
+- **Windows Client Wrapper**: Native Electron shell for Windows desktop users.
+- **MSIX Packaging**: Configuration for Microsoft Store distribution (electron-builder).
+- **Compliance Tooling**: Added `validate-wack.ts` for Windows App Certification Kit readiness.
+- **Frontend Integration**: Added "Sign in with Microsoft" to the enterprise login portal.
+
+### Changed
+- Updated `validate-compliance.ts` to include Spec-001 (Windows Client & Entra ID) requirements.
+- Extended session types and environment validation for Azure AD.
+
+### Security
+- Implemented PKCE for decentralized authentication flows as per Spec-001 requirements.
+- Enforced organization isolation for users authenticating via Entra ID tenants.
+
 ## [2.0.2] - 2026-01-17
 
 ### Added

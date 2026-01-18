@@ -1,17 +1,18 @@
 <div align="center">
 
-# CyberDocGen (v2.0.2)
+# CyberDocGen (v2.1.0)
 
 ### Enterprise Compliance Management System
-**Version 2.0.2** | January 2026
+**Version 2.1.0** | January 2026
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.0.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-2.1.0-green.svg)](CHANGELOG.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-success.svg)](docs/DEPLOYMENT.md)
+[![MS Store Ready](https://img.shields.io/badge/MS%20Store-Compliant-success.svg)](scripts/validate-wack.ts)
 [![Security](https://img.shields.io/badge/Vulnerabilities-0-success.svg)](SECURITY.md)
 
 **Production-ready, enterprise-grade compliance management system with AI-powered document analysis, generation capabilities, and comprehensive security hardening.**
@@ -43,6 +44,12 @@
 - [License](#-license)
 
 ## 📊 Latest Updates
+
+**Version 2.1.0 - January 18, 2026** - Microsoft Store & Enterprise Compliance (Phase 7):
+- ✅ **Microsoft Entra ID SSO** - Secure OIDC + PKCE authentication with tenant mapping
+- ✅ **Windows Desktop Client** - Native Electron wrapper for Spec-001 compliance
+- ✅ **MSIX Packaging** - Integrated `electron-builder` for Store distribution
+- ✅ **Compliance Script V2** - Integrated WACK (Windows App Certification Kit) heuristics
 
 **Version 2.0.2 - January 17, 2026** - Phase 6 Quality & Testing Complete:
 - ✅ **Test Suite Excellence** - 783 tests passing, 3 skipped (786 total)
