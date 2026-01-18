@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">63.15% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/38</span>
+                <span class='fraction'>24/38</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">63.15% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/38</span>
+                <span class='fraction'>24/38</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -110,10 +110,32 @@
 <a name='L45'></a><a href='#L45'>45</a>
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -126,62 +148,40 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Router, Request, Response } from 'express';
-<span class="cstat-no" title="statement not covered" >import { z } from 'zod';</span>
-<span class="cstat-no" title="statement not covered" >import { apiLimiter } from '../middleware/rateLimiter';</span>
-<span class="cstat-no" title="statement not covered" >import { validateBody } from '../middleware/routeValidation';</span>
-<span class="cstat-no" title="statement not covered" >import { getUserId } from '../replitAuth';</span>
-<span class="cstat-no" title="statement not covered" >import { logger } from '../utils/logger';</span>
-<span class="cstat-no" title="statement not covered" >import { secureHandler } from '../utils/errorHandling';</span>
+import { z } from 'zod';
+import { apiLimiter } from '../middleware/rateLimiter';
+import { validateBody } from '../middleware/routeValidation';
+import { getUserId } from '../replitAuth';
+import { logger } from '../utils/logger';
+import { secureHandler } from '../utils/errorHandling';
 &nbsp;
-<span class="cstat-no" title="statement not covered" >const clientErrorSchema = z.object({</span>
-<span class="cstat-no" title="statement not covered" >  message: z.string().min(1, 'Error message required'),</span>
-<span class="cstat-no" title="statement not covered" >  stack: z.string().optional().nullable(),</span>
-<span class="cstat-no" title="statement not covered" >  componentStack: z.string().optional().nullable(),</span>
-<span class="cstat-no" title="statement not covered" >  errorId: z.string().optional().nullable(),</span>
-<span class="cstat-no" title="statement not covered" >  timestamp: z.string().optional().nullable(),</span>
-<span class="cstat-no" title="statement not covered" >  userAgent: z.string().optional().nullable(),</span>
-<span class="cstat-no" title="statement not covered" >  url: z.string().optional().nullable(),</span>
-<span class="cstat-no" title="statement not covered" >});</span>
+const clientErrorSchema = z.object({
+  message: z.string().min(1, 'Error message required'),
+  stack: z.string().optional().nullable(),
+  componentStack: z.string().optional().nullable(),
+  errorId: z.string().optional().nullable(),
+  timestamp: z.string().optional().nullable(),
+  userAgent: z.string().optional().nullable(),
+  url: z.string().optional().nullable(),
+});
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export function registerClientErrorRoutes(router: Router) {</span>
+export function registerClientErrorRoutes(router: Router) {
   /**
    * Report client-side error for logging
    */
-<span class="cstat-no" title="statement not covered" >  router.post(</span>
-<span class="cstat-no" title="statement not covered" >    '/',</span>
-<span class="cstat-no" title="statement not covered" >    apiLimiter,</span>
-<span class="cstat-no" title="statement not covered" >    validateBody(clientErrorSchema),</span>
-<span class="cstat-no" title="statement not covered" >    secureHandler(async (req: Request, res: Response) =&gt; {</span>
+  router.post(
+    '/',
+    apiLimiter,
+    validateBody(clientErrorSchema),
+    secureHandler(async (req: Request, res: Response) =&gt; {
 <span class="cstat-no" title="statement not covered" >      const userId = getUserId(req);</span>
 <span class="cstat-no" title="statement not covered" >      const { message, stack, componentStack, errorId, timestamp, userAgent, url } = req.body;</span>
 &nbsp;
@@ -198,9 +198,9 @@
 <span class="cstat-no" title="statement not covered" >      });</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      res.json({ success: true, message: 'Error reported' });</span>
-<span class="cstat-no" title="statement not covered" >    })</span>
-<span class="cstat-no" title="statement not covered" >  );</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+    })
+  );
+}
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -208,7 +208,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-17T22:23:46.314Z
+                at 2026-01-18T03:59:32.488Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
