@@ -246,6 +246,23 @@ export default function EnterpriseLogin() {
               Sign in with Replit
             </Button>
 
+            <Button
+              type="button"
+              variant="default"
+              className="w-full bg-[#00a4ef] hover:bg-[#008ad3] text-white"
+              onClick={() => window.location.href = '/api/auth/microsoft/login'}
+              data-testid="button-microsoft-login"
+            >
+              <svg className="mr-2 h-4 w-4" viewBox="0 0 23 23">
+                <path fill="#f3f3f3" d="M0 0h23v23H0z" />
+                <path fill="#f25022" d="M1 1h10v10H1z" />
+                <path fill="#7fba00" d="M12 1h10v10H12z" />
+                <path fill="#00a4ef" d="M1 12h10v10H1z" />
+                <path fill="#ffb900" d="M12 12h10v10H12z" />
+              </svg>
+              Sign in with Microsoft
+            </Button>
+
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <Shield className="h-4 w-4" />

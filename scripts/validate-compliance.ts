@@ -12,6 +12,8 @@ import { encryptionService, DataClassification } from '../server/services/encryp
 import { auditService, AuditAction, RiskLevel } from '../server/services/auditService';
 import { logger } from '../server/utils/logger';
 import { sql } from 'drizzle-orm';
+import fs from 'fs';
+import path from 'path';
 
 interface ComplianceCheck {
   name: string;
@@ -226,8 +228,62 @@ async function validateMonitoringAndLogging(): Promise<ComplianceCheck> {
   return check;
 }
 
+async function validateWindowsClient(): Promise<ComplianceCheck> {
+  const check: ComplianceCheck = {
+    name: 'Windows Client (MSIX)',
+    description: 'Electron wrapper and MSIX packaging configuration',
+    status: 'fail',
+    details: []
+  };
+
+  try {
+    const rootDir = process.cwd();
+    const hasElectron = fs.existsSync(path.join(rootDir, 'electron/main.ts'));
+    const hasConfig = fs.existsSync(path.join(rootDir, 'electron-builder.yml'));
+
+    if (hasElectron) check.details.push('✅ Electron main process entry found');
+    else check.details.push('❌ Electron wrapper missing');
+
+    if (hasConfig) check.details.push('✅ electron-builder.yml configuration found');
+    else check.details.push('❌ electron-builder.yml configuration missing');
+
+    if (hasElectron && hasConfig) check.status = 'pass';
+  } catch (error: any) {
+    check.details.push(`❌ Windows client check error: ${error.message}`);
+  }
+
+  return check;
+}
+
+async function validateEntraIDConfig(): Promise<ComplianceCheck> {
+  const check: ComplianceCheck = {
+    name: 'Microsoft Entra ID Integration',
+    description: 'OIDC/PKCE configuration for Enterprise SSO',
+    status: 'fail',
+    details: []
+  };
+
+  try {
+    const clientId = process.env.AZURE_AD_CLIENT_ID;
+    const tenantId = process.env.AZURE_AD_TENANT_ID;
+
+    if (clientId) check.details.push('✅ AZURE_AD_CLIENT_ID configured');
+    else check.details.push('⚠️ AZURE_AD_CLIENT_ID missing (using placeholder)');
+
+    if (tenantId) check.details.push('✅ AZURE_AD_TENANT_ID configured');
+    else check.details.push('⚠️ AZURE_AD_TENANT_ID missing (using placeholder)');
+
+    if (clientId && tenantId) check.status = 'pass';
+    else check.status = 'warning';
+  } catch (error: any) {
+    check.details.push(`❌ Entra ID check error: ${error.message}`);
+  }
+
+  return check;
+}
+
 async function generateComplianceReport(): Promise<ComplianceReport> {
-  console.log('🔍 SOC 2 Compliance Validation Starting...\n');
+  console.log('🔍 SOC 2 & Spec-001 Compliance Validation Starting...\n');
 
   const checks: ComplianceCheck[] = await Promise.all([
     validateEncryptionService(),
@@ -235,7 +291,9 @@ async function generateComplianceReport(): Promise<ComplianceReport> {
     validateDataEncryption(),
     validateSecurityHeaders(),
     validateAccessControls(),
-    validateMonitoringAndLogging()
+    validateMonitoringAndLogging(),
+    validateWindowsClient(),
+    validateEntraIDConfig()
   ]);
 
   const summary = {

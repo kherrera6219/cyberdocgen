@@ -588,6 +588,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth');
   app.use('/api/auth/enterprise', enterpriseAuthRoutes);
 
+  // Microsoft Entra ID (OIDC/PKCE) Routes - Enterprise requirement from Spec-001
+  const { default: microsoftAuthRoutes } = await import('./routes/microsoftAuth');
+  app.use('/api/auth/microsoft', microsoftAuthRoutes);
+
   // MCP (Model Context Protocol) Routes - secured with authentication and organization context
   const { default: mcpRoutes } = await import('./mcp/server');
   app.use('/api/mcp', isAuthenticated, extractOrganizationContext, mcpRoutes);

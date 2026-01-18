@@ -1,0 +1,8 @@
+[32m2026-01-18T05:52:04.427Z [INFO] Starting WACK Compliance Validation...[0m
+[32m2026-01-18T05:52:04.429Z [INFO] Γ£ô electron-builder.yml found[0m
+[32m2026-01-18T05:52:04.430Z [INFO] Γ£ô MSIX target configured[0m
+[32m2026-01-18T05:52:04.430Z [INFO] Γ£ô MSIX Identity and Publisher configured[0m
+[32m2026-01-18T05:52:04.430Z [INFO] Γ£ô Electron dependency found[0m
+[32m2026-01-18T05:52:04.430Z [INFO] Γ£ô Package.json "main" points to Electron entry[0m
+[32m2026-01-18T05:52:04.430Z [INFO] Γ£ô App icons found[0m
+[32m2026-01-18T05:52:04.430Z [INFO] Γ£ô WACK Pre-certification Validation Passed![0m

@@ -2,6 +2,7 @@
   "name": "rest-express",
   "version": "2.0.1",
   "type": "module",
+  "main": "dist/electron/main.js",
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
@@ -16,7 +17,10 @@
     "lint": "eslint .",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5000 && electron .\"",
+    "electron:build": "esbuild electron/main.ts electron/preload.ts --platform=node --bundle --format=esm --outdir=dist/electron",
+    "build:msix": "npm run build && npm run electron:build && electron-builder build --win msix"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
@@ -156,7 +160,10 @@
     "@vitest/coverage-v8": "^3.2.4",
     "autoprefixer": "^10.4.22",
     "axe-core": "^4.11.0",
+    "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.8",
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0",
     "esbuild": "^0.27.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -178,7 +185,8 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^6.4.1",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wait-on": "^9.0.3"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.9"

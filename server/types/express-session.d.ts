@@ -11,5 +11,14 @@ declare module "express-session" {
     mfaVerified?: boolean;
     mfaVerifiedAt?: string;
     csrfToken?: string;
+    csrfUserId?: string;
+    csrfCreatedAt?: number;
+    organizationId?: string;
+    microsoftAuthState?: {
+      state: string;
+      codeVerifier: string;
+      nonce: string;
+      timestamp: number;
+    };
   }
 }

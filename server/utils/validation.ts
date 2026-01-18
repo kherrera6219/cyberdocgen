@@ -12,6 +12,11 @@ const envSchema = z.object({
   REPLIT_DOMAINS: z.string().optional(),
   DEFAULT_OBJECT_STORAGE_BUCKET_ID: z.string().optional(),
   PORT: z.string().optional().transform(val => val ? parseInt(val) : 5000),
+  AZURE_AD_CLIENT_ID: z.string().optional(),
+  AZURE_AD_CLIENT_SECRET: z.string().optional(),
+  AZURE_AD_TENANT_ID: z.string().optional(),
+  AZURE_AD_ISSUER_URL: z.string().optional(),
+  AZURE_AD_REDIRECT_URI: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

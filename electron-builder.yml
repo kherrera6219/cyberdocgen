@@ -1,0 +1,25 @@
+appId: com.cyberdocgen.app
+productName: CyberDocGen
+directories:
+  output: dist/packaging
+  buildResources: build
+files:
+  - dist/**/*
+  - public/**/*
+  - package.json
+win:
+  target:
+    - msix
+  icon: public/favicon.ico
+msix:
+  identityName: CyberDocGen
+  publisher: CN=CyberDocGen, O=CyberDocGen, L=Seattle, S=Washington, C=US
+  publisherDisplayName: CyberDocGen Corp
+  allowElevatedPrivileges: false
+  applicationId: CyberDocGen
+  languages:
+    - en-US
+  capabilities:
+    - internetClient
+    - privateNetworkClientServer
+  store: false # Set to true for actual Store submission
