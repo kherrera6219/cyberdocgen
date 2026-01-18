@@ -1,85 +1,57 @@
-# CyberDocGen - Development TODO List
+# CyberDocGen - Technical Development TODOs
 
 **Last Updated:** January 18, 2026
-**Status:** Phase 7 Complete - Production Ready & Microsoft Store Compliant
-**Completion:** ~98-99%
-
-This document tracks the current development tasks and future enhancements for CyberDocGen.
+**Status:** Phase 7 Finalization (Technical Tracks)
+**Coverage:** Coding, Implementation, and Refactoring tasks only.
 
 ---
 
-## 🎯 HIGH PRIORITY - Production & Store Readiness
+## 🎯 HIGH PRIORITY - Feature Completion
 
-### Microsoft Store (MSIX) Production
+### Enterprise Identity & Cloud Integration
+- [x] **Microsoft Entra ID (OIDC/PKCE)**: Core authentication flow implemented.
+- [ ] **Google Drive OAuth 2.0**: Replace placeholders in `server/routes/cloudIntegration.ts` with full OAuth flow using `@googleapis/drive`.
+- [ ] **OneDrive OAuth 2.0**: Implement full OAuth flow in `server/services/cloudIntegrationService.ts` using `@microsoft/microsoft-graph-client`.
+- [ ] **MFA Logic Alignment**: Refactor `server/services/mfaService.ts` to support contextual authentication signals from Entra ID tokens.
 
-- [ ] **Code Signing Certificate**: Obtain a valid Windows developer certificate for production MSIX signing.
-- [ ] **Store Submission**: Complete the Microsoft Partner Center registration and upload the MSIX package.
-- [ ] **Privacy Policy URL**: Update the app manifest with the actual production privacy policy URL.
-
-### Enterprise Identity & Integration
-
-- [ ] **Production Secrets**: Replace mock/placeholder `AZURE_AD_CLIENT_ID` and `AZURE_AD_TENANT_ID` with production credentials.
-- [ ] **MFA Alignment**: Ensure Entra ID Conditional Access policies align with internal `mfaService.ts` requirements.
-- [ ] **Cloud Integration OAuth**: Complete the OAuth 2.0 flow for Google Drive and OneDrive (currently using placeholders in routes).
+### Security & Compliance Coding
+- [ ] **AI Moderation API**: Replace mock classifiers in `server/services/aiGuardrailsService.ts` with OpenAI/Anthropic Moderation API integrations.
+- [ ] **Audit Trail Integrity**: Implement HMAC-based chaining for audit log entries to prevent mid-stream tampering.
 
 ---
 
-## 🟠 MEDIUM PRIORITY - Quality & Observability
+## 🟠 MEDIUM PRIORITY - Observability & Performance
 
-### Performance Testing
+### Telemetry & Tracking
+- [ ] **Error Monitoring**: Implement Sentry (or equivalent) SDK wrappers for both Frontend and Backend to capture unhandled exceptions.
+- [ ] **AI Latency Instrumentation**: Expand OpenTelemetry spans in `aiOrchestrator.ts` to track token-per-second (TPS) and model latency.
+- [ ] **Audit Telemetry**: Wire high-risk audit events to top-level dashboards via the `performanceService.ts`.
 
-- [ ] **Infrastructure**: Install `autocannon` and `clinic` for deep performance profiling.
-- [ ] **Baselines**: Establish baseline performance metrics for AI document generation.
-- [ ] **Edge Caching**: Implement CDN/Edge caching for static assets in the desktop distribution.
-
-### Observability
-
-- [ ] **Error Tracking**: Integrate Sentry or similar for real-time frontend/backend error monitoring.
-- [ ] **Telemetry**: Expand OpenTelemetry coverage to include AI model latency and token usage.
+### Performance Engineering
+- [ ] **Benchmarking Scripts**: Create `scripts/benchmark-ai.ts` using `autocannon` to establish baseline latency for document generation.
+- [ ] **Bundle Governance**: Implement a custom Vite plugin or script to enforce a 200KB chunk size limit in CI.
 
 ---
 
-## 🔵 LOW PRIORITY - Enhancements & Refactoring
+## 🔵 LOW PRIORITY - Code Quality & Debt
 
-### Code Quality
+### Refactoring & Type Safety
+- [ ] **Logger Migration**: Replace remaining `console.log/warn/error` statements in `server/`, `client/src/`, and `scripts/` with the structured `logger`.
+- [ ] **TypeScript Cleanup**: Remove `any` types from `encryption.ts`, `auditService.ts`, and `cloudIntegrationService.ts`.
+- [ ] **Modernize Async**: Refactor legacy `.then().catch()` chains to `async/await` in `scripts/generate-sbom.ts` and `server/storage.ts`.
 
-- [ ] **Logger Migration**: Replace remaining 300+ `console.log` statements with the structured `logger`.
-- [ ] **Type Coverage**: Eliminate remaining `any` types in legacy UI flows.
-- [ ] **Promise Modernization**: Refactor legacy `.then().catch()` chains to `async/await`.
-
-### Feature Enhancements
-
-- [ ] **Storybook**: Complete Storybook stories for 100% of the component library.
-- [ ] **AI Guardrails**: Migrate from mock classifiers to OpenAI/Anthropic moderation APIs.
-- [ ] **Visual Regression**: Implement visual regression testing for critical dashboard widgets.
+### UI/UX Implementation
+- [ ] **Storybook Coverage**: Complete stories for all components in `client/src/components/ui`, specifically focusing on complex dashboard widgets.
+- [ ] **Visual Regression**: Integrate `playwright` visual comparison tests for the primary compliance scorecard view.
 
 ---
 
-## ✅ RECENTLY COMPLETED - Phase 7 & Quality Improvements
+## ✅ RECENTLY COMPLETED - Coding Track
 
-### Enterprise Identity (Entra ID)
+### Infrastructure Wrapper
+- [x] **Electron Main Process**: Secure window management and external link handling in `electron/main.ts`.
+- [x] **MSIX Build Pipeline**: Integrated `electron-builder` configuration for standardized Windows distribution.
 
-- [x] **Backend Integration**: OIDC + PKCE flow implemented in `microsoftAuthService.ts`.
-- [x] **Frontend Integration**: "Sign in with Microsoft" button added to Enterprise Login page.
-- [x] **Session Management**: Secure PKCE state and organization mapping.
-
-### Windows Client (MSIX)
-
-- [x] **Electron Wrapper**: Native desktop application shell created.
-- [x] **MSIX Packaging**: Configuration for Microsoft Store distribution (WACK compliant).
-- [x] **Validation Scripts**: Automated compliance and WACK pre-certification checks.
-
-### Quality & Performance
-
-- [x] **Bundle Optimization**: 86% reduction in bundle size through code splitting.
-- [x] **Test Coverage**: Critical path coverage established for core services.
-- [x] **Accessibility**: Semantic HTML and ARIA attribute grounding.
-
----
-
-## 📁 Related Documents
-
-- [PHASE_7_WALKTHROUGH.md](.gemini/antigravity/brain/5543af93-4c5a-49c6-82a2-14a0a7635281/walkthrough.md)
-- [PROJECT_STATUS.md](PROJECT_STATUS.md)
-- [CHANGELOG.md](CHANGELOG.md)
-- [README.md](README.md)
+### Core Flows
+- [x] **OIDC Callback**: Fixed token claim validation in `server/routes/microsoftAuth.ts`.
+- [x] **Compliance Automation**: Created `scripts/validate-wack.ts` for automated Windows App Certification Kit checks.
