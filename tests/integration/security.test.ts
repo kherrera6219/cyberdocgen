@@ -92,7 +92,6 @@ describe('Security Middleware', () => {
 
     it('enforces CSRF when NODE_ENV is not test', async () => {
       const originalEnv = process.env.NODE_ENV;
-      // @ts-ignore - manually override to force logic
       process.env.NODE_ENV = 'development';
 
       const mockReq: any = {

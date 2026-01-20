@@ -31,20 +31,15 @@ import { logger } from '../utils/logger';
 
 export function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [animatedScore, setAnimatedScore] = useState(0);
-
-  useEffect(() => {
+  const [showTutorial, setShowTutorial] = useState(() => {
     try {
-      const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-      if (!hasSeenTutorial) {
-        setShowTutorial(true);
-      }
+      return !localStorage.getItem('hasSeenTutorial');
     } catch (error) {
       logger.error('Error accessing localStorage for tutorial state:', error);
-      setShowTutorial(false);
+      return false;
     }
-  }, []);
+  });
+  const [animatedScore, setAnimatedScore] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -84,22 +79,6 @@ export function Home() {
   };
 
   const [aiErrorKey, setAiErrorKey] = useState(0);
-  
-  const AIFeaturesFallback = () => (
-    <div className="p-6 text-center">
-      <div className="flex items-center justify-center gap-2 text-muted-foreground mb-4">
-        <AlertCircle className="h-5 w-5" />
-        <span>Unable to load AI features</span>
-      </div>
-      <Button 
-        variant="outline" 
-        onClick={() => setAiErrorKey(prev => prev + 1)}
-        data-testid="button-reload-features"
-      >
-        Try Again
-      </Button>
-    </div>
-  );
 
   const aiFeatures = [
     {
@@ -252,7 +231,21 @@ export function Home() {
           </CardContent>
         </Card>
 
-        <ErrorBoundary key={aiErrorKey} fallback={<AIFeaturesFallback />}>
+        <ErrorBoundary key={aiErrorKey} fallback={
+          <div className="p-6 text-center">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground mb-4">
+              <AlertCircle className="h-5 w-5" />
+              <span>Unable to load AI features</span>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => setAiErrorKey(prev => prev + 1)}
+              data-testid="button-reload-features"
+            >
+              Try Again
+            </Button>
+          </div>
+        }>
           <div className="mb-8 sm:mb-12">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">

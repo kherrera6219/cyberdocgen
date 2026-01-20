@@ -58,7 +58,7 @@ describe('DataResidencyService', () => {
       const valuesMock = vi.fn().mockReturnValue({ returning: returningMock });
       const insertMock = vi.fn().mockReturnValue({ values: valuesMock });
       
-      // @ts-ignore
+      // @ts-expect-error
       db.insert.mockImplementation(insertMock);
 
       const result = await dataResidencyService.createPolicy(input);
@@ -81,7 +81,7 @@ describe('DataResidencyService', () => {
         createdBy: 'user-123',
       };
 
-      // @ts-ignore
+      // @ts-expect-error
       db.insert.mockReturnValue({
         values: vi.fn().mockReturnValue({
            returning: vi.fn().mockRejectedValue(new Error('DB Error')),
@@ -117,7 +117,7 @@ describe('DataResidencyService', () => {
     });
 
     it('should block if region is in blockedRegions', async () => {
-      // @ts-ignore
+      // @ts-expect-error
       vi.spyOn(dataResidencyService, 'getActivePolicies').mockResolvedValue(mockActivePolicies);
 
       const result = await dataResidencyService.validateRegion('org-1', 'pii', 'us-east');
@@ -126,7 +126,7 @@ describe('DataResidencyService', () => {
     });
 
     it('should block if strict enforcement and region not in allowedRegions', async () => {
-      // @ts-ignore
+      // @ts-expect-error
       vi.spyOn(dataResidencyService, 'getActivePolicies').mockResolvedValue(mockActivePolicies);
 
       const result = await dataResidencyService.validateRegion('org-1', 'pii', 'asia-east');
@@ -135,7 +135,7 @@ describe('DataResidencyService', () => {
     });
 
     it('should allow if region is in allowedRegions', async () => {
-      // @ts-ignore
+      // @ts-expect-error
       vi.spyOn(dataResidencyService, 'getActivePolicies').mockResolvedValue(mockActivePolicies);
 
       const result = await dataResidencyService.validateRegion('org-1', 'pii', 'eu-west');

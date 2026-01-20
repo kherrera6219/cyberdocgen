@@ -1,4 +1,5 @@
 import { useState, useEffect, type ReactNode } from "react";
+import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ interface GlobalSearchProps {
 }
 
 export function GlobalSearch({ trigger }: GlobalSearchProps) {
+  const [, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -178,7 +180,7 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
     saveSearch(searchQuery);
     setIsOpen(false);
     setSearchQuery("");
-    window.location.href = result.url;
+    setLocation(result.url);
   };
 
   const handleRecentSearchClick = (query: string) => {

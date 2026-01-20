@@ -14,7 +14,7 @@ import {
   Lightbulb,
   Zap
 } from "lucide-react";
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, useMemo } from "react";
 
 interface AIRecommendation {
   id: string;
@@ -41,10 +41,24 @@ export function AIInsightsDashboard({
   frameworksActive = 0,
   onViewDetails 
 }: AIInsightsDashboardProps) {
-  const [complianceScore, setComplianceScore] = useState(0);
+  const { targetScore, riskLevel } = useMemo(() => {
+    const baseScore = Math.min(documentsCount * 3, 45);
+    const frameworkBonus = frameworksActive * 10;
+    const industryBonus = companyProfile?.industry ? 10 : 0;
+    const score = Math.min(baseScore + frameworkBonus + industryBonus + 20, 100);
+    
+    let level: "low" | "medium" | "high";
+    if (score > 70) level = "low";
+    else if (score > 40) level = "medium";
+    else level = "high";
+    
+    return { targetScore: score, riskLevel: level };
+  }, [documentsCount, frameworksActive, companyProfile]);
+
   const [animatedScore, setAnimatedScore] = useState(0);
-  const [riskLevel, setRiskLevel] = useState<"low" | "medium" | "high">("medium");
   const uniqueId = useId();
+
+
 
   const recommendations: AIRecommendation[] = [
     {
@@ -73,18 +87,9 @@ export function AIInsightsDashboard({
     }
   ];
 
-  useEffect(() => {
-    const baseScore = Math.min(documentsCount * 3, 45);
-    const frameworkBonus = frameworksActive * 10;
-    const industryBonus = companyProfile?.industry ? 10 : 0;
-    const targetScore = Math.min(baseScore + frameworkBonus + industryBonus + 20, 100);
-    
-    setComplianceScore(targetScore);
-    
-    if (targetScore > 70) setRiskLevel("low");
-    else if (targetScore > 40) setRiskLevel("medium");
-    else setRiskLevel("high");
-  }, [documentsCount, frameworksActive, companyProfile]);
+  // Keep complianceScore alias for the animation effect, or just use targetScore directly
+  const complianceScore = targetScore; 
+
 
   useEffect(() => {
     const mountedRef = { current: true };

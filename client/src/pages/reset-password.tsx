@@ -28,7 +28,10 @@ type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
   const [location, setLocation] = useLocation();
-  const [token, setToken] = useState<string>('');
+  const [token] = useState<string>(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('token') || '';
+  });
   const [step, setStep] = useState<'form' | 'success'>('form');
   const { toast } = useToast();
 
@@ -39,14 +42,6 @@ export default function ResetPassword() {
       confirmPassword: '',
     },
   });
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
-    const urlToken = urlParams.get('token');
-    if (urlToken) {
-      setToken(urlToken);
-    }
-  }, [location]);
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (data: ResetPasswordForm) => {

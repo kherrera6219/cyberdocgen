@@ -36,9 +36,9 @@ describe('DocumentWorkflowService', () => {
 
   describe('executeTransition', () => {
     it('should transition from draft to review', async () => {
-      // @ts-ignore
+      // @ts-expect-error
       storage.getDocument.mockResolvedValue({ id: 'd1', status: 'draft', title: 'Test Doc' });
-      // @ts-ignore
+      // @ts-expect-error
       storage.updateDocument.mockResolvedValue({});
 
       const result = await documentWorkflowService.executeTransition('d1', 'submit_for_review', 'u1');
@@ -51,11 +51,11 @@ describe('DocumentWorkflowService', () => {
     });
 
     it('should require approval to transition from review to approved', async () => {
-      // @ts-ignore
+      // @ts-expect-error
       storage.getDocument.mockResolvedValue({ id: 'd1', status: 'review', title: 'Test Doc' });
       
       // Mock no approval found
-      // @ts-ignore
+      // @ts-expect-error
       storage.getDocumentApprovals.mockResolvedValue([]);
 
       const result = await documentWorkflowService.executeTransition('d1', 'approve', 'u1');
@@ -66,7 +66,7 @@ describe('DocumentWorkflowService', () => {
     });
 
     it('should fail with invalid transition', async () => {
-      // @ts-ignore
+      // @ts-expect-error
       storage.getDocument.mockResolvedValue({ id: 'd1', status: 'draft', title: 'Test Doc' });
 
       // Draft cannot go to published directly
@@ -79,7 +79,7 @@ describe('DocumentWorkflowService', () => {
 
   describe('createApprovalRequest', () => {
     it('should create approval request for document in review', async () => {
-      // @ts-ignore
+      // @ts-expect-error
       storage.getDocument.mockResolvedValue({ id: 'd1', status: 'review', title: 'Test Doc' });
 
       const request = {
@@ -89,7 +89,6 @@ describe('DocumentWorkflowService', () => {
         comments: 'Please approve'
       };
 
-      // @ts-ignore
       const result = await documentWorkflowService.createApprovalRequest(request);
 
       expect(result.success).toBe(true);

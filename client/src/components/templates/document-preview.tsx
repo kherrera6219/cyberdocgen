@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +51,7 @@ export function DocumentPreview({ templates, framework }: DocumentPreviewProps) 
     }
   };
 
-  const mockTemplateData = templates.map(template => ({
+  const mockTemplateData = useMemo(() => templates.map(template => ({
     ...template,
     estimatedTime: `${Math.floor(Math.random() * 15) + 5} min`,
     complexity: ['Basic', 'Intermediate', 'Advanced'][Math.floor(Math.random() * 3)] as 'Basic' | 'Intermediate' | 'Advanced',
@@ -82,7 +82,7 @@ ${template.description} This policy ensures comprehensive coverage of security c
 4. **Monitoring Phase**: Continuous compliance monitoring and improvement
 
 This is a preview of the full document that would be generated based on your company profile...`
-  }));
+  })), [templates, framework]);
 
   return (
     <div className="space-y-4">

@@ -195,7 +195,7 @@ describe('MultiTenant Middleware', () => {
       requireOrganization(mockReq as MultiTenantRequest, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(expect.any(ForbiddenError));
-      const error = mockNext.mock.calls[0][0];
+      const error = (mockNext as any).mock.calls[0][0];
       expect(error.code).toBe('ORG_CONTEXT_REQUIRED');
     });
 
@@ -216,7 +216,7 @@ describe('MultiTenant Middleware', () => {
       middleware(mockReq as MultiTenantRequest, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(expect.any(ForbiddenError));
-      const error = mockNext.mock.calls[0][0];
+      const error = (mockNext as any).mock.calls[0][0];
       expect(error.code).toBe('ORG_CONTEXT_REQUIRED');
     });
 
@@ -233,7 +233,7 @@ describe('MultiTenant Middleware', () => {
         requiredRoles: ['admin', 'owner']
       }));
       expect(mockNext).toHaveBeenCalledWith(expect.any(ForbiddenError));
-      const error = mockNext.mock.calls[0][0];
+      const error = (mockNext as any).mock.calls[0][0];
       expect(error.code).toBe('INSUFFICIENT_ORG_ROLE');
     });
 
@@ -329,7 +329,7 @@ describe('MultiTenant Middleware', () => {
     });
 
     it('should return false for unknown resource type', async () => {
-      // @ts-ignore - testing invalid type
+      // @ts-expect-error - testing invalid type
       const result = await validateResourceOwnership('unknownType', 'res-123', 'org-123');
 
       expect(result).toBe(false);
@@ -357,7 +357,7 @@ describe('MultiTenant Middleware', () => {
       await middleware(mockReq as MultiTenantRequest, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith(expect.any(ValidationError));
-      const error = mockNext.mock.calls[0][0];
+      const error = (mockNext as any).mock.calls[0][0];
       expect(error.details?.code).toBe('RESOURCE_ID_REQUIRED');
     });
 
@@ -375,7 +375,7 @@ describe('MultiTenant Middleware', () => {
       getUserId.mockReturnValue('user-123');
       mockReq.params = { id: 'doc-123' };
       mockReq.organizationId = 'org-123';
-      mockReq.ip = '192.168.1.1';
+      Object.defineProperty(mockReq, 'ip', { value: '192.168.1.1', writable: true });
       storage.getDocument.mockResolvedValue({ companyProfileId: 'profile-1' });
       storage.getCompanyProfile.mockResolvedValue({ organizationId: 'org-999' });
 

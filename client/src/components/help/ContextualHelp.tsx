@@ -110,16 +110,14 @@ export function ContextualHelp({ topic, content, className, variant = "inline" }
   
   if (!helpContent) return null;
 
-  const HelpIcon = () => (
-    <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors" />
-  );
+
 
   if (variant === "tooltip" || variant === "modal") {
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button variant="ghost" size="sm" className={`p-1 h-auto ${className}`}>
-            <HelpIcon />
+            <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors" />
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-2xl">

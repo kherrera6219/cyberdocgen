@@ -123,7 +123,7 @@ describe('AuditService', () => {
 
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
-      // @ts-ignore
+      // @ts-expect-error
       await auditService.auditFromRequest(req, 'delete', 'document', 'd1');
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ riskLevel: RiskLevel.HIGH }));
     });
@@ -137,7 +137,7 @@ describe('AuditService', () => {
 
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
-      // @ts-ignore
+      // @ts-expect-error
       await auditService.auditFromRequest(req, 'failed_login', 'auth');
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ riskLevel: RiskLevel.MEDIUM }));
     });
@@ -151,7 +151,7 @@ describe('AuditService', () => {
 
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
-      // @ts-ignore
+      // @ts-expect-error
       await auditService.auditFromRequest(req, 'view', 'document', 'd1');
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ riskLevel: RiskLevel.LOW }));
     });
@@ -164,7 +164,7 @@ describe('AuditService', () => {
 
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
-      // @ts-ignore
+      // @ts-expect-error
       await auditService.auditFromRequest(req, 'create', 'document');
       expect(spy).toHaveBeenCalled();
     });
@@ -177,7 +177,7 @@ describe('AuditService', () => {
 
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
-      // @ts-ignore
+      // @ts-expect-error
       await auditService.auditFromRequest(req, 'view', 'document');
       expect(spy).toHaveBeenCalledWith(expect.objectContaining({ ipAddress: 'unknown' }));
     });
@@ -255,7 +255,8 @@ describe('AuditService', () => {
 
       await auditService.auditAuthEvent(
         'logout',
-        'user-1'
+        'user-1',
+        'org-1'
       );
 
       expect(spy).toHaveBeenCalledWith(expect.objectContaining({

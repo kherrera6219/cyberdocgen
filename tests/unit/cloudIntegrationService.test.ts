@@ -122,7 +122,6 @@ describe('CloudIntegrationService', () => {
   describe('syncFiles', () => {
     it('should sync google drive files', async () => {
       // Mock integration found
-      // @ts-ignore
       db.query.cloudIntegrations.findFirst.mockResolvedValue({
         id: 'int-1',
         userId: 'u1',
@@ -133,7 +132,7 @@ describe('CloudIntegrationService', () => {
       });
 
       // Mock config found
-      // @ts-ignore
+      // @ts-expect-error
       systemConfigService.getOAuthCredentials.mockResolvedValue({ clientId: 'c', clientSecret: 's' });
 
       const result = await cloudIntegrationService.syncFiles('int-1');
@@ -143,7 +142,6 @@ describe('CloudIntegrationService', () => {
     });
 
     it('should handle inactive integration', async () => {
-      // @ts-ignore
       db.query.cloudIntegrations.findFirst.mockResolvedValue({ isActive: false });
 
       await expect(cloudIntegrationService.syncFiles('int-1'))

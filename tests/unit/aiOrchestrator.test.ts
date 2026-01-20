@@ -136,14 +136,12 @@ describe('AIOrchestrator', () => {
         });
 
         it('performs real health checks if NODE_ENV is not test', async () => {
-            // @ts-ignore - unstubAllEnvs exists in Vitest 3.0
             vi.stubEnv('NODE_ENV', 'production');
             vi.stubEnv('OPENAI_API_KEY', 'test-key');
             
             const health = await aiOrchestrator.healthCheck();
             expect(health.status).toBeDefined();
             
-            // @ts-ignore
             vi.unstubAllEnvs();
         });
     });

@@ -11,25 +11,24 @@ import MobileSidebar from "./mobile-sidebar";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 export default function Header() {
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [, setLocation] = useLocation();
-  const { user } = useAuth();
-
-  useEffect(() => {
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
     if (savedTheme) {
-      setTheme(savedTheme);
       if (savedTheme === "dark") {
         document.documentElement.classList.add("dark");
       } else {
         document.documentElement.classList.remove("dark");
       }
+      return savedTheme;
     } else {
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
+      return "dark";
     }
-  }, []);
+  });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
