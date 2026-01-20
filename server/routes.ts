@@ -639,6 +639,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: repositoryRoutes } = await import('./routes/repository');
   app.use('/api/repository', repositoryRoutes);
 
+  // Database Health Routes - Diagnostics & Monitoring
+  const { default: healthRoutes } = await import('./routes/health');
+  app.use('/api/health', healthRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }
