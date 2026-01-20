@@ -1,7 +1,7 @@
-// Cloud service integrations - Real OAuth implementations
 import { drive_v3, drive } from '@googleapis/drive';
 import { OAuth2Client } from 'google-auth-library';
 import { Client, AuthenticationProvider } from '@microsoft/microsoft-graph-client';
+import axios from 'axios';
 
 // Custom authentication provider for Microsoft Graph
 class CustomAuthProvider implements AuthenticationProvider {
@@ -72,6 +72,142 @@ export interface FileSecurityOptions {
 // Will be implemented once Microsoft Graph packages are installed
 
 export class CloudIntegrationService {
+  
+  /**
+   * Get Google Auth URL
+   */
+  async getGoogleAuthUrl(redirectUri: string): Promise<string> {
+    const credentials = await systemConfigService.getOAuthCredentials('google');
+    if (!credentials) {
+      throw new ServiceUnavailableError('Google OAuth credentials not configured');
+    }
+
+    const oauth2Client = new OAuth2Client(
+      credentials.clientId,
+      credentials.clientSecret,
+      redirectUri
+    );
+
+    return oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: [
+        'https://www.googleapis.com/auth/drive.readonly',
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ],
+      prompt: 'consent',
+    });
+  }
+
+  /**
+   * Handle Google OAuth Callback
+   */
+  async handleGoogleCallback(
+    code: string,
+    redirectUri: string,
+    userId: string,
+    organizationId: string
+  ): Promise<string> {
+    const credentials = await systemConfigService.getOAuthCredentials('google');
+    if (!credentials) {
+      throw new ServiceUnavailableError('Google OAuth credentials not configured');
+    }
+
+    const oauth2Client = new OAuth2Client(
+      credentials.clientId,
+      credentials.clientSecret,
+      redirectUri
+    );
+
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    // Get user profile using the client directly
+    const userInfoResponse = await oauth2Client.request({
+      url: 'https://www.googleapis.com/oauth2/v2/userinfo'
+    });
+    const userInfo = userInfoResponse.data as any;
+
+    return this.createIntegration({
+      userId,
+      organizationId,
+      provider: 'google_drive',
+      accessToken: tokens.access_token!,
+      refreshToken: tokens.refresh_token || undefined,
+      expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : undefined,
+      userProfile: {
+        id: userInfo.id!,
+        email: userInfo.email!,
+        displayName: userInfo.name! || userInfo.email!,
+      },
+    });
+  }
+
+  /**
+   * Get Microsoft Auth URL
+   */
+  async getMicrosoftAuthUrl(redirectUri: string): Promise<string> {
+    const credentials = await systemConfigService.getOAuthCredentials('microsoft');
+    if (!credentials) {
+      throw new ServiceUnavailableError('Microsoft OAuth credentials not configured');
+    }
+
+    const tenant = 'common'; // Use common for multi-tenant delegated access
+    const scope = encodeURIComponent('offline_access Files.Read User.Read');
+    
+    return `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?client_id=${credentials.clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&response_mode=query&scope=${scope}&state=onedrive`;
+  }
+
+  /**
+   * Handle Microsoft OAuth Callback
+   */
+  async handleMicrosoftCallback(
+    code: string,
+    redirectUri: string,
+    userId: string,
+    organizationId: string
+  ): Promise<string> {
+    const credentials = await systemConfigService.getOAuthCredentials('microsoft');
+    if (!credentials) {
+      throw new ServiceUnavailableError('Microsoft OAuth credentials not configured');
+    }
+
+    // Exchange code for token
+    const tokenResponse = await axios.post(
+      `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
+      new URLSearchParams({
+        client_id: credentials.clientId,
+        client_secret: credentials.clientSecret,
+        code,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }).toString(),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+
+    const tokens = tokenResponse.data;
+
+    // Get user profile from Graph
+    const graphResponse = await axios.get('https://graph.microsoft.com/v1.0/me', {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+    });
+
+    const userInfo = graphResponse.data;
+
+    return this.createIntegration({
+      userId,
+      organizationId,
+      provider: 'onedrive',
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      expiresAt: new Date(Date.now() + tokens.expires_in * 1000),
+      userProfile: {
+        id: userInfo.id,
+        email: userInfo.userPrincipalName || userInfo.mail,
+        displayName: userInfo.displayName || userInfo.userPrincipalName,
+      },
+    });
+  }
   
   /**
    * Create or update cloud integration

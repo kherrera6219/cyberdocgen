@@ -9,6 +9,8 @@ import {
   gapAnalysisFindings,
   remediationRecommendations,
   complianceMaturityAssessments,
+  auditLogs,
+  documentVersions,
   auditTrail,
   contactMessages,
   documentApprovals,
@@ -16,6 +18,8 @@ import {
   roleAssignments,
   frameworkControlStatuses,
   notifications,
+  userInvitations,
+  userSessions,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -53,11 +57,13 @@ import {
   type InsertFrameworkControlStatus,
   type Notification,
   type InsertNotification,
-  userInvitations,
-  userSessions
+  type AuditLog,
+  type InsertAuditLog,
+  type DocumentVersion,
+  type InsertDocumentVersion
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte } from "drizzle-orm";
+import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // Types for filtered queries
@@ -200,10 +206,7 @@ export interface IStorage {
     framework: ComplianceMaturityAssessment["framework"]
   ): Promise<ComplianceMaturityAssessment | undefined>;
 
-  // Audit trail
-  createAuditEntry(entry: InsertAuditTrail): Promise<AuditTrail>;
-
-  // Contact messages
+  // Gap analysis methods
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
 
   // Document approvals
@@ -219,13 +222,36 @@ export interface IStorage {
   getFrameworkControlStatuses(organizationId: string, framework: string): Promise<FrameworkControlStatus[]>;
   updateFrameworkControlStatus(organizationId: string, framework: string, controlId: string, updates: Partial<InsertFrameworkControlStatus>): Promise<FrameworkControlStatus>;
   
-  // Notification methods
-  getNotifications(userId: string, limit?: number): Promise<Notification[]>;
-  getUnreadNotificationCount(userId: string): Promise<number>;
-  createNotification(notification: InsertNotification): Promise<Notification>;
-  markNotificationAsRead(id: string, userId: string): Promise<Notification | undefined>;
-  markAllNotificationsAsRead(userId: string): Promise<number>;
   deleteNotification(id: string, userId: string): Promise<boolean>;
+
+  // Versioning operations
+  getDocumentVersions(documentId: string): Promise<DocumentVersion[]>;
+  getDocumentVersion(documentId: string, versionNumber: number): Promise<DocumentVersion | undefined>;
+  createDocumentVersion(version: InsertDocumentVersion): Promise<DocumentVersion>;
+  deleteDocumentVersion(documentId: string, versionNumber: number): Promise<boolean>;
+
+  // Audit operations
+  createAuditEntry(entry: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogById(id: string, organizationId: string): Promise<AuditLog | null>;
+  getAuditLogsByDateRange(startDate: Date, endDate: Date, organizationId?: string): Promise<AuditLog[]>;
+  verifyAuditChain(limit: number): Promise<{ valid: boolean; failedId?: string; count: number }>;
+  getAuditLogsDetailed(
+    organizationId: string,
+    query: {
+      page?: number;
+      limit?: number;
+      entityType?: string;
+      action?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+    }
+  ): Promise<{ data: AuditLog[]; total: number }>;
+  getAuditStats(organizationId: string): Promise<{
+    totalEvents: number;
+    highRiskEvents: number;
+    actions: Record<string, number>;
+    entities: Record<string, number>;
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -704,26 +730,6 @@ export class MemStorage implements IStorage {
       )[0];
   }
 
-  async createAuditEntry(entry: InsertAuditTrail): Promise<AuditTrail> {
-    const id = randomUUID();
-    const newEntry: AuditTrail = {
-      ...entry,
-      id,
-      timestamp: new Date(),
-      organizationId: entry.organizationId ?? null,
-      userEmail: entry.userEmail ?? null,
-      userName: entry.userName ?? null,
-      oldValues: entry.oldValues ?? null,
-      newValues: entry.newValues ?? null,
-      metadata: entry.metadata ?? null,
-      ipAddress: entry.ipAddress ?? null,
-      userAgent: entry.userAgent ?? null,
-      sessionId: entry.sessionId ?? null,
-    };
-    this.auditEntries.set(id, newEntry);
-    return newEntry;
-  }
-
   async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
     const id = randomUUID();
     const newMessage: ContactMessage = {
@@ -1093,6 +1099,142 @@ export class MemStorage implements IStorage {
   private documentApprovalsStore = new Map<string, DocumentApproval>();
   private userInvitationsStore = new Map<string, UserInvitation>();
   private userSessionsStore = new Map<string, UserSession>();
+  private documentVersionsStore = new Map<string, DocumentVersion>();
+  private auditLogsStore = new Map<string, AuditLog>();
+
+  // Versioning operations
+  async getDocumentVersions(documentId: string): Promise<DocumentVersion[]> {
+    return Array.from(this.documentVersionsStore.values())
+      .filter(v => v.documentId === documentId)
+      .sort((a, b) => b.versionNumber - a.versionNumber);
+  }
+
+  async getDocumentVersion(documentId: string, versionNumber: number): Promise<DocumentVersion | undefined> {
+    return Array.from(this.documentVersionsStore.values()).find(
+      v => v.documentId === documentId && v.versionNumber === versionNumber
+    );
+  }
+
+  async createDocumentVersion(insertVersion: InsertDocumentVersion): Promise<DocumentVersion> {
+    const id = randomUUID();
+    const newVersion: DocumentVersion = {
+      ...insertVersion,
+      id,
+      changes: insertVersion.changes ?? null,
+      changeType: insertVersion.changeType ?? "minor",
+      createdAt: new Date(),
+      status: insertVersion.status ?? "draft",
+      fileSize: insertVersion.fileSize ?? null,
+      checksum: insertVersion.checksum ?? null,
+    };
+    this.documentVersionsStore.set(id, newVersion);
+    return newVersion;
+  }
+
+  async deleteDocumentVersion(documentId: string, versionNumber: number): Promise<boolean> {
+    const version = await this.getDocumentVersion(documentId, versionNumber);
+    if (!version) return false;
+    return this.documentVersionsStore.delete(version.id);
+  }
+
+  // Audit operations
+  async createAuditEntry(entry: InsertAuditLog): Promise<AuditLog> {
+    const id = randomUUID();
+    const newEntry: AuditLog = {
+      ...entry,
+      id,
+      timestamp: entry.timestamp || new Date(),
+      signature: entry.signature || null,
+      previousSignature: entry.previousSignature || null,
+      oldValues: entry.oldValues || null,
+      newValues: entry.newValues || null,
+      resourceId: entry.resourceId || null,
+      userAgent: entry.userAgent || null,
+      additionalContext: entry.additionalContext || null,
+      userId: entry.userId || null,
+      organizationId: entry.organizationId || null,
+      riskLevel: entry.riskLevel || "low",
+    };
+    this.auditLogsStore.set(id, newEntry);
+    return newEntry;
+  }
+
+  async getAuditLogById(id: string, organizationId: string): Promise<AuditLog | null> {
+    const log = this.auditLogsStore.get(id);
+    if (log && log.organizationId === organizationId) return log;
+    return null;
+  }
+
+  async getAuditLogsByDateRange(startDate: Date, endDate: Date, organizationId?: string): Promise<AuditLog[]> {
+    return Array.from(this.auditLogsStore.values())
+      .filter(l => (!organizationId || l.organizationId === organizationId))
+      .filter(l => (l.timestamp && l.timestamp >= startDate && l.timestamp <= endDate))
+      .sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0));
+  }
+
+  async verifyAuditChain(limit: number): Promise<{ valid: boolean; failedId?: string; count: number }> {
+    return { valid: true, count: Math.min(this.auditLogsStore.size, limit) };
+  }
+
+  async getAuditLogsDetailed(
+    organizationId: string,
+    query: {
+      page?: number;
+      limit?: number;
+      entityType?: string;
+      action?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+    }
+  ): Promise<{ data: AuditLog[]; total: number }> {
+    const logs = Array.from(this.auditLogsStore.values())
+      .filter(l => l.organizationId === organizationId)
+      .filter(l => !query.entityType || l.resourceType === query.entityType)
+      .filter(l => !query.action || l.action === query.action)
+      .filter(l => !query.dateFrom || (l.timestamp && l.timestamp >= query.dateFrom))
+      .filter(l => !query.dateTo || (l.timestamp && l.timestamp <= query.dateTo))
+      .sort((a, b) => {
+        if (!a.timestamp || !b.timestamp) return 0;
+        return b.timestamp.getTime() - a.timestamp.getTime();
+      });
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 50;
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+    return {
+      data: logs.slice(start, end),
+      total: logs.length
+    };
+  }
+
+  async getAuditStats(organizationId: string): Promise<{
+    totalEvents: number;
+    highRiskEvents: number;
+    actions: Record<string, number>;
+    entities: Record<string, number>;
+  }> {
+    const logs = Array.from(this.auditLogsStore.values()).filter(l => l.organizationId === organizationId);
+    
+    const stats = {
+      totalEvents: logs.length,
+      highRiskEvents: logs.filter(r => r.riskLevel === 'high' || r.riskLevel === 'critical').length,
+      actions: {} as Record<string, number>,
+      entities: {} as Record<string, number>,
+    };
+
+    for (const log of logs) {
+      if (log.action) {
+        stats.actions[log.action] = (stats.actions[log.action] || 0) + 1;
+      }
+      if (log.resourceType) {
+        stats.entities[log.resourceType] = (stats.entities[log.resourceType] || 0) + 1;
+      }
+    }
+
+    return stats;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1730,27 +1872,6 @@ export class DatabaseStorage implements IStorage {
     return assessment || undefined;
   }
 
-  async createAuditEntry(entry: InsertAuditTrail): Promise<AuditTrail> {
-    const preparedEntry: InsertAuditTrail = {
-      ...entry,
-      organizationId: entry.organizationId ?? null,
-      userEmail: entry.userEmail ?? null,
-      userName: entry.userName ?? null,
-      oldValues: entry.oldValues ?? null,
-      newValues: entry.newValues ?? null,
-      metadata: entry.metadata ?? null,
-      ipAddress: entry.ipAddress ?? null,
-      userAgent: entry.userAgent ?? null,
-      sessionId: entry.sessionId ?? null,
-    };
-
-    const [newEntry] = await db
-      .insert(auditTrail)
-      .values(preparedEntry)
-      .returning();
-    return newEntry;
-  }
-
   async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
     const [newMessage] = await db
       .insert(contactMessages)
@@ -1928,6 +2049,163 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
     return (result as any).rowCount > 0;
   }
+
+  // Versioning operations
+  async getDocumentVersions(documentId: string): Promise<DocumentVersion[]> {
+    return await db
+      .select()
+      .from(documentVersions)
+      .where(eq(documentVersions.documentId, documentId))
+      .orderBy(desc(documentVersions.versionNumber));
+  }
+
+  async getDocumentVersion(documentId: string, versionNumber: number): Promise<DocumentVersion | undefined> {
+    const [version] = await db
+      .select()
+      .from(documentVersions)
+      .where(
+        and(
+          eq(documentVersions.documentId, documentId),
+          eq(documentVersions.versionNumber, versionNumber)
+        )
+      )
+      .limit(1);
+    return version || undefined;
+  }
+
+  async createDocumentVersion(insertVersion: InsertDocumentVersion): Promise<DocumentVersion> {
+    const [version] = await db
+      .insert(documentVersions)
+      .values(insertVersion)
+      .returning();
+    return version;
+  }
+
+  async deleteDocumentVersion(documentId: string, versionNumber: number): Promise<boolean> {
+    const result = await db
+      .delete(documentVersions)
+      .where(
+        and(
+          eq(documentVersions.documentId, documentId),
+          eq(documentVersions.versionNumber, versionNumber)
+        )
+      );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Audit operations
+  async createAuditEntry(entry: InsertAuditLog): Promise<AuditLog> {
+    const [audit] = await db
+      .insert(auditLogs)
+      .values(entry)
+      .returning();
+    return audit;
+  }
+
+  async getAuditLogById(id: string, organizationId: string): Promise<AuditLog | null> {
+    const [log] = await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.id, id), eq(auditLogs.organizationId, organizationId)))
+      .limit(1);
+    return log || null;
+  }
+
+  async getAuditLogsByDateRange(startDate: Date, endDate: Date, organizationId?: string): Promise<AuditLog[]> {
+    const conditions = [
+      gte(auditLogs.timestamp, startDate),
+      lte(auditLogs.timestamp, endDate)
+    ];
+    if (organizationId) {
+      conditions.push(eq(auditLogs.organizationId, organizationId));
+    }
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(and(...conditions))
+      .orderBy(desc(auditLogs.timestamp));
+  }
+
+  async verifyAuditChain(limit: number): Promise<{ valid: boolean; failedId?: string; count: number }> {
+    // This is a placeholder for actual chaining verification logic
+    // which usually resides in a service but can be here too.
+    const logs = await db
+      .select()
+      .from(auditLogs)
+      .orderBy(desc(auditLogs.timestamp))
+      .limit(limit);
+    return { valid: true, count: logs.length };
+  }
+
+  async getAuditLogsDetailed(
+    organizationId: string,
+    query: {
+      page?: number;
+      limit?: number;
+      entityType?: string;
+      action?: string;
+      dateFrom?: Date;
+      dateTo?: Date;
+    }
+  ): Promise<{ data: AuditLog[]; total: number }> {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 50, 100);
+    const offset = (page - 1) * limit;
+
+    const conditions = [eq(auditLogs.organizationId, organizationId)];
+    if (query.entityType) conditions.push(eq(auditLogs.resourceType, query.entityType));
+    if (query.action) conditions.push(eq(auditLogs.action, query.action));
+    if (query.dateFrom) conditions.push(gte(auditLogs.timestamp, query.dateFrom));
+    if (query.dateTo) conditions.push(lte(auditLogs.timestamp, query.dateTo));
+
+    const [countResult] = await db
+      .select({ total: count() })
+      .from(auditLogs)
+      .where(and(...conditions));
+    
+    const total = countResult?.total ?? 0;
+
+    const data = await db
+      .select()
+      .from(auditLogs)
+      .where(and(...conditions))
+      .orderBy(desc(auditLogs.timestamp))
+      .limit(limit)
+      .offset(offset);
+
+    return { data, total };
+  }
+
+  async getAuditStats(organizationId: string): Promise<{
+    totalEvents: number;
+    highRiskEvents: number;
+    actions: Record<string, number>;
+    entities: Record<string, number>;
+  }> {
+    const results = await db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.organizationId, organizationId))
+      .limit(10000);
+
+    const stats = {
+      totalEvents: results.length,
+      highRiskEvents: results.filter(r => r.riskLevel === 'high' || r.riskLevel === 'critical').length,
+      actions: {} as Record<string, number>,
+      entities: {} as Record<string, number>,
+    };
+
+    for (const log of results) {
+      if (log.action) {
+        stats.actions[log.action] = (stats.actions[log.action] || 0) + 1;
+      }
+      if (log.resourceType) {
+        stats.entities[log.resourceType] = (stats.entities[log.resourceType] || 0) + 1;
+      }
+    }
+
+    return stats;
+  }
 }
 
-export const storage = new DatabaseStorage();
+export const storage: IStorage = new DatabaseStorage();

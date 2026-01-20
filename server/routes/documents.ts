@@ -2,11 +2,9 @@ import { Router, Response, NextFunction } from 'express';
 import { storage } from '../storage';
 import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
-import { insertDocumentSchema, documentVersions } from '@shared/schema';
+import { insertDocumentSchema } from '@shared/schema';
 import { versionService } from '../services/versionService';
 import type { AIModel } from '../services/aiOrchestrator';
-import { db } from '../db';
-import { eq, desc } from 'drizzle-orm';
 import { cache } from '../middleware/production';
 import { 
   type MultiTenantRequest, 
@@ -516,11 +514,7 @@ Category: ${category}`;
     }
 
     // Query document versions history
-    const versions = await db
-      .select()
-      .from(documentVersions)
-      .where(eq(documentVersions.documentId, documentId))
-      .orderBy(desc(documentVersions.versionNumber));
+    const versions = await storage.getDocumentVersions(documentId);
 
     if (!versions || versions.length === 0) {
       res.json({

@@ -8,6 +8,7 @@ import { aiGuardrailsLogs } from "../../shared/schema";
 import { logger } from "../utils/logger";
 import crypto from "crypto";
 import { eq, and, desc } from "drizzle-orm";
+import { getOpenAIClient } from "./aiClients";
 
 // Prompt Risk Keywords (potential injection attempts, harmful content)
 const HIGH_RISK_KEYWORDS = [
@@ -133,8 +134,8 @@ class AIGuardrailsService {
         ...responseContentCategories,
       ];
 
-      // 7. Mock moderation flags (in production, use OpenAI Moderation API)
-      const moderationFlags = this.getModerationFlags(prompt, response);
+      // 7. Get Moderation Flags (real API call)
+      const moderationFlags = await this.getModerationFlags(prompt, response);
 
       // 8. Log to database (ONLY store sanitized data to prevent PII leakage)
       const logId = await this.logGuardrailCheck({
@@ -374,10 +375,50 @@ class AIGuardrailsService {
   }
 
   /**
-   * Get Moderation Flags
-   * In production, integrate with OpenAI Moderation API or similar
+   * Get Moderation Flags using OpenAI Moderation API
    */
-  private getModerationFlags(prompt: string, response: string | null): {
+  private async getModerationFlags(prompt: string, response: string | null): Promise<{
+    hate: number;
+    harassment: number;
+    violence: number;
+    sexual: number;
+    selfHarm: number;
+    pii: number;
+  }> {
+    try {
+      // Return mock flags if OpenAI is not configured or in test mode
+      if (!process.env.OPENAI_API_KEY || process.env.NODE_ENV === 'test') {
+        return this.getMockModerationFlags(prompt, response);
+      }
+
+      const openai = getOpenAIClient();
+      const combined = `Input: ${prompt}\n\nOutput: ${response || "None"}`;
+      
+      const moderation = await openai.moderations.create({
+        input: combined,
+      });
+
+      const result = moderation.results[0];
+      const scores = result.category_scores as any;
+
+      return {
+        hate: scores.hate || 0,
+        harassment: scores.harassment || 0,
+        violence: scores.violence || 0,
+        sexual: scores.sexual || 0,
+        selfHarm: scores['self-harm'] || 0,
+        pii: this.detectAndRedactPII(combined).detected ? 0.9 : 0.05,
+      };
+    } catch (error: any) {
+      logger.error("AI Moderation API failed", { error: error.message });
+      return this.getMockModerationFlags(prompt, response);
+    }
+  }
+
+  /**
+   * Mock Moderation Flags (fallback)
+   */
+  private getMockModerationFlags(prompt: string, response: string | null): {
     hate: number;
     harassment: number;
     violence: number;
@@ -385,7 +426,6 @@ class AIGuardrailsService {
     selfHarm: number;
     pii: number;
   } {
-    // Mock implementation - replace with actual moderation API
     const combined = `${prompt} ${response || ""}`.toLowerCase();
 
     return {

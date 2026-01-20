@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { auditService, AuditAction, RiskLevel } from '../../server/services/auditService';
+import { auditService, RiskLevel } from '../../server/services/auditService';
 import { db } from '../../server/db';
+import { storage } from '../../server/storage';
 
 // Mock DB
 vi.mock('../../server/db', () => ({
@@ -15,6 +16,16 @@ vi.mock('../../server/db', () => ({
         })),
       })),
     })),
+  },
+}));
+
+// Mock storage
+vi.mock('../../server/storage', () => ({
+  storage: {
+    createAuditEntry: vi.fn().mockResolvedValue({}),
+    getAuditLogsDetailed: vi.fn().mockResolvedValue({ data: [], total: 0 }),
+    getAuditStats: vi.fn().mockResolvedValue({ totalEvents: 0, highRiskEvents: 0 }),
+    getAuditLogById: vi.fn().mockResolvedValue(null),
   },
 }));
 
@@ -43,7 +54,7 @@ describe('AuditService', () => {
       const entry = {
         userId: 'user-1',
         organizationId: 'org-1',
-        action: AuditAction.CREATE,
+        action: 'create',
         resourceType: 'document',
         resourceId: 'doc-1',
         ipAddress: '127.0.0.1',
@@ -52,14 +63,14 @@ describe('AuditService', () => {
 
       await auditService.logAuditEvent(entry);
 
-      expect(db.insert).toHaveBeenCalled();
+      expect(storage.createAuditEntry).toHaveBeenCalled();
     });
 
     it('should log high risk event with warning', async () => {
       const entry = {
         userId: 'user-1',
         organizationId: 'org-1',
-        action: AuditAction.DELETE,
+        action: 'delete',
         resourceType: 'system_config',
         ipAddress: '127.0.0.1',
         riskLevel: RiskLevel.CRITICAL,
@@ -69,26 +80,26 @@ describe('AuditService', () => {
 
       await auditService.logAuditEvent(entry);
 
-      expect(db.insert).toHaveBeenCalled();
+      expect(storage.createAuditEntry).toHaveBeenCalled();
       expect(logger.warn).toHaveBeenCalledWith('HIGH_RISK_AUDIT_EVENT', expect.any(Object));
     });
 
     it('should handle missing optional fields', async () => {
       const entry = {
-        action: AuditAction.READ,
+        action: 'view',
         resourceType: 'document',
         ipAddress: '127.0.0.1',
       };
 
       await auditService.logAuditEvent(entry);
 
-      expect(db.insert).toHaveBeenCalled();
+      expect(storage.createAuditEntry).toHaveBeenCalled();
     });
 
     it('should include additional context when provided', async () => {
       const entry = {
         userId: 'user-1',
-        action: AuditAction.UPDATE,
+        action: 'update',
         resourceType: 'document',
         resourceId: 'doc-1',
         ipAddress: '192.168.1.1',
@@ -98,7 +109,7 @@ describe('AuditService', () => {
 
       await auditService.logAuditEvent(entry);
 
-      expect(db.insert).toHaveBeenCalled();
+      expect(storage.createAuditEntry).toHaveBeenCalled();
     });
   });
 
@@ -113,7 +124,7 @@ describe('AuditService', () => {
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
       // @ts-ignore
-      await auditService.auditFromRequest(req, AuditAction.DELETE, 'document', 'd1');
+      await auditService.auditFromRequest(req, 'delete', 'document', 'd1');
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ riskLevel: RiskLevel.HIGH }));
     });
 
@@ -127,7 +138,7 @@ describe('AuditService', () => {
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
       // @ts-ignore
-      await auditService.auditFromRequest(req, AuditAction.FAILED_LOGIN, 'auth');
+      await auditService.auditFromRequest(req, 'failed_login', 'auth');
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ riskLevel: RiskLevel.MEDIUM }));
     });
 
@@ -141,7 +152,7 @@ describe('AuditService', () => {
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
       // @ts-ignore
-      await auditService.auditFromRequest(req, AuditAction.READ, 'document', 'd1');
+      await auditService.auditFromRequest(req, 'view', 'document', 'd1');
       expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ riskLevel: RiskLevel.LOW }));
     });
 
@@ -154,7 +165,7 @@ describe('AuditService', () => {
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
       // @ts-ignore
-      await auditService.auditFromRequest(req, AuditAction.CREATE, 'document');
+      await auditService.auditFromRequest(req, 'create', 'document');
       expect(spy).toHaveBeenCalled();
     });
 
@@ -167,7 +178,7 @@ describe('AuditService', () => {
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
       // @ts-ignore
-      await auditService.auditFromRequest(req, AuditAction.READ, 'document');
+      await auditService.auditFromRequest(req, 'view', 'document');
       expect(spy).toHaveBeenCalledWith(expect.objectContaining({ ipAddress: 'unknown' }));
     });
   });
@@ -185,13 +196,13 @@ describe('AuditService', () => {
         'org-1',
         'pii',
         'customer-123',
-        'VIEW',
+        'view',
         mockReq
       );
 
       expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-        action: AuditAction.SENSITIVE_ACCESS,
-        resourceType: 'sensitive_pii',
+        action: 'view',
+        resourceType: 'pii',
         userId: 'user-1',
         organizationId: 'org-1',
       }));
@@ -207,13 +218,13 @@ describe('AuditService', () => {
       } as any;
 
       await auditService.auditAuthEvent(
-        AuditAction.LOGIN,
+        'login',
         'user-1',
         mockReq
       );
 
       expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-        action: AuditAction.LOGIN,
+        action: 'login',
         resourceType: 'authentication',
         riskLevel: RiskLevel.LOW,
       }));
@@ -227,13 +238,13 @@ describe('AuditService', () => {
       } as any;
 
       await auditService.auditAuthEvent(
-        AuditAction.FAILED_LOGIN,
+        'failed_login',
         'user-1',
         mockReq
       );
 
       expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-        action: AuditAction.FAILED_LOGIN,
+        action: 'failed_login',
         resourceType: 'authentication',
         riskLevel: RiskLevel.MEDIUM,
       }));
@@ -243,12 +254,12 @@ describe('AuditService', () => {
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
       await auditService.auditAuthEvent(
-        AuditAction.LOGOUT,
+        'logout',
         'user-1'
       );
 
       expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-        action: AuditAction.LOGOUT,
+        action: 'logout',
         resourceType: 'authentication',
         riskLevel: RiskLevel.LOW,
       }));
@@ -262,7 +273,7 @@ describe('AuditService', () => {
         limit: 50,
       });
 
-      expect(db.select).toHaveBeenCalled();
+      expect(storage.getAuditLogsDetailed).toHaveBeenCalled();
       expect(logs).toBeDefined();
     });
 
@@ -272,7 +283,7 @@ describe('AuditService', () => {
         dateTo: new Date('2024-01-31'),
       });
 
-      expect(db.select).toHaveBeenCalled();
+      expect(storage.getAuditLogsDetailed).toHaveBeenCalled();
     });
 
     it('should apply action filter', async () => {
@@ -280,7 +291,7 @@ describe('AuditService', () => {
         action: 'CREATE',
       });
 
-      expect(db.select).toHaveBeenCalled();
+      expect(storage.getAuditLogsDetailed).toHaveBeenCalled();
     });
 
     it('should apply entity type filter', async () => {
@@ -288,7 +299,7 @@ describe('AuditService', () => {
         entityType: 'document',
       });
 
-      expect(db.select).toHaveBeenCalled();
+      expect(storage.getAuditLogsDetailed).toHaveBeenCalled();
     });
   });
 
@@ -296,7 +307,7 @@ describe('AuditService', () => {
     it('should get audit statistics for organization', async () => {
       const stats = await auditService.getAuditStats('org-1');
 
-      expect(db.select).toHaveBeenCalled();
+      expect(storage.getAuditStats).toHaveBeenCalled();
       expect(stats).toBeDefined();
     });
   });
@@ -305,7 +316,7 @@ describe('AuditService', () => {
     it('should retrieve specific audit log by ID', async () => {
       const log = await auditService.getAuditById('log-1', 'org-1');
 
-      expect(db.select).toHaveBeenCalled();
+      expect(storage.getAuditLogById).toHaveBeenCalled();
     });
   });
 
@@ -314,7 +325,7 @@ describe('AuditService', () => {
       const spy = vi.spyOn(auditService, 'logAuditEvent');
 
       await auditService.logAuditEvent({
-        action: AuditAction.DELETE,
+        action: 'delete',
         resourceType: 'user',
         ipAddress: '127.0.0.1',
         riskLevel: RiskLevel.CRITICAL,
@@ -326,7 +337,7 @@ describe('AuditService', () => {
 
     it('should assign HIGH risk for delete actions', async () => {
       await auditService.logAuditEvent({
-        action: AuditAction.DELETE,
+        action: 'delete',
         resourceType: 'document',
         ipAddress: '127.0.0.1',
         riskLevel: RiskLevel.HIGH,
@@ -341,7 +352,7 @@ describe('AuditService', () => {
       vi.clearAllMocks();
 
       await auditService.logAuditEvent({
-        action: AuditAction.UPDATE,
+        action: 'update',
         resourceType: 'document',
         ipAddress: '127.0.0.1',
         riskLevel: RiskLevel.MEDIUM,
@@ -355,7 +366,7 @@ describe('AuditService', () => {
       vi.clearAllMocks();
 
       await auditService.logAuditEvent({
-        action: AuditAction.READ,
+        action: 'view',
         resourceType: 'document',
         ipAddress: '127.0.0.1',
         riskLevel: RiskLevel.LOW,
@@ -368,7 +379,7 @@ describe('AuditService', () => {
   describe('High-Volume Logging', () => {
     it('should handle multiple audit events', async () => {
       const entries = Array.from({ length: 10 }, (_, i) => ({
-        action: AuditAction.READ,
+        action: 'view',
         resourceType: 'document',
         resourceId: `doc-${i}`,
         ipAddress: '127.0.0.1',
@@ -378,7 +389,7 @@ describe('AuditService', () => {
         await auditService.logAuditEvent(entry);
       }
 
-      expect(db.insert).toHaveBeenCalledTimes(10);
+      expect(storage.createAuditEntry).toHaveBeenCalledTimes(10);
     });
   });
 });

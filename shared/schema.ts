@@ -1132,11 +1132,14 @@ export const auditLogs = pgTable("audit_logs", {
   riskLevel: varchar("risk_level").notNull().default("low"),
   additionalContext: jsonb("additional_context"),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
+  signature: varchar("signature", { length: 64 }),
+  previousSignature: varchar("previous_signature", { length: 64 }),
 }, (table) => [
   index("idx_audit_logs_user_id").on(table.userId),
   index("idx_audit_logs_action").on(table.action),
   index("idx_audit_logs_timestamp").on(table.timestamp),
-  index("idx_audit_logs_risk_level").on(table.riskLevel)
+  index("idx_audit_logs_risk_level").on(table.riskLevel),
+  index("idx_audit_logs_signature").on(table.signature)
 ]);
 
 export type AuditLog = typeof auditLogs.$inferSelect;

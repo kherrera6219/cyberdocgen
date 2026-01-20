@@ -1,7 +1,6 @@
-import { db } from "../db";
-import { documents, documentVersions, type InsertDocumentVersion, type Document, type DocumentVersion } from "@shared/schema";
+import { storage } from "../storage";
+import { type InsertDocumentVersion, type DocumentVersion } from "@shared/schema";
 import { logger } from "../utils/logger";
-import { eq, desc, and } from "drizzle-orm";
 import * as crypto from "crypto";
 
 export interface CreateVersionData {
@@ -35,23 +34,14 @@ class VersionService {
   async createVersion(data: CreateVersionData): Promise<any> {
     try {
       // Get current document to determine next version number
-      const document = await db
-        .select()
-        .from(documents)
-        .where(eq(documents.id, data.documentId))
-        .limit(1);
+      const document = await storage.getDocument(data.documentId);
 
-      if (!document.length) {
+      if (!document) {
         throw new Error("Document not found");
       }
 
       // Get latest version number
-      const latestVersions = await db
-        .select()
-        .from(documentVersions)
-        .where(eq(documentVersions.documentId, data.documentId))
-        .orderBy(desc(documentVersions.versionNumber))
-        .limit(1);
+      const latestVersions = await storage.getDocumentVersions(data.documentId);
 
       const nextVersionNumber = latestVersions.length > 0 
         ? latestVersions[0].versionNumber + 1 
@@ -70,21 +60,14 @@ class VersionService {
         status: "draft",
       };
 
-      const [version] = await db
-        .insert(documentVersions)
-        .values(versionData)
-        .returning();
+      const version = await storage.createDocumentVersion(versionData);
 
       // Update document's current version
-      await db
-        .update(documents)
-        .set({ 
-          version: nextVersionNumber,
-          content: data.content,
-          title: data.title,
-          updatedAt: new Date(),
-        })
-        .where(eq(documents.id, data.documentId));
+      await storage.updateDocument(data.documentId, { 
+        version: nextVersionNumber,
+        content: data.content,
+        title: data.title,
+      });
 
       logger.info("Document version created", {
         documentId: data.documentId,
@@ -104,13 +87,7 @@ class VersionService {
 
   async getVersionHistory(documentId: string): Promise<any[]> {
     try {
-      const versions = await db
-        .select()
-        .from(documentVersions)
-        .where(eq(documentVersions.documentId, documentId))
-        .orderBy(desc(documentVersions.versionNumber));
-
-      return versions;
+      return await storage.getDocumentVersions(documentId);
     } catch (error: any) {
       logger.error("Failed to retrieve version history", {
         error: error.message,
@@ -122,17 +99,7 @@ class VersionService {
 
   async getVersion(documentId: string, versionNumber: number): Promise<any | null> {
     try {
-      const [version] = await db
-        .select()
-        .from(documentVersions)
-        .where(
-          and(
-            eq(documentVersions.documentId, documentId),
-            eq(documentVersions.versionNumber, versionNumber)
-          )
-        )
-        .limit(1);
-
+      const version = await storage.getDocumentVersion(documentId, versionNumber);
       return version || null;
     } catch (error: any) {
       logger.error("Failed to retrieve document version", {
@@ -270,24 +237,13 @@ class VersionService {
   async deleteVersion(documentId: string, versionNumber: number): Promise<void> {
     try {
       // Don't allow deleting the current version
-      const document = await db
-        .select()
-        .from(documents)
-        .where(eq(documents.id, documentId))
-        .limit(1);
+      const document = await storage.getDocument(documentId);
 
-      if (document.length > 0 && document[0].version === versionNumber) {
+      if (document && document.version === versionNumber) {
         throw new Error("Cannot delete current version");
       }
 
-      await db
-        .delete(documentVersions)
-        .where(
-          and(
-            eq(documentVersions.documentId, documentId),
-            eq(documentVersions.versionNumber, versionNumber)
-          )
-        );
+      await storage.deleteDocumentVersion(documentId, versionNumber);
 
       logger.info("Document version deleted", {
         documentId,

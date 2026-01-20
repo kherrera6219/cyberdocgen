@@ -17,7 +17,11 @@ import {
   CheckCircle,
   Clock,
   Folder,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Users,
+  Layout,
+  PenTool,
+  Search
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
@@ -67,11 +71,23 @@ export default function CloudIntegrations() {
   });
 
   // Get cloud files
-  const { data: filesData, isLoading: filesLoading } = useQuery<{ files: CloudFile[] }>({
+  const { data: filesData } = useQuery<{ files: CloudFile[] }>({
     queryKey: ['/api/cloud/files', { 
       provider: selectedProvider !== 'all' ? selectedProvider : undefined,
       fileType: selectedFileType !== 'all' ? selectedFileType : undefined,
     }],
+  });
+  
+  // Get SharePoint Sites
+  const { data: sharepointData, isLoading: sharepointLoading } = useQuery<{ sites: any[] }>({
+    queryKey: ['/api/cloud/microsoft/sharepoint/sites'],
+    enabled: !!integrationsData?.integrations?.find(i => i.provider === 'onedrive'),
+  });
+
+  // Get Teams
+  const { data: teamsData, isLoading: teamsLoading } = useQuery<{ teams: any[] }>({
+    queryKey: ['/api/cloud/microsoft/teams/channels'],
+    enabled: !!integrationsData?.integrations?.find(i => i.provider === 'onedrive'),
   });
 
   // Sync files mutation
@@ -113,6 +129,26 @@ export default function CloudIntegrations() {
       toast({
         title: 'Delete Failed',
         description: error.message || 'Failed to remove integration',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Adobe Sign mutation
+  const adobeSignMutation = useMutation({
+    mutationFn: async (data: { documentId: string, recipientEmail: string, recipientName: string }) => {
+      return apiRequest('/api/cloud/adobe/sign', 'POST', data);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Sign Request Sent',
+        description: `Signature request sent via Adobe Sign. Agreement ID: ${data.data.agreementId}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Sign Request Failed',
+        description: error.message || 'Failed to send signature request',
         variant: 'destructive',
       });
     },
@@ -365,6 +401,73 @@ export default function CloudIntegrations() {
             </Card>
           </div>
 
+          {/* Microsoft Ecosystem: SharePoint and Teams */}
+          {integrationsData?.integrations?.find(i => i.provider === 'onedrive') && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Layout className="h-5 w-5 text-blue-600" /> SharePoint Sites
+                  </CardTitle>
+                  <CardDescription>
+                    Browse and sync files from SharePoint sites
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {sharepointLoading ? (
+                    <div className="flex justify-center p-4"><RefreshCw className="h-6 w-6 animate-spin" /></div>
+                  ) : sharepointData?.sites && sharepointData.sites.length > 0 ? (
+                    <div className="space-y-2">
+                      {sharepointData.sites.map(site => (
+                        <div key={site.id} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="flex items-center gap-2">
+                            <Folder className="h-4 w-4 text-blue-500" />
+                            <span className="text-sm font-medium">{site.displayName}</span>
+                          </div>
+                          <Button size="sm" variant="ghost" onClick={() => window.open(site.webUrl, '_blank')}>
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">No SharePoint sites found</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-indigo-600" /> Microsoft Teams
+                  </CardTitle>
+                  <CardDescription>
+                    View and manage Teams collaboration channels
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {teamsLoading ? (
+                    <div className="flex justify-center p-4"><RefreshCw className="h-6 w-6 animate-spin" /></div>
+                  ) : teamsData?.teams && teamsData.teams.length > 0 ? (
+                    <div className="space-y-2">
+                      {teamsData.teams.map(team => (
+                        <div key={team.id} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-indigo-500" />
+                            <span className="text-sm font-medium">{team.displayName}</span>
+                          </div>
+                          <Badge variant="outline" className="text-[10px]">Active</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">No Teams found</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Cloud Files */}
           {filesData?.files && filesData.files.length > 0 && (
             <Card>
@@ -386,6 +489,7 @@ export default function CloudIntegrations() {
                       value={selectedProvider}
                       onChange={(e) => setSelectedProvider(e.target.value)}
                       className="px-3 py-1 border border-gray-300 rounded text-sm"
+                      title="Filter by cloud provider"
                     >
                       <option value="all">All Providers</option>
                       <option value="google_drive">Google Drive</option>
@@ -399,6 +503,7 @@ export default function CloudIntegrations() {
                       value={selectedFileType}
                       onChange={(e) => setSelectedFileType(e.target.value)}
                       className="px-3 py-1 border border-gray-300 rounded text-sm"
+                      title="Filter by file type"
                     >
                       <option value="all">All Files</option>
                       <option value="pdf">PDF</option>
@@ -466,14 +571,35 @@ export default function CloudIntegrations() {
                           )}
                           
                           {file.fileType === 'pdf' && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center gap-1"
-                            >
-                              <Shield className="h-3 w-3" />
-                              Secure
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const email = prompt('Enter recipient email for Adobe Sign:');
+                                  if (email) {
+                                    adobeSignMutation.mutate({
+                                      documentId: file.id,
+                                      recipientEmail: email,
+                                      recipientName: email.split('@')[0]
+                                    });
+                                  }
+                                }}
+                                disabled={adobeSignMutation.isPending}
+                                className="flex items-center gap-1 text-purple-600 border-purple-200 hover:bg-purple-50"
+                              >
+                                <PenTool className="h-3 w-3" />
+                                Sign
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-1"
+                              >
+                                <Shield className="h-3 w-3" />
+                                Secure
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </div>

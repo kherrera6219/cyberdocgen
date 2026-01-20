@@ -1,65 +1,93 @@
-import { Router, Response, NextFunction } from 'express';
-import { isAuthenticated } from '../replitAuth';
-import { secureHandler, AppError } from '../utils/errorHandling';
+import { Router, Response } from 'express';
+import { isAuthenticated, getRequiredUserId } from '../replitAuth';
+import { secureHandler } from '../utils/errorHandling';
 import { requireOrganization, type MultiTenantRequest } from '../middleware/multiTenant';
+import { cloudIntegrationService } from '../services/cloudIntegrationService';
+import { microsoftGraphService } from '../services/microsoftGraphService';
+import { adobeIntegrationService } from '../services/adobeIntegrationService';
+import { encryptionService, DataClassification } from '../services/encryption';
 
 const router = Router();
 
-// Placeholder for file upload functionality
-// Will be implemented once required packages are installed
-
-// OAuth strategies will be configured once admin provides credentials
-
-// OAuth strategies will be configured once admin provides credentials
+/**
+ * Get the redirect URI for a provider
+ */
+function getRedirectUri(req: MultiTenantRequest, provider: 'google' | 'microsoft'): string {
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.get('host');
+  return `${protocol}://${host}/api/cloud/auth/${provider}/callback`;
+}
 
 /**
- * Initiate Google Drive OAuth (placeholder)
+ * Initiate Google Drive OAuth
  */
-router.get('/auth/google', isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, _res: Response, _next: NextFunction) => {
-  throw new AppError(
-    'Google OAuth integration requires admin configuration. Please contact your administrator to set up Google Drive credentials.',
-    501,
-    'NOT_IMPLEMENTED',
-    { requiresAdmin: true }
+router.get('/auth/google', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const redirectUri = getRedirectUri(req, 'google');
+  const authUrl = await cloudIntegrationService.getGoogleAuthUrl(redirectUri);
+  res.redirect(authUrl);
+}));
+
+/**
+ * Google Drive OAuth callback
+ */
+router.get('/auth/google/callback', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const { code } = req.query;
+  if (!code) {
+    return res.redirect('/cloud-integrations?error=no_code');
+  }
+
+  const redirectUri = getRedirectUri(req, 'google');
+  const userId = getRequiredUserId(req);
+  await cloudIntegrationService.handleGoogleCallback(
+    code as string,
+    redirectUri,
+    userId,
+    req.organizationId!
   );
+
+  res.redirect('/cloud-integrations?success=google_connected');
 }));
 
 /**
- * Google Drive OAuth callback (placeholder)
+ * Initiate Microsoft OneDrive OAuth
  */
-router.get('/auth/google/callback', secureHandler(async (_req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-  res.redirect('/cloud-integrations?error=not_configured');
+router.get('/auth/microsoft', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const redirectUri = getRedirectUri(req, 'microsoft');
+  const authUrl = await cloudIntegrationService.getMicrosoftAuthUrl(redirectUri);
+  res.redirect(authUrl);
 }));
 
 /**
- * Initiate Microsoft OneDrive OAuth (placeholder)
+ * Microsoft OneDrive OAuth callback
  */
-router.get('/auth/microsoft', isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, _res: Response, _next: NextFunction) => {
-  throw new AppError(
-    'Microsoft OAuth integration requires admin configuration. Please contact your administrator to set up OneDrive credentials.',
-    501,
-    'NOT_IMPLEMENTED',
-    { requiresAdmin: true }
+router.get('/auth/microsoft/callback', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const { code } = req.query;
+  if (!code) {
+    return res.redirect('/cloud-integrations?error=no_code');
+  }
+
+  const redirectUri = getRedirectUri(req, 'microsoft');
+  const userId = getRequiredUserId(req);
+  await cloudIntegrationService.handleMicrosoftCallback(
+    code as string,
+    redirectUri,
+    userId,
+    req.organizationId!
   );
-}));
 
-/**
- * Microsoft OneDrive OAuth callback (placeholder)
- */
-router.get('/auth/microsoft/callback', secureHandler(async (_req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-  res.redirect('/cloud-integrations?error=not_configured');
+  res.redirect('/cloud-integrations?success=microsoft_connected');
 }));
 
 /**
  * Get user's cloud integrations
  */
-router.get('/integrations', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-  // Return empty integrations for now
+router.get('/integrations', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const userId = getRequiredUserId(req);
+  const integrations = await cloudIntegrationService.getUserIntegrations(userId);
   res.json({
     success: true,
     data: {
-      integrations: [],
-      note: 'Cloud integrations require admin configuration of OAuth credentials'
+      integrations
     }
   });
 }));
@@ -67,55 +95,129 @@ router.get('/integrations', isAuthenticated, requireOrganization, secureHandler(
 /**
  * Sync files from cloud provider
  */
-router.post('/sync', isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, _res: Response, _next: NextFunction) => {
-  throw new AppError(
-    'File sync requires active cloud integrations. Please configure OAuth credentials first.',
-    501
-  );
+router.post('/sync/:integrationId', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const { integrationId } = req.params;
+  const result = await cloudIntegrationService.syncFiles(integrationId);
+  res.json({
+    success: true,
+    data: result
+  });
 }));
 
 /**
  * Get organization files
  */
-router.get('/files', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+router.get('/files', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const files = await cloudIntegrationService.getOrganizationFiles(req.organizationId!, req.query as any);
   res.json({
     success: true,
     data: {
-      files: [],
-      note: 'No files available until cloud integrations are configured'
+      files
     }
   });
 }));
 
 /**
- * Apply PDF security settings (placeholder)
+ * Apply PDF security settings
  */
-router.post('/pdf/secure', isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, _res: Response, _next: NextFunction) => {
-  throw new AppError(
-    'PDF security features require additional package installation. Contact your administrator.',
-    501
-  );
+router.post('/pdf/secure/:fileId', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const { fileId } = req.params;
+  const userId = getRequiredUserId(req);
+  const result = await cloudIntegrationService.applyPDFSecurity(fileId, req.body, userId);
+  res.json({
+    success: true,
+    data: { result }
+  });
 }));
 
 /**
- * Get PDF security settings (placeholder)
+ * Delete cloud integration
  */
-router.get('/pdf/security/:fileId', isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, _res: Response, _next: NextFunction) => {
-  throw new AppError('PDF security features are not yet configured', 501);
+router.delete('/integrations/:integrationId', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const { integrationId } = req.params;
+  const userId = getRequiredUserId(req);
+  const success = await cloudIntegrationService.deleteIntegration(integrationId, userId);
+  res.json({
+    success,
+    message: success ? 'Integration deleted' : 'Integration not found'
+  });
 }));
 
 /**
- * Delete cloud integration (placeholder)
+ * SharePoint Site Discovery
  */
-router.delete('/integrations/:integrationId', isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, _res: Response, _next: NextFunction) => {
-  throw new AppError('Cloud integration management requires full setup', 501);
+router.get('/microsoft/sharepoint/sites', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const { q = 'compliance' } = req.query;
+  const userId = getRequiredUserId(req);
+  
+  // Get integration to get access token
+  const integrations = await cloudIntegrationService.getUserIntegrations(userId);
+  const microsoftIntegration = integrations.find(i => i.provider === 'onedrive');
+  
+  if (!microsoftIntegration) {
+    res.status(400).json({ success: false, message: 'Microsoft integration not found' });
+    return;
+  }
+
+  const encryptedData = typeof microsoftIntegration.accessTokenEncrypted === 'string' 
+    ? JSON.parse(microsoftIntegration.accessTokenEncrypted)
+    : microsoftIntegration.accessTokenEncrypted;
+  const accessToken = await encryptionService.decryptSensitiveField(encryptedData, DataClassification.RESTRICTED);
+
+  const sites = await microsoftGraphService.searchSites(accessToken, q as string);
+  res.json({ success: true, data: { sites } });
 }));
 
 /**
- * Remove PDF security (placeholder)
+ * Teams Channel Discovery
  */
-router.delete('/pdf/security/:fileId', isAuthenticated, requireOrganization, secureHandler(async (_req: MultiTenantRequest, _res: Response, _next: NextFunction) => {
-  throw new AppError('PDF security features are not yet configured', 501);
+router.get('/microsoft/teams/channels', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const userId = getRequiredUserId(req);
+  
+  const integrations = await cloudIntegrationService.getUserIntegrations(userId);
+  const microsoftIntegration = integrations.find(i => i.provider === 'onedrive');
+  
+  if (!microsoftIntegration) {
+    res.status(400).json({ success: false, message: 'Microsoft integration not found' });
+    return;
+  }
+
+  const encryptedData = typeof microsoftIntegration.accessTokenEncrypted === 'string' 
+    ? JSON.parse(microsoftIntegration.accessTokenEncrypted)
+    : microsoftIntegration.accessTokenEncrypted;
+  const accessToken = await encryptionService.decryptSensitiveField(encryptedData, DataClassification.RESTRICTED);
+
+  const teams = await microsoftGraphService.getJoinedTeams(accessToken);
+  // For simplicity, we'll return teams and expect another call for channels, 
+  // or we could map them here.
+  res.json({ success: true, data: { teams } });
+}));
+
+/**
+ * Adobe Sign Request
+ */
+router.post('/adobe/sign', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+  const { documentId, recipientEmail, recipientName, message } = req.body;
+  
+  if (!documentId || !recipientEmail) {
+    res.status(400).json({ success: false, message: 'Missing required fields' });
+    return;
+  }
+
+  const agreementId = await adobeIntegrationService.requestSignature({
+    documentId,
+    recipientEmail,
+    recipientName,
+    message
+  });
+
+  res.json({ 
+    success: true, 
+    data: { 
+      agreementId,
+      message: 'Signature request sent via Adobe Sign' 
+    } 
+  });
 }));
 
 export default router;
