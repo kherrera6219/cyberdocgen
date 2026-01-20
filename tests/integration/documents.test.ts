@@ -330,7 +330,7 @@ describe('Documents Routes', () => {
                 .send({ companyProfileId: "cp-other", title: "Updated" });
 
             expect(response.status).toBe(400);
-            expect(response.body.error).toContain("Invalid company profile");
+            expect(response.body.error.message).toContain("Invalid company profile");
         });
     });
 

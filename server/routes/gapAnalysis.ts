@@ -56,6 +56,16 @@ export function registerGapAnalysisRoutes(router: Router) {
   }));
 
   /**
+   * Get gap analysis reports (alias)
+   */
+  router.get("/reports", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const organizationId = req.organizationId!;
+    const reports = await storage.getGapAnalysisReports(organizationId);
+    
+    res.json({ success: true, data: reports });
+  }));
+
+  /**
    * Get gap analysis by framework
    */
   router.get("/:framework", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
@@ -87,15 +97,7 @@ export function registerGapAnalysisRoutes(router: Router) {
     });
   }));
 
-  /**
-   * Get gap analysis reports (alias)
-   */
-  router.get("/reports", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-    const organizationId = req.organizationId!;
-    const reports = await storage.getGapAnalysisReports(organizationId);
-    
-    res.json({ success: true, data: reports });
-  }));
+
 
   /**
    * Get gap analysis report details

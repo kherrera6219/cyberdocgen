@@ -18,7 +18,7 @@ vi.mock('../../server/mcp/toolRegistry', () => ({
 
 vi.mock('../../server/mcp/agentClient', () => ({
   agentClient: {
-    listAgents: vi.fn(),
+    listAgents: vi.fn().mockReturnValue([]),
     getAgent: vi.fn(),
     execute: vi.fn(),
     clearConversation: vi.fn()
@@ -71,7 +71,7 @@ describe('MCP Server Integration Tests', () => {
     });
 
     it('returns 500 on failure', async () => {
-      (toolRegistry.getAllToolDocumentation as any).mockImplementation(() => {
+      (toolRegistry.getAllToolDocumentation as any).mockImplementationOnce(() => {
         throw new Error('db down');
       });
       const response = await request(app).get('/api/mcp/tools');
@@ -95,7 +95,7 @@ describe('MCP Server Integration Tests', () => {
     });
 
     it('returns 500 on failure', async () => {
-      (toolRegistry.getToolDocumentation as any).mockImplementation(() => {
+      (toolRegistry.getToolDocumentation as any).mockImplementationOnce(() => {
         throw new Error('error');
       });
       const response = await request(app).get('/api/mcp/tools/tool-1');
@@ -135,7 +135,7 @@ describe('MCP Server Integration Tests', () => {
     });
 
     it('returns 500 on failure', async () => {
-      (agentClient.listAgents as any).mockImplementation(() => {
+      (agentClient.listAgents as any).mockImplementationOnce(() => {
         throw new Error('agent error');
       });
       const response = await request(app).get('/api/mcp/agents');
@@ -158,7 +158,7 @@ describe('MCP Server Integration Tests', () => {
     });
 
     it('returns 500 on error', async () => {
-      (agentClient.getAgent as any).mockImplementation(() => { throw new Error('e'); });
+      (agentClient.getAgent as any).mockImplementationOnce(() => { throw new Error('e'); });
       const response = await request(app).get('/api/mcp/agents/agent-1');
       expect(response.status).toBe(500);
     });
@@ -198,7 +198,7 @@ describe('MCP Server Integration Tests', () => {
     });
 
     it('handles errors', async () => {
-      (agentClient.clearConversation as any).mockImplementation(() => { throw new Error('fail'); });
+      (agentClient.clearConversation as any).mockImplementationOnce(() => { throw new Error('fail'); });
       const response = await request(app).post('/api/mcp/agents/agent-1/clear').send();
       expect(response.status).toBe(500);
     });
@@ -221,7 +221,7 @@ describe('MCP Server Integration Tests', () => {
     });
 
     it('handles errors in batch execution', async () => {
-      (toolRegistry.executeTool as any).mockImplementation(() => { throw new Error('batch crash'); });
+      (toolRegistry.executeTool as any).mockImplementationOnce(() => { throw new Error('batch crash'); });
       const response = await request(app)
         .post('/api/mcp/tools/batch')
         .send({ executions: [{ toolName: 't1' }] });

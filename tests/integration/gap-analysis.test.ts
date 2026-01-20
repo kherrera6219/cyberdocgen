@@ -184,7 +184,7 @@ describe('Gap Analysis Routes', () => {
                 .send({ framework: "SOC2" });
 
             expect(response.status).toBe(400);
-            expect(response.body.error).toContain("No company profile found");
+            expect(response.body.error.message).toContain("No company profile found");
         });
     });
 

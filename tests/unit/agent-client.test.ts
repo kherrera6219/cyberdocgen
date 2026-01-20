@@ -188,6 +188,6 @@ describe('AgentClient', () => {
     await expect(agentClient.execute({
       agentId: 'non-existent',
       prompt: 'hi'
-    } as any, { userId: 'u1' })).rejects.toThrow('Agent not-found');
+    } as any, { userId: 'u1' })).rejects.toThrow(/Agent .* not found/);
   });
 });
