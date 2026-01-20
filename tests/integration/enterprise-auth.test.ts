@@ -172,4 +172,154 @@ describe('Enterprise Auth Routes', () => {
             expect(response.body.data.mfaEnabled).toBe(true);
         });
     });
+
+    describe('POST /api/enterprise-auth/signup', () => {
+        it('returns 409 if account already exists', async () => {
+            const { enterpriseAuthService } = await import('../../server/services/enterpriseAuthService');
+            (enterpriseAuthService.createAccount as any).mockRejectedValue(new Error('already exists'));
+
+            const response = await request(app)
+                .post('/api/enterprise-auth/signup')
+                .send({
+                    email: 'exists@example.com',
+                    password: 'Password123!@#',
+                    firstName: 'John',
+                    lastName: 'Doe'
+                });
+
+            expect(response.status).toBe(409);
+        });
+    });
+
+    describe('POST /api/enterprise-auth/verify-email', () => {
+        it('returns 400 for invalid token', async () => {
+            const { enterpriseAuthService } = await import('../../server/services/enterpriseAuthService');
+            (enterpriseAuthService.verifyEmail as any).mockResolvedValue(false);
+
+            const response = await request(app)
+                .post('/api/enterprise-auth/verify-email')
+                .send({ token: 'invalid' });
+
+            expect(response.status).toBe(400);
+        });
+    });
+
+    describe('GET /api/enterprise-auth/verify-email', () => {
+        it('redirects with verified status on success', async () => {
+            const { enterpriseAuthService } = await import('../../server/services/enterpriseAuthService');
+            (enterpriseAuthService.verifyEmail as any).mockResolvedValue(true);
+
+            const response = await request(app)
+                .get('/api/enterprise-auth/verify-email?token=valid');
+
+            expect(response.status).toBe(302);
+            expect(response.header.location).toContain('verified=true');
+        });
+
+        it('returns 400 for missing token', async () => {
+            const response = await request(app).get('/api/enterprise-auth/verify-email');
+            expect(response.status).toBe(400);
+        });
+    });
+
+    describe('POST /api/enterprise-auth/forgot-password', () => {
+        it('successfully initiates reset and hides token in non-dev', async () => {
+            const { enterpriseAuthService } = await import('../../server/services/enterpriseAuthService');
+            // Mock production env
+            const originalEnv = process.env.NODE_ENV;
+            process.env.NODE_ENV = 'production';
+            
+            (enterpriseAuthService.initiatePasswordReset as any).mockResolvedValue('token-123');
+
+            const response = await request(app)
+                .post('/api/enterprise-auth/forgot-password')
+                .send({ email: 'test@example.com' });
+
+            expect(response.status).toBe(200);
+            expect(response.body.data.resetToken).toBeUndefined();
+            
+            process.env.NODE_ENV = originalEnv;
+        });
+    });
+
+    describe('POST /api/enterprise-auth/reset-password', () => {
+        it('returns 400 for invalid token', async () => {
+            const { enterpriseAuthService } = await import('../../server/services/enterpriseAuthService');
+            (enterpriseAuthService.confirmPasswordReset as any).mockResolvedValue(false);
+
+            const response = await request(app)
+                .post('/api/enterprise-auth/reset-password')
+                .send({ token: 'invalid', newPassword: 'NewPassword123!@#' });
+
+            expect(response.status).toBe(400);
+        });
+    });
+
+    describe('POST /api/enterprise-auth/verify-google-authenticator', () => {
+        it('verifies TOTP successfully', async () => {
+            const { mfaService } = await import('../../server/services/mfaService');
+            (mfaService.getAllMFASettings as any).mockResolvedValue([
+                { mfaType: 'totp', secretEncrypted: 'secret' }
+            ]);
+            (mfaService.verifyTOTP as any).mockResolvedValue(true);
+
+            const response = await request(app)
+                .post('/api/enterprise-auth/verify-google-authenticator')
+                .send({ userId: 'user-1', token: '123456' });
+
+            expect(response.status).toBe(200);
+        });
+
+        it('returns 400 for invalid TOTP', async () => {
+            const { mfaService } = await import('../../server/services/mfaService');
+            (mfaService.getAllMFASettings as any).mockResolvedValue([
+                { mfaType: 'totp', secretEncrypted: 'secret' }
+            ]);
+            (mfaService.verifyTOTP as any).mockResolvedValue(false);
+
+            const response = await request(app)
+                .post('/api/enterprise-auth/verify-google-authenticator')
+                .send({ userId: 'user-1', token: '000000' });
+
+            expect(response.status).toBe(400);
+        });
+    });
+
+    describe('POST /api/enterprise-auth/register-passkey', () => {
+        it('registers passkey successfully', async () => {
+            const { enterpriseAuthService } = await import('../../server/services/enterpriseAuthService');
+            (enterpriseAuthService.registerPasskey as any).mockResolvedValue(true);
+
+            const response = await request(app)
+                .post('/api/enterprise-auth/register-passkey')
+                .send({
+                    userId: 'user-1',
+                    credentialId: 'cred-1',
+                    publicKey: 'pk-1',
+                    deviceName: 'My Phone',
+                    deviceType: 'platform',
+                    transports: ['usb']
+                });
+
+            expect(response.status).toBe(200);
+        });
+
+        it('returns 400 if registration fails', async () => {
+            const { enterpriseAuthService } = await import('../../server/services/enterpriseAuthService');
+            (enterpriseAuthService.registerPasskey as any).mockResolvedValue(false);
+
+            const response = await request(app)
+                .post('/api/enterprise-auth/register-passkey')
+                .send({
+                    userId: 'user-1',
+                    credentialId: 'cred-1',
+                    publicKey: 'pk-1',
+                    deviceName: 'My Phone',
+                    deviceType: 'platform',
+                    transports: ['usb']
+                });
+
+            expect(response.status).toBe(400);
+        });
+    });
 });

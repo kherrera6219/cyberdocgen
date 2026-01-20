@@ -16,6 +16,7 @@ vi.mock('../../server/storage', () => ({
         getDocumentsByFramework: vi.fn(),
         getDocument: vi.fn(),
         getCompanyProfile: vi.fn(),
+        getCompanyProfiles: vi.fn(),
         getDocumentVersions: vi.fn(),
         createDocument: vi.fn(),
         updateDocument: vi.fn(),
@@ -282,6 +283,146 @@ describe('Documents Routes', () => {
                 .expect(200);
 
             expect(response.body.data.message).toContain('No version history');
+        });
+    });
+
+    describe("PUT /api/documents/:id", () => {
+        it("updates document if authorized", async () => {
+            const mockDoc = { id: "doc-1", companyProfileId: "cp-1" };
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
+                authorized: true,
+                document: mockDoc
+            });
+            (storage.updateDocument as any).mockResolvedValue({ ...mockDoc, title: "Updated" });
+
+            const response = await request(app)
+                .put("/api/documents/doc-1")
+                .send({ title: "Updated", category: "policy", framework: "nist" });
+
+            expect(response.status).toBe(200);
+            expect(response.body.data.title).toBe("Updated");
+        });
+
+        it("returns 404 for cross-tenant update attempt", async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
+                authorized: false
+            });
+
+            const response = await request(app)
+                .put("/api/documents/doc-1")
+                .send({ title: "Updated" });
+
+            expect(response.status).toBe(404);
+        });
+
+        it("returns 400 for invalid company profile reassignment", async () => {
+            const mockDoc = { id: "doc-1", companyProfileId: "cp-1" };
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
+                authorized: true,
+                document: mockDoc
+            });
+            (multiTenantMock.getCompanyProfileWithOrgCheck as any).mockResolvedValue({
+                authorized: false
+            });
+
+            const response = await request(app)
+                .put("/api/documents/doc-1")
+                .send({ companyProfileId: "cp-other", title: "Updated" });
+
+            expect(response.status).toBe(400);
+            expect(response.body.error).toContain("Invalid company profile");
+        });
+    });
+
+    describe("DELETE /api/documents/:id", () => {
+        it("deletes document if authorized", async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
+                authorized: true,
+                document: { id: "doc-1" }
+            });
+            (storage.deleteDocument as any).mockResolvedValue(true);
+
+            const response = await request(app).delete("/api/documents/doc-1");
+
+            expect(response.status).toBe(204);
+        });
+
+        it("returns 404 if deletion fails (not found in storage)", async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
+                authorized: true,
+                document: { id: "doc-1" }
+            });
+            (storage.deleteDocument as any).mockResolvedValue(false);
+
+            const response = await request(app).delete("/api/documents/doc-1");
+
+            expect(response.status).toBe(404);
+        });
+    });
+
+    describe("POST /api/documents/upload-and-extract", () => {
+        it("successfully extracts data from mock upload", async () => {
+            const response = await request(app).post("/api/documents/upload-and-extract");
+
+            expect(response.status).toBe(200);
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.extractedData).toBeDefined();
+        });
+    });
+
+    describe("POST /api/documents/:id/versions", () => {
+        it("creates a new version successfully", async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
+                authorized: true,
+                document: { id: "doc-1" }
+            });
+            (versionService.createVersion as any).mockResolvedValue({ id: 1, version: 1 });
+
+            const response = await request(app)
+                .post("/api/documents/doc-1/versions")
+                .send({ title: "V2", content: "New Content", changes: "Bugfix" });
+
+            expect(response.status).toBe(200);
+            expect(response.body.data.message).toContain("successfully");
+        });
+
+        it("returns 400 if title or content is missing", async () => {
+            const response = await request(app)
+                .post("/api/documents/doc-1/versions")
+                .send({ changes: "Missing fields" });
+
+            expect(response.status).toBe(400);
+        });
+    });
+
+    describe("GET /api/documents/:id/versions/:v1/compare/:v2", () => {
+        it("compares two versions successfully", async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
+                authorized: true,
+                document: { id: "doc-1" }
+            });
+            (versionService.compareVersions as any).mockResolvedValue({ diff: "Mock Diff" });
+
+            const response = await request(app).get("/api/documents/doc-1/versions/1/compare/2");
+
+            expect(response.status).toBe(200);
+            expect(response.body.data.diff).toBe("Mock Diff");
+        });
+    });
+
+    describe("POST /api/documents/:id/approvals", () => {
+        it("submits an approval request", async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
+                authorized: true,
+                document: { id: "doc-1" }
+            });
+
+            const response = await request(app)
+                .post("/api/documents/doc-1/approvals")
+                .send({ approverRole: "ciso" });
+
+            expect(response.status).toBe(200);
+            expect(response.body.data.message).toContain("submitted successfully");
         });
     });
 });

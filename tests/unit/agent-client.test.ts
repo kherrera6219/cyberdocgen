@@ -127,4 +127,67 @@ describe('AgentClient', () => {
 
     expect(result.content).toBe('Claude Response');
   });
+
+  it('should handle tool calls in execution loop', async () => {
+    const config = {
+      id: 'tool-agent',
+      name: 'TA',
+      description: 'TA desc',
+      provider: 'openai' as const,
+      model: 'gpt-5.1' as const,
+      systemPrompt: 'v',
+      tools: ['t1'],
+      capabilities: [AgentCapability.CHAT_INTERACTION]
+    };
+    agentClient.registerAgent(config);
+
+    // Mock first response with tool call, second with final content
+    mockOpenAI.chat.completions.create
+      .mockResolvedValueOnce({
+        choices: [{ 
+          message: { 
+            role: 'assistant', 
+            content: null,
+            tool_calls: [{
+              id: 'call-1',
+              type: 'function',
+              function: { name: 't1', arguments: '{"p": "val"}' }
+            }]
+          } 
+        }]
+      })
+      .mockResolvedValueOnce({
+        choices: [{ 
+          message: { role: 'assistant', content: 'Final response after tool' } 
+        }]
+      });
+
+    vi.spyOn(toolRegistry, 'executeTool').mockResolvedValue({ success: true, data: 'tool-out' });
+
+    const result = await agentClient.execute({
+      agentId: 'tool-agent',
+      prompt: 'do tool',
+      conversationId: 'c4'
+    } as any, { userId: 'u1' });
+
+    expect(result.content).toBe('Final response after tool');
+    expect(result.toolCalls).toHaveLength(1);
+    expect(toolRegistry.executeTool).toHaveBeenCalledWith('t1', { p: 'val' }, expect.any(Object));
+  });
+
+  it('should handle agent execution errors', async () => {
+    mockOpenAI.chat.completions.create.mockRejectedValue(new Error('AI failed'));
+    
+    await expect(agentClient.execute({
+      agentId: 'oa1',
+      prompt: 'fail me'
+    } as any, { userId: 'u1' })).rejects.toThrow('AI failed');
+  });
+
+  it('should throw if agent not found', async () => {
+    await expect(agentClient.execute({
+      agentId: 'non-existent',
+      prompt: 'hi'
+    } as any, { userId: 'u1' })).rejects.toThrow('Agent not-found');
+  });
 });

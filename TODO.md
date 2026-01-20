@@ -56,5 +56,7 @@
 - [x] **OIDC Callback**: Fixed token claim validation in `server/routes/microsoftAuth.ts`.
 - [x] **Compliance Automation**: Created `scripts/validate-wack.ts` for automated Windows App Certification Kit checks.
 ### Quality Tracks
+- [x] **Test Coverage Expansion (Batch 5 - MCP)**: Achieved 75%+ for all core MCP components.
+- [x] **Test Coverage Expansion (Batch 4 - API Routes)**: Reached 75%+ coverage for Documents, Gap Analysis, and Enterprise Auth.
 - [x] **Test Coverage Expansion (Batch 2)**: Achieved 75%+ for `storage.ts`, `aiOrchestrator.ts`, and `enterpriseAuthService.ts`.
 - [x] **Core Services Hardening**: Verified all failure modes and fallback logic.
