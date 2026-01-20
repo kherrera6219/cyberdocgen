@@ -4,7 +4,7 @@
 
 **Version 2.3.0** | January 19, 2026
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-2.1.0-green.svg)](CHANGELOG.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)](https://nodejs.org/)
@@ -637,7 +637,26 @@ For complete roadmap details, see [docs/modernization-roadmap.md](docs/moderniza
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+CyberDocGen is licensed under the **PolyForm Noncommercial License 1.0.0**.
+
+### Free for Noncommercial Use
+
+You may use this software for free for any noncommercial purpose, including:
+- ✅ Personal use and hobby projects
+- ✅ Educational institutions
+- ✅ Charitable organizations  
+- ✅ Public research
+- ✅ Government institutions
+
+See the [LICENSE](LICENSE) file for complete terms.
+
+### Commercial Use Requires a License
+
+For commercial use, you must purchase a commercial license. See [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) for pricing and details.
+
+**Contact for Commercial Licensing:**
+- Email: kevin@cyberdocgen.com
+- Website: https://cyberdocgen.com
 
 ---
 
