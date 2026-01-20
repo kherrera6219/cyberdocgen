@@ -12,7 +12,7 @@ import { logger } from '../utils/logger';
 let openaiClient: OpenAI | null = null;
 let anthropicClient: Anthropic | null = null;
 
-function getOpenAIClient(): OpenAI {
+export function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error("OPENAI_API_KEY environment variable is not set");
@@ -22,7 +22,7 @@ function getOpenAIClient(): OpenAI {
   return openaiClient;
 }
 
-function getAnthropicClient(): Anthropic {
+export function getAnthropicClient(): Anthropic {
   if (!anthropicClient) {
     if (!process.env.ANTHROPIC_API_KEY) {
       throw new Error("ANTHROPIC_API_KEY environment variable is not set");

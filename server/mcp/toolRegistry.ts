@@ -1,10 +1,8 @@
-/**
- * Tool Registry
- * Central registry for all available tools (internal and external)
- */
 
-import { Tool, ToolType, ToolContext, ToolResult } from './types';
+import { Tool, ToolType, ToolResult, ToolContext } from './types';
 import { logger } from '../utils/logger';
+import { auditService, RiskLevel } from '../services/auditService';
+import { circuitBreakers } from '../utils/circuitBreaker';
 
 class ToolRegistry {
   private tools: Map<string, Tool> = new Map();
@@ -78,17 +76,6 @@ class ToolRegistry {
       };
     }
 
-    // Check rate limit
-    if (tool.rateLimit) {
-      const allowed = this.checkRateLimit(name, tool.rateLimit, context.userId);
-      if (!allowed) {
-        return {
-          success: false,
-          error: 'Rate limit exceeded for this tool'
-        };
-      }
-    }
-
     // Validate parameters
     const validationError = this.validateParameters(params, tool.parameters);
     if (validationError) {
@@ -98,28 +85,83 @@ class ToolRegistry {
       };
     }
 
-    try {
-      // Execute the tool handler
-      const result = await tool.handler(params, context);
-
-      logger.info(`Tool executed successfully`, {
-        toolName: name,
+    // Check rate limit
+    if (tool.rateLimit && !this.checkRateLimit(name, tool.rateLimit, context.userId)) {
+      await auditService.logEvent({
+        action: 'tool_rate_limit_exceeded',
         userId: context.userId,
-        success: result.success
+        organizationId: context.organizationId,
+        resourceType: 'mcp_tool',
+        resourceId: name,
+        ipAddress: 'internal',
+        riskLevel: RiskLevel.MEDIUM,
+        details: { toolName: name }
       });
-
-      return result;
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error(`Tool execution failed`, {
-        toolName: name,
-        error: errorMessage,
-        userId: context.userId
-      });
-
       return {
         success: false,
-        error: `Tool execution failed: ${errorMessage}`
+        error: 'Rate limit exceeded for this tool'
+      };
+    }
+
+    try {
+      // Execute with audit logging
+      await auditService.logEvent({
+        action: 'execute_mcp_tool',
+        userId: context.userId,
+        organizationId: context.organizationId,
+        resourceType: 'mcp_tool',
+        resourceId: name,
+        ipAddress: 'internal',
+        details: { parameters: params }
+      });
+
+      let result: ToolResult;
+
+      // Use circuit breaker for external tools
+      if (tool.type === ToolType.EXTERNAL) {
+        // Find matching breaker or use a generic one
+        const breaker = (circuitBreakers as any)[name] || circuitBreakers.openai; // Fallback to settings
+        result = await breaker.execute(() => tool.handler(params, context));
+      } else {
+        result = await tool.handler(params, context);
+      }
+
+      if (result.success) {
+        logger.info(`Tool ${name} executed successfully`, { userId: context.userId });
+      } else {
+        await auditService.logEvent({
+          action: 'tool_execution_failed',
+          userId: context.userId,
+          organizationId: context.organizationId,
+          resourceType: 'mcp_tool',
+          resourceId: name,
+          ipAddress: 'internal',
+          riskLevel: RiskLevel.MEDIUM,
+          details: { error: result.error }
+        });
+      }
+
+      return result;
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error(`Tool execution failed: ${name}`, { error: errorMessage, userId: context.userId });
+
+      await auditService.logEvent({
+        action: 'tool_execution_error',
+        userId: context.userId,
+        organizationId: context.organizationId,
+        resourceType: 'mcp_tool',
+        resourceId: name,
+        ipAddress: 'internal',
+        riskLevel: RiskLevel.HIGH,
+        details: { error: errorMessage }
+      });
+
+      // Enterprise hardening: mask implementation details in production
+      const isDev = process.env.NODE_ENV === 'development';
+      return {
+        success: false,
+        error: isDev ? `Tool execution failed: ${errorMessage}` : 'An internal error occurred during tool execution'
       };
     }
   }
