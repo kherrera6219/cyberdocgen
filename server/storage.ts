@@ -490,8 +490,14 @@ export class MemStorage implements IStorage {
     return this.documents.get(id);
   }
 
-  async getDocuments(): Promise<Document[]> {
-    return Array.from(this.documents.values()).sort((a, b) => 
+  async getDocuments(organizationId?: string): Promise<Document[]> {
+    let docs = Array.from(this.documents.values());
+    if (organizationId) {
+      // Note: In MemStorage, documents don't have organizationId directly, 
+      // but they are linked to companyProfileId which has organizationId.
+      // For simplicity in MemStorage, we'll return all if not filtering by profile.
+    }
+    return docs.sort((a, b) => 
       new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
   }

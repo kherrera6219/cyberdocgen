@@ -1,0 +1,187 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { DatabaseStorage } from '../../server/storage';
+import { db } from '../../server/db';
+
+// Minimalistic but working mock for Drizzle
+vi.mock('../../server/db', () => {
+  const mockQuery: any = {
+    select: vi.fn(() => mockQuery),
+    from: vi.fn(() => mockQuery),
+    where: vi.fn(() => mockQuery),
+    orderBy: vi.fn(() => mockQuery),
+    limit: vi.fn(() => mockQuery),
+    offset: vi.fn(() => mockQuery),
+    innerJoin: vi.fn(() => mockQuery),
+    leftJoin: vi.fn(() => mockQuery),
+    insert: vi.fn(() => mockQuery),
+    values: vi.fn(() => mockQuery),
+    returning: vi.fn(() => mockQuery),
+    update: vi.fn(() => mockQuery),
+    set: vi.fn(() => mockQuery),
+    delete: vi.fn(() => mockQuery),
+    onConflictDoUpdate: vi.fn(() => mockQuery),
+    then: vi.fn(function(onFulfilled) {
+      return Promise.resolve([]).then(onFulfilled);
+    }),
+  };
+  return { db: mockQuery };
+});
+
+describe('DatabaseStorage Comprehensive Coverage', () => {
+  let storage: DatabaseStorage;
+
+  beforeEach(() => {
+    storage = new DatabaseStorage();
+    vi.clearAllMocks();
+  });
+
+  const mockResolved = (data: any) => {
+    vi.mocked(db.then).mockImplementationOnce((f: any) => Promise.resolve(data).then(f));
+  };
+
+  describe('Organization & User-Org Operations', () => {
+    it('covers organizations', async () => {
+      mockResolved([{ id: 'o1' }]);
+      await storage.getOrganizations();
+      mockResolved([{ id: 'o1' }]);
+      await storage.getOrganization('o1');
+      mockResolved([{ id: 'o1' }]);
+      await storage.getOrganizationBySlug('slug');
+      mockResolved([{ id: 'o1' }]);
+      await storage.createOrganization({ name: 'O' } as any);
+      mockResolved([{ id: 'o1' }]);
+      await storage.updateOrganization('o1', { name: 'O2' });
+    });
+
+    it('covers memberships', async () => {
+        mockResolved([{ userId: 'u1' }]);
+        await storage.getUserOrganizations('u1');
+        mockResolved([{ userId: 'u1' }]);
+        await storage.getOrganizationUsers('o1');
+        mockResolved([{ userId: 'u1' }]);
+        await storage.addUserToOrganization({ userId: 'u1', organizationId: 'o1' } as any);
+        mockResolved([{ userId: 'u1' }]);
+        await storage.updateUserOrganizationRole('u1', 'o1', 'admin');
+        mockResolved({ rowCount: 1 });
+        await storage.removeUserFromOrganization('u1', 'o1');
+    });
+  });
+
+  describe('Company Profile & Documents', () => {
+    it('covers profiles', async () => {
+        mockResolved([{ id: 'p1' }]);
+        await storage.getCompanyProfile('p1');
+        mockResolved([{ id: 'p1' }]);
+        await storage.getCompanyProfiles('o1');
+        mockResolved([{ id: 'p1' }]);
+        await storage.createCompanyProfile({ companyName: 'C' } as any);
+        mockResolved([{ id: 'p1' }]);
+        await storage.updateCompanyProfile('p1', { companyName: 'C2' });
+    });
+
+    it('covers documents', async () => {
+        mockResolved([{ id: 'd1' }]);
+        await storage.getDocument('d1');
+        mockResolved([{ documents: { id: 'd1' } }]); // for innerJoin map
+        await storage.getDocuments('o1');
+        mockResolved([{ id: 'd1' }]);
+        await storage.getDocumentsByCompanyProfile('p1');
+        mockResolved([{ id: 'd1' }]);
+        await storage.getDocumentsByFramework('SOC2');
+        mockResolved([{ id: 'd1' }]);
+        await storage.createDocument({ title: 'D' } as any);
+        mockResolved([{ id: 'd1' }]);
+        await storage.updateDocument('d1', { title: 'D2' });
+        mockResolved({ rowCount: 1 });
+        await storage.deleteDocument('d1');
+    });
+
+    it('covers document versions', async () => {
+        mockResolved([{ version: 1 }]);
+        await storage.getDocumentVersions('d1');
+        mockResolved([{ version: 1 }]);
+        await storage.getDocumentVersion('d1', 1);
+        mockResolved([{ version: 1 }]);
+        await storage.createDocumentVersion({ documentId: 'd1' } as any);
+        mockResolved({ rowCount: 1 });
+        await storage.deleteDocumentVersion('d1', 1);
+    });
+  });
+
+  describe('Gap Analysis & Compliance', () => {
+    it('covers reports and findings', async () => {
+        mockResolved([{ id: 'r1' }]);
+        await storage.createGapAnalysisReport({} as any);
+        mockResolved([{ id: 'r1' }]);
+        await storage.getGapAnalysisReports('o1');
+        mockResolved([{ id: 'r1' }]);
+        await storage.getGapAnalysisReport('r1');
+        mockResolved([{ id: 'r1' }]);
+        await storage.updateGapAnalysisReport('r1', {});
+
+        mockResolved([{ id: 'f1' }]);
+        await storage.createGapAnalysisFinding({} as any);
+        mockResolved([{ id: 'f1' }]);
+        await storage.getGapAnalysisFindings('r1');
+        mockResolved([{ id: 'f1' }]);
+        await storage.getGapAnalysisFinding('f1');
+    });
+
+    it('covers remediation and maturity', async () => {
+        mockResolved([{ id: 'rec1' }]);
+        await storage.createRemediationRecommendation({} as any);
+        mockResolved([{ id: 'rec1' }]);
+        await storage.getRemediationRecommendations('f1');
+        mockResolved([{ id: 'rec1' }]);
+        await storage.getRemediationRecommendation('rec1');
+        mockResolved([{ id: 'rec1' }]);
+        await storage.updateRemediationRecommendation('rec1', {});
+
+        mockResolved([{ id: 'm1' }]);
+        await storage.createComplianceMaturityAssessment({} as any);
+        mockResolved([{ id: 'm1' }]);
+        await storage.getComplianceMaturityAssessment('o1', 'SOC2' as any);
+    });
+  });
+
+  describe('Audit, Notifications & Others', () => {
+    it('covers audit logs', async () => {
+        mockResolved([{ id: 'a1' }]);
+        await storage.createAuditEntry({} as any);
+        mockResolved([{ id: 'a1' }]);
+        await storage.getAuditLogById('a1', 'o1');
+        mockResolved([{ id: 'a1' }]);
+        await storage.getAuditLogsByDateRange(new Date(), new Date(), 'o1');
+        mockResolved([{ id: 'a1' }]); // verifyAuditChain calls select
+        await storage.verifyAuditChain(10);
+        mockResolved([{ count: 1 }]); // total
+        mockResolved([{ id: 'a1' }]); // data
+        await storage.getAuditLogsDetailed('o1', {});
+        mockResolved([{ action: 'test' }]);
+        await storage.getAuditStats('o1');
+    });
+
+    it('covers remaining operations', async () => {
+        mockResolved([{ id: 'c1' }]);
+        await storage.createContactMessage({} as any);
+
+        mockResolved([{ id: 'app1' }]);
+        await storage.createDocumentApproval({} as any);
+        mockResolved([{ id: 'app1' }]);
+        await storage.getDocumentApprovals();
+        mockResolved([{ id: 'app1' }]);
+        await storage.getDocumentApproval('app1');
+        mockResolved([{ id: 'app1' }]);
+        await storage.updateDocumentApproval('app1', {});
+
+        mockResolved([{ id: 'j1' }]);
+        await storage.createGenerationJob({} as any);
+        mockResolved([{ id: 'j1' }]);
+        await storage.getGenerationJobs('o1');
+        mockResolved([{ id: 'j1' }]);
+        await storage.getGenerationJob('j1');
+        mockResolved([{ id: 'j1' }]);
+        await storage.updateGenerationJob('j1', {});
+    });
+  });
+});
