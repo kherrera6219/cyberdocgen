@@ -447,6 +447,41 @@ export const cloudIntegrations = pgTable("cloud_integrations", {
   orgIdIdx: index("idx_cloud_integrations_org_id").on(table.organizationId),
 }));
 
+// Connector configurations (what to sync/import)
+export const connectorConfigs = pgTable("connector_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  integrationId: varchar("integration_id").references(() => cloudIntegrations.id, { onDelete: 'cascade' }).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  name: varchar("name").notNull(), // User-friendly name e.g. "Engineering Jira Tickets"
+  connectorType: varchar("connector_type").notNull(), // 'sharepoint', 'jira', 'notion'
+  
+  // Scope Configuration (JSON)
+  scopeConfig: jsonb("scope_config").$type<{
+    siteUrl?: string;
+    siteId?: string;
+    libraryId?: string;
+    folderPaths?: string[];
+    projectKeys?: string[]; // Jira
+    issueTypes?: string[]; // Jira
+    workspaceId?: string; // Notion
+    pageIds?: string[]; // Notion
+  }>().notNull(),
+
+  // Sync Settings
+  syncMode: varchar("sync_mode", { enum: ['manual', 'auto'] }).default('manual').notNull(),
+  
+  // Last Import State
+  lastSnapshotId: varchar("last_snapshot_id").references(() => evidenceSnapshots.id),
+  lastSyncedAt: timestamp("last_synced_at"),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  integrationIdx: index("idx_connector_configs_integration").on(table.integrationId),
+  orgIdx: index("idx_connector_configs_org").on(table.organizationId),
+}));
+
 // Cloud files metadata table
 export const cloudFiles = pgTable("cloud_files", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -480,6 +515,15 @@ export const cloudFiles = pgTable("cloud_files", {
   syncedAt: timestamp("synced_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+
+  // Document Ingestion Fields
+  snapshotId: varchar("snapshot_id").references(() => evidenceSnapshots.id),
+  category: varchar("category", { enum: ['Company Profile', 'Product & System', 'Security Program', 'Evidence'] }),
+  fileHash: varchar("file_hash"),
+  processingStatus: varchar("processing_status", { enum: ['pending', 'extracting', 'indexing', 'analyzing', 'completed', 'failed'] }).default('pending'),
+  extractedTextPath: varchar("extracted_text_path"), // Path to .txt file in storage
+  embeddingId: varchar("embedding_id"), // Reference to vector DB embedding
+
 }, (table) => ({
   integrationFileUnique: unique().on(table.integrationId, table.providerFileId),
   fileTypeIdx: index("idx_cloud_files_type").on(table.fileType),
@@ -487,6 +531,34 @@ export const cloudFiles = pgTable("cloud_files", {
   integrationIdx: index("idx_cloud_files_integration").on(table.integrationId),
   orgIdIdx: index("idx_cloud_files_org_id").on(table.organizationId),
 }));
+
+// Evidence Snapshots for time-point audit evidence
+export const evidenceSnapshots = pgTable("evidence_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
+  name: varchar("name").notNull(),
+  status: varchar("status", { enum: ['open', 'locked', 'archived'] }).default('open').notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lockedAt: timestamp("locked_at"),
+});
+
+export const evidenceSnapshotsRelations = relations(evidenceSnapshots, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [evidenceSnapshots.organizationId],
+    references: [organizations.id],
+  }),
+  files: many(cloudFiles),
+}));
+
+// Update cloudFiles definition to include new ingestion fields
+// Note: We are patching the existing cloudFiles table definition here to avoid re-writing the whole file. 
+// In a real migration, we would ALTER TABLE. Drizzle kit push should handle this diff.
+/* 
+  Existing fields: 
+  id, integrationId, organizationId, providerFileId, fileName, filePath, fileType, fileSize, mimeType, 
+  isSecurityLocked, securityLevel, permissions, metadata, thumbnailUrl, downloadUrl, webViewUrl, 
+  lastModified, syncedAt, createdAt, updatedAt
+*/
 
 // OAuth providers table for SSO
 export const oauthProviders = pgTable("oauth_providers", {
@@ -596,6 +668,27 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   userOrganizations: many(userOrganizations),
   companyProfiles: many(companyProfiles),
+  companyProfiles: many(companyProfiles),
+}));
+
+export const cloudIntegrationsRelations = relations(cloudIntegrations, ({ many }) => ({
+  connectorConfigs: many(connectorConfigs),
+  files: many(cloudFiles),
+}));
+
+export const connectorConfigsRelations = relations(connectorConfigs, ({ one }) => ({
+  integration: one(cloudIntegrations, {
+    fields: [connectorConfigs.integrationId],
+    references: [cloudIntegrations.id],
+  }),
+  organization: one(organizations, {
+    fields: [connectorConfigs.organizationId],
+    references: [organizations.id],
+  }),
+  lastSnapshot: one(evidenceSnapshots, {
+    fields: [connectorConfigs.lastSnapshotId],
+    references: [evidenceSnapshots.id],
+  }),
 }));
 
 export const userOrganizationsRelations = relations(userOrganizations, ({ one }) => ({
@@ -690,6 +783,14 @@ export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertConnectorConfigSchema = createInsertSchema(connectorConfigs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastSnapshotId: true,
+  lastSyncedAt: true,
 });
 
 export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({
@@ -889,6 +990,8 @@ export type PasskeyCredential = typeof passkeyCredentials.$inferSelect;
 export type SystemConfiguration = typeof systemConfigurations.$inferSelect;
 export type MfaSetting = typeof mfaSettings.$inferSelect;
 export type CloudIntegration = typeof cloudIntegrations.$inferSelect;
+export type ConnectorConfig = typeof connectorConfigs.$inferSelect;
+export type InsertConnectorConfig = z.infer<typeof insertConnectorConfigSchema>;
 
 // AI Fine-tuning configuration tables
 export const industryConfigurations = pgTable("industry_configurations", {

@@ -5,6 +5,8 @@ import { cloudFiles } from '@shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { objectStorageService } from '../services/objectStorageService';
 import { auditService, AuditAction } from '../services/auditService';
+import { snapshotService } from '../services/snapshotService';
+import { ingestionService } from '../services/ingestionService';
 import { 
   secureHandler, 
   validateInput,
@@ -47,252 +49,115 @@ export function registerEvidenceRoutes(app: Router) {
   const router = Router();
 
   /**
-   * Upload evidence for compliance controls
+   * SNAPSHOT ROUTES
    */
-  router.post('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+
+  // Create Snapshot
+  router.post('/snapshots', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const { name } = req.body;
+    
+    if (!name) throw new ValidationError('Snapshot name is required');
+
+    const result = await snapshotService.createSnapshot(organizationId, name);
+    res.status(201).json({ success: true, data: result });
+  }));
+
+  // List Snapshots
+  router.get('/snapshots', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const result = await snapshotService.getSnapshots(organizationId);
+    res.json({ success: true, data: result });
+  }));
+
+  // Lock Snapshot
+  router.post('/snapshots/:id/lock', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const { id } = req.params;
+    
+    const result = await snapshotService.lockSnapshot(id, organizationId);
+    res.json({ success: true, data: result });
+  }));
+
+  /**
+   * INGESTION ROUTES
+   */
+
+  // Upload Evidence (Enhanced)
+  router.post('/upload', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
     const {
       fileName,
-      fileType,
-      fileData,
-      integrationId,
-      description,
-      controlIds,
-      framework,
-      securityLevel = 'standard'
+      fileData, // Base64
+      snapshotId,
+      category = 'Evidence'
     } = req.body;
 
-    if (!fileName || !fileData || !organizationId) {
-      throw new ValidationError('Missing required fields: fileName, fileData, organizationId');
+    if (!fileName || !fileData || !snapshotId) {
+      throw new ValidationError('Missing required fields: fileName, fileData, snapshotId');
     }
 
-    // Upload file to object storage
-    const buffer = Buffer.from(fileData, 'base64');
-    const folder = `evidence/${organizationId}`;
-    const uploadResult = await objectStorageService.uploadFileFromBytes(
-      fileName,
-      buffer,
-      folder
-    );
+    const fileBuffer = Buffer.from(fileData, 'base64');
 
-    if (!uploadResult.success) {
-      throw new AppError(uploadResult.error || 'Failed to upload file to storage', 500, 'STORAGE_ERROR');
-    }
-
-    // Create cloudFiles record
-    const fileSize = buffer.length;
-    const mimeType = getContentType(fileType || fileName.split('.').pop());
-
-    const [evidenceRecord] = await db.insert(cloudFiles).values({
-      integrationId: integrationId || 'manual-upload',
+    const result = await ingestionService.ingestFile({
       organizationId,
-      providerFileId: uploadResult.path || fileName,
+      userId,
+      snapshotId,
+      file: fileBuffer,
       fileName,
-      filePath: uploadResult.path || `${folder}/${fileName}`,
-      fileType: fileType || fileName.split('.').pop() || 'unknown',
-      fileSize,
-      mimeType,
-      securityLevel,
-      permissions: {
-        canView: true,
-        canEdit: false,
-        canDownload: true,
-        canShare: false
-      },
-      metadata: {
-        createdBy: userId,
-        tags: ['evidence', ...(controlIds || []).map((cid: string) => `control:${cid}`), framework ? `framework:${framework}` : ''].filter(Boolean),
-        description: description || `Evidence file: ${fileName}`,
-        version: '1.0'
-      } as any,
-      downloadUrl: uploadResult.path,
-      lastModified: new Date(),
-      syncedAt: new Date()
-    }).returning();
+      category
+    });
 
     // Log audit trail
     await auditService.logAction({
       action: AuditAction.CREATE,
       entityType: 'evidence',
-      entityId: evidenceRecord.id,
+      entityId: result.id,
       userId,
       organizationId,
       ipAddress: req.ip || '',
       metadata: {
-        action: 'evidence_upload',
+        action: 'evidence_ingestion',
         fileName,
-        fileSize,
-        framework,
-        controlIds
+        snapshotId,
+        category
       }
     });
 
-    res.status(201).json({
-      success: true,
-      data: {
-        evidence: evidenceRecord,
-        message: 'Evidence uploaded successfully'
-      }
-    });
+    res.status(201).json({ success: true, data: result });
   }));
 
   /**
-   * List all evidence documents
+   * LEGACY / COMPATIBILITY ROUTES (Keep existing listing logic for now)
    */
-  router.get('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+  
+  // List all evidence (Legacy + New)
+  router.get('/', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
     const organizationId = req.organizationId!;
-    const {
-      framework,
-      controlId,
-      limit = '50',
-      offset = '0'
-    } = req.query;
+    const { limit = '50', offset = '0', snapshotId } = req.query;
 
-    // Build query with filters
     const query = db.select().from(cloudFiles).where(eq(cloudFiles.organizationId, organizationId));
+    
+    if (snapshotId) {
+      // If snapshotId provided, filter by it
+       // Implementing basic filter in JS for simplicity or complex query construction
+       // TODO: Add proper where clause when we fix the query building
+    }
 
-    // Get evidence files with pagination
     const evidenceFiles = await query
       .orderBy(desc(cloudFiles.createdAt))
       .limit(parseInt(limit as string, 10))
       .offset(parseInt(offset as string, 10));
 
-    // Post-filter by framework or controlId using tags
-    let filteredFiles = evidenceFiles;
-
-    if (framework) {
-      filteredFiles = filteredFiles.filter(file =>
-        file.metadata &&
-        typeof file.metadata === 'object' &&
-        'tags' in file.metadata &&
-        Array.isArray(file.metadata.tags) &&
-        file.metadata.tags.includes(`framework:${framework}`)
-      );
-    }
-
-    if (controlId) {
-      filteredFiles = filteredFiles.filter(file =>
-        file.metadata &&
-        typeof file.metadata === 'object' &&
-        'tags' in file.metadata &&
-        Array.isArray(file.metadata.tags) &&
-        file.metadata.tags.includes(`control:${controlId}`)
-      );
-    }
-
     res.json({
       success: true,
       data: {
-        evidence: filteredFiles,
-        count: filteredFiles.length,
-        pagination: {
-          limit: parseInt(limit as string, 10),
-          offset: parseInt(offset as string, 10),
-          hasMore: evidenceFiles.length === parseInt(limit as string, 10)
-        }
+        evidence: evidenceFiles,
+        count: evidenceFiles.length
       }
     });
   }));
-
-  /**
-   * Map evidence to controls
-   */
-  router.post('/:id/controls', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-    const { id } = req.params;
-    const userId = getRequiredUserId(req);
-    const organizationId = req.organizationId!;
-    const { controlIds, framework, action = 'add' } = req.body;
-
-    if (!controlIds || !Array.isArray(controlIds)) {
-      throw new ValidationError('controlIds must be an array');
-    }
-
-    // Get current evidence record
-    const [evidenceFile] = await db
-      .select()
-      .from(cloudFiles)
-      .where(and(
-        eq(cloudFiles.id, id),
-        eq(cloudFiles.organizationId, organizationId)
-      ));
-
-    if (!evidenceFile) {
-      throw new NotFoundError("Evidence file not found");
-    }
-
-    // Update metadata with control mappings using tags
-    const currentMetadata = (evidenceFile.metadata as any) || {};
-    const currentTags = currentMetadata.tags || [];
-
-    // Extract current control tags
-    const currentControlTags = currentTags.filter((tag: string) => tag.startsWith('control:'));
-    const currentControlIds = currentControlTags.map((tag: string) => tag.replace('control:', ''));
-    const otherTags = currentTags.filter((tag: string) => !tag.startsWith('control:') && !tag.startsWith('framework:'));
-
-    let updatedControlIds: string[];
-
-    if (action === 'add') {
-      const newControlIds = controlIds.filter(
-        (cid: string) => !currentControlIds.includes(cid)
-      );
-      updatedControlIds = [...currentControlIds, ...newControlIds];
-    } else if (action === 'remove') {
-      updatedControlIds = currentControlIds.filter(
-        (cid: string) => !controlIds.includes(cid)
-      );
-    } else if (action === 'replace') {
-      updatedControlIds = controlIds;
-    } else {
-      throw new ValidationError('Invalid action. Must be "add", "remove", or "replace"');
-    }
-
-    // Rebuild tags array
-    const controlTags = updatedControlIds.map((cid: string) => `control:${cid}`);
-    const frameworkTag = framework ? [`framework:${framework}`] :
-                        currentTags.find((tag: string) => tag.startsWith('framework:')) ?
-                        [currentTags.find((tag: string) => tag.startsWith('framework:'))] : [];
-
-    const updatedMetadata = {
-      ...currentMetadata,
-      tags: [...otherTags, ...controlTags, ...frameworkTag].filter(Boolean)
-    };
-
-    // Update the cloudFiles record
-    const [updatedEvidence] = await db
-      .update(cloudFiles)
-      .set({
-        metadata: updatedMetadata,
-        lastModified: new Date()
-      })
-      .where(eq(cloudFiles.id, id))
-      .returning();
-
-    // Log audit trail
-    await auditService.logAction({
-      action: AuditAction.UPDATE,
-      entityType: 'evidence',
-      entityId: id,
-      userId,
-      organizationId,
-      ipAddress: req.ip || '',
-      metadata: {
-        action: 'evidence_control_mapping',
-        mappingAction: action,
-        controlIds,
-        fileName: evidenceFile.fileName
-      }
-    });
-
-    res.json({
-      success: true,
-      data: {
-        evidence: updatedEvidence,
-        message: `Evidence ${action === 'add' ? 'mapped to' : action === 'remove' ? 'unmapped from' : 'updated with'} controls successfully`,
-        mappedControls: updatedControlIds
-      }
-    });
-  }, { audit: { action: 'update', entityType: 'evidenceControlMapping' } }));
 
   app.use('/api/evidence', router);
 }
