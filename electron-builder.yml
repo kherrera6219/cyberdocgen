@@ -22,4 +22,4 @@ msix:
   capabilities:
     - internetClient
     - privateNetworkClientServer
-  store: false # Set to true for actual Store submission
+  store: true # Microsoft Store submission enabled
