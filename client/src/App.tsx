@@ -170,6 +170,8 @@ function App() {
   );
 }
 
+import { NetworkBanner } from "./components/NetworkBanner";
+
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [showLoading, setShowLoading] = useState(true);
@@ -195,6 +197,7 @@ function AppContent() {
         title: title || "Error",
         description: message,
         variant: "destructive",
+        duration: 5000,
       });
     };
 
@@ -223,12 +226,18 @@ function AppContent() {
 
   // Not authenticated - show public routes without layout
   if (!deferredIsAuthenticated) {
-    return <PublicRouter />;
+    return (
+      <>
+        <NetworkBanner />
+        <PublicRouter />
+      </>
+    );
   }
 
   // Authenticated - show routes with layout and organization context
   return (
     <OrganizationProvider>
+      <NetworkBanner />
       <Layout>
         <AuthenticatedRouter />
       </Layout>
