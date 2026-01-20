@@ -51,6 +51,7 @@ const frameworkNavItems: NavItem[] = [
 const documentNavItems: NavItem[] = [
   { href: "/documents", icon: Folder, label: "All Documents" },
   { href: "/evidence-ingestion", icon: Upload, label: "Evidence Upload" },
+  { href: "/connectors", icon: Cloud, label: "Connectors Hub" }, // Added
   { href: "/export", icon: FolderOutput, label: "Export Center" },
 ];
 

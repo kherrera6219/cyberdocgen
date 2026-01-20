@@ -55,6 +55,7 @@ const AIHub = lazy(() => import("./pages/ai-hub"));
 
 // Integrations and tools
 const CloudIntegrations = lazy(() => import("@/pages/cloud-integrations"));
+const ConnectorsHub = lazy(() => import("@/pages/connectors-hub"));
 const MCPTools = lazy(() => import("@/pages/mcp-tools"));
 const ObjectStorageManager = lazy(() => import("./components/ObjectStorageManager").then(m => ({ default: m.ObjectStorageManager })));
 const IndustrySpecialization = lazy(() => import("./components/ai/IndustrySpecialization").then(m => ({ default: m.IndustrySpecialization })));
@@ -119,6 +120,7 @@ function AuthenticatedRouter() {
         <Route path="/mcp-tools" component={MCPTools} />
         <Route path="/ai-doc-generator" component={AIDocGenerator} />
         <Route path="/ai-hub" component={AIHub} />
+        <Route path="/connectors" component={ConnectorsHub} />
         <Route path="/evidence-ingestion" component={EvidenceIngestion} />
         <Route path="/control-approvals" component={ControlApprovals} />
         <Route path="/auditor-workspace" component={AuditorWorkspace} />

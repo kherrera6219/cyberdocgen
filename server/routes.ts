@@ -600,6 +600,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: cloudIntegrationRoutes } = await import('./routes/cloudIntegration');
   app.use('/api/cloud', cloudIntegrationRoutes);
 
+  // Connectors Hub Routes
+  const { connectorRouter } = await import('./routes/connectors');
+  app.use('/api/connectors', connectorRouter);
+
+  // Web Import Routes
+  const { webImportRouter } = await import('./routes/web-import');
+  app.use('/api/web-import', webImportRouter);
+
   // Admin Routes
   const { default: adminRoutes } = await import('./routes/admin');
   app.use('/api/admin', adminRoutes);

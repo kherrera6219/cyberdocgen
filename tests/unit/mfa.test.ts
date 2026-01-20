@@ -33,9 +33,9 @@ vi.mock('../../server/utils/logger', () => ({
 }));
 
 describe('MFA Middleware', () => {
-  let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
-  let mockNext: NextFunction;
+  let mockReq: any;
+  let mockRes: any;
+  let mockNext: any;
   let auditService: any;
   let logger: any;
 
@@ -54,18 +54,33 @@ describe('MFA Middleware', () => {
       params: {},
       path: '/api/documents',
       method: 'GET',
-      session: {} as any,
+      session: {
+        destroy: vi.fn(),
+        save: vi.fn(),
+        regenerate: vi.fn(),
+        reload: vi.fn(),
+        touch: vi.fn(),
+        cookie: {
+          originalMaxAge: null,
+          maxAge: null,
+          expires: null,
+          httpOnly: true,
+          path: '/'
+        }
+      },
       user: undefined,
       ip: '127.0.0.1',
       get: vi.fn().mockReturnValue('Mozilla/5.0'),
-    };
+    } as any; // Cast to any to allow assigning optional/custom properties
 
     mockRes = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis(),
-    };
+      redirect: vi.fn(),
+      locals: {}
+    } as any;
 
-    mockNext = vi.fn();
+    mockNext = vi.fn() as any;
   });
 
   afterEach(() => {
@@ -470,8 +485,12 @@ describe('MFA Middleware', () => {
     });
 
     it('should handle exactly 30 minutes (boundary test)', () => {
+      vi.useFakeTimers();
+      const now = new Date('2024-01-01T12:00:00Z');
+      vi.setSystemTime(now);
+
       mockReq.mfaRequired = true;
-      const exactlyThirtyMin = new Date(Date.now() - 30 * 60 * 1000);
+      const exactlyThirtyMin = new Date(now.getTime() - 30 * 60 * 1000);
       mockReq.session = {
         mfaVerified: true,
         mfaVerifiedAt: exactlyThirtyMin
@@ -480,6 +499,7 @@ describe('MFA Middleware', () => {
       enforceMFATimeout(mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalledWith();
+      vi.useRealTimers();
     });
 
     // Error handling test removed - edge case

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { SnapshotManager } from "@/components/evidence/SnapshotManager";
+import { WebImportDialog } from "@/components/evidence/WebImportDialog";
 
 interface EvidenceFile {
   id: string;
@@ -242,11 +243,14 @@ export default function EvidenceIngestion() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Upload Evidence</CardTitle>
-              <CardDescription>
-                Select a category and drop files to ingest.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="space-y-1">
+                <CardTitle>Upload Evidence</CardTitle>
+                <CardDescription>
+                  Select a category and drop files to ingest.
+                </CardDescription>
+              </div>
+              <WebImportDialog snapshotId={selectedSnapshotId} />
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">

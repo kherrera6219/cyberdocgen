@@ -668,7 +668,6 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   userOrganizations: many(userOrganizations),
   companyProfiles: many(companyProfiles),
-  companyProfiles: many(companyProfiles),
 }));
 
 export const cloudIntegrationsRelations = relations(cloudIntegrations, ({ many }) => ({
