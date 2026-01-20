@@ -11,6 +11,26 @@ export enum RiskLevel {
   CRITICAL = 'critical'
 }
 
+export const AuditAction = {
+  READ: 'view',
+  VIEW: 'view',
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete',
+  DOWNLOAD: 'download',
+  APPROVE: 'approve',
+  REJECT: 'reject',
+  PUBLISH: 'publish',
+  ARCHIVE: 'archive',
+  GENERATE_INSIGHTS: 'generate_insights',
+  ANALYZE: 'analyze',
+  EXTRACT: 'extract',
+  CHAT: 'chat',
+  ASSESS: 'assess',
+  SCORE: 'score',
+  DATA_EXPORT: 'download'
+} as const;
+
 export interface AuditLogEntry {
   userId?: string;
   organizationId?: string;
@@ -35,6 +55,20 @@ export class AuditService {
    * Log an audit event
    */
   async logEvent(entry: AuditLogEntry): Promise<void> {
+    await this.logAuditEvent(entry);
+  }
+
+  /**
+   * Alias for logEvent to match legacy API
+   */
+  async logAudit(entry: AuditLogEntry): Promise<void> {
+    await this.logAuditEvent(entry);
+  }
+
+  /**
+   * Alias for logEvent to match legacy API from errorHandling
+   */
+  async logAction(entry: AuditLogEntry): Promise<void> {
     await this.logAuditEvent(entry);
   }
 
@@ -302,6 +336,49 @@ export class AuditService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Generate a comprehensive audit report
+   */
+  async generateAuditReport(startDate: Date, endDate: Date, organizationId: string): Promise<any> {
+    const logs = await storage.getAuditLogsByDateRange(startDate, endDate, organizationId);
+    
+    // Calculate stats
+    const stats = {
+      totalEvents: logs.length,
+      byAction: {} as Record<string, number>,
+      byUser: {} as Record<string, number>,
+      byRisk: {
+        [RiskLevel.LOW]: 0,
+        [RiskLevel.MEDIUM]: 0,
+        [RiskLevel.HIGH]: 0,
+        [RiskLevel.CRITICAL]: 0
+      }
+    };
+
+    logs.forEach(log => {
+      // Action stats
+      stats.byAction[log.action] = (stats.byAction[log.action] || 0) + 1;
+      
+      // User stats
+      if (log.userId) {
+        stats.byUser[log.userId] = (stats.byUser[log.userId] || 0) + 1;
+      }
+
+      // Risk stats
+      const risk = (log.riskLevel as RiskLevel) || RiskLevel.LOW;
+      if (risk in stats.byRisk) {
+        stats.byRisk[risk]++;
+      }
+    });
+
+    return {
+      period: { startDate, endDate },
+      organizationId,
+      summary: stats,
+      events: logs
+    };
   }
 
   private calculateRiskLevel(action: string, resourceType: string): RiskLevel {

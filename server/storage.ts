@@ -222,6 +222,12 @@ export interface IStorage {
   getFrameworkControlStatuses(organizationId: string, framework: string): Promise<FrameworkControlStatus[]>;
   updateFrameworkControlStatus(organizationId: string, framework: string, controlId: string, updates: Partial<InsertFrameworkControlStatus>): Promise<FrameworkControlStatus>;
   
+  // Notification methods
+  getNotifications(userId: string, limit?: number): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: string): Promise<number>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(id: string, userId: string): Promise<Notification | undefined>;
+  markAllNotificationsAsRead(userId: string): Promise<number>;
   deleteNotification(id: string, userId: string): Promise<boolean>;
 
   // Versioning operations

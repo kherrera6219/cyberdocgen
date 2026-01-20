@@ -1,0 +1,288 @@
+
+C:\software\cyberdocgen\.storybook\main.ts
+  0:0  error  Parsing error: "parserOptions.project" has been provided for @typescript-eslint/parser.
+The file was not found in any of the provided project(s): .storybook\main.ts
+
+C:\software\cyberdocgen\.storybook\preview.ts
+  0:0  error  Parsing error: "parserOptions.project" has been provided for @typescript-eslint/parser.
+The file was not found in any of the provided project(s): .storybook\preview.ts
+
+C:\software\cyberdocgen\.storybook\vitest.setup.ts
+  0:0  error  Parsing error: "parserOptions.project" has been provided for @typescript-eslint/parser.
+The file was not found in any of the provided project(s): .storybook\vitest.setup.ts
+
+C:\software\cyberdocgen\client\src\App.tsx
+  206:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\software\cyberdocgen\client\src\App.tsx:206:7
+  204 |   useEffect(() => {
+  205 |     if (!isLoading) {
+> 206 |       setShowLoading(false);
+      |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  207 |     }
+  208 |   }, [isLoading]);
+  209 |  react-hooks/set-state-in-effect
+
+C:\software\cyberdocgen\client\src\components\ai\AIInsightsDashboard.tsx
+  82:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\software\cyberdocgen\client\src\components\ai\AIInsightsDashboard.tsx:82:5
+  80 |     const targetScore = Math.min(baseScore + frameworkBonus + industryBonus + 20, 100);
+  81 |     
+> 82 |     setComplianceScore(targetScore);
+     |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  83 |     
+  84 |     if (targetScore > 70) setRiskLevel("low");
+  85 |     else if (targetScore > 40) setRiskLevel("medium");  react-hooks/set-state-in-effect
+
+C:\software\cyberdocgen\client\src\components\help\ContextualHelp.tsx
+  122:14  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\software\cyberdocgen\client\src\components\help\ContextualHelp.tsx:122:14
+  120 |         <DialogTrigger asChild>
+  121 |           <Button variant="ghost" size="sm" className={`p-1 h-auto ${className}`}>
+> 122 |             <HelpIcon />
+      |              ^^^^^^^^ This component is created during render
+  123 |           </Button>
+  124 |         </DialogTrigger>
+  125 |         <DialogContent className="max-w-2xl">
+
+C:\software\cyberdocgen\client\src\components\help\ContextualHelp.tsx:113:20
+  111 |   if (!helpContent) return null;
+  112 |
+> 113 |   const HelpIcon = () => (
+      |                    ^^^^^^^
+> 114 |     <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors" />
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 115 |   );
+      | ^^^^ The component is created during render here
+  116 |
+  117 |   if (variant === "tooltip" || variant === "modal") {
+  118 |     return (  react-hooks/static-components
+
+C:\software\cyberdocgen\client\src\components\layout\header.tsx
+  22:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\software\cyberdocgen\client\src\components\layout\header.tsx:22:7
+  20 |     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
+  21 |     if (savedTheme) {
+> 22 |       setTheme(savedTheme);
+     |       ^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |       if (savedTheme === "dark") {
+  24 |         document.documentElement.classList.add("dark");
+  25 |       } else {  react-hooks/set-state-in-effect
+
+C:\software\cyberdocgen\client\src\components\navigation\GlobalSearch.tsx
+  181:5  error  Error: This value cannot be modified
+
+Modifying a variable defined outside a component or hook is not allowed. Consider using an effect.
+
+C:\software\cyberdocgen\client\src\components\navigation\GlobalSearch.tsx:181:5
+  179 |     setIsOpen(false);
+  180 |     setSearchQuery("");
+> 181 |     window.location.href = result.url;
+      |     ^^^^^^^^^^^^^^^ value cannot be modified
+  182 |   };
+  183 |
+  184 |   const handleRecentSearchClick = (query: string) => {  react-hooks/immutability
+
+C:\software\cyberdocgen\client\src\components\templates\document-preview.tsx
+  56:34  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\software\cyberdocgen\client\src\components\templates\document-preview.tsx:56:34
+  54 |   const mockTemplateData = templates.map(template => ({
+  55 |     ...template,
+> 56 |     estimatedTime: `${Math.floor(Math.random() * 15) + 5} min`,
+     |                                  ^^^^^^^^^^^^^ Cannot call impure function
+  57 |     complexity: ['Basic', 'Intermediate', 'Advanced'][Math.floor(Math.random() * 3)] as 'Basic' | 'Intermediate' | 'Advanced',
+  58 |     preview: `# ${template.title}
+  59 |  react-hooks/purity
+  57:66  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\software\cyberdocgen\client\src\components\templates\document-preview.tsx:57:66
+  55 |     ...template,
+  56 |     estimatedTime: `${Math.floor(Math.random() * 15) + 5} min`,
+> 57 |     complexity: ['Basic', 'Intermediate', 'Advanced'][Math.floor(Math.random() * 3)] as 'Basic' | 'Intermediate' | 'Advanced',
+     |                                                                  ^^^^^^^^^^^^^ Cannot call impure function
+  58 |     preview: `# ${template.title}
+  59 |
+  60 | ## Purpose and Scope     react-hooks/purity
+
+C:\software\cyberdocgen\client\src\components\ui\sidebar.tsx
+  663:26  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\software\cyberdocgen\client\src\components\ui\sidebar.tsx:663:26
+  661 |   // Random width between 50 to 90%.
+  662 |   const width = useMemo(() => {
+> 663 |     return `${Math.floor(Math.random() * 40) + 50}%`
+      |                          ^^^^^^^^^^^^^ Cannot call impure function
+  664 |   }, [])
+  665 |
+  666 |   return (  react-hooks/purity
+
+C:\software\cyberdocgen\client\src\pages\home.tsx
+   41:9   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\software\cyberdocgen\client\src\pages\home.tsx:41:9
+  39 |       const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+  40 |       if (!hasSeenTutorial) {
+> 41 |         setShowTutorial(true);
+     |         ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  42 |       }
+  43 |     } catch (error) {
+  44 |       logger.error('Error accessing localStorage for tutorial state:', error);                                                                                                                                                                                                                         react-hooks/set-state-in-effect
+  255:52  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\software\cyberdocgen\client\src\pages\home.tsx:255:52
+  253 |         </Card>
+  254 |
+> 255 |         <ErrorBoundary key={aiErrorKey} fallback={<AIFeaturesFallback />}>
+      |                                                    ^^^^^^^^^^^^^^^^^^ This component is created during render
+  256 |           <div className="mb-8 sm:mb-12">
+  257 |             <div className="flex items-center gap-3 mb-6">
+  258 |               <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+
+C:\software\cyberdocgen\client\src\pages\home.tsx:88:30
+   86 |   const [aiErrorKey, setAiErrorKey] = useState(0);
+   87 |   
+>  88 |   const AIFeaturesFallback = () => (
+      |                              ^^^^^^^
+>  89 |     <div className="p-6 text-center">
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  90 |       <div className="flex items-center justify-center gap-2 text-muted-foreground mb-4">
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 101 |     </div>
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 102 |   );
+      | ^^^^ The component is created during render here
+  103 |
+  104 |   const aiFeatures = [
+  105 |     {  react-hooks/static-components
+
+C:\software\cyberdocgen\client\src\pages\iso27001-framework.tsx
+  317:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\software\cyberdocgen\client\src\pages\iso27001-framework.tsx:317:7
+  315 |   useEffect(() => {
+  316 |     if (savedStatuses && savedStatuses.length > 0) {
+> 317 |       setControlDomains(domains => 
+      |       ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  318 |         domains.map(domain => ({
+  319 |           ...domain,
+  320 |           controls: domain.controls.map(control => {  react-hooks/set-state-in-effect
+
+C:\software\cyberdocgen\client\src\pages\reset-password.tsx
+  47:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\software\cyberdocgen\client\src\pages\reset-password.tsx:47:7
+  45 |     const urlToken = urlParams.get('token');
+  46 |     if (urlToken) {
+> 47 |       setToken(urlToken);
+     |       ^^^^^^^^ Avoid calling setState() directly within an effect
+  48 |     }
+  49 |   }, [location]);
+  50 |  react-hooks/set-state-in-effect
+
+C:\software\cyberdocgen\client\src\stories\IconButton.stories.tsx
+  1:1  error  Do not import renderer package "@storybook/react" directly. Use a framework package instead (e.g. @storybook/nextjs, @storybook/react-vite, @storybook/nextjs-vite, @storybook/react-webpack5, @storybook/react-native-web-vite)  storybook/no-renderer-packages
+
+C:\software\cyberdocgen\scripts\check_mcp_coverage.cjs
+   4:30  error  'process' is not defined  no-undef
+   6:3   error  'console' is not defined  no-undef
+   7:3   error  'process' is not defined  no-undef
+  21:1   error  'console' is not defined  no-undef
+  22:1   error  'console' is not defined  no-undef
+  29:5   error  'console' is not defined  no-undef
+  49:3   error  'console' is not defined  no-undef
+
+C:\software\cyberdocgen\server\storage.ts
+  500:9  error  'docs' is never reassigned. Use 'const' instead  prefer-const
+
+C:\software\cyberdocgen\tests\integration\security.test.ts
+  95:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\software\cyberdocgen\tests\unit\aiOrchestrator.test.ts
+  139:13  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  146:13  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\software\cyberdocgen\tests\unit\auditService.test.ts
+  126:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  140:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  154:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  167:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  180:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\software\cyberdocgen\tests\unit\cloudIntegrationService.test.ts
+  125:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  136:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  146:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\software\cyberdocgen\tests\unit\dataResidencyService.test.ts
+   61:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+   84:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  120:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  129:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  138:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\software\cyberdocgen\tests\unit\documentWorkflowService.test.ts
+  39:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  41:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  54:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  58:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  69:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  82:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  92:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\software\cyberdocgen\tests\unit\multiTenant.test.ts
+  332:7  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+✖ 48 problems (48 errors, 0 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

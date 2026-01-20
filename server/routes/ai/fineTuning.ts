@@ -2,6 +2,7 @@
 // Custom fine-tuning and optimization
 import { Router, Response, NextFunction } from 'express';
 import { storage } from '../../storage';
+import { auditService } from '../../services/auditService';
 import {
   isAuthenticated,
   getRequiredUserId,
@@ -36,12 +37,14 @@ export function registerFineTuningRoutes(router: Router) {
       priority: priority || 'medium'
     });
 
-    await storage.createAuditEntry({
+    await auditService.logAudit({
       userId,
       action: "ai_fine_tuning_created",
       entityType: "ai_configuration",
-      entityId: result.configId,
-      metadata: { industryId, accuracy: result.accuracy, requirements, customInstructions, priority, organizationId }
+      entityId: result.configId as string,
+      organizationId,
+      ipAddress: req.ip || '0.0.0.0',
+      metadata: { industryId, accuracy: result.accuracy, requirements, customInstructions, priority }
     });
 
     res.json({ 
@@ -68,12 +71,14 @@ export function registerFineTuningRoutes(router: Router) {
       context
     );
 
-    await storage.createAuditEntry({
+    await auditService.logAudit({
       userId,
       action: "ai_optimized_generation",
       entityType: "document",
       entityId: `opt-${crypto.randomUUID()}`,
-      metadata: { documentType, industry: context.industry, configId, context, organizationId }
+      organizationId,
+      ipAddress: req.ip || '0.0.0.0',
+      metadata: { documentType, industry: context.industry, configId, context }
     });
 
     res.json({ 
@@ -96,12 +101,14 @@ export function registerFineTuningRoutes(router: Router) {
     
     const riskAssessment = await service.assessIndustryRisks(industryId, organizationContext);
 
-    await storage.createAuditEntry({
+    await auditService.logAudit({
       userId,
       action: "ai_risk_assessment",
       entityType: "risk_assessment",
       entityId: `risk-${crypto.randomUUID()}`,
-      metadata: { industryId, riskScore: riskAssessment.riskScore, organizationContext, identifiedRisks: riskAssessment.identifiedRisks.length, organizationId }
+      organizationId,
+      ipAddress: req.ip || '0.0.0.0',
+      metadata: { industryId, riskScore: riskAssessment.riskScore, organizationContext, identifiedRisks: riskAssessment.identifiedRisks.length }
     });
 
     res.json({ 
