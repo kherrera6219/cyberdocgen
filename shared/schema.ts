@@ -1725,6 +1725,279 @@ export const insertAiMessageSchema = createInsertSchema(aiMessages).omit({ id: t
 export type InsertAiMessage = z.infer<typeof insertAiMessageSchema>;
 export type AiMessage = typeof aiMessages.$inferSelect;
 
+// ============================================================================
+// Repository Analysis Tables
+// ============================================================================
+
+// Repository Snapshots - Immutable source code snapshots for compliance analysis
+export const repositorySnapshots = pgTable("repository_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+  companyProfileId: varchar("company_profile_id").references(() => companyProfiles.id, { onDelete: "cascade" }).notNull(),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  name: varchar("name").notNull(), // User-provided name
+  status: varchar("status", { 
+    enum: ["extracting", "indexed", "analyzing", "completed", "failed"] 
+  }).default("extracting").notNull(),
+  uploadedFileName: varchar("uploaded_file_name").notNull(),
+  uploadedFileHash: varchar("uploaded_file_hash").notNull(), // SHA-256
+  extractedPath: text("extracted_path"), // Local read-only path
+  repositorySize: integer("repository_size"), // bytes
+  fileCount: integer("file_count").default(0),
+  manifestHash: varchar("manifest_hash"), // SHA-256 of MANIFEST.json
+  // Detection results
+  detectedLanguages: jsonb("detected_languages").$type<string[]>().default([]),
+  detectedFrameworks: jsonb("detected_frameworks").$type<string[]>().default([]),
+  detectedInfraTools: jsonb("detected_infra_tools").$type<string[]>().default([]), // terraform, k8s, docker
+  // Analysis metadata
+  analysisStartedAt: timestamp("analysis_started_at"),
+  analysisCompletedAt: timestamp("analysis_completed_at"),
+  analysisPhase: varchar("analysis_phase"), // current phase if in progress
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_repo_snapshot_org").on(table.organizationId),
+  index("idx_repo_snapshot_profile").on(table.companyProfileId),
+  index("idx_repo_snapshot_status").on(table.status),
+]);
+
+export const insertRepositorySnapshotSchema = createInsertSchema(repositorySnapshots).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+export type InsertRepositorySnapshot = z.infer<typeof insertRepositorySnapshotSchema>;
+export type RepositorySnapshot = typeof repositorySnapshots.$inferSelect;
+
+// Repository Files - Individual files within a snapshot
+export const repositoryFiles = pgTable("repository_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  snapshotId: varchar("snapshot_id").references(() => repositorySnapshots.id, { onDelete: "cascade" }).notNull(),
+  relativePath: text("relative_path").notNull(),
+  fileName: varchar("file_name").notNull(),
+  fileType: varchar("file_type"), // extension
+  fileSize: integer("file_size"),
+  fileHash: varchar("file_hash"), // SHA-256
+  language: varchar("language"), // detected language
+  category: varchar("category", { 
+    enum: ["source", "config", "docs", "ci_cd", "iac", "test", "other"] 
+  }).default("other"),
+  isSecurityRelevant: boolean("is_security_relevant").default(false),
+  indexedAt: timestamp("indexed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_repo_file_snapshot").on(table.snapshotId),
+  index("idx_repo_file_category").on(table.category),
+  index("idx_repo_file_security").on(table.isSecurityRelevant),
+]);
+
+export const insertRepositoryFileSchema = createInsertSchema(repositoryFiles).omit({ 
+  id: true, 
+  createdAt: true 
+});
+export type InsertRepositoryFile = z.infer<typeof insertRepositoryFileSchema>;
+export type RepositoryFile = typeof repositoryFiles.$inferSelect;
+
+// Repository Findings - Control scores and evidence from code analysis
+export const repositoryFindings = pgTable("repository_findings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  snapshotId: varchar("snapshot_id").references(() => repositorySnapshots.id, { onDelete: "cascade" }).notNull(),
+  controlId: varchar("control_id").notNull(), // Framework control ID (e.g., 'CC6.1', 'A.9.1.1')
+  framework: varchar("framework").notNull(), // 'SOC2', 'ISO27001', etc.
+  status: varchar("status", { 
+    enum: ["pass", "partial", "fail", "not_observed", "needs_human"] 
+  }).notNull(),
+  confidenceLevel: varchar("confidence_level", { 
+    enum: ["high", "medium", "low"] 
+  }).default("medium").notNull(),
+  signalType: varchar("signal_type"), // 'authentication', 'encryption', 'logging', etc.
+  summary: text("summary").notNull(),
+  details: jsonb("details"), // structured finding data
+  evidenceReferences: jsonb("evidence_references").$type<{
+    filePath: string;
+    lineStart?: number;
+    lineEnd?: number;
+    snippet?: string;
+  }[]>().default([]),
+  recommendation: text("recommendation"),
+  aiModel: varchar("ai_model"), // which model generated this
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  humanOverride: jsonb("human_override"), // if human modifies AI conclusion
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_repo_finding_snapshot").on(table.snapshotId),
+  index("idx_repo_finding_framework").on(table.framework),
+  index("idx_repo_finding_control").on(table.controlId),
+  index("idx_repo_finding_status").on(table.status),
+]);
+
+export const insertRepositoryFindingSchema = createInsertSchema(repositoryFindings).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  generatedAt: true
+});
+export type InsertRepositoryFinding = z.infer<typeof insertRepositoryFindingSchema>;
+export type RepositoryFinding = typeof repositoryFindings.$inferSelect;
+
+// Repository Tasks - Action items from findings
+export const repositoryTasks = pgTable("repository_tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  snapshotId: varchar("snapshot_id").references(() => repositorySnapshots.id, { onDelete: "cascade" }).notNull(),
+  findingId: varchar("finding_id").references(() => repositoryFindings.id, { onDelete: "set null" }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  category: varchar("category", { 
+    enum: ["missing_evidence", "code_change", "policy_needed", "procedure_needed"] 
+  }).notNull(),
+  priority: varchar("priority", { 
+    enum: ["critical", "high", "medium", "low"] 
+  }).default("medium").notNull(),
+  status: varchar("status", { 
+    enum: ["open", "in_progress", "completed", "dismissed"] 
+  }).default("open").notNull(),
+  assignedToRole: varchar("assigned_to_role").default("user"), // RBAC role label
+  dueDate: timestamp("due_date"),
+  completedAt: timestamp("completed_at"),
+  completedBy: varchar("completed_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_repo_task_snapshot").on(table.snapshotId),
+  index("idx_repo_task_finding").on(table.findingId),
+  index("idx_repo_task_status").on(table.status),
+  index("idx_repo_task_priority").on(table.priority),
+]);
+
+export const insertRepositoryTaskSchema = createInsertSchema(repositoryTasks).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+export type InsertRepositoryTask = z.infer<typeof insertRepositoryTaskSchema>;
+export type RepositoryTask = typeof repositoryTasks.$inferSelect;
+
+// Repository Analysis Runs - Track analysis execution
+export const repositoryAnalysisRuns = pgTable("repository_analysis_runs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  snapshotId: varchar("snapshot_id").references(() => repositorySnapshots.id, { onDelete: "cascade" }).notNull(),
+  frameworks: jsonb("frameworks").$type<string[]>().notNull(), // which frameworks to analyze
+  analysisDepth: varchar("analysis_depth", { 
+    enum: ["structure_only", "security_relevant", "full"] 
+  }).default("security_relevant").notNull(),
+  phase: varchar("phase"), // current phase name
+  phaseStatus: varchar("phase_status", { 
+    enum: ["pending", "running", "completed", "failed"] 
+  }).default("pending").notNull(),
+  progress: integer("progress").default(0), // 0-100
+  filesAnalyzed: integer("files_analyzed").default(0),
+  findingsGenerated: integer("findings_generated").default(0),
+  documentsGenerated: integer("documents_generated").default(0),
+  tasksCreated: integer("tasks_created").default(0),
+  llmCallsMade: integer("llm_calls_made").default(0),
+  tokensUsed: integer("tokens_used").default(0),
+  costEstimate: decimal("cost_estimate"), // USD
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  errorLog: jsonb("error_log"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_repo_run_snapshot").on(table.snapshotId),
+  index("idx_repo_run_status").on(table.phaseStatus),
+]);
+
+export const insertRepositoryAnalysisRunSchema = createInsertSchema(repositoryAnalysisRuns).omit({ 
+  id: true, 
+  createdAt: true 
+});
+export type InsertRepositoryAnalysisRun = z.infer<typeof insertRepositoryAnalysisRunSchema>;
+export type RepositoryAnalysisRun = typeof repositoryAnalysisRuns.$inferSelect;
+
+// Repository Documents - Link generated docs to snapshots
+export const repositoryDocuments = pgTable("repository_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  snapshotId: varchar("snapshot_id").references(() => repositorySnapshots.id, { onDelete: "cascade" }).notNull(),
+  documentId: varchar("document_id").references(() => documents.id, { onDelete: "cascade" }).notNull(),
+  framework: varchar("framework").notNull(),
+  templateId: varchar("template_id"),
+  status: varchar("status", { 
+    enum: ["generated", "draft", "pending_approval", "approved"] 
+  }).default("generated").notNull(),
+  generatedBy: varchar("generated_by").default("AI"),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  approvedByName: varchar("approved_by_name"),
+  approvedByTitle: varchar("approved_by_title"),
+  approvedAt: timestamp("approved_at"),
+  approvalNotes: text("approval_notes"),
+  version: integer("version").default(1).notNull(),
+  signatureBlock: jsonb("signature_block").$type<{
+    createdBy: string;
+    createdAt: string;
+    snapshotId: string;
+    snapshotHash: string;
+    templateId: string;
+    templateVersion: string;
+    approvedBy?: string;
+    approvedByName?: string;
+    approvedByTitle?: string;
+    approvedAt?: string;
+    approvalStatement?: string;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_repo_doc_snapshot").on(table.snapshotId),
+  index("idx_repo_doc_document").on(table.documentId),
+  index("idx_repo_doc_status").on(table.status),
+]);
+
+export const insertRepositoryDocumentSchema = createInsertSchema(repositoryDocuments).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  generatedAt: true
+});
+export type InsertRepositoryDocument = z.infer<typeof insertRepositoryDocumentSchema>;
+export type RepositoryDocument = typeof repositoryDocuments.$inferSelect;
+
+// Stakeholders - People imported from IdP or entered manually
+export const stakeholders = pgTable("stakeholders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: "cascade" }).notNull(),
+  source: varchar("source", { 
+    enum: ["manual", "entra_id", "google_workspace", "okta"] 
+  }).default("manual").notNull(),
+  externalId: varchar("external_id"), // IdP user ID
+  displayName: varchar("display_name").notNull(),
+  email: varchar("email").notNull(),
+  jobTitle: varchar("job_title"),
+  department: varchar("department"),
+  managerName: varchar("manager_name"),
+  managerEmail: varchar("manager_email"),
+  phone: varchar("phone"),
+  isActive: boolean("is_active").default(true).notNull(),
+  lastSyncedAt: timestamp("last_synced_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_stakeholder_org").on(table.organizationId),
+  index("idx_stakeholder_email").on(table.email),
+  index("idx_stakeholder_source").on(table.source),
+]);
+
+export const insertStakeholderSchema = createInsertSchema(stakeholders).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+export type InsertStakeholder = z.infer<typeof insertStakeholderSchema>;
+export type Stakeholder = typeof stakeholders.$inferSelect;
+
 // Relations for Phase 3 tables
 export const dataResidencyPoliciesRelations = relations(dataResidencyPolicies, ({ one }) => ({
   organization: one(organizations, {
