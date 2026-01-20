@@ -3,6 +3,9 @@ import request from 'supertest';
 import express from 'express';
 import { registerDocumentsRoutes } from '../../server/routes/documents';
 import { storage } from '../../server/storage';
+import { versionService } from '../../server/services/versionService';
+import { aiOrchestrator } from '../../server/services/aiOrchestrator';
+import * as multiTenantMock from '../../server/middleware/multiTenant';
 import { globalErrorHandler } from '../../server/utils/errorHandling';
 
 // Mock Dependencies
@@ -12,6 +15,8 @@ vi.mock('../../server/storage', () => ({
         getDocumentsByCompanyProfile: vi.fn(),
         getDocumentsByFramework: vi.fn(),
         getDocument: vi.fn(),
+        getCompanyProfile: vi.fn(),
+        getDocumentVersions: vi.fn(),
         createDocument: vi.fn(),
         updateDocument: vi.fn(),
         deleteDocument: vi.fn(),
@@ -172,8 +177,7 @@ describe('Documents Routes', () => {
 
     describe('POST /api/documents/generate', () => {
         it('generates a document content', async () => {
-            const { getCompanyProfileWithOrgCheck } = await import('../../server/middleware/multiTenant');
-            (getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: true });
+            (multiTenantMock.getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: true });
             (storage.createDocument as any).mockResolvedValue({ id: 'doc-gen' });
 
             const response = await request(app)
@@ -188,14 +192,18 @@ describe('Documents Routes', () => {
 
             expect(response.body.data.id).toBe('doc-gen');
         });
+
+        it('returns 400 if required fields are missing', async () => {
+            await request(app)
+                .post('/api/documents/generate')
+                .send({ framework: 'iso27001' })
+                .expect(400);
+        });
     });
 
     describe('GET /api/documents/:id/versions', () => {
         it('returns versions if authorized', async () => {
-            const { getDocumentWithOrgCheck } = await import('../../server/middleware/multiTenant');
-            const { versionService } = await import('../../server/services/versionService');
-            
-            (getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: true, document: { id: 'doc-1' } });
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: true, document: { id: 'doc-1' } });
             (versionService.getVersionHistory as any).mockResolvedValue([{ versionNumber: 1 }]);
 
             const response = await request(app)
@@ -203,6 +211,77 @@ describe('Documents Routes', () => {
                 .expect(200);
 
             expect(response.body.data).toHaveLength(1);
+        });
+    });
+
+    describe('POST /api/documents/:id/versions/:versionId/restore', () => {
+        it('restores a version and returns success', async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: true, document: { id: 'doc-1' } });
+            (versionService.restoreVersion as any).mockResolvedValue({ id: 'ver-1' });
+
+            const response = await request(app)
+                .post('/api/documents/doc-1/versions/1/restore')
+                .expect(200);
+
+            expect(response.body.success).toBe(true);
+            expect(response.body.data.version).toBeDefined();
+        });
+    });
+
+    describe('GET /api/documents/:id/approvals', () => {
+        it('returns mock approvals for a document', async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: true, document: { id: 'doc-1' } });
+
+            const response = await request(app)
+                .get('/api/documents/doc-1/approvals')
+                .expect(200);
+
+            expect(response.body.data).toBeInstanceOf(Array);
+            expect(response.body.data[0].id).toContain('approval');
+        });
+    });
+
+    describe('POST /api/documents/generate-single', () => {
+        it('generates a single document using AI orchestrator', async () => {
+            (multiTenantMock.getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: true });
+            (storage.getCompanyProfile as any).mockResolvedValue({ id: 'cp-1' });
+            (aiOrchestrator.generateDocument as any).mockResolvedValue({ content: 'AI Content', model: 'gpt-4' });
+            (storage.createDocument as any).mockResolvedValue({ id: 'doc-ai' });
+
+            const response = await request(app)
+                .post('/api/documents/generate-single')
+                .send({
+                    companyProfileId: 'cp-1',
+                    framework: 'nist',
+                    template: { title: 'T', category: 'C' }
+                })
+                .expect(200);
+
+            expect(response.body.data.document.id).toBe('doc-ai');
+        });
+    });
+
+    describe('GET /api/documents/:id/history', () => {
+        it('returns version history if authorized', async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: true, document: { id: 'doc-1' } });
+            (storage.getDocumentVersions as any).mockResolvedValue([{ id: 'v1' }]);
+
+            const response = await request(app)
+                .get('/api/documents/doc-1/history')
+                .expect(200);
+
+            expect(response.body.data.versions).toHaveLength(1);
+        });
+
+        it('returns success message if no history found', async () => {
+            (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: true, document: { id: 'doc-empty' } });
+            (storage.getDocumentVersions as any).mockResolvedValue([]);
+
+            const response = await request(app)
+                .get('/api/documents/doc-empty/history')
+                .expect(200);
+
+            expect(response.body.data.message).toContain('No version history');
         });
     });
 });

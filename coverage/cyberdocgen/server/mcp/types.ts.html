@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>20/20</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>3/3</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>20/20</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -200,19 +200,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -286,15 +286,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -332,19 +332,19 @@
  * Defines the protocol for AI agent communication and tool calling
  */
 &nbsp;
-export enum MCPMessageType {
-  TOOL_CALL = 'tool_call',
-  TOOL_RESULT = 'tool_result',
-  CONTEXT_UPDATE = 'context_update',
-  AGENT_REQUEST = 'agent_request',
-  AGENT_RESPONSE = 'agent_response',
-  ERROR = 'error'
+<span class="cstat-no" title="statement not covered" >export enum MCPMessageType {</span>
+<span class="cstat-no" title="statement not covered" >  TOOL_CALL = 'tool_call',</span>
+<span class="cstat-no" title="statement not covered" >  TOOL_RESULT = 'tool_result',</span>
+<span class="cstat-no" title="statement not covered" >  CONTEXT_UPDATE = 'context_update',</span>
+<span class="cstat-no" title="statement not covered" >  AGENT_REQUEST = 'agent_request',</span>
+<span class="cstat-no" title="statement not covered" >  AGENT_RESPONSE = 'agent_response',</span>
+<span class="cstat-no" title="statement not covered" >  ERROR = 'error'</span>
 }
 &nbsp;
-export enum ToolType {
-  INTERNAL = 'internal',
-  EXTERNAL = 'external',
-  HYBRID = 'hybrid'
+<span class="cstat-no" title="statement not covered" >export enum ToolType {</span>
+<span class="cstat-no" title="statement not covered" >  INTERNAL = 'internal',</span>
+<span class="cstat-no" title="statement not covered" >  EXTERNAL = 'external',</span>
+<span class="cstat-no" title="statement not covered" >  HYBRID = 'hybrid'</span>
 }
 &nbsp;
 export interface MCPMessage {
@@ -418,15 +418,15 @@ export interface AgentConfig {
   capabilities: AgentCapability[];
 }
 &nbsp;
-export enum AgentCapability {
-  DOCUMENT_GENERATION = 'document_generation',
-  COMPLIANCE_ANALYSIS = 'compliance_analysis',
-  RISK_ASSESSMENT = 'risk_assessment',
-  QUALITY_SCORING = 'quality_scoring',
-  GAP_ANALYSIS = 'gap_analysis',
-  CHAT_INTERACTION = 'chat_interaction',
-  DATA_EXTRACTION = 'data_extraction',
-  EXTERNAL_API_CALLS = 'external_api_calls'
+<span class="cstat-no" title="statement not covered" >export enum AgentCapability {</span>
+<span class="cstat-no" title="statement not covered" >  DOCUMENT_GENERATION = 'document_generation',</span>
+<span class="cstat-no" title="statement not covered" >  COMPLIANCE_ANALYSIS = 'compliance_analysis',</span>
+<span class="cstat-no" title="statement not covered" >  RISK_ASSESSMENT = 'risk_assessment',</span>
+<span class="cstat-no" title="statement not covered" >  QUALITY_SCORING = 'quality_scoring',</span>
+<span class="cstat-no" title="statement not covered" >  GAP_ANALYSIS = 'gap_analysis',</span>
+<span class="cstat-no" title="statement not covered" >  CHAT_INTERACTION = 'chat_interaction',</span>
+<span class="cstat-no" title="statement not covered" >  DATA_EXTRACTION = 'data_extraction',</span>
+<span class="cstat-no" title="statement not covered" >  EXTERNAL_API_CALLS = 'external_api_calls'</span>
 }
 &nbsp;
 export interface AgentRequest {
@@ -466,7 +466,7 @@ export interface MCPServerConfig {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-20T03:49:28.580Z
+                at 2026-01-20T04:02:02.877Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
