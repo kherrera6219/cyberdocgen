@@ -635,6 +635,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Framework Control Statuses Routes
   registerFrameworkControlStatusesRoutes(app);
 
+  // Repository Analysis Routes - NEW FEATURE
+  const { default: repositoryRoutes } = await import('./routes/repository');
+  app.use('/api/repository', repositoryRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }
