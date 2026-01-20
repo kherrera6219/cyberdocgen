@@ -1,8 +1,8 @@
 # CyberDocGen - Technical Development TODOs
 
-**Last Updated:** January 18, 2026
+**Last Updated:** January 19, 2026
 **Status:** Phase 7 Finalization (Technical Tracks)
-**Coverage:** Coding, Implementation, and Refactoring tasks only.
+**Coverage:** 46%+ Overall (Core Services @ 75%+)
 
 ---
 
@@ -38,7 +38,7 @@
 ### Refactoring & Type Safety
 - [ ] **Logger Migration**: Replace remaining `console.log/warn/error` statements in `server/`, `client/src/`, and `scripts/` with the structured `logger`.
 - [ ] **TypeScript Cleanup**: Remove `any` types from `encryption.ts`, `auditService.ts`, and `cloudIntegrationService.ts`.
-- [ ] **Modernize Async**: Refactor legacy `.then().catch()` chains to `async/await` in `scripts/generate-sbom.ts` and `server/storage.ts`.
+- [x] **Modernize Async**: Refactor legacy `.then().catch()` chains to `async/await` in `scripts/generate-sbom.ts` and `server/storage.ts`.
 
 ### UI/UX Implementation
 - [ ] **Storybook Coverage**: Complete stories for all components in `client/src/components/ui`, specifically focusing on complex dashboard widgets.
@@ -55,3 +55,6 @@
 ### Core Flows
 - [x] **OIDC Callback**: Fixed token claim validation in `server/routes/microsoftAuth.ts`.
 - [x] **Compliance Automation**: Created `scripts/validate-wack.ts` for automated Windows App Certification Kit checks.
+### Quality Tracks
+- [x] **Test Coverage Expansion (Batch 2)**: Achieved 75%+ for `storage.ts`, `aiOrchestrator.ts`, and `enterpriseAuthService.ts`.
+- [x] **Core Services Hardening**: Verified all failure modes and fallback logic.
