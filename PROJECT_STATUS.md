@@ -2,7 +2,7 @@
 
 ## 📊 Overall Project Health
 
-**Version:** 2.2.0
+**Version:** 2.3.0
 **Status:** Production-Ready & Microsoft Store Compliant (Batch 5 MCP Complete)
 **Test Coverage:** ~46%+ (Critical Services & MCP: 80-100%)
 **Test Suite:** 815 passing, 3 skipped
@@ -60,6 +60,19 @@
 - ✅ **Batch 4: API Routes**: Expanded coverage for `documents.ts`, `gapAnalysis.ts`, and `enterpriseAuth.ts` to >75%.
 - ✅ **Test Suite Reliability**: Standardized coverage reporting and resolved Vitest instrumentation issues.
 - ✅ **Project Cleanup**: Archived outdated documentation and removed temporary build artifacts.
+
+
+### Phase: Document Ingestion & Connectors
+
+**Status:** ✅ Complete
+**Completion Date:** January 19, 2026
+
+#### Core achievements:
+
+- ✅ **Connectors Hub**: Implemented centralized management schema and services for SharePoint, Jira, and Notion integrations.
+- ✅ **Web Evidence Import**: Built a secure web crawler (`WebCrawlerService`) for capturing online evidence with audit logging.
+- ✅ **Snapshot Management**: Implemented `SnapshotService` and UI for immutable point-in-time evidence collections.
+- ✅ **Security Hardening**: Added secret sanitization (`sanitizeConfig`) and enhanced error handling across connector services.
 
 ---
 
@@ -152,7 +165,7 @@ npm run type-check
 
 ---
 
-**Current Version:** 2.0.2
+**Current Version:** 2.3.0
 **Last Updated:** January 17, 2026
 **Status:** Production-Ready
 **Next Phase:** Optional performance testing and extended coverage

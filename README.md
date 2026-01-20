@@ -2,7 +2,7 @@
 
 ## Enterprise Compliance Management System
 
-**Version 2.2.0** | January 19, 2026
+**Version 2.3.0** | January 19, 2026
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-2.1.0-green.svg)](CHANGELOG.md)
@@ -37,6 +37,13 @@
 - [License](#license)
 
 ## Latest Updates
+
+**Version 2.3.0 - January 19, 2026** - Connectors & Evidence Ingestion:
+
+- ✅ **Connectors Hub** - Centralized management for external data sources (SharePoint, Jira, Notion)
+- ✅ **Web Evidence Import** - Audit-compliant web crawler for capturing online evidence
+- ✅ **Snapshot Management** - Point-in-time evidence collection with immutable snapshots
+- ✅ **Security Hardening** - Enhanced secret sanitization and secure config storage
 
 **Version 2.2.0 - January 19, 2026** - Comprehensive Quality & MCP Expansion (Batch 5):
 
@@ -140,6 +147,9 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 - **Quality Scoring** - Automated document quality assessment
 - **Template Management** - Pre-built templates for all supported frameworks
 - **Custom Controls** - Define and manage custom compliance controls
+- **Connectors Hub** - Seamless integration with SharePoint, Jira, and Notion for automated evidence collection
+- **Web Evidence Import** - Securely capture and timestamp web pages as audit evidence
+- **Snapshot Management** - Create locked, immutable evidence snapshots for specific audit periods
 
 ### Security & Monitoring
 
