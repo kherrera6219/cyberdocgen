@@ -5,6 +5,8 @@ import { db } from '../db';
 import { performanceService } from '../services/performanceService';
 import { DataClassification } from '../services/encryption';
 import { AuditAction, RiskLevel } from '../services/auditService';
+import { getProviders } from '../providers';
+import { isLocalMode } from '../config/runtime';
 
 interface HealthCheckResult {
   status: "pass" | "fail" | "warn";
@@ -64,6 +66,35 @@ class HealthCheckService {
   async checkDatabase(): Promise<HealthCheckResult> {
     try {
       const start = Date.now();
+
+      // In local mode, use provider health check
+      if (isLocalMode()) {
+        const providers = await getProviders();
+        const isHealthy = await providers.db.healthCheck();
+
+        if (!isHealthy) {
+          return {
+            status: "fail",
+            message: "Database health check failed (local mode)",
+          };
+        }
+
+        const responseTime = Date.now() - start;
+        return {
+          status: "pass",
+          message: "SQLite database healthy (local mode)",
+          responseTime,
+        };
+      }
+
+      // Cloud mode: use Drizzle ORM
+      if (!db) {
+        return {
+          status: "fail",
+          message: "Database not initialized",
+        };
+      }
+
       await db.execute(sql`SELECT 1`);
       const responseTime = Date.now() - start;
 

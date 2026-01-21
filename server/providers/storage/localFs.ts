@@ -19,6 +19,12 @@ export class LocalFsStorageProvider implements IStorageProvider {
   constructor(basePath: string) {
     this.basePath = basePath;
     console.log(`[LocalFsStorageProvider] Initialized with basePath: ${basePath}`);
+
+    // Create base directory if it doesn't exist
+    if (!fsSync.existsSync(basePath)) {
+      fsSync.mkdirSync(basePath, { recursive: true });
+      console.log(`[LocalFsStorageProvider] Created base directory: ${basePath}`);
+    }
   }
 
   /**
@@ -150,6 +156,11 @@ export class LocalFsStorageProvider implements IStorageProvider {
       await fs.unlink(filePath);
       console.log(`[LocalFsStorageProvider] File deleted successfully: ${filePath}`);
     } catch (error) {
+      // If file doesn't exist, that's fine - already deleted
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        console.log(`[LocalFsStorageProvider] File already deleted or does not exist: ${filePath}`);
+        return;
+      }
       console.error('[LocalFsStorageProvider] Delete error:', error);
       throw new Error(`Failed to delete file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

@@ -297,6 +297,22 @@ export class SqliteDbProvider implements IDbProvider {
 
     try {
       const stmt = this.db.prepare(sql);
+      const trimmedSql = sql.trim().toUpperCase();
+
+      // Use run() for INSERT, UPDATE, DELETE, CREATE, DROP, ALTER
+      if (
+        trimmedSql.startsWith('INSERT') ||
+        trimmedSql.startsWith('UPDATE') ||
+        trimmedSql.startsWith('DELETE') ||
+        trimmedSql.startsWith('CREATE') ||
+        trimmedSql.startsWith('DROP') ||
+        trimmedSql.startsWith('ALTER')
+      ) {
+        stmt.run(...(params || []));
+        return [] as T[];
+      }
+
+      // Use all() for SELECT and other queries that return data
       const rows = stmt.all(...(params || []));
       return rows as T[];
     } catch (error) {
@@ -314,27 +330,37 @@ export class SqliteDbProvider implements IDbProvider {
 
     const transaction: IDbTransaction = {
       query: async <T>(sql: string, params?: any[]): Promise<T[]> => {
-        if (!this.db) throw new Error('Database not connected');
-        const stmt = this.db.prepare(sql);
-        return stmt.all(...(params || [])) as T[];
+        return this.query<T>(sql, params);
       },
       commit: async () => {
-        // Commit is handled by better-sqlite3 transaction function
+        // Commit is handled automatically at the end
       },
       rollback: async () => {
         throw new Error('Transaction rollback requested');
       },
     };
 
-    // Use better-sqlite3 transaction wrapper
-    const wrappedCallback = this.db.transaction(async () => {
-      return await callback(transaction);
-    });
-
+    // Manually handle transaction with BEGIN/COMMIT/ROLLBACK for async support
     try {
-      return wrappedCallback();
+      console.log('[SQLite] BEGIN');
+      this.db.prepare('BEGIN').run();
+
+      const result = await callback(transaction);
+
+      console.log('[SQLite] COMMIT');
+      this.db.prepare('COMMIT').run();
+
+      return result;
     } catch (error) {
       console.error('[SqliteDbProvider] Transaction error:', error);
+
+      try {
+        console.log('[SQLite] ROLLBACK');
+        this.db.prepare('ROLLBACK').run();
+      } catch (rollbackError) {
+        console.error('[SqliteDbProvider] Rollback error:', rollbackError);
+      }
+
       throw error;
     }
   }

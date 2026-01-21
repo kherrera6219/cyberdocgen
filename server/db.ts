@@ -6,42 +6,59 @@ import { logger } from "./utils/logger";
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
+// In local mode, we use SQLite via providers instead of PostgreSQL
+// This file is only used in cloud mode
+const isLocalMode = process.env.DEPLOYMENT_MODE === 'local';
+
+if (!isLocalMode && !process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
 }
 
-// Connection pool configuration with timeouts and error handling
-const poolConfig = {
-  connectionString: process.env.DATABASE_URL,
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 10000, // Return error after 10 seconds if connection cannot be established
-};
+// Only initialize PostgreSQL pool in cloud mode
+let pool: Pool | null = null;
+let db: ReturnType<typeof drizzle> | null = null;
 
-export const pool = new Pool(poolConfig);
+if (!isLocalMode) {
+  // Connection pool configuration with timeouts and error handling
+  const poolConfig = {
+    connectionString: process.env.DATABASE_URL!,
+    max: 20, // Maximum number of clients in the pool
+    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+    connectionTimeoutMillis: 10000, // Return error after 10 seconds if connection cannot be established
+  };
 
-// Connection pool error handling
-pool.on("error", (err) => {
-  logger.error("Unexpected database pool error", { error: err.message, stack: err.stack });
-});
+  pool = new Pool(poolConfig);
 
-pool.on("connect", () => {
-  logger.debug("New database connection established");
-});
+  // Connection pool error handling
+  pool.on("error", (err) => {
+    logger.error("Unexpected database pool error", { error: err.message, stack: err.stack });
+  });
 
-pool.on("remove", () => {
-  logger.debug("Database connection removed from pool");
-});
+  pool.on("connect", () => {
+    logger.debug("New database connection established");
+  });
 
-// Configure query timeout (30 seconds default)
-neonConfig.fetchConnectionCache = true;
+  pool.on("remove", () => {
+    logger.debug("Database connection removed from pool");
+  });
 
-export const db = drizzle({ client: pool, schema });
+  // Configure query timeout (30 seconds default)
+  neonConfig.fetchConnectionCache = true;
+
+  db = drizzle({ client: pool, schema });
+}
+
+export { pool, db };
 
 /**
  * Test database connection health
  */
 export async function testDatabaseConnection(): Promise<boolean> {
+  if (!pool) {
+    // In local mode, providers handle database connection testing
+    return true;
+  }
+
   try {
     const client = await pool.connect();
     await client.query("SELECT 1");
@@ -60,6 +77,10 @@ export async function testDatabaseConnection(): Promise<boolean> {
  * Get database connection pool metrics
  */
 export function getPoolMetrics() {
+  if (!pool) {
+    return { totalCount: 0, idleCount: 0, waitingCount: 0 };
+  }
+
   return {
     totalCount: pool.totalCount,
     idleCount: pool.idleCount,
@@ -104,6 +125,11 @@ export async function executeWithRetry<T>(
  * Gracefully close database connections
  */
 export async function closeDatabaseConnections(): Promise<void> {
+  if (!pool) {
+    // In local mode, providers handle database connection closing
+    return;
+  }
+
   try {
     await pool.end();
     logger.info("Database connections closed gracefully");
