@@ -2,9 +2,32 @@
 
 ## Overview
 
-CyberDocGen is designed for deployment on Replit's cloud platform with automatic scaling, health monitoring, and zero-downtime updates. This guide covers deployment configuration, environment setup, and operational procedures for production environments.
+CyberDocGen supports two deployment modes:
 
-## Prerequisites
+1. **Cloud Mode** - Hosted on cloud platforms (Replit, AWS, GCP, Azure) with PostgreSQL database and multi-tenancy
+2. **Local Mode** - Windows 11 desktop application with SQLite database and local storage
+
+This guide covers deployment configuration, environment setup, and operational procedures for both deployment modes.
+
+---
+
+## Table of Contents
+
+- [Cloud Mode Deployment](#cloud-mode-deployment)
+  - [Prerequisites](#cloud-mode-prerequisites)
+  - [Deployment Process](#cloud-deployment-process)
+  - [Configuration](#cloud-configuration)
+- [Local Mode Deployment](#local-mode-deployment)
+  - [Prerequisites](#local-mode-prerequisites)
+  - [Building Desktop Application](#building-desktop-application)
+  - [Microsoft Store Distribution](#microsoft-store-distribution)
+- [Common Operations](#common-operations)
+
+---
+
+# Cloud Mode Deployment
+
+## Cloud Mode Prerequisites
 
 ### Required Services
 - **Replit Account**: Pro or higher for production deployments
@@ -49,7 +72,7 @@ MICROSOFT_CLIENT_ID=...
 MICROSOFT_CLIENT_SECRET=...
 ```
 
-## Deployment Process
+## Cloud Deployment Process
 
 ### Automatic Deployment
 1. **Code Push**: Push changes to main branch
@@ -309,3 +332,432 @@ npm run logs:tail
 3. **Deploy**: Rolling deployment with health checks
 4. **Verify**: Post-deployment verification
 5. **Monitor**: Continuous monitoring after updates
+
+---
+
+# Local Mode Deployment
+
+## Local Mode Prerequisites
+
+### Development Environment
+- **Operating System**: Windows 11 (64-bit)
+- **Node.js**: 20 or higher
+- **npm**: 10 or higher
+- **Python**: 3.11+ (for native module compilation)
+- **Visual Studio Build Tools**: Required for keytar native module
+
+### Build Tools Installation
+
+**Install Visual Studio Build Tools**:
+```powershell
+# Install via Chocolatey (recommended)
+choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools"
+
+# Or download from Microsoft
+# https://visualstudio.microsoft.com/downloads/
+```
+
+**Install Node.js and npm**:
+```powershell
+# Install via Chocolatey
+choco install nodejs-lts
+
+# Or download from nodejs.org
+```
+
+### Required Dependencies
+
+**Install Project Dependencies**:
+```bash
+npm install
+
+# Electron and build tools
+npm install --save-dev electron@35 electron-builder@24
+
+# Local mode dependencies
+npm install better-sqlite3@11 keytar@7.9 electron-updater@6.1
+```
+
+## Building Desktop Application
+
+### Development Build
+
+**Run in Development Mode**:
+```bash
+# Set environment for local mode
+npm run electron:dev
+
+# This starts:
+# 1. Backend server with DEPLOYMENT_MODE=local
+# 2. Frontend with Vite dev server
+# 3. Electron wrapper connecting to localhost:5000
+```
+
+**Development Features**:
+- Hot reload for frontend changes
+- DevTools enabled
+- Localhost binding (127.0.0.1:5231 for backend)
+- Console logging for debugging
+
+### Production Build
+
+**Build Desktop Application**:
+```bash
+# Full production build
+npm run electron:build
+
+# This creates:
+# 1. Optimized frontend bundle (client/dist/)
+# 2. Compiled backend (server/dist/)
+# 3. Electron distributable in dist/ folder
+```
+
+**Build Artifacts** (in `dist/` folder):
+- `CyberDocGen-Setup-3.0.0.exe` - NSIS installer (recommended)
+- `CyberDocGen-3.0.0.msix` - Microsoft Store package
+- `CyberDocGen-3.0.0-win.zip` - Portable version (no installer)
+- `latest.yml` - Auto-updater metadata
+
+### Build Configuration
+
+**electron-builder.yml**:
+```yaml
+appId: com.cyberdocgen.app
+productName: CyberDocGen
+copyright: Copyright © 2026 CyberDocGen
+directories:
+  output: dist
+  buildResources: resources
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+    - target: appx  # MSIX for Microsoft Store
+      arch: [x64]
+
+  # Code signing (required for Microsoft Store)
+  certificateFile: cert.pfx  # Your certificate
+  certificatePassword: ${CERT_PASSWORD}
+
+  # MSIX configuration
+  appx:
+    publisher: CN=CyberDocGen
+    publisherDisplayName: CyberDocGen
+    identityName: CyberDocGen.CyberDocGen
+    applicationId: CyberDocGen
+    displayName: CyberDocGen
+    backgroundColor: "#1a1a1a"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: CyberDocGen
+
+publish:
+  provider: generic
+  url: https://releases.cyberdocgen.com
+```
+
+### Code Signing
+
+**Required for Microsoft Store and trusted installation**:
+
+1. **Obtain Code Signing Certificate**:
+   - Extended Validation (EV) certificate recommended
+   - Standard code signing certificate acceptable
+   - Available from DigiCert, Sectigo, GlobalSign
+
+2. **Configure Certificate**:
+```bash
+# Set certificate password in environment
+export CERT_PASSWORD="your-certificate-password"
+
+# Place certificate in project root
+cp your-cert.pfx cert.pfx
+```
+
+3. **Build with Signing**:
+```bash
+# Automatically signs during build
+npm run electron:build
+```
+
+## Microsoft Store Distribution
+
+### Store Submission Requirements
+
+**App Requirements**:
+- ✅ Code signed with valid certificate
+- ✅ MSIX package format
+- ✅ Passes Windows App Certification Kit (WACK)
+- ✅ Privacy policy URL
+- ✅ Age rating declaration
+- ✅ Screenshots and store listing assets
+
+### Creating MSIX Package
+
+**Build MSIX**:
+```bash
+# Build specifically for Microsoft Store
+npm run electron:build -- --win appx
+
+# Output: dist/CyberDocGen-3.0.0.msix
+```
+
+**Validate MSIX Package**:
+```bash
+# Run Windows App Certification Kit
+# Included with Windows SDK
+"C:\Program Files (x86)\Windows Kits\10\App Certification Kit\appcert.exe" test -appxpackagepath dist\CyberDocGen-3.0.0.msix -reportoutputpath wack-report.xml
+```
+
+**Automated Validation** (via npm script):
+```bash
+npm run validate:wack
+```
+
+### Partner Center Submission
+
+1. **Create App Listing**:
+   - Go to [Partner Center](https://partner.microsoft.com/dashboard)
+   - Create new app submission
+   - Fill in app details (name, description, category)
+
+2. **Upload Package**:
+   - Upload `CyberDocGen-3.0.0.msix`
+   - System automatically validates package
+
+3. **Configure Store Listing**:
+   - **Description**: Compliance management platform with AI assistance
+   - **Category**: Productivity → Business
+   - **Age Rating**: Everyone
+   - **Screenshots**: 4-10 screenshots showing key features
+   - **Privacy Policy**: https://cyberdocgen.com/privacy
+
+4. **Pricing & Availability**:
+   - Free or paid (configure pricing tiers)
+   - Geographic availability
+   - Release date
+
+5. **Submit for Certification**:
+   - Review all sections
+   - Click "Submit to Store"
+   - Certification typically takes 24-48 hours
+
+### Auto-Update Configuration
+
+**Update Server Setup**:
+
+Option 1: **Static Hosting** (GitHub Releases, S3, Azure Blob):
+```yaml
+# In electron-builder.yml
+publish:
+  provider: github
+  owner: cyberdocgen
+  repo: cyberdocgen
+```
+
+Option 2: **Custom Update Server**:
+```yaml
+publish:
+  provider: generic
+  url: https://releases.cyberdocgen.com
+```
+
+**Update Server Structure**:
+```
+https://releases.cyberdocgen.com/
+├── latest.yml              # Update metadata
+├── CyberDocGen-Setup-3.0.0.exe
+└── CyberDocGen-3.0.0.msix
+```
+
+**latest.yml Format**:
+```yaml
+version: 3.0.0
+releaseDate: '2026-01-21T00:00:00.000Z'
+files:
+  - url: CyberDocGen-Setup-3.0.0.exe
+    sha512: <hash>
+    size: 123456789
+path: CyberDocGen-Setup-3.0.0.exe
+sha512: <hash>
+releaseNotes: |-
+  - New feature: API key management UI
+  - Improved: Database performance
+  - Fixed: Window state persistence
+```
+
+**Update Checking** (configured in `electron/main.ts`):
+- Checks on startup (after 5 seconds)
+- Checks every 4 hours while running
+- Downloads updates automatically in background
+- Prompts user to restart when update ready
+
+## Local Mode Configuration
+
+### Environment Variables
+
+**Set Before Starting** (electron/main.ts handles this automatically):
+```typescript
+process.env.DEPLOYMENT_MODE = 'local';
+process.env.LOCAL_DATA_PATH = app.getPath('userData');
+process.env.LOCAL_PORT = '5231';
+```
+
+**User Data Location**:
+- **Windows**: `%APPDATA%\CyberDocGen\`
+- **Database**: `%APPDATA%\CyberDocGen\cyberdocgen.db`
+- **Storage**: `%APPDATA%\CyberDocGen\storage\`
+- **Window State**: `%APPDATA%\CyberDocGen\window-state.json`
+
+### API Key Configuration
+
+**Windows Credential Manager**:
+- API keys stored via keytar library
+- Service name: `CyberDocGen`
+- Encrypted with user's Windows login credentials
+- Managed via Settings → API Keys in app
+
+**Manual Configuration** (for development):
+```bash
+# Alternative: Set via environment variables
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+export GOOGLE_AI_API_KEY="AIza..."
+```
+
+## Installation & Distribution
+
+### Direct Distribution
+
+**Download and Install**:
+1. User downloads `CyberDocGen-Setup-3.0.0.exe`
+2. Runs installer (Windows may show SmartScreen warning if not signed)
+3. Follows installation wizard
+4. Launches from Start Menu or desktop shortcut
+
+**Silent Installation**:
+```powershell
+# For enterprise deployment
+CyberDocGen-Setup-3.0.0.exe /S /allusers
+
+# Or per-user
+CyberDocGen-Setup-3.0.0.exe /S /currentuser
+```
+
+### Microsoft Store Distribution
+
+**User Installation**:
+1. Open Microsoft Store
+2. Search for "CyberDocGen"
+3. Click "Get" or "Install"
+4. Automatic installation and updates
+
+**Advantages**:
+- Automatic updates via Microsoft Store
+- Trusted installation source
+- No code signing warnings
+- Sandbox security model
+- Easy discovery
+
+### Portable Version
+
+**For users who prefer no installation**:
+```bash
+# Extract portable version
+unzip CyberDocGen-3.0.0-win.zip
+
+# Run directly
+.\CyberDocGen\CyberDocGen.exe
+```
+
+**Portable Mode**:
+- Data stored in app directory instead of AppData
+- No registry modifications
+- Can run from USB drive
+- Manual updates only
+
+## Troubleshooting Local Mode
+
+### Build Issues
+
+**Native Module Compilation Errors** (keytar):
+```bash
+# Ensure Visual Studio Build Tools installed
+npm install --global windows-build-tools
+
+# Rebuild native modules
+npm rebuild keytar --update-binary
+
+# Or clean install
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**Electron Build Errors**:
+```bash
+# Clear Electron cache
+rm -rf node_modules/.cache/electron*
+
+# Reinstall Electron
+npm install electron@35 --save-dev
+
+# Clean build
+npm run clean
+npm run electron:build
+```
+
+### Runtime Issues
+
+**Database Locked**:
+- SQLite database locked by another process
+- Solution: Ensure only one instance running
+- Check Task Manager for CyberDocGen processes
+
+**Windows Credential Manager Errors**:
+- Keytar initialization failed
+- Solution: Falls back to environment variables
+- Check Windows Credential Manager access
+
+**Auto-Update Failures**:
+- Cannot connect to update server
+- Solution: Check network connectivity
+- Verify update server URL configuration
+
+**Port Already in Use** (5231):
+```bash
+# Find process using port
+netstat -ano | findstr :5231
+
+# Kill process
+taskkill /PID <process-id> /F
+```
+
+### Debug Mode
+
+**Enable Debug Logging**:
+```bash
+# Set before starting
+$env:DEBUG="*"
+npm run electron:dev
+
+# Or in production
+$env:ELECTRON_ENABLE_LOGGING=1
+CyberDocGen.exe
+```
+
+**Log Locations**:
+- **App Logs**: `%APPDATA%\CyberDocGen\logs\`
+- **Electron Logs**: Console output in DevTools
+- **Database Logs**: `%APPDATA%\CyberDocGen\db.log`
+
+---
+
+# Common Operations

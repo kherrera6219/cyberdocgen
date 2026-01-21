@@ -2,10 +2,10 @@
 
 ## Enterprise Compliance Management System
 
-**Version 2.3.0** | January 19, 2026
+**Version 3.0.0** | January 21, 2026
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.1.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-3.0.0-green.svg)](CHANGELOG.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
@@ -37,6 +37,17 @@
 - [License](#license)
 
 ## Latest Updates
+
+**Version 3.0.0 - January 21, 2026** - Windows Local Mode (ALL SPRINTS COMPLETE):
+
+- ✅ **True Offline Desktop Application** - Complete local mode implementation for Windows 11
+- ✅ **SQLite Database** - Local data storage with WAL mode, backup/restore, and maintenance
+- ✅ **Local Filesystem Storage** - Content-addressable file storage with security validation
+- ✅ **Windows Credential Manager** - Secure API key storage using OS-level encryption
+- ✅ **Desktop Integration** - Native menus, system tray, window state persistence
+- ✅ **Auto-Updates** - Automatic update mechanism with user-friendly notifications
+- ✅ **API Key Management UI** - Complete interface for managing AI provider keys
+- ✅ **Production Ready** - Microsoft Store compliant and ready for distribution
 
 **Version 2.3.0 - January 19, 2026** - Connectors & Evidence Ingestion:
 
@@ -109,12 +120,54 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ### Key Highlights
 
+- 💻 **Windows Local Mode** - True offline desktop application with local SQLite database and Windows Credential Manager
 - 🤖 **AI-Powered** - Latest AI models (GPT-5.1, Claude Opus 4.5, Gemini 3.0 Pro) for intelligent document generation
 - 🏢 **Enterprise-Ready** - Multi-tenancy, RBAC, audit logging, and SOC 2 compliance
 - 🔒 **Security-First** - MFA, encryption, threat detection, and comprehensive security measures
 - ☁️ **Cloud-Integrated** - Google Drive and Microsoft OneDrive connectivity
 - 📊 **Compliance Frameworks** - ISO 27001:2022, SOC 2, FedRAMP, NIST 800-53 Rev 5
 - 🚀 **Production-Ready** - Comprehensive testing, monitoring, and deployment tools
+
+## Deployment Modes
+
+CyberDocGen supports two deployment modes to meet different organizational needs:
+
+### 🌐 Cloud Mode (Default)
+
+**Best for:** Teams, enterprises, and organizations requiring collaboration
+
+- **Hosted Infrastructure** - Deployed on cloud platforms (AWS, GCP, Azure, Replit)
+- **PostgreSQL Database** - Enterprise-grade relational database with Neon serverless
+- **Cloud Storage** - Google Cloud Storage for file management
+- **Multi-tenancy** - Full organization isolation with RBAC
+- **Collaboration** - Real-time document editing and team workflows
+- **Authentication** - Microsoft Entra ID (Azure AD) SSO with OIDC + PKCE
+- **Scalability** - Auto-scaling infrastructure for growing teams
+
+### 💻 Windows Local Mode
+
+**Best for:** Individual users, contractors, and offline compliance work
+
+- **True Offline** - No internet required after setup, all data stays local
+- **SQLite Database** - High-performance local database with WAL mode
+- **Local Filesystem** - Content-addressable storage on your computer
+- **Windows Credential Manager** - Secure API key storage using OS encryption
+- **Desktop Integration** - Native Windows app with system tray and menus
+- **Auto-Updates** - Automatic application updates when online
+- **Privacy-First** - Your data never leaves your machine
+- **Microsoft Store Ready** - Available for easy installation and updates
+
+#### Local Mode Features
+
+- ✅ Database backup/restore with one-click operations
+- ✅ Database maintenance and optimization tools
+- ✅ Storage statistics and cleanup utilities
+- ✅ API key management UI for OpenAI, Anthropic, and Google AI
+- ✅ Window state persistence (size, position, maximized state)
+- ✅ Native keyboard shortcuts (Ctrl+N, Ctrl+S, etc.)
+- ✅ System tray integration with quick access
+
+See [Local Mode User Guide](docs/LOCAL_MODE_GUIDE.md) for detailed setup and usage instructions.
 
 ## Features
 
@@ -180,7 +233,8 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 - **Node.js 20** - JavaScript runtime
 - **Express 4.21** - Web framework
 - **TypeScript 5.9** - Type safety
-- **PostgreSQL 16** - Relational database
+- **PostgreSQL 16** - Relational database (Cloud Mode)
+- **SQLite 3** with **better-sqlite3** - Local database (Local Mode)
 - **Drizzle ORM 0.39** - Type-safe ORM
 - **Passport.js** - Authentication middleware
 - **OpenAI API** - GPT-5.1 integration (latest flagship model)
@@ -189,9 +243,12 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ### Infrastructure
 
-- **Neon** - Serverless PostgreSQL
-- **Google Cloud Storage** - Object storage
-- **Replit** - Deployment platform
+- **Neon** - Serverless PostgreSQL (Cloud Mode)
+- **Google Cloud Storage** - Object storage (Cloud Mode)
+- **Electron 35** - Desktop application wrapper (Local Mode)
+- **keytar 7.9** - Windows Credential Manager integration (Local Mode)
+- **electron-updater 6.1** - Auto-update mechanism (Local Mode)
+- **Replit** - Deployment platform (Cloud Mode)
 - **Winston** - Structured logging
 - **Vitest** - Unit testing framework
 
@@ -249,6 +306,49 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_SETUP.md).
 
+### Local Mode Quick Start (Windows 11)
+
+For users who want a standalone desktop application with local data storage:
+
+1. **Download the Windows installer**
+
+   - Download `CyberDocGen-Setup-3.0.0.exe` from releases
+   - Or download from the Microsoft Store (coming soon)
+
+2. **Install the application**
+
+   ```bash
+   # Run the installer and follow the setup wizard
+   CyberDocGen-Setup-3.0.0.exe
+   ```
+
+3. **Launch CyberDocGen**
+
+   - Find "CyberDocGen" in Start Menu
+   - Or launch from desktop shortcut
+   - App will start in local mode automatically
+
+4. **Configure AI API Keys** (Required for AI features)
+
+   - Navigate to Settings → API Keys
+   - Add your OpenAI, Anthropic, or Google AI keys
+   - Keys are stored securely in Windows Credential Manager
+   - Test each key to verify configuration
+
+5. **Start using CyberDocGen**
+
+   - All data stored locally in `%APPDATA%/CyberDocGen/`
+   - No internet required after setup
+   - Auto-updates check periodically when online
+
+**Local Mode Features:**
+- Database backup/restore via Database menu
+- Storage management in Settings → Local Settings
+- Native keyboard shortcuts (Ctrl+N for new document)
+- System tray icon for quick access
+
+For detailed local mode documentation, see [Local Mode User Guide](docs/LOCAL_MODE_GUIDE.md).
+
 ## Documentation
 
 ### Getting Started
@@ -282,22 +382,35 @@ For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_
 cyberdocgen/
 ├── client/                 # React frontend
 │   ├── src/
-│   │   ├── pages/         # Page components (39 pages)
-│   │   ├── components/    # Reusable components (114+ organized by feature)
+│   │   ├── pages/         # Page components (41 pages, including local-settings, api-keys)
+│   │   ├── components/    # Reusable components (116+ organized by feature)
+│   │   │   └── local-mode/  # Local mode components (LocalModeBanner)
 │   │   ├── hooks/         # Custom React hooks (15+ hooks)
 │   │   ├── contexts/      # Context API providers
 │   │   ├── lib/           # Utility libraries
 │   │   └── styles/        # CSS and styling
 │   └── README.md          # Frontend documentation
 │
+├── electron/               # Electron desktop application (Local Mode)
+│   ├── main.ts            # Main process (503 lines: security, menus, tray, auto-updates)
+│   ├── preload.ts         # Preload script for IPC security
+│   └── electron-builder.yml  # MSIX packaging configuration
+│
 ├── server/                 # Node.js backend
 │   ├── index.ts           # Server entry point
 │   ├── routes.ts          # API routes aggregation
-│   ├── routes/            # Route modules (27 modules + AI sub-routes)
+│   ├── routes/            # Route modules (28 modules including localMode.ts)
 │   ├── services/          # Business logic (42 services)
 │   ├── middleware/        # Express middleware (10+ modules)
 │   ├── mcp/               # Model Context Protocol integration
 │   ├── monitoring/        # Metrics and health checks
+│   ├── providers/         # Abstraction layer for dual-mode deployment
+│   │   ├── db/            # Database providers (PostgreSQL, SQLite)
+│   │   ├── storage/       # Storage providers (GCS, LocalFs)
+│   │   ├── auth/          # Auth providers (Passport, Local)
+│   │   └── secrets/       # Secrets providers (EnvVars, WindowsCredMan)
+│   ├── config/            # Runtime configuration
+│   │   └── runtime.ts     # Mode detection and feature flags
 │   ├── utils/             # Utilities (logging, validation)
 │   └── README.md          # Backend documentation
 │
@@ -394,12 +507,19 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 ### Available Scripts
 
 ```bash
+# Cloud Mode (Development)
 npm run dev          # Start development server
 npm run build        # Build for production
 npm start            # Start production server
 npm run check        # TypeScript type checking
 npm test             # Run tests
 npm run db:push      # Apply database changes
+
+# Local Mode (Desktop Application)
+npm run electron:dev       # Start Electron in development mode
+npm run electron:build     # Build desktop app for Windows
+npm run electron:package   # Package without installer
+npm run electron:dist      # Create distributable installer
 ```
 
 ### Development Workflow
@@ -432,10 +552,16 @@ NODE_ENV=production npm start
 
 ### Deployment Options
 
+**Cloud Mode:**
 - **Replit** - Configured and ready
 - **Docker** - Containerized deployment
 - **Traditional VPS** - Linux server deployment
 - **Cloud Platforms** - AWS, GCP, Azure
+
+**Local Mode:**
+- **Windows Desktop** - MSIX installer for Windows 11
+- **Microsoft Store** - Easy installation and auto-updates (coming soon)
+- **Portable Build** - No-install portable executable
 
 See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
 
