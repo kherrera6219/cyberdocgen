@@ -115,6 +115,20 @@ app.use((req, res, next) => {
   const port = config.server.port;
   const host = config.server.host;
 
+  // SECURITY: In local mode, ENFORCE localhost-only binding
+  if (config.mode === 'local' && host !== '127.0.0.1') {
+    const error = new Error(
+      `SECURITY VIOLATION: Local mode MUST bind to 127.0.0.1 only. ` +
+      `Attempted to bind to: ${host}`
+    );
+    logger.error('Security violation: Invalid host binding in local mode', {
+      attemptedHost: host,
+      requiredHost: '127.0.0.1',
+      mode: config.mode
+    });
+    throw error;
+  }
+
   server.listen({
     port,
     host,
@@ -126,6 +140,14 @@ app.use((req, res, next) => {
       mode: config.mode,
       environment: process.env.NODE_ENV
     });
+
+    // Additional security log for local mode
+    if (config.mode === 'local') {
+      logger.info('Local mode security: Server bound to localhost only', {
+        host,
+        message: 'External network access blocked'
+      });
+    }
   });
 
   // Graceful shutdown handling for autoscale deployments
