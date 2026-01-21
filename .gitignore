@@ -11,6 +11,10 @@ coverage_*.json
 *.log
 .vitest-results.json
 
+# Local mode test data
+local-data-test/
+test-data/
+
 # Environment files (contain sensitive data)
 .env
 .env.local
