@@ -7,6 +7,15 @@ const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 
+// Configure local mode environment variables for the backend
+// This must be done before the backend server starts
+process.env.DEPLOYMENT_MODE = 'local';
+process.env.LOCAL_DATA_PATH = app.getPath('userData');
+process.env.LOCAL_PORT = '5231';
+
+console.log('[Electron] Local mode configured');
+console.log('[Electron] User data path:', app.getPath('userData'));
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
