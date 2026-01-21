@@ -11,6 +11,9 @@ if (typeof global !== 'undefined' && typeof HTMLFormElement !== 'undefined') {
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
+import { toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
 
 // Set test environment variables
 process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test';

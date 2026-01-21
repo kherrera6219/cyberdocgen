@@ -14,8 +14,37 @@ expect.extend(toHaveNoViolations);
 
 // Import components to test
 import { SkipNavigation, MainContent } from '../../client/src/components/SkipNavigation';
+import { Landing } from '../../client/src/pages/landing';
+import Dashboard from '../../client/src/pages/dashboard';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../../client/src/lib/queryClient';
+
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <QueryClientProvider client={queryClient}>
+    {children}
+  </QueryClientProvider>
+);
 
 describe('Accessibility Tests', () => {
+  describe('Pages', () => {
+    it('Landing page should not have any accessibility violations', async () => {
+      const { container } = render(<Landing />);
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+
+    it('Dashboard should not have any accessibility violations', async () => {
+      // Mock auth and data if necessary, or test the shell
+      const { container } = render(
+        <Wrapper>
+          <Dashboard />
+        </Wrapper>
+      );
+      const results = await axe(container);
+      expect(results).toHaveNoViolations();
+    });
+  });
+
   describe('SkipNavigation Component', () => {
     it('should not have any accessibility violations', async () => {
       const { container } = render(<SkipNavigation />);
