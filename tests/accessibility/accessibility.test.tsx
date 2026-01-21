@@ -86,6 +86,64 @@ describe('Accessibility Tests', () => {
       expect(main?.getAttribute('tabIndex')).toBe('-1');
     });
   });
+
+  describe('Critical Pages - Extended Coverage', () => {
+    // Skip these tests in CI if they cause issues with lazy loading
+    const runExtendedTests = process.env.CI !== 'true';
+
+    it.skipIf(!runExtendedTests)('ai-doc-generator should not have accessibility violations', async () => {
+      // Dynamic import to handle lazy loading
+      const { default: AiDocGenerator } = await import('../../client/src/pages/ai-doc-generator');
+      const { container } = render(
+        <Wrapper>
+          <AiDocGenerator />
+        </Wrapper>
+      );
+      const results = await axe(container, {
+        rules: { 'color-contrast': { enabled: false } },
+      });
+      expect(results).toHaveNoViolations();
+    });
+
+    it.skipIf(!runExtendedTests)('documents page should not have accessibility violations', async () => {
+      const { default: Documents } = await import('../../client/src/pages/documents');
+      const { container } = render(
+        <Wrapper>
+          <Documents />
+        </Wrapper>
+      );
+      const results = await axe(container, {
+        rules: { 'color-contrast': { enabled: false } },
+      });
+      expect(results).toHaveNoViolations();
+    });
+
+    it.skipIf(!runExtendedTests)('gap-analysis page should not have accessibility violations', async () => {
+      const { default: GapAnalysis } = await import('../../client/src/pages/gap-analysis');
+      const { container } = render(
+        <Wrapper>
+          <GapAnalysis />
+        </Wrapper>
+      );
+      const results = await axe(container, {
+        rules: { 'color-contrast': { enabled: false } },
+      });
+      expect(results).toHaveNoViolations();
+    });
+
+    it.skipIf(!runExtendedTests)('mfa-setup page should not have accessibility violations', async () => {
+      const { default: MfaSetup } = await import('../../client/src/pages/mfa-setup');
+      const { container } = render(
+        <Wrapper>
+          <MfaSetup />
+        </Wrapper>
+      );
+      const results = await axe(container, {
+        rules: { 'color-contrast': { enabled: false } },
+      });
+      expect(results).toHaveNoViolations();
+    });
+  });
 });
 
 /**

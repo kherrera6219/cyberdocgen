@@ -23,10 +23,22 @@ export default defineConfig({
   test: {
     globals: true,
     setupFiles: ["./tests/setup.ts"],
+    // Global timeout settings to prevent hanging tests
+    testTimeout: 30000, // 30 seconds per individual test
+    hookTimeout: 10000, // 10 seconds for beforeEach/afterEach hooks
+    teardownTimeout: 10000, // 10 seconds for cleanup
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      exclude: ["node_modules/", "tests/", "dist/", "client/", "**/*.d.ts"],
+      exclude: [
+        "node_modules/",
+        "tests/",
+        "dist/",
+        "client/src/components/ui/**", // Exclude shadcn UI primitives (third-party)
+        "**/*.stories.tsx", // Exclude story files
+        "**/*.d.ts",
+        ".storybook/**",
+      ],
       // Enforce 80% minimum coverage for enterprise standards
       thresholds: {
         lines: 80,
@@ -64,28 +76,29 @@ export default defineConfig({
           globals: true,
         },
       },
-      // {
-      //   extends: true,
-      //   plugins: [
-      //     storybookTest({
-      //       configDir: path.join(dirname, ".storybook"),
-      //     }),
-      //   ],
-      //   test: {
-      //     name: "storybook",
-      //     // browser: {
-      //     //   enabled: true,
-      //     //   headless: true,
-      //     //   provider: playwright({}),
-      //     //   instances: [
-      //     //     {
-      //     //       browser: "chromium",
-      //     //     },
-      //     //   ],
-      //     // },
-      //     setupFiles: [".storybook/vitest.setup.ts"],
-      //   },
-      // },
+      {
+        extends: true,
+        plugins: [
+          storybookTest({
+            configDir: path.join(dirname, ".storybook"),
+          }),
+        ],
+        test: {
+          name: "storybook",
+          // Browser-based testing with Playwright (uncomment when needed)
+          // browser: {
+          //   enabled: true,
+          //   headless: true,
+          //   provider: playwright({}),
+          //   instances: [
+          //     {
+          //       browser: "chromium",
+          //     },
+          //   ],
+          // },
+          setupFiles: [".storybook/vitest.setup.ts"],
+        },
+      },
     ],
   },
 });

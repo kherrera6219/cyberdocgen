@@ -22,6 +22,9 @@
     "electron:build": "esbuild electron/main.ts electron/preload.ts --platform=node --bundle --format=esm --outdir=dist/electron",
     "test:a11y": "vitest run tests/accessibility",
     "test:size": "npm run build && tsx scripts/check-bundle-size.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
     "build:msix": "npm run build && npm run electron:build && electron-builder build --win msix"
   },
   "dependencies": {
