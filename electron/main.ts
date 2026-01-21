@@ -1,6 +1,6 @@
 /**
  * Electron Main Process
- * Sprint 2: Desktop Integration & Hardening
+ * Sprint 2-3: Desktop Integration, Hardening & Auto-Updates
  *
  * Security features:
  * - Content Security Policy
@@ -12,9 +12,11 @@
  * - Window state persistence
  * - Native menus and shortcuts
  * - System tray integration
+ * - Auto-update mechanism (Sprint 3)
  */
 
 import { app, BrowserWindow, shell, Menu, Tray, nativeImage, ipcMain, dialog } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -403,6 +405,72 @@ function setupIpcHandlers() {
 }
 
 /**
+ * Setup auto-updater (Sprint 3)
+ * Handles automatic application updates
+ */
+function setupAutoUpdater() {
+  // Configure auto-updater
+  autoUpdater.logger = console;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  // Check for updates on startup (after 5 seconds)
+  setTimeout(() => {
+    autoUpdater.checkForUpdatesAndNotify();
+  }, 5000);
+
+  // Check for updates every 4 hours
+  setInterval(() => {
+    autoUpdater.checkForUpdatesAndNotify();
+  }, 4 * 60 * 60 * 1000);
+
+  // Handle update events
+  autoUpdater.on('checking-for-update', () => {
+    console.log('[AutoUpdater] Checking for updates...');
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('[AutoUpdater] Update available:', info.version);
+    mainWindow?.webContents.send('update-available', info);
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    console.log('[AutoUpdater] Update not available:', info.version);
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    const message = `Downloaded ${progress.percent.toFixed(1)}%`;
+    console.log('[AutoUpdater]', message);
+    mainWindow?.webContents.send('update-download-progress', progress);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('[AutoUpdater] Update downloaded:', info.version);
+    mainWindow?.webContents.send('update-downloaded', info);
+
+    // Prompt user to restart
+    dialog.showMessageBox(mainWindow!, {
+      type: 'info',
+      title: 'Update Ready',
+      message: 'A new version has been downloaded',
+      detail: `Version ${info.version} will be installed when you restart the application. Restart now?`,
+      buttons: ['Restart Now', 'Later'],
+      defaultId: 0,
+      cancelId: 1,
+    }).then(result => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  autoUpdater.on('error', (error) => {
+    console.error('[AutoUpdater] Error:', error);
+    mainWindow?.webContents.send('update-error', error.message);
+  });
+}
+
+/**
  * Application lifecycle
  */
 app.whenReady().then(() => {
@@ -410,6 +478,7 @@ app.whenReady().then(() => {
   createMenu();
   createTray();
   setupIpcHandlers();
+  setupAutoUpdater();
 
   console.log('[Electron] Application ready');
 });

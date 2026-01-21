@@ -295,6 +295,163 @@ router.post('/cleanup', async (req, res) => {
 });
 
 /**
+ * Get configured API key providers
+ * GET /api/local/api-keys/configured
+ */
+router.get('/api-keys/configured', async (req, res) => {
+  try {
+    if (!isLocalMode()) {
+      return res.status(403).json({
+        error: 'This endpoint is only available in local mode',
+      });
+    }
+
+    const providers = await getProviders();
+    const configured = await providers.secrets.getConfiguredProviders();
+
+    res.json({ configured });
+  } catch (error) {
+    logger.error('Failed to get configured API key providers', { error });
+    res.status(500).json({
+      error: 'Failed to get configured providers',
+    });
+  }
+});
+
+/**
+ * Test an API key
+ * POST /api/local/api-keys/test
+ */
+router.post('/api-keys/test', async (req, res) => {
+  try {
+    if (!isLocalMode()) {
+      return res.status(403).json({
+        error: 'This endpoint is only available in local mode',
+      });
+    }
+
+    const { provider, apiKey } = req.body;
+
+    if (!provider || !apiKey) {
+      return res.status(400).json({
+        error: 'provider and apiKey are required',
+      });
+    }
+
+    // Test the API key by making a simple request
+    let valid = false;
+    try {
+      if (provider === 'OPENAI') {
+        const response = await fetch('https://api.openai.com/v1/models', {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        valid = response.ok;
+      } else if (provider === 'ANTHROPIC') {
+        // Anthropic doesn't have a simple test endpoint, so we just check format
+        valid = apiKey.startsWith('sk-ant-');
+      } else if (provider === 'GOOGLE_AI') {
+        // Google AI key validation
+        valid = apiKey.startsWith('AIza');
+      }
+
+      res.json({ valid });
+    } catch (error) {
+      res.json({ valid: false, error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  } catch (error) {
+    logger.error('Failed to test API key', { error });
+    res.status(500).json({
+      error: 'Failed to test API key',
+    });
+  }
+});
+
+/**
+ * Save an API key
+ * POST /api/local/api-keys/:provider
+ */
+router.post('/api-keys/:provider', async (req, res) => {
+  try {
+    if (!isLocalMode()) {
+      return res.status(403).json({
+        error: 'This endpoint is only available in local mode',
+      });
+    }
+
+    const { provider } = req.params;
+    const { apiKey } = req.body;
+
+    if (!apiKey) {
+      return res.status(400).json({
+        error: 'apiKey is required',
+      });
+    }
+
+    // Import LLM_API_KEYS from WindowsCredentialManagerProvider
+    const { LLM_API_KEYS } = await import('../providers/secrets/windowsCredMan');
+    const keyName = LLM_API_KEYS[provider.toUpperCase() as keyof typeof LLM_API_KEYS];
+
+    if (!keyName) {
+      return res.status(400).json({
+        error: 'Invalid provider',
+      });
+    }
+
+    const providers = await getProviders();
+    await providers.secrets.set(keyName, apiKey);
+
+    logger.info('API key saved', { provider });
+
+    res.json({ success: true });
+  } catch (error) {
+    logger.error('Failed to save API key', { error });
+    res.status(500).json({
+      error: 'Failed to save API key',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * Delete an API key
+ * DELETE /api/local/api-keys/:provider
+ */
+router.delete('/api-keys/:provider', async (req, res) => {
+  try {
+    if (!isLocalMode()) {
+      return res.status(403).json({
+        error: 'This endpoint is only available in local mode',
+      });
+    }
+
+    const { provider } = req.params;
+
+    // Import LLM_API_KEYS from WindowsCredentialManagerProvider
+    const { LLM_API_KEYS } = await import('../providers/secrets/windowsCredMan');
+    const keyName = LLM_API_KEYS[provider.toUpperCase() as keyof typeof LLM_API_KEYS];
+
+    if (!keyName) {
+      return res.status(400).json({
+        error: 'Invalid provider',
+      });
+    }
+
+    const providers = await getProviders();
+    await providers.secrets.delete(keyName);
+
+    logger.info('API key deleted', { provider });
+
+    res.json({ success: true });
+  } catch (error) {
+    logger.error('Failed to delete API key', { error });
+    res.status(500).json({
+      error: 'Failed to delete API key',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
  * Helper: Format bytes to human-readable string
  */
 function formatBytes(bytes: number): string {

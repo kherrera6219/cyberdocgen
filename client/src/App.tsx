@@ -48,6 +48,7 @@ const MfaSetup = lazy(() => import("@/pages/mfa-setup"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const ProfileSettings = lazy(() => import("./pages/profile-settings"));
 const LocalSettings = lazy(() => import("@/pages/local-settings"));
+const ApiKeys = lazy(() => import("@/pages/api-keys"));
 
 // AI features
 const AIAssistant = lazy(() => import("@/pages/ai-assistant"));
@@ -116,6 +117,7 @@ function AuthenticatedRouter() {
         <Route path="/export" component={ExportCenter} />
         <Route path="/admin" component={AdminSettings} />
         <Route path="/local-settings" component={LocalSettings} />
+        <Route path="/api-keys" component={ApiKeys} />
         <Route path="/cloud-integrations" component={CloudIntegrations} />
         <Route path="/profile/settings" component={ProfileSettings} />
         <Route path="/ai-assistant" component={AIAssistant} />
