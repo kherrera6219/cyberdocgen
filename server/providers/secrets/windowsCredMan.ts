@@ -1,15 +1,15 @@
 /**
  * Windows Credential Manager Secrets Provider
- * 
+ * Sprint 3: Windows Integration & Key Management
+ *
  * Local mode secrets implementation using Windows Credential Manager.
  * Provides secure storage for LLM API keys using OS-level encryption.
- * 
- * Requires: keytar npm package (to be added in Sprint 3)
- * 
+ *
  * Security: Keys are stored in the Windows Credential Manager, which:
  * - Encrypts data using the user's Windows login credentials
  * - Is inaccessible to other users on the same machine
  * - Survives app reinstalls (tied to Windows user profile)
+ * - Accessible via Control Panel → Credential Manager → Windows Credentials
  */
 
 import type { ISecretsProvider } from '../interfaces';
@@ -27,71 +27,117 @@ export const LLM_API_KEYS = {
 export class WindowsCredentialManagerProvider implements ISecretsProvider {
   private isKeytarAvailable: boolean = false;
   private keytar: any = null;
-  
+  private initPromise: Promise<void>;
+
   constructor() {
-    // Lazy-load keytar to avoid issues when not installed
-    this.initKeytar();
+    // Lazy-load keytar to avoid issues when not on Windows or not installed
+    this.initPromise = this.initKeytar();
   }
-  
+
   private async initKeytar(): Promise<void> {
     try {
-      // TODO(sprint-3): Add keytar to dependencies
-      // this.keytar = await import('keytar');
-      // this.isKeytarAvailable = true;
-      console.log('[WindowsCredentialManagerProvider] keytar not yet installed (Sprint 3)');
+      // Dynamically import keytar (native module)
+      this.keytar = await import('keytar');
+      this.isKeytarAvailable = true;
+      console.log('[WindowsCredentialManagerProvider] Initialized successfully');
     } catch (error) {
       console.warn('[WindowsCredentialManagerProvider] keytar not available:', error);
+      console.warn('[WindowsCredentialManagerProvider] Falling back to environment variables');
       this.isKeytarAvailable = false;
     }
   }
-  
+
+  /**
+   * Ensure keytar is initialized before operations
+   */
+  private async ensureInitialized(): Promise<void> {
+    await this.initPromise;
+  }
+
   async set(key: string, value: string): Promise<void> {
+    await this.ensureInitialized();
+
     if (!this.isKeytarAvailable) {
-      console.log(`[WindowsCredentialManagerProvider] Would store key: ${key}`);
+      console.log(`[WindowsCredentialManagerProvider] Keytar not available, cannot store key: ${key}`);
       throw new Error(
-        'Windows Credential Manager not available. Install keytar package.'
+        'Windows Credential Manager not available. ' +
+        'This may be due to running on a non-Windows platform or missing native dependencies.'
       );
     }
-    
-    // TODO(sprint-3): Implement secure storage
-    // await this.keytar.setPassword(SERVICE_NAME, key, value);
-    console.log(`[WindowsCredentialManagerProvider] Stored key: ${key}`);
+
+    try {
+      await this.keytar.setPassword(SERVICE_NAME, key, value);
+      console.log(`[WindowsCredentialManagerProvider] Stored key: ${key}`);
+    } catch (error) {
+      console.error(`[WindowsCredentialManagerProvider] Failed to store key: ${key}`, error);
+      throw new Error(`Failed to store secret in Windows Credential Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
-  
+
   async get(key: string): Promise<string | null> {
+    await this.ensureInitialized();
+
     if (!this.isKeytarAvailable) {
-      console.log(`[WindowsCredentialManagerProvider] Would retrieve key: ${key}`);
+      // Fallback to environment variables for development/testing
+      const envKey = key.toUpperCase().replace(/-/g, '_');
+      const value = process.env[envKey];
+      if (value) {
+        console.log(`[WindowsCredentialManagerProvider] Retrieved key from environment: ${key}`);
+        return value;
+      }
       return null;
     }
-    
-    // TODO(sprint-3): Implement secure retrieval
-    // return await this.keytar.getPassword(SERVICE_NAME, key);
-    return null;
+
+    try {
+      const value = await this.keytar.getPassword(SERVICE_NAME, key);
+      if (value) {
+        console.log(`[WindowsCredentialManagerProvider] Retrieved key: ${key}`);
+      }
+      return value;
+    } catch (error) {
+      console.error(`[WindowsCredentialManagerProvider] Failed to retrieve key: ${key}`, error);
+      return null;
+    }
   }
-  
+
   async delete(key: string): Promise<void> {
+    await this.ensureInitialized();
+
     if (!this.isKeytarAvailable) {
-      console.log(`[WindowsCredentialManagerProvider] Would delete key: ${key}`);
+      console.log(`[WindowsCredentialManagerProvider] Keytar not available, cannot delete key: ${key}`);
       return;
     }
-    
-    // TODO(sprint-3): Implement secure deletion
-    // await this.keytar.deletePassword(SERVICE_NAME, key);
-    console.log(`[WindowsCredentialManagerProvider] Deleted key: ${key}`);
-  }
-  
-  async listKeys(): Promise<string[]> {
-    if (!this.isKeytarAvailable) {
-      // Return known key names (without values)
-      return Object.values(LLM_API_KEYS);
+
+    try {
+      const deleted = await this.keytar.deletePassword(SERVICE_NAME, key);
+      if (deleted) {
+        console.log(`[WindowsCredentialManagerProvider] Deleted key: ${key}`);
+      } else {
+        console.log(`[WindowsCredentialManagerProvider] Key not found: ${key}`);
+      }
+    } catch (error) {
+      console.error(`[WindowsCredentialManagerProvider] Failed to delete key: ${key}`, error);
+      throw new Error(`Failed to delete secret from Windows Credential Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
-    // TODO(sprint-3): List all stored credentials
-    // const credentials = await this.keytar.findCredentials(SERVICE_NAME);
-    // return credentials.map(c => c.account);
-    return [];
   }
-  
+
+  async listKeys(): Promise<string[]> {
+    await this.ensureInitialized();
+
+    if (!this.isKeytarAvailable) {
+      // Return empty list when keytar not available
+      return [];
+    }
+
+    try {
+      const credentials = await this.keytar.findCredentials(SERVICE_NAME);
+      return credentials.map((c: { account: string }) => c.account);
+    } catch (error) {
+      console.error('[WindowsCredentialManagerProvider] Failed to list keys', error);
+      return [];
+    }
+  }
+
   /**
    * Test if a specific LLM API key is configured
    */
@@ -99,19 +145,26 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
     const value = await this.get(key);
     return value !== null && value.length > 0;
   }
-  
+
   /**
    * Check which LLM providers are configured
    */
   async getConfiguredProviders(): Promise<string[]> {
     const configured: string[] = [];
-    
+
     for (const [provider, keyName] of Object.entries(LLM_API_KEYS)) {
       if (await this.hasKey(keyName)) {
         configured.push(provider);
       }
     }
-    
+
     return configured;
+  }
+
+  /**
+   * Check if Windows Credential Manager is available
+   */
+  isAvailable(): boolean {
+    return this.isKeytarAvailable;
   }
 }

@@ -1,17 +1,29 @@
 import { z } from "zod";
 import { logger } from "./logger";
 
+// Check if running in local mode (for Windows desktop app)
+const isLocalMode = process.env.DEPLOYMENT_MODE === 'local';
+
 // Environment validation schema
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DEPLOYMENT_MODE: z.enum(['cloud', 'local']).optional().default('cloud'),
+  // DATABASE_URL is only required in cloud mode
+  DATABASE_URL: isLocalMode
+    ? z.string().optional()
+    : z.string().min(1, 'DATABASE_URL is required in cloud mode'),
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
-  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
+  // SESSION_SECRET is only required in cloud mode
+  SESSION_SECRET: isLocalMode
+    ? z.string().optional()
+    : z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   REPL_ID: z.string().optional(),
   REPLIT_DOMAINS: z.string().optional(),
   DEFAULT_OBJECT_STORAGE_BUCKET_ID: z.string().optional(),
   PORT: z.string().optional().transform(val => val ? parseInt(val) : 5000),
+  LOCAL_PORT: z.string().optional(),
+  LOCAL_DATA_PATH: z.string().optional(),
   AZURE_AD_CLIENT_ID: z.string().optional(),
   AZURE_AD_CLIENT_SECRET: z.string().optional(),
   AZURE_AD_TENANT_ID: z.string().optional(),

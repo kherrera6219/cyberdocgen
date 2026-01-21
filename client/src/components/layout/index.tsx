@@ -5,6 +5,7 @@ import MobileNavigation from "./mobile-navigation";
 import { OfflineIndicator } from "./offline-indicator";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { TempUserBanner } from "@/components/TemporaryLoginDialog";
+import { LocalModeBanner } from "@/components/local-mode/LocalModeBanner";
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 
 interface LayoutProps {
@@ -16,6 +17,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <LocalModeBanner />
       <TempUserBanner />
       <div className="flex flex-1 min-h-0">
         {/* Desktop Sidebar - Hidden on mobile/tablet */}

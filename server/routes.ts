@@ -643,6 +643,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: healthRoutes } = await import('./routes/health');
   app.use('/api/health', healthRoutes);
 
+  // Local Mode Routes - Desktop Integration (Sprint 2)
+  const { default: localModeRoutes } = await import('./routes/localMode');
+  app.use('/api/local', localModeRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }
