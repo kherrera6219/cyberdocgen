@@ -1,7 +1,7 @@
-import { sql } from "drizzle-orm";
-import { relations } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, jsonb, timestamp, integer, boolean, index, unique, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+const cis = createInsertSchema as any;
 import { z } from "zod";
 
 // Session storage table for authentication
@@ -447,6 +447,16 @@ export const cloudIntegrations = pgTable("cloud_integrations", {
   orgIdIdx: index("idx_cloud_integrations_org_id").on(table.organizationId),
 }));
 
+// Evidence Snapshots for time-point audit evidence
+export const evidenceSnapshots = pgTable("evidence_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
+  name: varchar("name").notNull(),
+  status: varchar("status", { enum: ['open', 'locked', 'archived'] }).default('open').notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lockedAt: timestamp("locked_at"),
+});
+
 // Connector configurations (what to sync/import)
 export const connectorConfigs = pgTable("connector_configs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -532,15 +542,7 @@ export const cloudFiles = pgTable("cloud_files", {
   orgIdIdx: index("idx_cloud_files_org_id").on(table.organizationId),
 }));
 
-// Evidence Snapshots for time-point audit evidence
-export const evidenceSnapshots = pgTable("evidence_snapshots", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
-  name: varchar("name").notNull(),
-  status: varchar("status", { enum: ['open', 'locked', 'archived'] }).default('open').notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lockedAt: timestamp("locked_at"),
-});
+
 
 export const evidenceSnapshotsRelations = relations(evidenceSnapshots, ({ one, many }) => ({
   organization: one(organizations, {

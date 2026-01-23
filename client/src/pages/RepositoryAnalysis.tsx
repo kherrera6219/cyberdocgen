@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useLocation } from 'wouter';
 import { ArrowLeft, Settings, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -38,7 +38,8 @@ import { useToast } from '@/hooks/use-toast';
 
 export function RepositoryAnalysisPage() {
   const { snapshotId } = useParams<{ snapshotId?: string }>();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
+  const navigate = (to: string) => setLocation(to);
   const { toast } = useToast();
 
   const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>(['SOC2']);
@@ -319,7 +320,7 @@ export function RepositoryAnalysisPage() {
         <TabsContent value="tasks" className="mt-6">
           {tasks ? (
             <TaskBoard
-              tasks={tasks}
+              tasks={tasks as any}
               onTaskClick={(task) => console.log('Task:', task)}
               onTaskStatusChange={handleTaskStatusChange}
             />

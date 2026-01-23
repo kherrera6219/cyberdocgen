@@ -62,7 +62,8 @@ import {
   type DocumentVersion,
   type InsertDocumentVersion
 } from "@shared/schema";
-import { db } from "./db";
+import { db as maybeDb } from "./db";
+const db = maybeDb!;
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 

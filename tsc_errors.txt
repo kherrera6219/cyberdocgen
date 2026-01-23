@@ -1,0 +1,484 @@
+
+> rest-express@2.0.1 check
+> tsc
+
+client/src/hooks/useRepositoryAPI.ts(181,31): error TS2339: Property 'analysisRun' does not exist on type 'Query<{ analysisRun: AnalysisRun | null; snapshot: Partial<RepositorySnapshot>; }, Error, { analysisRun: AnalysisRun | null; snapshot: Partial<...>; }, string[]>'.
+client/src/pages/local-settings.tsx(176,16): error TS2551: Property 'electron' does not exist on type 'Window & typeof globalThis'. Did you mean 'Selection'?
+client/src/pages/local-settings.tsx(178,14): error TS2551: Property 'electron' does not exist on type 'Window & typeof globalThis'. Did you mean 'Selection'?
+client/src/pages/RepositoryAnalysis.tsx(7,40): error TS2307: Cannot find module 'react-router-dom' or its corresponding type declarations.
+client/src/pages/RepositoryAnalysis.tsx(191,13): error TS2322: Type 'import("C:/software/cyberdocgen/client/src/hooks/useRepositoryAPI").RepositorySnapshot[]' is not assignable to type 'import("C:/software/cyberdocgen/client/src/components/repository/RepositoryList").RepositorySnapshot[]'.
+  Property 'organizationId' is missing in type 'import("C:/software/cyberdocgen/client/src/hooks/useRepositoryAPI").RepositorySnapshot' but required in type 'import("C:/software/cyberdocgen/client/src/components/repository/RepositoryList").RepositorySnapshot'.
+client/src/pages/RepositoryAnalysis.tsx(322,15): error TS2322: Type 'import("C:/software/cyberdocgen/client/src/hooks/useRepositoryAPI").Task[]' is not assignable to type 'import("C:/software/cyberdocgen/client/src/components/repository/TaskBoard").Task[]'.
+  Type 'import("C:/software/cyberdocgen/client/src/hooks/useRepositoryAPI").Task' is not assignable to type 'import("C:/software/cyberdocgen/client/src/components/repository/TaskBoard").Task'.
+    Types of property 'category' are incompatible.
+      Type 'string' is not assignable to type '"missing_evidence" | "code_change" | "policy_needed" | "procedure_needed"'.
+client/src/stories/Accordion.stories.tsx(18,14): error TS2322: Type '{ render: (args: { type: "single"; value?: string | undefined; defaultValue?: string | undefined; onValueChange?: ((value: string) => void) | undefined; collapsible?: boolean | undefined; ... 267 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' is not assignable to type 'StoryAnnotations<ReactRenderer, { type: "single"; value?: string | undefined; defaultValue?: string | undefined; onValueChange?: ((value: string) => void) | undefined; collapsible?: boolean | undefined; ... 267 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }, { ...; } | { ...; }>'.
+  Property 'args' is missing in type '{ render: (args: { type: "single"; value?: string | undefined; defaultValue?: string | undefined; onValueChange?: ((value: string) => void) | undefined; collapsible?: boolean | undefined; ... 267 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' but required in type '{ args: { type: "single"; value?: string | undefined; defaultValue?: string | undefined; onValueChange?: ((value: string) => void) | undefined; collapsible?: boolean | undefined; disabled?: boolean | undefined; ... 266 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }; }'.
+client/src/stories/Accordion.stories.tsx(20,16): error TS2783: 'type' is specified more than once, so this usage will be overwritten.
+client/src/stories/Accordion.stories.tsx(20,30): error TS2322: Type '{ children: Element[]; type: "single"; value?: string | undefined; defaultValue?: string | undefined; onValueChange?: ((value: string) => void) | undefined; collapsible: boolean; ... 266 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }' is not assignable to type 'IntrinsicAttributes & ((AccordionSingleProps | AccordionMultipleProps) & RefAttributes<HTMLDivElement>)'.
+  Type '{ children: Element[]; type: "multiple"; value?: string[] | undefined; defaultValue?: string[] | undefined; onValueChange?: ((value: string[]) => void) | undefined; disabled?: boolean | undefined; ... 266 more ...; collapsible: true; }' is not assignable to type 'IntrinsicAttributes & ((AccordionSingleProps | AccordionMultipleProps) & RefAttributes<HTMLDivElement>)'.
+    Property 'collapsible' does not exist on type 'IntrinsicAttributes & AccordionMultipleProps & RefAttributes<HTMLDivElement>'.
+client/src/stories/AnalysisProgress.stories.tsx(2,34): error TS2307: Cannot find module '../src/components/repository/AnalysisProgress' or its corresponding type declarations.
+client/src/stories/AnalysisProgress.stories.tsx(66,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/src/stories/AnalysisProgress.stories.tsx(86,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/src/stories/AnalysisProgress.stories.tsx(108,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/src/stories/AnalysisProgress.stories.tsx(129,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/src/stories/Chart.stories.tsx(41,14): error TS2322: Type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; config: ChartConfig; ... 260 more ...; ref?: LegacyRef<...> | undefined; }) => Element; }' is not assignable to type 'StoryAnnotations<ReactRenderer, { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 261 more ...; ref?: LegacyRef<...> | undefined; }, { ...; }>'.
+  Property 'args' is missing in type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; config: ChartConfig; ... 260 more ...; ref?: LegacyRef<...> | undefined; }) => Element; }' but required in type '{ args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; config: ChartConfig; ... 260 more ...; ref?: LegacyRef<...> | undefined; }; }'.
+client/src/stories/Chart.stories.tsx(43,21): error TS2783: 'config' is specified more than once, so this usage will be overwritten.
+client/src/stories/FindingsTable.stories.tsx(2,31): error TS2307: Cannot find module '../src/components/repository/FindingsTable' or its corresponding type declarations.
+client/src/stories/FindingsTable.stories.tsx(114,23): error TS7006: Parameter 'id' implicitly has an 'any' type.
+client/src/stories/FindingsTable.stories.tsx(127,23): error TS7006: Parameter 'id' implicitly has an 'any' type.
+client/src/stories/InputOTP.stories.tsx(18,14): error TS2322: Type '{ render: (args: { name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 296 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' is not assignable to type 'StoryAnnotations<ReactRenderer, { name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; ... 297 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }, { ...; } | { ...; }>'.
+  Property 'args' is missing in type '{ render: (args: { name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 296 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' but required in type '{ args: { name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 296 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }; }'.
+client/src/stories/InputOTP.stories.tsx(20,6): error TS2322: Type '{ children: Element[]; name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; ... 296 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }' is not assignable to type 'IntrinsicAttributes & (ComponentPropsWithoutRef<ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>> & RefAttributes<...>)'.
+  Type '{ children: Element[]; name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 295 more ...; ref?: LegacyRef<...> | undefined; }' is not assignable to type 'IntrinsicAttributes & (ComponentPropsWithoutRef<ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>> & RefAttributes<...>)'.
+    Type '{ children: Element[]; name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 295 more ...; ref?: LegacyRef<...> | undefined; }' is not assignable to type 'Omit<Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "maxLength" | "onComplete" | "textAlign" | "pushPasswordManagerStrategy" | "pasteTransformer" | "containerClassName" | "noScriptCSSFallback"> & { ...; } & { ...; } & RefAttributes<...>, "ref">'.
+      Types of property 'render' are incompatible.
+        Type 'InputOTPRenderFn' is not assignable to type 'undefined'.
+client/src/stories/InputOTP.stories.tsx(20,15): error TS2783: 'maxLength' is specified more than once, so this usage will be overwritten.
+client/src/stories/RepositoryList.stories.tsx(2,32): error TS2307: Cannot find module '../src/components/repository/RepositoryList' or its corresponding type declarations.
+client/src/stories/RepositoryList.stories.tsx(71,16): error TS7006: Parameter 'repo' implicitly has an 'any' type.
+client/src/stories/RepositoryList.stories.tsx(72,16): error TS7006: Parameter 'id' implicitly has an 'any' type.
+client/src/stories/RepositoryList.stories.tsx(73,17): error TS7006: Parameter 'id' implicitly has an 'any' type.
+client/src/stories/RepositoryList.stories.tsx(86,16): error TS7006: Parameter 'repo' implicitly has an 'any' type.
+client/src/stories/RepositoryList.stories.tsx(92,78): error TS2367: This comparison appears to be unintentional because the types '"completed" | "failed" | "indexed"' and '"extracting"' have no overlap.
+client/src/stories/RepositoryList.stories.tsx(93,16): error TS7006: Parameter 'repo' implicitly has an 'any' type.
+client/src/stories/RepoUploadZone.stories.tsx(2,32): error TS2307: Cannot find module '../src/components/repository/RepoUploadZone' or its corresponding type declarations.
+client/src/stories/RepoUploadZone.stories.tsx(27,22): error TS7006: Parameter 'file' implicitly has an 'any' type.
+client/src/stories/RepoUploadZone.stories.tsx(27,28): error TS7006: Parameter 'metadata' implicitly has an 'any' type.
+client/src/stories/RepoUploadZone.stories.tsx(46,12): error TS7006: Parameter 'args' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(2,27): error TS2307: Cannot find module '../src/components/repository/TaskBoard' or its corresponding type declarations.
+client/src/stories/TaskBoard.stories.tsx(82,19): error TS7006: Parameter 'task' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(83,26): error TS7006: Parameter 'id' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(83,30): error TS7006: Parameter 'status' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(96,19): error TS7006: Parameter 'task' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(97,26): error TS7006: Parameter 'id' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(97,30): error TS7006: Parameter 'status' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(104,19): error TS7006: Parameter 'task' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(105,26): error TS7006: Parameter 'id' implicitly has an 'any' type.
+client/src/stories/TaskBoard.stories.tsx(105,30): error TS7006: Parameter 'status' implicitly has an 'any' type.
+client/src/stories/ToggleGroup.stories.tsx(28,14): error TS2322: Type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' is not assignable to type 'StoryAnnotations<ReactRenderer, { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 270 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }, { ...; } | { ...; }>'.
+  Property 'args' is missing in type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' but required in type '{ args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }; }'.
+client/src/stories/ToggleGroup.stories.tsx(30,18): error TS2783: 'type' is specified more than once, so this usage will be overwritten.
+client/src/stories/ToggleGroup.stories.tsx(44,14): error TS2322: Type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' is not assignable to type 'StoryAnnotations<ReactRenderer, { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 270 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }, { ...; } | { ...; }>'.
+  Property 'args' is missing in type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' but required in type '{ args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }; }'.
+client/src/stories/ToggleGroup.stories.tsx(46,18): error TS2783: 'type' is specified more than once, so this usage will be overwritten.
+server/providers/auth/entraId.ts(20,18): error TS2352: Conversion of type 'Express.User' to type 'import("C:/software/cyberdocgen/server/providers/interfaces").User' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'email' is missing in type 'Express.User' but required in type 'import("C:/software/cyberdocgen/server/providers/interfaces").User'.
+server/providers/stubs.ts(18,9): error TS2416: Property 'connect' in type 'PostgresDbProvider' is not assignable to the same property in base type 'IDbProvider'.
+  Type '() => Promise<void>' is not assignable to type '() => Promise<IDbConnection>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<IDbConnection>'.
+      Type 'void' is not assignable to type 'IDbConnection'.
+server/providers/stubs.ts(84,9): error TS2416: Property 'save' in type 'CloudStorageProvider' is not assignable to the same property in base type 'IStorageProvider'.
+  Type '(file: Buffer<ArrayBufferLike>, path: string, metadata?: any) => Promise<void>' is not assignable to type '(file: Buffer<ArrayBufferLike>, path: string, metadata?: { contentType?: string | undefined; } | undefined) => Promise<StorageFile>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<StorageFile>'.
+      Type 'void' is not assignable to type 'StorageFile'.
+server/providers/stubs.ts(105,9): error TS2416: Property 'getMetadata' in type 'CloudStorageProvider' is not assignable to the same property in base type 'IStorageProvider'.
+  Type '(uri: string) => Promise<void>' is not assignable to type '(uri: string) => Promise<Pick<StorageFile, "size" | "contentType">>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<Pick<StorageFile, "size" | "contentType">>'.
+      Type 'void' is not assignable to type 'Pick<StorageFile, "size" | "contentType">'.
+server/providers/stubs.ts(117,9): error TS2416: Property 'save' in type 'LocalFsStorageProvider' is not assignable to the same property in base type 'IStorageProvider'.
+  Type '(file: Buffer<ArrayBufferLike>, path: string, metadata?: any) => Promise<void>' is not assignable to type '(file: Buffer<ArrayBufferLike>, path: string, metadata?: { contentType?: string | undefined; } | undefined) => Promise<StorageFile>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<StorageFile>'.
+      Type 'void' is not assignable to type 'StorageFile'.
+server/providers/stubs.ts(138,9): error TS2416: Property 'getMetadata' in type 'LocalFsStorageProvider' is not assignable to the same property in base type 'IStorageProvider'.
+  Type '(uri: string) => Promise<void>' is not assignable to type '(uri: string) => Promise<Pick<StorageFile, "size" | "contentType">>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<Pick<StorageFile, "size" | "contentType">>'.
+      Type 'void' is not assignable to type 'Pick<StorageFile, "size" | "contentType">'.
+server/routes/admin.ts(49,22): error TS18047: 'db' is possibly 'null'.
+server/routes/admin.ts(49,31): error TS2339: Property 'users' does not exist on type '{}'.
+server/routes/admin.ts(195,30): error TS18047: 'db' is possibly 'null'.
+server/routes/admin.ts(195,39): error TS2339: Property 'cloudIntegrations' does not exist on type '{}'.
+server/routes/admin.ts(210,33): error TS7006: Parameter 'integration' implicitly has an 'any' type.
+server/routes/admin.ts(239,29): error TS18047: 'db' is possibly 'null'.
+server/routes/admin.ts(239,38): error TS2339: Property 'cloudIntegrations' does not exist on type '{}'.
+server/routes/admin.ts(247,9): error TS18047: 'db' is possibly 'null'.
+server/routes/admin.ts(326,5): error TS18047: 'db' is possibly 'null'.
+server/routes/admin.ts(326,14): error TS2339: Property 'users' does not exist on type '{}'.
+server/routes/admin.ts(327,5): error TS18047: 'db' is possibly 'null'.
+server/routes/admin.ts(327,14): error TS2339: Property 'cloudIntegrations' does not exist on type '{}'.
+server/routes/admin.ts(328,5): error TS18047: 'db' is possibly 'null'.
+server/routes/admin.ts(330,6): error TS18047: 'db' is possibly 'null'.
+server/routes/admin.ts(339,33): error TS7006: Parameter 'u' implicitly has an 'any' type.
+server/routes/admin.ts(340,33): error TS7006: Parameter 'u' implicitly has an 'any' type.
+server/routes/admin.ts(344,41): error TS7006: Parameter 'i' implicitly has an 'any' type.
+server/routes/admin.ts(345,44): error TS7006: Parameter 'i' implicitly has an 'any' type.
+server/routes/admin.ts(357,37): error TS7006: Parameter 'u' implicitly has an 'any' type.
+server/routes/ai/chat.ts(38,31): error TS18047: 'db' is possibly 'null'.
+server/routes/ai/chat.ts(103,31): error TS18047: 'db' is possibly 'null'.
+server/routes/ai/stats.ts(37,35): error TS18047: 'db' is possibly 'null'.
+server/routes/ai/stats.ts(50,35): error TS18047: 'db' is possibly 'null'.
+server/routes/ai/stats.ts(63,29): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(16,26): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(33,27): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(69,30): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(83,27): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(104,27): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(121,27): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(135,9): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(149,27): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(163,26): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(180,27): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(200,30): error TS18047: 'db' is possibly 'null'.
+server/routes/aiSessions.ts(202,9): error TS18047: 'db' is possibly 'null'.
+server/routes/auditor.ts(31,17): error TS18047: 'db' is possibly 'null'.
+server/routes/auditor.ts(55,31): error TS18047: 'db' is possibly 'null'.
+server/routes/auditor.ts(93,33): error TS18047: 'db' is possibly 'null'.
+server/routes/auditor.ts(104,33): error TS18047: 'db' is possibly 'null'.
+server/routes/auditor.ts(116,41): error TS18047: 'db' is possibly 'null'.
+server/routes/auditor.ts(122,34): error TS18047: 'db' is possibly 'null'.
+server/routes/auditor.ts(174,32): error TS18047: 'db' is possibly 'null'.
+server/routes/auditor.ts(181,32): error TS18047: 'db' is possibly 'null'.
+server/routes/cloudIntegration.ts(155,50): error TS7006: Parameter 'i' implicitly has an 'any' type.
+server/routes/cloudIntegration.ts(178,50): error TS7006: Parameter 'i' implicitly has an 'any' type.
+server/routes/controls.ts(31,35): error TS18047: 'db' is possibly 'null'.
+server/routes/controls.ts(81,39): error TS18047: 'db' is possibly 'null'.
+server/routes/dashboard.ts(30,31): error TS18047: 'db' is possibly 'null'.
+server/routes/dashboard.ts(41,23): error TS18047: 'db' is possibly 'null'.
+server/routes/dashboard.ts(76,35): error TS18047: 'db' is possibly 'null'.
+server/routes/dashboard.ts(142,34): error TS18047: 'db' is possibly 'null'.
+server/routes/dashboard.ts(187,27): error TS18047: 'db' is possibly 'null'.
+server/routes/evidence.ts(140,19): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(27,28): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(68,32): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(83,24): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(95,24): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(136,34): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(150,32): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(163,32): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(195,31): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(249,28): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(274,32): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(289,24): error TS18047: 'db' is possibly 'null'.
+server/routes/frameworkControlStatuses.ts(301,24): error TS18047: 'db' is possibly 'null'.
+server/routes/localMode.ts(310,48): error TS2339: Property 'getConfiguredProviders' does not exist on type 'ISecretsProvider'.
+server/routes/projects.ts(47,30): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(75,30): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(85,29): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(101,30): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(111,27): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(129,30): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(132,9): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(149,30): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(168,27): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(187,30): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(197,9): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(209,30): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(219,25): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(246,37): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(257,27): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(263,39): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(274,28): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(284,29): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(301,37): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(311,27): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(330,37): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(340,36): error TS18047: 'db' is possibly 'null'.
+server/routes/projects.ts(356,9): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(148,29): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(168,30): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(192,30): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(231,30): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(238,25): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(239,13): error TS2304: Cannot find name 'repositoryAnalysisRuns'.
+server/routes/repository.ts(240,17): error TS2304: Cannot find name 'repositoryAnalysisRuns'.
+server/routes/repository.ts(241,21): error TS2304: Cannot find name 'repositoryAnalysisRuns'.
+server/routes/repository.ts(266,30): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(314,30): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(348,25): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(379,29): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(405,30): error TS18047: 'db' is possibly 'null'.
+server/routes/repository.ts(419,11): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(75,26): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(83,24): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(95,24): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(101,30): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(103,13): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(108,26): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(117,24): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(122,27): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(134,33): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(142,30): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(153,32): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(181,30): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(191,29): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(218,30): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(228,28): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(242,30): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(256,30): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(262,30): error TS18047: 'db' is possibly 'null'.
+server/routes/roles.ts(272,9): error TS18047: 'db' is possibly 'null'.
+server/routes/userProfile.ts(52,24): error TS18047: 'db' is possibly 'null'.
+server/routes/userProfile.ts(97,27): error TS18047: 'db' is possibly 'null'.
+server/routes/userProfile.ts(116,24): error TS18047: 'db' is possibly 'null'.
+server/routes/userProfile.ts(124,27): error TS18047: 'db' is possibly 'null'.
+server/routes/userProfile.ts(139,24): error TS18047: 'db' is possibly 'null'.
+server/routes/userProfile.ts(147,27): error TS18047: 'db' is possibly 'null'.
+server/services/aiGuardrailsService.ts(469,27): error TS18047: 'db' is possibly 'null'.
+server/services/aiGuardrailsService.ts(528,26): error TS18047: 'db' is possibly 'null'.
+server/services/aiGuardrailsService.ts(560,34): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(227,35): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(292,33): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(292,42): error TS2339: Property 'cloudIntegrations' does not exist on type '{}'.
+server/services/cloudIntegrationService.ts(318,13): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(337,13): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(371,13): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(475,11): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(521,26): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(521,35): error TS2339: Property 'cloudFiles' does not exist on type '{}'.
+server/services/cloudIntegrationService.ts(530,13): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(573,12): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(573,21): error TS2339: Property 'cloudIntegrations' does not exist on type '{}'.
+server/services/cloudIntegrationService.ts(597,12): error TS18047: 'db' is possibly 'null'.
+server/services/cloudIntegrationService.ts(597,21): error TS2339: Property 'cloudFiles' does not exist on type '{}'.
+server/services/cloudIntegrationService.ts(611,28): error TS18047: 'db' is possibly 'null'.
+server/services/codeSignalDetectorService.ts(566,27): error TS18047: 'db' is possibly 'null'.
+server/services/codeSignalDetectorService.ts(707,12): error TS18047: 'db' is possibly 'null'.
+server/services/connectorService.ts(74,28): error TS18047: 'db' is possibly 'null'.
+server/services/connectorService.ts(116,27): error TS18047: 'db' is possibly 'null'.
+server/services/connectorService.ts(122,28): error TS18047: 'db' is possibly 'null'.
+server/services/connectorService.ts(167,13): error TS18047: 'db' is possibly 'null'.
+server/services/databaseHealthService.ts(37,13): error TS18047: 'db' is possibly 'null'.
+server/services/databaseHealthService.ts(45,32): error TS18047: 'db' is possibly 'null'.
+server/services/databaseHealthService.ts(129,13): error TS18047: 'db' is possibly 'null'.
+server/services/databaseHealthService.ts(147,32): error TS18047: 'db' is possibly 'null'.
+server/services/databaseHealthService.ts(154,33): error TS18047: 'db' is possibly 'null'.
+server/services/databaseHealthService.ts(196,13): error TS18047: 'db' is possibly 'null'.
+server/services/dataResidencyService.ts(49,30): error TS18047: 'db' is possibly 'null'.
+server/services/dataResidencyService.ts(81,30): error TS18047: 'db' is possibly 'null'.
+server/services/dataResidencyService.ts(101,30): error TS18047: 'db' is possibly 'null'.
+server/services/dataResidencyService.ts(191,13): error TS18047: 'db' is possibly 'null'.
+server/services/dataResidencyService.ts(212,13): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(52,30): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(86,30): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(107,30): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(136,30): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(224,17): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(283,38): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(294,19): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(312,42): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(323,19): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(340,38): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(351,19): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(368,39): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(379,19): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(396,37): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(402,19): error TS18047: 'db' is possibly 'null'.
+server/services/dataRetentionService.ts(447,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(68,34): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(68,43): error TS2339: Property 'users' does not exist on type '{}'.
+server/services/enterpriseAuthService.ts(87,31): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(100,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(155,34): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(155,43): error TS2339: Property 'emailVerificationTokens' does not exist on type '{}'.
+server/services/enterpriseAuthService.ts(173,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(182,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(219,26): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(219,35): error TS2339: Property 'users' does not exist on type '{}'.
+server/services/enterpriseAuthService.ts(236,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(276,33): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(276,42): error TS2339: Property 'passwordResetTokens' does not exist on type '{}'.
+server/services/enterpriseAuthService.ts(291,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(301,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(340,26): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(340,35): error TS2339: Property 'users' does not exist on type '{}'.
+server/services/enterpriseAuthService.ts(370,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(430,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(441,13): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(483,24): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(483,33): error TS2339: Property 'users' does not exist on type '{}'.
+server/services/enterpriseAuthService.ts(496,24): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(496,33): error TS2339: Property 'users' does not exist on type '{}'.
+server/services/enterpriseAuthService.ts(508,11): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(536,11): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(579,24): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(579,33): error TS2339: Property 'users' does not exist on type '{}'.
+server/services/enterpriseAuthService.ts(586,22): error TS18047: 'db' is possibly 'null'.
+server/services/enterpriseAuthService.ts(586,31): error TS2339: Property 'users' does not exist on type '{}'.
+server/services/ingestionService.ts(50,28): error TS18047: 'db' is possibly 'null'.
+server/services/ingestionService.ts(120,11): error TS18047: 'db' is possibly 'null'.
+server/services/mfaService.ts(112,11): error TS18047: 'db' is possibly 'null'.
+server/services/mfaService.ts(133,29): error TS18047: 'db' is possibly 'null'.
+server/services/mfaService.ts(165,11): error TS18047: 'db' is possibly 'null'.
+server/services/mfaService.ts(174,11): error TS18047: 'db' is possibly 'null'.
+server/services/mfaService.ts(504,28): error TS18047: 'db' is possibly 'null'.
+server/services/mfaService.ts(511,31): error TS18047: 'db' is possibly 'null'.
+server/services/modelTransparencyService.ts(109,32): error TS18047: 'db' is possibly 'null'.
+server/services/modelTransparencyService.ts(123,33): error TS18047: 'db' is possibly 'null'.
+server/services/modelTransparencyService.ts(137,33): error TS18047: 'db' is possibly 'null'.
+server/services/modelTransparencyService.ts(177,28): error TS18047: 'db' is possibly 'null'.
+server/services/modelTransparencyService.ts(199,27): error TS18047: 'db' is possibly 'null'.
+server/services/modelTransparencyService.ts(235,34): error TS18047: 'db' is possibly 'null'.
+server/services/modelTransparencyService.ts(284,25): error TS18047: 'db' is possibly 'null'.
+server/services/modelTransparencyService.ts(321,25): error TS18047: 'db' is possibly 'null'.
+server/services/pdfSecurityService.ts(70,31): error TS18047: 'db' is possibly 'null'.
+server/services/pdfSecurityService.ts(70,40): error TS2339: Property 'cloudFiles' does not exist on type '{}'.
+server/services/pdfSecurityService.ts(93,13): error TS18047: 'db' is possibly 'null'.
+server/services/pdfSecurityService.ts(288,13): error TS18047: 'db' is possibly 'null'.
+server/services/pdfSecurityService.ts(350,12): error TS18047: 'db' is possibly 'null'.
+server/services/pdfSecurityService.ts(350,21): error TS2339: Property 'pdfSecuritySettings' does not exist on type '{}'.
+server/services/pdfSecurityService.ts(365,13): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(119,32): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(135,35): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(147,27): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(158,13): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(223,27): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(326,28): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(492,11): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(505,11): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(519,11): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(537,25): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(543,11): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(553,11): error TS18047: 'db' is possibly 'null'.
+server/services/repoAnalysisService.ts(575,27): error TS18047: 'db' is possibly 'null'.
+server/services/repoParserService.ts(125,32): error TS18047: 'db' is possibly 'null'.
+server/services/repoParserService.ts(165,13): error TS18047: 'db' is possibly 'null'.
+server/services/repoParserService.ts(173,18): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'SQL<unknown>'.
+server/services/repoParserService.ts(410,13): error TS18047: 'db' is possibly 'null'.
+server/services/repoParserService.ts(412,18): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'SQL<unknown>'.
+server/services/repoParserService.ts(682,11): error TS18047: 'db' is possibly 'null'.
+server/services/repoParserService.ts(688,16): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'SQL<unknown>'.
+server/services/repoParserService.ts(706,15): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(61,32): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(76,33): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(148,32): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(170,25): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: PgColumn<{ name: "status"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "partial" | "pass" | "fail" | "not_observed" | "needs_human"; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>, right: SQLWrapper | ... 4 more ... | "needs_human"): SQL<...>', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'SQLWrapper | "partial" | "pass" | "fail" | "not_observed" | "needs_human"'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "status"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "partial" | "pass" | "fail" | "not_observed" | "needs_human"; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "status"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "partial" | "pass" | "fail" | "not_observed" | "needs_human"; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "status"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "partial" | "pass" | "fail" | "not_observed" | "needs_human"; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'never'.
+server/services/repositoryFindingsService.ts(173,25): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: PgColumn<{ name: "confidence_level"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "low" | "high" | "medium"; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, { ...; }>, right: SQLWrapper | ... 2 more ... | "medium"): SQL<...>', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'SQLWrapper | "low" | "high" | "medium"'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "confidence_level"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "low" | "high" | "medium"; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "confidence_level"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "low" | "high" | "medium"; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "confidence_level"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "low" | "high" | "medium"; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'never'.
+server/services/repositoryFindingsService.ts(183,30): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(191,35): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(232,31): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(283,31): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(340,32): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(351,30): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(418,3): error TS18047: 'finding.evidenceReferences' is possibly 'null'.
+server/services/repositoryFindingsService.ts(431,13): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(467,32): error TS18047: 'db' is possibly 'null'.
+server/services/repositoryFindingsService.ts(479,28): error TS18047: 'db' is possibly 'null'.
+server/services/snapshotService.ts(12,30): error TS18047: 'db' is possibly 'null'.
+server/services/snapshotService.ts(27,30): error TS18047: 'db' is possibly 'null'.
+server/services/snapshotService.ts(52,37): error TS18047: 'db' is possibly 'null'.
+server/services/snapshotService.ts(68,25): error TS18047: 'db' is possibly 'null'.
+server/services/snapshotService.ts(94,12): error TS18047: 'db' is possibly 'null'.
+server/services/systemConfigService.ts(29,28): error TS18047: 'db' is possibly 'null'.
+server/services/systemConfigService.ts(29,37): error TS2339: Property 'systemConfigurations' does not exist on type '{}'.
+server/services/systemConfigService.ts(72,13): error TS18047: 'db' is possibly 'null'.
+server/services/systemConfigService.ts(128,28): error TS18047: 'db' is possibly 'null'.
+server/services/systemConfigService.ts(128,37): error TS2339: Property 'systemConfigurations' does not exist on type '{}'.
+server/services/systemConfigService.ts(184,13): error TS18047: 'db' is possibly 'null'.
+server/services/systemConfigService.ts(302,28): error TS18047: 'db' is possibly 'null'.
+server/services/webCrawlerService.ts(1,23): error TS7016: Could not find a declaration file for module 'jsdom'. 'C:/software/cyberdocgen/node_modules/jsdom/lib/api.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/jsdom` if it exists or add a new declaration (.d.ts) file containing `declare module 'jsdom';`
+server/storage.ts(1255,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1260,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1265,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1273,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1282,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1331,33): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1341,20): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1345,20): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1349,20): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1364,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1369,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1382,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1401,28): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1412,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1417,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1422,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1427,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1433,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1439,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1444,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1456,13): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1460,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1469,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1474,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1481,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1491,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1498,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1505,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1514,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1520,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1524,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1529,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1534,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1542,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1552,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1556,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1560,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1568,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1580,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1591,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1598,20): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1605,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1609,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1629,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1639,30): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1646,20): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1655,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1660,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1670,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1679,30): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1699,30): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1708,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1714,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1721,20): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1730,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1735,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1744,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1752,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1762,31): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1771,12): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1780,28): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1788,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1800,32): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1808,12): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1816,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1824,39): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1832,12): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1840,36): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1848,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1862,35): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1873,32): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1888,32): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1898,20): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1904,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1911,30): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1919,33): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1927,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1937,27): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1956,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1973,30): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(1992,31): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2000,31): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2017,12): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2026,28): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2034,37): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2042,34): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2051,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2059,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2067,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2075,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2089,29): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2097,26): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2110,27): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2118,25): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2134,18): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2144,24): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2173,33): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2180,24): error TS18047: 'db' is possibly 'null'.
+server/storage.ts(2197,27): error TS18047: 'db' is possibly 'null'.

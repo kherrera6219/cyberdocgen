@@ -16,7 +16,7 @@ if (!isLocalMode && !process.env.DATABASE_URL) {
 
 // Only initialize PostgreSQL pool in cloud mode
 let pool: Pool | null = null;
-let db: ReturnType<typeof drizzle> | null = null;
+let db: ReturnType<typeof drizzle<typeof schema>> = null as any;
 
 if (!isLocalMode) {
   // Connection pool configuration with timeouts and error handling
@@ -46,6 +46,16 @@ if (!isLocalMode) {
   neonConfig.fetchConnectionCache = true;
 
   db = drizzle({ client: pool, schema });
+}
+
+/**
+ * Safe database instance accessor
+ */
+export function getDb() {
+  if (!db) {
+    throw new Error("Database not initialized. Ensure connect() is called first.");
+  }
+  return db;
 }
 
 export { pool, db };
