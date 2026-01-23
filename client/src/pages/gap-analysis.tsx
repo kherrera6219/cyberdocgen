@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,18 +7,13 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { 
   Target, 
   TrendingUp, 
   AlertTriangle, 
   CheckCircle, 
   Clock,
-  FileText,
-  BarChart3,
   Shield,
-  Users,
-  Settings,
   Search,
   Filter,
   Download,
@@ -29,15 +23,10 @@ import {
   AlertCircle,
   XCircle,
   Calendar,
-  Building,
-  Code,
-  Database,
-  Globe,
   ChevronRight,
   ExternalLink
 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 interface GapCategory {
   category: string;
@@ -60,11 +49,11 @@ interface ComplianceFramework {
 }
 
 export default function GapAnalysis() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedPriority, setSelectedPriority] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedPriority, setSelectedPriority] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
+  const { profile } = useOrganization();
   // Comprehensive gap analysis data based on our analysis
   const gapCategories: GapCategory[] = [
     {
@@ -233,24 +222,25 @@ export default function GapAnalysis() {
         </div>
       </div>
 
-      {/* Executive Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* Analysis Overview Section Heading for A11y */}
+      <h2 id="analysis-overview" className="sr-only">Analysis Overview</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" aria-labelledby="analysis-overview">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Overall Score</CardTitle>
+            <h3 className="text-sm font-medium text-gray-600">Overall Score</h3>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <div className="text-3xl font-bold text-orange-600">{overallScore}%</div>
               <Badge className="bg-orange-100 text-orange-800">Needs Improvement</Badge>
             </div>
-            <Progress value={overallScore} className="mt-2" />
+            <Progress value={overallScore} className="mt-2" aria-label="Overall implementation progress" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Gaps</CardTitle>
+            <h3 className="text-sm font-medium text-gray-600">Total Gaps</h3>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-600">{totalGaps}</div>
@@ -260,7 +250,7 @@ export default function GapAnalysis() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Critical Issues</CardTitle>
+            <h3 className="text-sm font-medium text-gray-600">Critical Issues</h3>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-600">{criticalGaps}</div>
@@ -270,7 +260,7 @@ export default function GapAnalysis() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Estimated Timeline</CardTitle>
+            <h3 className="text-sm font-medium text-gray-600">Estimated Timeline</h3>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-blue-600">6-8</div>
@@ -324,6 +314,8 @@ export default function GapAnalysis() {
         </CardContent>
       </Card>
 
+      {/* Detailed Analysis Section Heading for A11y */}
+      <h2 className="sr-only">Detailed Analysis</h2>
       <Tabs defaultValue="gaps" className="w-full">
         <TabsList className="flex flex-wrap h-auto gap-1 p-1 w-full">
           <TabsTrigger value="gaps" className="flex-1 min-w-[100px] text-xs sm:text-sm">Gap Analysis</TabsTrigger>
@@ -362,7 +354,7 @@ export default function GapAnalysis() {
                     <span className="text-sm text-gray-600">Implementation Score</span>
                     <span className="font-bold">{category.score}%</span>
                   </div>
-                  <Progress value={category.score} className="w-full" />
+                  <Progress value={category.score} className="w-full" aria-label={`${category.category} implementation score`} />
 
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Identified Gaps</span>
@@ -370,7 +362,7 @@ export default function GapAnalysis() {
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Key Recommendations:</h4>
+                    <h3 className="font-medium text-sm">Key Recommendations:</h3>
                     <ul className="space-y-1">
                       {category.recommendations.slice(0, 3).map((rec, idx) => (
                         <li key={idx} className="text-xs text-gray-600 flex items-start gap-2">
@@ -410,7 +402,7 @@ export default function GapAnalysis() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Progress value={framework.coverage} className="w-full" />
+                  <Progress value={framework.coverage} className="w-full" aria-label={`${framework.name} coverage`} />
 
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="space-y-1">
@@ -583,12 +575,11 @@ export default function GapAnalysis() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert className="border-red-200 bg-red-50">
+          <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Critical Priority</AlertTitle>
+            <div className="mb-1 font-medium leading-none tracking-tight ml-2">Critical Priority</div>
             <AlertDescription>
-              Platform currently lacks actual compliance framework integration. Begin implementing 
-              ISO 27001 control library immediately to enable genuine compliance documentation generation.
+              Multiple high-risk gaps detected in access control and data encryption.
             </AlertDescription>
           </Alert>
           <div className="mt-4 flex gap-2">

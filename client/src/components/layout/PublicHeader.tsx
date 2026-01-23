@@ -74,13 +74,16 @@ export function PublicHeader({ showBetaBadge = true }: PublicHeaderProps) {
             className="md:hidden p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             data-testid="mobile-menu-toggle"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileMenuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
           </button>
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-800">
+          <div id="mobile-menu" className="md:hidden py-4 border-t border-gray-200 dark:border-gray-800">
             <nav className="flex flex-col gap-3">
               {navLinks.map((link) => (
                 <Link key={link.href} href={link.href}>

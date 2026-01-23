@@ -811,9 +811,9 @@ export default function AIDocGenerator() {
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-ping" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">AI Generation in Progress</p>
+                    <h2 className="font-medium text-foreground">AI Generation in Progress</h2>
                     <p className="text-sm text-muted-foreground">
-                      {jobStatus?.currentDocument 
+                      {jobStatus?.currentDocument
                         ? `Creating: ${jobStatus.currentDocument}`
                         : "Analyzing company profile and framework requirements..."}
                     </p>
@@ -821,13 +821,20 @@ export default function AIDocGenerator() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Overall Progress</span>
-                    <span className="font-medium" data-testid="text-progress-percent">{jobStatus?.progress || 0}%</span>
-                  </div>
-                  <Progress value={jobStatus?.progress || 0} className="h-2" data-testid="progress-generation" />
+                  <div id="overall-progress-label" className="text-muted-foreground">Overall Progress</div>
+                  <span className="font-semibold text-foreground">
+                    {jobStatus?.progress || 0}%
+                  </span>
+                </div>
+                <Progress
+                  value={jobStatus?.progress || 0}
+                  className="h-2"
+                  data-testid="progress-generation"
+                  aria-labelledby="overall-progress-label"
+                />
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-center gap-2 py-2">
                 <div className="flex gap-1">
                   <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -839,9 +846,9 @@ export default function AIDocGenerator() {
                   {jobStatus?.totalDocuments || 0} documents
                 </span>
               </div>
-              
+
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Preparing documents...</p>
+                <h2 className="text-xs text-muted-foreground uppercase tracking-wider">Preparing documents...</h2>
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                     <Skeleton className="w-10 h-10 rounded" />
@@ -891,7 +898,7 @@ export default function AIDocGenerator() {
                       <div className="flex items-center gap-3">
                         <FileText className="w-5 h-5 text-muted-foreground" />
                         <div>
-                          <p className="font-medium">{doc.title}</p>
+                          <h2 className="font-medium">{doc.title}</h2>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge variant="outline">
                               {doc.framework}

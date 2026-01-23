@@ -222,7 +222,8 @@ export default function MFASetupPage() {
 
   if (!status) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="sr-only">Loading MFA Setup</h1>
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );

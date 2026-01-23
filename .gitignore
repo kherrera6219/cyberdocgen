@@ -27,3 +27,11 @@ electron-builder-debug.log
 release
 *.msix
 *.exe
+
+# Local A11y and test results
+a11y_*.json
+a11y_*.txt
+test_output.txt
+playwright-report/
+test-results/
+.playwright/

@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 
 // Extend expect matchers
@@ -18,10 +18,13 @@ import { Landing } from '../../client/src/pages/landing';
 import Dashboard from '../../client/src/pages/dashboard';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../../client/src/lib/queryClient';
+import { OrganizationProvider } from '../../client/src/contexts/OrganizationContext';
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={queryClient}>
-    {children}
+    <OrganizationProvider>
+      {children}
+    </OrganizationProvider>
   </QueryClientProvider>
 );
 
@@ -99,9 +102,12 @@ describe('Accessibility Tests', () => {
           <AiDocGenerator />
         </Wrapper>
       );
-      const results = await axe(container, {
-        rules: { 'color-contrast': { enabled: false } },
-      });
+      const results = await waitFor(async () => {
+        const r = await axe(container, {
+          rules: { 'color-contrast': { enabled: false } },
+        });
+        return r;
+      }, { timeout: 10000 });
       expect(results).toHaveNoViolations();
     });
 
@@ -112,9 +118,12 @@ describe('Accessibility Tests', () => {
           <Documents />
         </Wrapper>
       );
-      const results = await axe(container, {
-        rules: { 'color-contrast': { enabled: false } },
-      });
+      const results = await waitFor(async () => {
+        const r = await axe(container, {
+          rules: { 'color-contrast': { enabled: false } },
+        });
+        return r;
+      }, { timeout: 10000 });
       expect(results).toHaveNoViolations();
     });
 
@@ -125,9 +134,12 @@ describe('Accessibility Tests', () => {
           <GapAnalysis />
         </Wrapper>
       );
-      const results = await axe(container, {
-        rules: { 'color-contrast': { enabled: false } },
-      });
+      const results = await waitFor(async () => {
+        const r = await axe(container, {
+          rules: { 'color-contrast': { enabled: false } },
+        });
+        return r;
+      }, { timeout: 10000 });
       expect(results).toHaveNoViolations();
     });
 
@@ -138,8 +150,11 @@ describe('Accessibility Tests', () => {
           <MfaSetup />
         </Wrapper>
       );
-      const results = await axe(container, {
-        rules: { 'color-contrast': { enabled: false } },
+      const results = await waitFor(async () => {
+        const r = await axe(container, {
+          rules: { 'color-contrast': { enabled: false } },
+        });
+        return r;
       });
       expect(results).toHaveNoViolations();
     });

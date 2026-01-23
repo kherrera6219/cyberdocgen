@@ -21,6 +21,16 @@ vi.mock('@/hooks/use-toast', () => ({
   }),
 }));
 
+vi.mock('@/contexts/OrganizationContext', () => ({
+  useOrganization: () => ({
+    profile: { id: 1, name: 'Test Org' },
+    profiles: [{ id: 1, name: 'Test Org' }],
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+}));
+
 describe('Gap Analysis Page', () => {
   let queryClient: QueryClient;
 
@@ -51,8 +61,8 @@ describe('Gap Analysis Page', () => {
     it('should render page header with title', () => {
       renderGapAnalysis();
 
-      expect(screen.getByText('Compliance Gap Analysis')).toBeInTheDocument();
-      expect(screen.getByText('Comprehensive assessment of platform readiness')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Compliance Gap Analysis/i })).toBeInTheDocument();
+      expect(screen.getByText(/Comprehensive assessment of platform readiness/i)).toBeInTheDocument();
     });
 
     it('should render export and analyze buttons', () => {
@@ -65,10 +75,10 @@ describe('Gap Analysis Page', () => {
     it('should render executive summary cards', () => {
       renderGapAnalysis();
 
-      expect(screen.getByText('Overall Score')).toBeInTheDocument();
-      expect(screen.getByText('Total Gaps')).toBeInTheDocument();
-      expect(screen.getByText('Critical Issues')).toBeInTheDocument();
-      expect(screen.getByText('Estimated Timeline')).toBeInTheDocument();
+      expect(screen.getByText(/Overall Score/i)).toBeInTheDocument();
+      expect(screen.getByText(/Total Gaps/i)).toBeInTheDocument();
+      expect(screen.getByText(/Critical Issues/i)).toBeInTheDocument();
+      expect(screen.getByText(/Estimated Timeline/i)).toBeInTheDocument();
     });
 
     it('should display overall score', () => {

@@ -11,6 +11,16 @@ vi.mock('@/hooks/use-toast', () => ({
   }),
 }));
 
+vi.mock('@/contexts/OrganizationContext', () => ({
+  useOrganization: () => ({
+    profile: { id: 1, name: 'Test Org' },
+    profiles: [{ id: 1, name: 'Test Org' }],
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+}));
+
 const mockApiRequest = vi.fn();
 vi.mock('@/lib/queryClient', () => ({
   apiRequest: (...args: unknown[]) => mockApiRequest(...args),
