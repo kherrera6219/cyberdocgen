@@ -1,23 +1,18 @@
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Upload, FileText, CheckCircle, AlertCircle, X, FileIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from '@/components/ui/dialog';
-import { VisuallyHidden } from '@/components/ui/visually-hidden';
+import { Upload } from "lucide-react";
 
 
 // Sub-components
 import { FileListItem, UploadedFile } from "./upload/FileListItem";
 
 interface DocumentUploaderProps {
-  onUploadComplete?: (extractedData: any[]) => void;
+  onUploadComplete?: (extractedData: unknown[]) => void;
   acceptedFileTypes?: string[];
   maxFiles?: number;
   title?: string;
@@ -39,7 +34,7 @@ export function DocumentUploader({
   const uploadAndProcessMutation = useMutation({
     mutationFn: async (files: File[]) => {
       const formData = new FormData();
-      files.forEach((file, index) => {
+      files.forEach((file) => {
         formData.append(`documents`, file);
       });
 
@@ -55,12 +50,12 @@ export function DocumentUploader({
 
       return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: { extractedData?: Array<{ filename: string; [key: string]: unknown }> }) => {
       setUploadedFiles(prev => 
         prev.map(file => ({
           ...file,
           status: 'completed' as const,
-          extractedData: data.extractedData?.find((d: any) => d.filename === file.file.name)
+          extractedData: data.extractedData?.find((d) => d.filename === file.file.name)
         }))
       );
       setIsProcessing(false);

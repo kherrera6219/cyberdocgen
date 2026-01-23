@@ -110,6 +110,7 @@ router.post('/login', authStrictLimiter, validateInput(loginSchema), secureHandl
         // Set user data on the new session
         req.session.userId = result.user?.id;
         req.session.email = result.user?.email;
+        req.session.mfaEnabled = result.user?.twoFactorEnabled;
         req.session.loginTime = new Date().toISOString();
         
         // Save the new session

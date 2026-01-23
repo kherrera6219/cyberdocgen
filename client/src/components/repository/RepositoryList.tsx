@@ -9,6 +9,49 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'completed':
+      return <CheckCircle2 className="h-5 w-5 text-green-600" />;
+    case 'analyzing':
+      return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
+    case 'failed':
+      return <AlertCircle className="h-5 w-5 text-red-600" />;
+    case 'extracting':
+      return <Loader2 className="h-5 w-5 text-gray-600 animate-spin" />;
+    default:
+      return <Clock className="h-5 w-5 text-gray-600" />;
+  }
+};
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'completed':
+      return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+    case 'analyzing':
+      return <Badge className="bg-blue-100 text-blue-800">Analyzing</Badge>;
+    case 'failed':
+      return <Badge variant="destructive">Failed</Badge>;
+    case 'extracting':
+      return <Badge variant="secondary">Extracting</Badge>;
+    default:
+      return <Badge variant="outline">Indexed</Badge>;
+  }
+};
+
+const formatSize = (bytes: number) => {
+  const mb = bytes / (1024 * 1024);
+  return mb < 1 ? `${(bytes / 1024).toFixed(1)} KB` : `${mb.toFixed(1)} MB`;
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
+    Math.round((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+    'day'
+  );
+};
+
 export interface RepositorySnapshot {
   id: string;
   name: string;
@@ -38,49 +81,6 @@ export function RepositoryList({
   onAnalyze,
   className,
 }: RepositoryListProps) {
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle2 className="h-5 w-5 text-green-600" />;
-      case 'analyzing':
-        return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
-      case 'failed':
-        return <AlertCircle className="h-5 w-5 text-red-600" />;
-      case 'extracting':
-        return <Loader2 className="h-5 w-5 text-gray-600 animate-spin" />;
-      default:
-        return <Clock className="h-5 w-5 text-gray-600" />;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case 'analyzing':
-        return <Badge className="bg-blue-100 text-blue-800">Analyzing</Badge>;
-      case 'failed':
-        return <Badge variant="destructive">Failed</Badge>;
-      case 'extracting':
-        return <Badge variant="secondary">Extracting</Badge>;
-      default:
-        return <Badge variant="outline">Indexed</Badge>;
-    }
-  };
-
-  const formatSize = (bytes: number) => {
-    const mb = bytes / (1024 * 1024);
-    return mb < 1 ? `${(bytes / 1024).toFixed(1)} KB` : `${mb.toFixed(1)} MB`;
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(
-      Math.round((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-      'day'
-    );
-  };
-
   if (repositories.length === 0) {
     return (
       <Card className={className}>

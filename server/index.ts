@@ -31,7 +31,8 @@ app.get('/ready', readinessCheckHandler);
 app.get('/live', livenessCheckHandler);
 
 // Request ID assignment for lifecycle logging
-app.use((req, res, next) => {
+// Request ID assignment for lifecycle logging
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
   const requestId = crypto.randomUUID();
   req.requestId = requestId;
   const start = Date.now();

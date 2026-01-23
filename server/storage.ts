@@ -2221,4 +2221,6 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage: IStorage = new DatabaseStorage();
+export const storage: IStorage = (!process.env.DATABASE_URL || process.env.DEPLOYMENT_MODE === 'local')
+  ? new MemStorage()
+  : new DatabaseStorage();

@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm, type UseFormReturn, type Path } from "react-hook-form";
+import { useForm, useWatch, type UseFormReturn, type Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { HelpTooltip } from "@/components/help/ContextualHelp";
 import { insertCompanyProfileSchema, type CompanyProfile as CompanyProfileType, type InsertCompanyProfile } from "@shared/schema";
 import { 
   Building, Save, Globe, Briefcase, MapPin, Shield, 
-  RefreshCw, Truck, Plus, Trash2, Building2, UserCheck
+  Truck, Plus, Trash2, Building2, UserCheck
 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -33,7 +33,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <FormField
           control={form.control}
-          name={`keyPersonnel.${fieldPrefix}.name` as Path<InsertCompanyProfile>}
+          name={`keyPersonnel.${String(fieldPrefix)}.name` as Path<InsertCompanyProfile>}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Name</FormLabel>
@@ -50,7 +50,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
         />
         <FormField
           control={form.control}
-          name={`keyPersonnel.${fieldPrefix}.email` as Path<InsertCompanyProfile>}
+          name={`keyPersonnel.${String(fieldPrefix)}.email` as Path<InsertCompanyProfile>}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Email</FormLabel>
@@ -68,7 +68,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
         />
         <FormField
           control={form.control}
-          name={`keyPersonnel.${fieldPrefix}.phone` as Path<InsertCompanyProfile>}
+          name={`keyPersonnel.${String(fieldPrefix)}.phone` as Path<InsertCompanyProfile>}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Phone</FormLabel>
@@ -175,6 +175,20 @@ export default function CompanyProfile() {
       },
     },
   });
+
+  const subsidiaries = useWatch({ control: form.control, name: "organizationStructure.subsidiaries" }) || [];
+  const departments = useWatch({ control: form.control, name: "organizationStructure.departments" }) || [];
+  const primaryProducts = useWatch({ control: form.control, name: "productsAndServices.primaryProducts" }) || [];
+  const primaryServices = useWatch({ control: form.control, name: "productsAndServices.primaryServices" }) || [];
+  const slaCommitments = useWatch({ control: form.control, name: "productsAndServices.slaCommitments" }) || [];
+  const officeLocations = useWatch({ control: form.control, name: "geographicOperations.officeLocations" }) || [];
+  const dataCenterLocations = useWatch({ control: form.control, name: "geographicOperations.dataCenterLocations" }) || [];
+  const criticalSystems = useWatch({ control: form.control, name: "businessContinuity.criticalSystems" }) || [];
+  const criticalVendors = useWatch({ control: form.control, name: "vendorManagement.criticalVendors" }) || [];
+  const thirdPartyIntegrations = useWatch({ control: form.control, name: "vendorManagement.thirdPartyIntegrations" }) || [];
+  const encryptionStandards = useWatch({ control: form.control, name: "securityInfrastructure.encryptionStandards" }) || [];
+  const backupSolutions = useWatch({ control: form.control, name: "securityInfrastructure.backupSolutions" }) || [];
+  const disasterRecoverySites = useWatch({ control: form.control, name: "securityInfrastructure.disasterRecoverySites" }) || [];
 
   useEffect(() => {
     if (profile) {
@@ -697,7 +711,7 @@ export default function CompanyProfile() {
                           Add Subsidiary
                         </Button>
                       </div>
-                      {(form.watch("organizationStructure.subsidiaries") || []).map((_, index) => (
+                      {subsidiaries.map((_: any, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -771,7 +785,7 @@ export default function CompanyProfile() {
                           Add Department
                         </Button>
                       </div>
-                      {(form.watch("organizationStructure.departments") || []).map((_, index) => (
+                      {departments.map((_: any, index: number) => (
                         <div key={index} className="p-4 border rounded-md space-y-3">
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-medium">Department {index + 1}</span>
@@ -931,7 +945,7 @@ export default function CompanyProfile() {
                           Add Product
                         </Button>
                       </div>
-                      {(form.watch("productsAndServices.primaryProducts") || []).map((_, index) => (
+                      {primaryProducts.map((_: any, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -1005,7 +1019,7 @@ export default function CompanyProfile() {
                           Add Service
                         </Button>
                       </div>
-                      {(form.watch("productsAndServices.primaryServices") || []).map((_, index) => (
+                      {primaryServices.map((_: any, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -1112,7 +1126,7 @@ export default function CompanyProfile() {
                           Add SLA
                         </Button>
                       </div>
-                      {(form.watch("productsAndServices.slaCommitments") || []).map((_, index) => (
+                      {slaCommitments.map((_: unknown, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -1259,7 +1273,7 @@ export default function CompanyProfile() {
                           Add Office
                         </Button>
                       </div>
-                      {(form.watch("geographicOperations.officeLocations") || []).map((_, index) => (
+                      {officeLocations.map((_: any, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -1357,7 +1371,7 @@ export default function CompanyProfile() {
                           Add Data Center
                         </Button>
                       </div>
-                      {(form.watch("geographicOperations.dataCenterLocations") || []).map((_, index) => (
+                      {dataCenterLocations.map((_: any, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -1666,7 +1680,7 @@ export default function CompanyProfile() {
                           Add Standard
                         </Button>
                       </div>
-                      {(form.watch("securityInfrastructure.encryptionStandards") || []).map((_, index) => (
+                      {encryptionStandards.map((_: unknown, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -1759,7 +1773,7 @@ export default function CompanyProfile() {
                           Add Backup
                         </Button>
                       </div>
-                      {(form.watch("securityInfrastructure.backupSolutions") || []).map((_, index) => (
+                      {backupSolutions.map((_: unknown, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -1850,7 +1864,7 @@ export default function CompanyProfile() {
                           Add DR Site
                         </Button>
                       </div>
-                      {(form.watch("securityInfrastructure.disasterRecoverySites") || []).map((_, index) => (
+                      {disasterRecoverySites.map((_: unknown, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -2093,7 +2107,7 @@ export default function CompanyProfile() {
                           Add System
                         </Button>
                       </div>
-                      {(form.watch("businessContinuity.criticalSystems") || []).map((_, index) => (
+                      {criticalSystems.map((_: any, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}
@@ -2226,7 +2240,7 @@ export default function CompanyProfile() {
                           Add Vendor
                         </Button>
                       </div>
-                      {(form.watch("vendorManagement.criticalVendors") || []).map((_, index) => (
+                      {criticalVendors.map((_: any, index: number) => (
                         <div key={index} className="p-4 border rounded-md space-y-3">
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-medium">Vendor {index + 1}</span>
@@ -2343,7 +2357,7 @@ export default function CompanyProfile() {
                           Add Integration
                         </Button>
                       </div>
-                      {(form.watch("vendorManagement.thirdPartyIntegrations") || []).map((_, index) => (
+                      {thirdPartyIntegrations.map((_: any, index: number) => (
                         <div key={index} className="flex gap-3 items-end">
                           <FormField
                             control={form.control}

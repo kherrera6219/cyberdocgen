@@ -9,20 +9,43 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Shield, Building, Users, Settings, Calendar } from "lucide-react";
+import { Mail, Shield, Building, Users, Settings, Calendar } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export function UserProfile() {
   const { user } = useAuth() as { user: UserType | undefined };
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
+  const queryClient = useQueryClient();
+  
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
-    email: user?.email || '',
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const res = await apiRequest("PATCH", "/api/user", data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully.",
+      });
+      setIsEditing(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   if (!user) {
@@ -37,11 +60,7 @@ export function UserProfile() {
   }
 
   const handleSave = () => {
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully.",
-    });
-    setIsEditing(false);
+    updateUserMutation.mutate(formData);
   };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
@@ -160,13 +179,13 @@ export function UserProfile() {
                 </CardDescription>
               </div>
               <div className="flex space-x-2">
-                <Button onClick={() => setIsEditing(!isEditing)} variant="outline" size="sm">
+                <Button onClick={() => setIsEditing(!isEditing)} variant="outline" size="sm" disabled={updateUserMutation.isPending}>
                   <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                   {isEditing ? 'Cancel' : 'Edit'}
                 </Button>
                 {isEditing && (
-                  <Button onClick={handleSave} size="sm">
-                    Save Changes
+                  <Button onClick={handleSave} size="sm" disabled={updateUserMutation.isPending}>
+                    {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
                   </Button>
                 )}
               </div>
@@ -175,16 +194,34 @@ export function UserProfile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName" className="text-xs sm:text-sm">First Name</Label>
-                  <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
-                    {user.firstName || 'Not set'}
-                  </p>
+                  {isEditing ? (
+                    <Input 
+                      id="firstName" 
+                      value={formData.firstName} 
+                      onChange={(e) => setFormData({...formData, firstName: e.target.value})} 
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
+                      {user.firstName || 'Not set'}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <Label htmlFor="lastName" className="text-xs sm:text-sm">Last Name</Label>
-                  <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
-                    {user.lastName || 'Not set'}
-                  </p>
+                  {isEditing ? (
+                    <Input 
+                      id="lastName" 
+                      value={formData.lastName} 
+                      onChange={(e) => setFormData({...formData, lastName: e.target.value})} 
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-900 dark:text-white mt-1">
+                      {user.lastName || 'Not set'}
+                    </p>
+                  )}
                 </div>
 
                 <div className="md:col-span-2">

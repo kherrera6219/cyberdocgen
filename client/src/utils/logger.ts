@@ -8,7 +8,7 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 class ClientLogger {
-  private isDevelopment = import.meta.env.DEV || (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production');
+  private isDevelopment = import.meta.env.MODE === 'development' || process.env.NODE_ENV !== 'production';
 
   private log(level: LogLevel, message: string, data?: Record<string, unknown> | unknown) {
     // In production, only log warnings and errors

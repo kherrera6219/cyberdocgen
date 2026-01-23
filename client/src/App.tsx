@@ -1,11 +1,10 @@
-import { lazy, Suspense, useState, useEffect, useDeferredValue } from "react";
+import { lazy, Suspense } from "react";
 
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { Switch, Route, useParams } from "wouter";
@@ -14,7 +13,6 @@ import Layout from "./components/layout";
 // Lazy load all pages for code splitting
 const NotFound = lazy(() => import("./pages/not-found"));
 const Landing = lazy(() => import("./pages/landing").then(m => ({ default: m.Landing })));
-const Home = lazy(() => import("./pages/home").then(m => ({ default: m.Home })));
 
 // Core application pages
 const Dashboard = lazy(() => import("./pages/dashboard"));
@@ -34,7 +32,8 @@ const NISTFramework = lazy(() => import("./pages/nist-framework"));
 
 // Analysis and audit pages
 const GapAnalysis = lazy(() => import("./pages/gap-analysis"));
-const AuditTrail = lazy(() => import("./pages/audit-trail-complete"));
+const AuditTrail = lazy(() => import("./pages/audit-trail"));
+const RepositoryAnalysis = lazy(() => import("./pages/repository-analysis").then(m => ({ default: m.RepositoryAnalysisPage })));
 const ExportCenter = lazy(() => import("./pages/export-center"));
 
 // Authentication pages
@@ -109,6 +108,7 @@ function AuthenticatedRouter() {
         <Route path="/fedramp-framework" component={FedRAMPFramework} />
         <Route path="/nist-framework" component={NISTFramework} />
         <Route path="/audit-trail" component={AuditTrail} />
+        <Route path="/repository-analysis" component={RepositoryAnalysis} />
         <Route path="/document-versions/:id" component={DocumentVersionsWrapper} />
         <Route path="/user-profile" component={UserProfile} />
         <Route path="/organizations" component={OrganizationSetup} />
@@ -178,46 +178,19 @@ import { NetworkBanner } from "./components/NetworkBanner";
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
-  const [showLoading, setShowLoading] = useState(true);
-  
-  // Defer authentication state changes to prevent Suspense errors during synchronous updates
-  // This fixes the "A component suspended while responding to synchronous input" error
-  const deferredIsAuthenticated = useDeferredValue(isAuthenticated);
 
-  // Timeout the loading state after 2 seconds to prevent infinite loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Not authenticated - show public routes without layout
+  if (!isAuthenticated && !isLoading) {
+    return (
+      <>
+        <NetworkBanner />
+        <PublicRouter />
+      </>
+    );
+  }
 
-  // Global error handler for actions/queries outside of components
-  const { toast } = useToast();
-  useEffect(() => {
-    const handleAppError = (event: CustomEvent<{ message: string; title?: string }>) => {
-      const { message, title } = event.detail;
-      toast({
-        title: title || "Error",
-        description: message,
-        variant: "destructive",
-        duration: 5000,
-      });
-    };
-
-    window.addEventListener('app:error', handleAppError as EventListener);
-    return () => window.removeEventListener('app:error', handleAppError as EventListener);
-  }, [toast]);
-
-  // Also stop showing loading when auth check completes
-  useEffect(() => {
-    if (!isLoading) {
-      setShowLoading(false);
-    }
-  }, [isLoading]);
-
-  // Show a proper loading state to prevent routing flicker (with timeout)
-  if (isLoading && showLoading) {
+  // Loading state
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center space-y-4">
@@ -225,16 +198,6 @@ function AppContent() {
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
-    );
-  }
-
-  // Not authenticated - show public routes without layout
-  if (!deferredIsAuthenticated) {
-    return (
-      <>
-        <NetworkBanner />
-        <PublicRouter />
-      </>
     );
   }
 

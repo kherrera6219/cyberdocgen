@@ -10,6 +10,7 @@ declare module "express-session" {
     tempUserEmail?: string;
     mfaVerified?: boolean;
     mfaVerifiedAt?: string;
+    mfaEnabled?: boolean;
     csrfToken?: string;
     csrfUserId?: string;
     csrfCreatedAt?: number;

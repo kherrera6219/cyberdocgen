@@ -8,7 +8,6 @@ import {
 } from '../utils/errorHandling';
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       mfaRequired?: boolean;
@@ -16,6 +15,9 @@ declare global {
     }
   }
 }
+
+// Add session properties
+
 
 interface AuthUser {
   claims?: {
@@ -75,18 +77,31 @@ export function requireMFA(req: Request, res: Response, next: NextFunction) {
 
     // Additional checks for MFA requirement
     if (!requiresMFA) {
-      if (req.method === 'DELETE') {
-        requiresMFA = true;
-      } else if (req.method === 'POST' && req.path.includes('/generate')) {
-        requiresMFA = true;
-      } else if (isMediumSecurityRoute) {
-        // For medium security routes, MFA might be required based on risk
-        // This part would need more sophisticated logic (e.g., checking user risk score)
-        // For now, let's assume MFA is required for medium routes if not verified recently
-        const mfaTimeout = 30 * 60 * 1000; // 30 minutes
-        const mfaVerifiedAt = req.session?.mfaVerifiedAt;
-        if (!mfaVerifiedAt || new Date().getTime() - new Date(mfaVerifiedAt).getTime() > mfaTimeout) {
+      // STRICT ENFORCEMENT: If user has MFA enabled, ALL protected routes require MFA
+      // except for MFA setup/verification routes and logout
+      if (req.session?.mfaEnabled) {
+        const isVerificationRoute = req.path.startsWith('/api/auth/mfa/');
+        const isLogout = req.path.endsWith('/logout');
+        
+        if (!isVerificationRoute && !isLogout) {
           requiresMFA = true;
+        }
+      }
+
+      if (!requiresMFA) {
+        if (req.method === 'DELETE') {
+          requiresMFA = true;
+        } else if (req.method === 'POST' && req.path.includes('/generate')) {
+          requiresMFA = true;
+        } else if (isMediumSecurityRoute) {
+          // For medium security routes, MFA might be required based on risk
+          // This part would need more sophisticated logic (e.g., checking user risk score)
+          // For now, let's assume MFA is required for medium routes if not verified recently
+          const mfaTimeout = 30 * 60 * 1000; // 30 minutes
+          const mfaVerifiedAt = req.session?.mfaVerifiedAt;
+          if (!mfaVerifiedAt || new Date().getTime() - new Date(mfaVerifiedAt).getTime() > mfaTimeout) {
+            requiresMFA = true;
+          }
         }
       }
     }

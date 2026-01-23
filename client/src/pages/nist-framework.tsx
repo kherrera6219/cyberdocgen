@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Shield,
   Search,
+  Activity,
   FileText,
   CheckCircle,
   Clock,
@@ -26,15 +27,14 @@ import {
   FileCheck,
   Calendar,
   Target,
-  Activity,
   Unlink,
   Paperclip,
-  Plus
+  Plus,
+  Table as TableIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
-import { Table as TableIcon } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { CompanyProfile } from "@shared/schema";
@@ -574,42 +574,7 @@ export default function NISTFramework() {
     }
   };
 
-  const getTierBadge = (tier: ImplementationTier) => {
-    switch (tier) {
-      case "tier_1":
-        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Tier 1: Partial</Badge>;
-      case "tier_2":
-        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Tier 2: Risk Informed</Badge>;
-      case "tier_3":
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Tier 3: Repeatable</Badge>;
-      case "tier_4":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Tier 4: Adaptive</Badge>;
-    }
-  };
 
-  const getStatusBadge = (status: SubcategoryStatus) => {
-    switch (status) {
-      case "implemented":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"><CheckCircle className="w-3 h-3 mr-1" />Implemented</Badge>;
-      case "in_progress":
-        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"><Clock className="w-3 h-3 mr-1" />In Progress</Badge>;
-      case "not_started":
-        return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"><AlertCircle className="w-3 h-3 mr-1" />Not Started</Badge>;
-      case "not_applicable":
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"><XCircle className="w-3 h-3 mr-1" />N/A</Badge>;
-    }
-  };
-
-  const getEvidenceBadge = (status: EvidenceStatus) => {
-    switch (status) {
-      case "complete":
-        return <Badge variant="outline" className="border-green-500 text-green-700 dark:text-green-400"><FileCheck className="w-3 h-3 mr-1" />Complete</Badge>;
-      case "partial":
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-700 dark:text-yellow-400"><FileText className="w-3 h-3 mr-1" />Partial</Badge>;
-      case "none":
-        return <Badge variant="outline" className="border-gray-400 text-gray-600 dark:text-gray-400"><FileText className="w-3 h-3 mr-1" />None</Badge>;
-    }
-  };
 
   const getFunctionStats = (func: NISTFunction) => {
     const allSubs = func.categories.flatMap(c => c.subcategories);

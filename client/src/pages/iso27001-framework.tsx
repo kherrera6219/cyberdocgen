@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Shield,
@@ -29,7 +29,6 @@ import {
   Calendar,
   Table as TableIcon,
   Paperclip,
-  Upload,
   Link2,
   Trash2,
   ExternalLink
@@ -204,7 +203,7 @@ const initialControlDomains: ControlDomain[] = [
 
 export default function ISO27001Framework() {
   const { toast } = useToast();
-  const [controlDomains, setControlDomains] = useState<ControlDomain[]>(initialControlDomains);
+  // Derived state replaces local state for controls
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [domainFilter, setDomainFilter] = useState<string>("all");
@@ -220,8 +219,9 @@ export default function ISO27001Framework() {
   });
 
   // Fetch control statuses from the database
-  const { data: savedStatuses, isLoading: statusesLoading } = useQuery<FrameworkControlStatus[]>({
-    queryKey: ['/api/frameworks', 'iso27001', 'control-statuses'],
+  const STATUS_QUERY_KEY = ['/api/frameworks', 'iso27001', 'control-statuses'];
+  const { data: savedStatuses } = useQuery<FrameworkControlStatus[]>({
+    queryKey: STATUS_QUERY_KEY,
   });
 
   // Fetch all evidence for the ISO 27001 framework (persistent cache for card badges and dialog)
@@ -299,39 +299,76 @@ export default function ISO27001Framework() {
         body: JSON.stringify({ status, evidenceStatus, notes }),
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/frameworks', 'iso27001', 'control-statuses'] });
+    onMutate: async (newStatus) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: STATUS_QUERY_KEY });
+
+      // Snapshot the previous value
+      const previousStatuses = queryClient.getQueryData<FrameworkControlStatus[]>(STATUS_QUERY_KEY);
+
+      // Optimistically update to the new value
+        queryClient.setQueryData<FrameworkControlStatus[]>(STATUS_QUERY_KEY, (old) => {
+          const existing = old?.find(s => s.controlId === newStatus.controlId);
+        
+        // Create an optimistic record. Note: id is temporary/fake for optimistic update
+        const optimisticRecord = {
+          id: existing?.id || -1,
+          controlId: newStatus.controlId,
+          framework: 'iso27001',
+          status: newStatus.status || existing?.status || 'not_started',
+          evidenceStatus: newStatus.evidenceStatus || existing?.evidenceStatus || 'none',
+          notes: newStatus.notes || existing?.notes || null,
+          updatedBy: existing?.updatedBy || null,
+          organizationId: existing?.organizationId || 'optimistic',
+        } as FrameworkControlStatus;
+
+        if (existing) {
+          return old?.map(s => s.controlId === newStatus.controlId ? { ...s, ...optimisticRecord } : s) || [];
+        } else {
+          return [...(old || []), optimisticRecord];
+        }
+      });
+
+      return { previousStatuses };
     },
-    onError: (error: Error) => {
+    onError: (err, newStatus, context) => {
+      queryClient.setQueryData(STATUS_QUERY_KEY, context?.previousStatuses);
       toast({
         title: "Failed to save",
-        description: error.message || "Could not save control status to database",
+        description: err.message || "Could not save control status to database",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: STATUS_QUERY_KEY });
+    },
+    onSuccess: (_, variables) => {
+      if (variables.status) {
+         toast({
+          title: "Control Updated",
+          description: `${variables.controlId} status changed to ${variables.status.replace("_", " ")}`,
+        });
+      }
     }
   });
 
-  // Merge saved statuses with static control definitions
-  useEffect(() => {
-    if (savedStatuses && savedStatuses.length > 0) {
-      setControlDomains(domains => 
-        domains.map(domain => ({
-          ...domain,
-          controls: domain.controls.map(control => {
-            const saved = savedStatuses.find(s => s.controlId === control.id);
-            if (saved) {
-              return {
-                ...control,
-                status: (saved.status || "not_started") as ControlStatus,
-                evidenceStatus: (saved.evidenceStatus || "none") as EvidenceStatus,
-                lastUpdated: saved.updatedAt ? new Date(saved.updatedAt).toISOString() : null,
-              };
-            }
-            return control;
-          })
-        }))
-      );
-    }
+  // Merge saved statuses with static control definitions using useMemo
+  const controlDomains = useMemo(() => {
+    return initialControlDomains.map(domain => ({
+      ...domain,
+      controls: domain.controls.map(control => {
+        const saved = savedStatuses?.find(s => s.controlId === control.id);
+        if (saved) {
+          return {
+            ...control,
+            status: (saved.status || "not_started") as ControlStatus,
+            evidenceStatus: (saved.evidenceStatus || "none") as EvidenceStatus,
+            lastUpdated: saved.updatedAt ? new Date(saved.updatedAt).toISOString() : null,
+          };
+        }
+        return control;
+      })
+    }));
   }, [savedStatuses]);
 
   const allControls = useMemo(() => {
@@ -367,71 +404,11 @@ export default function ISO27001Framework() {
   }, [allControls]);
 
   const updateControlStatus = (controlId: string, newStatus: ControlStatus) => {
-    // Deep clone previous state for rollback (spread only creates shallow copy)
-    const previousDomains = controlDomains.map(domain => ({
-      ...domain,
-      controls: domain.controls.map(control => ({ ...control }))
-    }));
-    
-    // Optimistic update
-    setControlDomains(domains => 
-      domains.map(domain => ({
-        ...domain,
-        controls: domain.controls.map(control => 
-          control.id === controlId 
-            ? { ...control, status: newStatus, lastUpdated: new Date().toISOString() }
-            : control
-        )
-      }))
-    );
-    
-    // Persist to database with rollback on error
-    updateStatusMutation.mutate(
-      { controlId, status: newStatus },
-      {
-        onError: () => {
-          // Rollback on error
-          setControlDomains(previousDomains);
-        },
-        onSuccess: () => {
-          toast({
-            title: "Control Updated",
-            description: `${controlId} status changed to ${newStatus.replace("_", " ")}`,
-          });
-        }
-      }
-    );
+    updateStatusMutation.mutate({ controlId, status: newStatus });
   };
 
   const updateEvidenceStatus = (controlId: string, newStatus: EvidenceStatus) => {
-    // Deep clone previous state for rollback (spread only creates shallow copy)
-    const previousDomains = controlDomains.map(domain => ({
-      ...domain,
-      controls: domain.controls.map(control => ({ ...control }))
-    }));
-    
-    // Optimistic update
-    setControlDomains(domains => 
-      domains.map(domain => ({
-        ...domain,
-        controls: domain.controls.map(control => 
-          control.id === controlId 
-            ? { ...control, evidenceStatus: newStatus, lastUpdated: new Date().toISOString() }
-            : control
-        )
-      }))
-    );
-    
-    // Persist to database with rollback on error
-    updateStatusMutation.mutate(
-      { controlId, evidenceStatus: newStatus },
-      {
-        onError: () => {
-          // Rollback on error
-          setControlDomains(previousDomains);
-        }
-      }
-    );
+    updateStatusMutation.mutate({ controlId, evidenceStatus: newStatus });
   };
 
   const handleGenerateDocument = (controlId: string, controlName: string) => {
@@ -448,29 +425,7 @@ export default function ISO27001Framework() {
     });
   };
 
-  const getStatusBadge = (status: ControlStatus) => {
-    switch (status) {
-      case "implemented":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"><CheckCircle className="w-3 h-3 mr-1" />Implemented</Badge>;
-      case "in_progress":
-        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"><Clock className="w-3 h-3 mr-1" />In Progress</Badge>;
-      case "not_started":
-        return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"><AlertCircle className="w-3 h-3 mr-1" />Not Started</Badge>;
-      case "not_applicable":
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"><XCircle className="w-3 h-3 mr-1" />N/A</Badge>;
-    }
-  };
 
-  const getEvidenceBadge = (status: EvidenceStatus) => {
-    switch (status) {
-      case "complete":
-        return <Badge variant="outline" className="border-green-500 text-green-700 dark:text-green-400"><FileCheck className="w-3 h-3 mr-1" />Complete</Badge>;
-      case "partial":
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-700 dark:text-yellow-400"><FileText className="w-3 h-3 mr-1" />Partial</Badge>;
-      case "none":
-        return <Badge variant="outline" className="border-gray-400 text-gray-600 dark:text-gray-400"><FileText className="w-3 h-3 mr-1" />None</Badge>;
-    }
-  };
 
   const getDomainStats = (domain: ControlDomain) => {
     const total = domain.controls.length;

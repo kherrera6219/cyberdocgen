@@ -1,4 +1,5 @@
-import express, { Express, Router } from "express";
+import express, { Express, Router, Request, Response, NextFunction } from "express";
+import "express-session";
 import { createServer, type Server } from "http";
 import crypto from "crypto";
 import cookieParser from "cookie-parser";
@@ -147,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Metrics endpoint for monitoring - protected by default
   // Only allow public access if ENABLE_PUBLIC_METRICS=true is explicitly set
-  app.get("/metrics", async (req: any, res) => {
+  app.get("/metrics", async (req: Request, res) => {
     const allowPublicMetrics = process.env.ENABLE_PUBLIC_METRICS === 'true';
     
     if (!allowPublicMetrics) {
@@ -157,7 +158,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isAuthenticated = req.isAuthenticated?.() || req.user;
       
       if (!isAuthenticated && !hasValidApiKey) {
-        return res.status(401).json({ error: "Unauthorized - metrics access requires authentication" });
+        res.status(401).json({ error: "Unauthorized - metrics access requires authentication" });
+        return;
       }
     }
     
@@ -170,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Public health check endpoint - must be before auth setup
-  app.get("/api/ai/health", async (req: any, res) => {
+  app.get("/api/ai/health", async (req: Request, res) => {
     try {
       const health = await aiOrchestrator.healthCheck();
       res.json(health);
@@ -236,10 +238,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', extractOrganizationContext);
 
   // CSRF token endpoint - session-bound and user-bound for enhanced security
-  app.get('/api/csrf-token', (req: any, res) => {
+  app.get('/api/csrf-token', (req: Request, res) => {
     const session = req.session;
     if (!session) {
-      return res.status(500).json({ message: 'Session not available' });
+      res.status(500).json({ message: 'Session not available' });
+      return;
     }
     
     // Get user ID for binding (from authenticated session or temp login)
@@ -256,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       session.csrfToken = crypto.createHmac('sha256', process.env.SESSION_SECRET || 'fallback-secret')
         .update(tokenData)
         .digest('hex');
-      session.csrfUserId = userId;
+      session.csrfUserId = String(userId);
       session.csrfCreatedAt = Date.now();
       
       logger.info('CSRF token generated', { userId, sessionId: session.id?.slice(0, 8) });
@@ -287,18 +290,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Temporary login endpoint - creates a demo session for testing
   // This is a workaround while the main authentication system is being fixed
   // Uses production-grade rate limiting via authLimiter middleware
-  app.post('/api/auth/temp-login', authLimiter, async (req: any, res) => {
+  app.post('/api/auth/temp-login', authLimiter, async (req: Request, res) => {
     try {
       const { name, email } = req.body;
       
       if (!name || !email) {
-        return res.status(400).json({ message: 'Name and email are required' });
+        res.status(400).json({ message: 'Name and email are required' });
+        return;
       }
       
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return res.status(400).json({ message: 'Invalid email format' });
+        res.status(400).json({ message: 'Invalid email format' });
+        return;
       }
       
       // Sanitize inputs
@@ -328,10 +333,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Regenerate session to prevent session fixation attacks
-      req.session.regenerate((regenerateErr: any) => {
+      req.session.regenerate((regenerateErr) => {
         if (regenerateErr) {
-          logger.error('Failed to regenerate session', { error: regenerateErr.message });
-          return res.status(500).json({ message: 'Failed to create secure session' });
+          logger.error('Failed to regenerate session', { error: regenerateErr });
+          res.status(500).json({ message: 'Failed to create secure session' });
+          return;
         }
         
         // Set the session data on the new regenerated session
@@ -342,13 +348,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.loginTime = new Date().toISOString();
         // Auto-verify MFA for temp sessions
         req.session.mfaVerified = true;
-        req.session.mfaVerifiedAt = new Date().toISOString();
+        // Use any cast to satisfy conflicting type definitions (string vs Date)
+        req.session.mfaVerifiedAt = new Date().toISOString() as any;
         
         // Save session explicitly
-        req.session.save((err: any) => {
+        req.session.save((err) => {
           if (err) {
-            logger.error('Failed to save temp session', { error: err.message });
-            return res.status(500).json({ message: 'Failed to create session' });
+            logger.error('Failed to save temp session', { error: err });
+            res.status(500).json({ message: 'Failed to create session' });
+            return;
           }
           
           logger.info('Temporary login successful with session regeneration', { userId: sessionUserId, email: sanitizedEmail });
@@ -366,18 +374,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         });
       });
-    } catch (error: any) {
-      logger.error('Temporary login failed', { error: error.message });
-      res.status(500).json({ message: 'Login failed', error: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Temporary login failed', { error: errorMessage });
+      res.status(500).json({ message: 'Login failed', error: errorMessage });
     }
   });
 
   // Temporary logout endpoint
-  app.post('/api/auth/temp-logout', (req: any, res) => {
-    req.session.destroy((err: any) => {
+  app.post('/api/auth/temp-logout', (req: Request, res) => {
+    req.session.destroy((err) => {
       if (err) {
-        logger.error('Failed to destroy temp session', { error: err.message });
-        return res.status(500).json({ message: 'Logout failed' });
+        logger.error('Failed to destroy temp session', { error: err });
+        res.status(500).json({ message: 'Logout failed' });
+        return;
       }
       res.clearCookie('connect.sid');
       res.json({ success: true });
@@ -432,15 +442,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *       400:
    *         $ref: '#/components/responses/ValidationError'
    */
-  app.post('/api/contact-messages', async (req: any, res) => {
+  app.post('/api/contact-messages', async (req: Request, res) => {
     try {
       const validated = insertContactMessageSchema.parse(req.body);
       const message = await storage.createContactMessage(validated);
       logger.info("Contact message received", { email: validated.email, subject: validated.subject });
       res.status(201).json({ success: true, id: message.id });
-    } catch (error: any) {
-      logger.error("Contact form submission failed", { error: error.message });
-      res.status(400).json({ message: "Failed to submit contact form", error: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Contact form submission failed", { error: errorMessage });
+      res.status(400).json({ message: "Failed to submit contact form", error: errorMessage });
     }
   });
 
@@ -469,7 +480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: Request, res) => {
     try {
       // Support both Replit OAuth and Enterprise auth with multiple fallbacks:
       // 1. req.user.claims.sub - Replit OAuth with full claims
@@ -478,31 +489,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user?.claims?.sub || req.user?.id || req.session?.userId;
       
       if (!userId) {
-        return res.status(401).json({ message: "User ID not found in session" });
+        res.status(401).json({ message: "User ID not found in session" });
+        return;
       }
       
-      const user = await storage.getUser(userId);
+      const user = await storage.getUser(String(userId));
       
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        res.status(404).json({ message: "User not found" });
+        return;
       }
 
       await auditService.auditFromRequest(
         req,
         AuditAction.READ,
         'user',
-        userId
+        String(userId)
       );
 
       // Include isTemporary flag for temp sessions
-      const isTemporary = req.session?.isTemporary === true || userId.startsWith('temp-');
+      const isTemporary = req.session?.isTemporary === true || String(userId).startsWith('temp-');
       res.json({
         ...user,
         isTemporary,
         displayName: isTemporary ? (req.session?.tempUserName || user.firstName) : (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email),
       });
-    } catch (error: any) {
-      logger.error("Error fetching user", { error: error.message, userId: req.user?.claims?.sub || req.user?.id || req.session?.userId }, req);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("Error fetching user", { error: errorMessage, userId: req.user?.claims?.sub || req.user?.id || req.session?.userId }, req);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
@@ -646,6 +660,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Local Mode Routes - Desktop Integration (Sprint 2)
   const { default: localModeRoutes } = await import('./routes/localMode');
   app.use('/api/local', localModeRoutes);
+
+  // Global Error Handler (Must be last)
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    
+    // Log the error
+    if (status >= 500) {
+      logger.error('Unhandled Server Error', { error: message, stack: err.stack, path: req.path });
+    } else {
+      logger.warn('Client Error', { error: message, status, path: req.path });
+    }
+
+    // Return JSON response
+    res.status(status).json({ message });
+  });
 
   const httpServer = createServer(app);
   return httpServer;

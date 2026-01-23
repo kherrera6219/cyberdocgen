@@ -2,7 +2,7 @@ import { Component, ErrorInfo, ReactNode, ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, RefreshCw } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface Props {
   children: ReactNode;
@@ -84,6 +84,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleRetry = (): void => {
+    // Reset all queries to ensure fresh data fetch upon retry
+    queryClient.resetQueries();
+    
     this.setState((prevState) => ({
       hasError: false,
       error: undefined,
@@ -133,7 +136,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button
                   onClick={this.handleRetry}
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 hover:bg-primary/10 transition-colors"
                   data-testid="button-error-retry"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -142,7 +145,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button
                   onClick={this.handleReload}
                   variant="default"
-                  className="flex-1"
+                  className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all"
                   data-testid="button-error-reload"
                 >
                   Reload Page

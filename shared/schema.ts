@@ -1,7 +1,9 @@
 import { sql, relations } from "drizzle-orm";
 import { pgTable, text, varchar, jsonb, timestamp, integer, boolean, index, unique, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-const cis = createInsertSchema as any;
+// Cast to any required due to incompatibility between drizzle-zod 0.8.3 and zod 3.25.x (required by openai/anthropic SDKs)
+// TODO: Remove cast when drizzle-zod supports zod 3.25+
+export const cis = createInsertSchema as any;
 import { z } from "zod";
 
 // Session storage table for authentication
@@ -769,24 +771,24 @@ export const generationJobsRelations = relations(generationJobs, ({ one }) => ({
 }));
 
 // Schema validations
-export const insertUserSchema = createInsertSchema(users).omit({
+export const insertUserSchema = cis(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const upsertUserSchema = createInsertSchema(users).omit({
+export const upsertUserSchema = cis(users).omit({
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertOrganizationSchema = createInsertSchema(organizations).omit({
+export const insertOrganizationSchema = cis(organizations).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertConnectorConfigSchema = createInsertSchema(connectorConfigs).omit({
+export const insertConnectorConfigSchema = cis(connectorConfigs).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -794,18 +796,18 @@ export const insertConnectorConfigSchema = createInsertSchema(connectorConfigs).
   lastSyncedAt: true,
 });
 
-export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({
+export const insertUserOrganizationSchema = cis(userOrganizations).omit({
   id: true,
   joinedAt: true,
 });
 
-export const insertUserInvitationSchema = createInsertSchema(userInvitations).omit({
+export const insertUserInvitationSchema = cis(userInvitations).omit({
   id: true,
   createdAt: true,
   acceptedAt: true,
 });
 
-export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
+export const insertUserSessionSchema = cis(userSessions).omit({
   id: true,
   createdAt: true,
 });
@@ -935,7 +937,7 @@ export const aiResearchDataSchema = z.object({
   extractedInfo: z.record(z.any()).optional(),
 }).optional();
 
-export const insertCompanyProfileSchema = createInsertSchema(companyProfiles).omit({
+export const insertCompanyProfileSchema = cis(companyProfiles).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -953,31 +955,31 @@ export const insertCompanyProfileSchema = createInsertSchema(companyProfiles).om
   aiResearchData: aiResearchDataSchema,
 });
 
-export const insertDocumentSchema = createInsertSchema(documents).omit({
+export const insertDocumentSchema = cis(documents).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertGenerationJobSchema = createInsertSchema(generationJobs).omit({
+export const insertGenerationJobSchema = cis(generationJobs).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertDocumentTemplateSchema = createInsertSchema(documentTemplates).omit({
+export const insertDocumentTemplateSchema = cis(documentTemplates).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertDocumentWorkspaceSchema = createInsertSchema(documentWorkspace).omit({
+export const insertDocumentWorkspaceSchema = cis(documentWorkspace).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertSystemConfigurationSchema = createInsertSchema(systemConfigurations).omit({
+export const insertSystemConfigurationSchema = cis(systemConfigurations).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -1100,22 +1102,22 @@ export const complianceMaturityAssessments = pgTable("compliance_maturity_assess
 });
 
 // Insert schemas for gap analysis
-export const insertGapAnalysisReportSchema = createInsertSchema(gapAnalysisReports).omit({ 
+export const insertGapAnalysisReportSchema = cis(gapAnalysisReports).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
 });
-export const insertGapAnalysisFindingSchema = createInsertSchema(gapAnalysisFindings).omit({ 
+export const insertGapAnalysisFindingSchema = cis(gapAnalysisFindings).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
 });
-export const insertRemediationRecommendationSchema = createInsertSchema(remediationRecommendations).omit({ 
+export const insertRemediationRecommendationSchema = cis(remediationRecommendations).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
 });
-export const insertComplianceMaturityAssessmentSchema = createInsertSchema(complianceMaturityAssessments).omit({ 
+export const insertComplianceMaturityAssessmentSchema = cis(complianceMaturityAssessments).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
@@ -1723,7 +1725,7 @@ export const aiMessages = pgTable("ai_messages", {
   index("idx_ai_message_created").on(table.createdAt),
 ]);
 
-export const insertAiMessageSchema = createInsertSchema(aiMessages).omit({ id: true, createdAt: true });
+export const insertAiMessageSchema = cis(aiMessages).omit({ id: true, createdAt: true });
 export type InsertAiMessage = z.infer<typeof insertAiMessageSchema>;
 export type AiMessage = typeof aiMessages.$inferSelect;
 
@@ -1764,7 +1766,7 @@ export const repositorySnapshots = pgTable("repository_snapshots", {
   index("idx_repo_snapshot_status").on(table.status),
 ]);
 
-export const insertRepositorySnapshotSchema = createInsertSchema(repositorySnapshots).omit({ 
+export const insertRepositorySnapshotSchema = cis(repositorySnapshots).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
@@ -1794,7 +1796,7 @@ export const repositoryFiles = pgTable("repository_files", {
   index("idx_repo_file_security").on(table.isSecurityRelevant),
 ]);
 
-export const insertRepositoryFileSchema = createInsertSchema(repositoryFiles).omit({ 
+export const insertRepositoryFileSchema = cis(repositoryFiles).omit({ 
   id: true, 
   createdAt: true 
 });
@@ -1837,7 +1839,7 @@ export const repositoryFindings = pgTable("repository_findings", {
   index("idx_repo_finding_status").on(table.status),
 ]);
 
-export const insertRepositoryFindingSchema = createInsertSchema(repositoryFindings).omit({ 
+export const insertRepositoryFindingSchema = cis(repositoryFindings).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true,
@@ -1875,7 +1877,7 @@ export const repositoryTasks = pgTable("repository_tasks", {
   index("idx_repo_task_priority").on(table.priority),
 ]);
 
-export const insertRepositoryTaskSchema = createInsertSchema(repositoryTasks).omit({ 
+export const insertRepositoryTaskSchema = cis(repositoryTasks).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
@@ -1912,7 +1914,7 @@ export const repositoryAnalysisRuns = pgTable("repository_analysis_runs", {
   index("idx_repo_run_status").on(table.phaseStatus),
 ]);
 
-export const insertRepositoryAnalysisRunSchema = createInsertSchema(repositoryAnalysisRuns).omit({ 
+export const insertRepositoryAnalysisRunSchema = cis(repositoryAnalysisRuns).omit({ 
   id: true, 
   createdAt: true 
 });
@@ -1958,7 +1960,7 @@ export const repositoryDocuments = pgTable("repository_documents", {
   index("idx_repo_doc_status").on(table.status),
 ]);
 
-export const insertRepositoryDocumentSchema = createInsertSchema(repositoryDocuments).omit({ 
+export const insertRepositoryDocumentSchema = cis(repositoryDocuments).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true,
@@ -1992,7 +1994,7 @@ export const stakeholders = pgTable("stakeholders", {
   index("idx_stakeholder_source").on(table.source),
 ]);
 
-export const insertStakeholderSchema = createInsertSchema(stakeholders).omit({ 
+export const insertStakeholderSchema = cis(stakeholders).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
