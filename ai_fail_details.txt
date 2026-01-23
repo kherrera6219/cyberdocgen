@@ -1,0 +1,709 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/software/cyberdocgen[39m
+
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mInitial Rendering[2m > [22mshould render page title and description[32m 87[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mInitial Rendering[2m > [22mshould render step indicators[32m 29[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mInitial Rendering[2m > [22mshould start on step 1[32m 33[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mInitial Rendering[2m > [22mshould show correct navigation buttons for step 1[32m 23[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould render all company basic fields[32m 24[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould require all fields to proceed[32m 125[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould allow valid company name input[33m 309[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould allow industry selection[32m 216[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould allow company size selection[32m 201[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould allow headquarters input[33m 386[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 1: Company Basics[2m > [22mshould proceed to step 2 with valid data[33m 1024[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould render infrastructure fields[33m 1041[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould render all cloud provider checkboxes[33m 961[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould allow selecting multiple cloud providers[33m 1099[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould require at least one cloud provider[33m 1055[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould allow data classification selection[33m 1128[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould allow business applications input[33m 1804[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould allow going back to step 1[33m 973[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 2: Infrastructure & Security[2m > [22mshould proceed to step 3 with valid data[33m 1738[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould render framework selection fields[33m 1642[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould allow selecting multiple frameworks[33m 1656[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould show SOC2 trust principles when SOC2 is selected[33m 1806[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould hide SOC2 trust principles when SOC2 is deselected[33m 1735[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould show FedRAMP level when FedRAMP is selected[33m 1722[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould allow selecting FedRAMP level[33m 1712[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould require at least one framework[33m 1751[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 3: Framework Selection[2m > [22mshould proceed to step 4 with valid data[33m 1752[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould display company information review[33m 1817[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould display infrastructure review[33m 1702[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould display selected frameworks[33m 1746[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould show estimated document count[33m 1786[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould render generate button[33m 1704[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould only show previous button, not next[33m 1721[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 4: Review & Generate[2m > [22mshould allow going back to step 3[33m 1845[2mms[22m[39m
+stderr | tests/components/ai-doc-generator.test.tsx > AI Document Generator Page > Step 5: Generation Results > should show loading state during generation
+Not implemented: HTMLFormElement's requestSubmit() method
+
+ [31m├ù[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 5: Generation Results[2m > [22mshould show loading state during generation[33m 2892[2mms[22m[39m
+[31m   ΓåÆ Unable to find an element by: [data-testid="text-progress-percent"]
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"container mx-auto py-6 px-4 max-w-4xl"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"mb-8"[31m
+      [36m>[31m
+        [36m<h1[31m
+          [33mclass[31m=[32m"text-3xl font-bold"[31m
+          [33mdata-testid[31m=[32m"page-title"[31m
+        [36m>[31m
+          [0mAI Document Generator[0m
+        [36m</h1>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"text-muted-foreground mt-2"[31m
+        [36m>[31m
+          [0mGenerate compliance documentation tailored to your organization using AI.[0m
+        [36m</p>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"flex items-center justify-center mb-8"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"[31m
+            [33mdata-testid[31m=[32m"step-indicator-1"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-check w-5 h-5"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"ml-2 text-sm font-medium hidden md:inline text-muted-foreground"[31m
+          [36m>[31m
+            [0mCompany Basics[0m
+          [36m</span>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"w-8 md:w-16 h-0.5 mx-2 bg-green-500"[31m
+          [36m/>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"[31m
+            [33mdata-testid[31m=[32m"step-indicator-2"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-check w-5 h-5"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"ml-2 text-sm font-medium hidden md:inline text-muted-foreground"[31m
+          [36m>[31m
+            [0mInfrastructure[0m
+          [36m</span>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"w-8 md:w-16 h-0.5 mx-2 bg-green-500"[31m
+          [36m/>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"[31m
+            [33mdata-testid[31m=[32m"step-indicator-3"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-check w-5 h-5"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"ml-2 text-sm font-medium hidden md:inline text-muted-foreground"[31m
+          [36m>[31m
+            [0mFrameworks[0m
+          [36m</span>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"w-8 md:w-16 h-0.5 mx-2 bg-green-500"[31m
+          [36m/>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"[31m
+            [33mdata-testid[31m=[32m"step-indicator-4"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-check w-5 h-5"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"ml-2 text-sm font-medium hidden md:inline text-muted-foreground"[31m
+          [36m>[31m
+            [0mReview[0m
+          [36m</span>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"w-8 md:w-16 h-0...
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body[31m
+    [33mstyle[31m=[32m""[31m
+  [36m>[31m
+    [36m<div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"container mx-auto py-6 px-4 max-w-4xl"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"mb-8"[31m
+        [36m>[31m
+          [36m<h1[31m
+            [33mclass[31m=[32m"text-3xl font-bold"[31m
+            [33mdata-testid[31m=[32m"page-title"[31m
+          [36m>[31m
+            [0mAI Document Generator[0m
+          [36m</h1>[31m
+          [36m<p[31m
+            [33mclass[31m=[32m"text-muted-foreground mt-2"[31m
+          [36m>[31m
+            [0mGenerate compliance documentation tailored to your organization using AI.[0m
+          [36m</p>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center justify-center mb-8"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"[31m
+              [33mdata-testid[31m=[32m"step-indicator-1"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-check w-5 h-5"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</div>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"ml-2 text-sm font-medium hidden md:inline text-muted-foreground"[31m
+            [36m>[31m
+              [0mCompany Basics[0m
+            [36m</span>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"w-8 md:w-16 h-0.5 mx-2 bg-green-500"[31m
+            [36m/>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"[31m
+              [33mdata-testid[31m=[32m"step-indicator-2"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-check w-5 h-5"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</div>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"ml-2 text-sm font-medium hidden md:inline text-muted-foreground"[31m
+            [36m>[31m
+              [0mInfrastructure[0m
+            [36m</span>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"w-8 md:w-16 h-0.5 mx-2 bg-green-500"[31m
+            [36m/>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"[31m
+              [33mdata-testid[31m=[32m"step-indicator-3"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-check w-5 h-5"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</div>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"ml-2 text-sm font-medium hidden md:inline text-muted-foreground"[31m
+            [36m>[31m
+              [0mFrameworks[0m
+            [36m</span>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"w-8 md:w-16 h-0.5 mx-2 bg-green-500"[31m
+            [36m/>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"[31m
+              [33mdata-testid[31m=[32m"step-indicator-4"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33maria-hidden[31m=[32m"true"[31m
+                [33mclass[31m=[32m"lucide lucide-check w-5 h-5"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M20 6 9 17l-5-5"[31m
+                [36m/>[31m...[39m
+stderr | tests/components/ai-doc-generator.test.tsx > AI Document Generator Page > Step 5: Generation Results > should show error state on generation failure
+Not implemented: HTMLFormElement's requestSubmit() method
+
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 5: Generation Results[2m > [22mshould show error state on generation failure[33m 1789[2mms[22m[39m
+stderr | tests/components/ai-doc-generator.test.tsx > AI Document Generator Page > Step 5: Generation Results > should show completed state with generated documents
+Not implemented: HTMLFormElement's requestSubmit() method
+
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mStep 5: Generation Results[2m > [22mshould show completed state with generated documents[33m 1864[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mForm Validation[2m > [22mshould validate company name length[32m 150[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mForm Validation[2m > [22mshould validate headquarters is required[32m 80[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mForm Validation[2m > [22mshould validate business applications minimum length[33m 1397[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mNavigation[2m > [22mshould maintain form data when navigating back and forth[33m 1039[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mAccessibility[2m > [22mshould have proper form labels[32m 15[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mAccessibility[2m > [22mshould have accessible buttons[32m 27[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/ai-doc-generator.test.tsx[2m > [22mAI Document Generator Page[2m > [22mAccessibility[2m > [22mshould show validation errors with proper messaging[32m 50[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL   components  tests/components/ai-doc-generator.test.tsx > AI Document Generator Page > Step 5: Generation Results > should show loading state during generation
+TestingLibraryElementError: Unable to find an element by: [data-testid="text-progress-percent"]
+
+Ignored nodes: comments, script, style
+<body
+  style=""
+>
+  <div>
+    <div
+      class="container mx-auto py-6 px-4 max-w-4xl"
+    >
+      <div
+        class="mb-8"
+      >
+        <h1
+          class="text-3xl font-bold"
+          data-testid="page-title"
+        >
+          AI Document Generator
+        </h1>
+        <p
+          class="text-muted-foreground mt-2"
+        >
+          Generate compliance documentation tailored to your organization using AI.
+        </p>
+      </div>
+      <div
+        class="flex items-center justify-center mb-8"
+      >
+        <div
+          class="flex items-center"
+        >
+          <div
+            class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"
+            data-testid="step-indicator-1"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-5 h-5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+          <span
+            class="ml-2 text-sm font-medium hidden md:inline text-muted-foreground"
+          >
+            Company Basics
+          </span>
+          <div
+            class="w-8 md:w-16 h-0.5 mx-2 bg-green-500"
+          />
+        </div>
+        <div
+          class="flex items-center"
+        >
+          <div
+            class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"
+            data-testid="step-indicator-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-5 h-5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+          <span
+            class="ml-2 text-sm font-medium hidden md:inline text-muted-foreground"
+          >
+            Infrastructure
+          </span>
+          <div
+            class="w-8 md:w-16 h-0.5 mx-2 bg-green-500"
+          />
+        </div>
+        <div
+          class="flex items-center"
+        >
+          <div
+            class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"
+            data-testid="step-indicator-3"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-5 h-5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+          <span
+            class="ml-2 text-sm font-medium hidden md:inline text-muted-foreground"
+          >
+            Frameworks
+          </span>
+          <div
+            class="w-8 md:w-16 h-0.5 mx-2 bg-green-500"
+          />
+        </div>
+        <div
+          class="flex items-center"
+        >
+          <div
+            class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"
+            data-testid="step-indicator-4"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-5 h-5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+          <span
+            class="ml-2 text-sm font-medium hidden md:inline text-muted-foreground"
+          >
+            Review
+          </span>
+          <div
+            class="w-8 md:w-16 h-0...
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body
+    style=""
+  >
+    <div>
+      <div
+        class="container mx-auto py-6 px-4 max-w-4xl"
+      >
+        <div
+          class="mb-8"
+        >
+          <h1
+            class="text-3xl font-bold"
+            data-testid="page-title"
+          >
+            AI Document Generator
+          </h1>
+          <p
+            class="text-muted-foreground mt-2"
+          >
+            Generate compliance documentation tailored to your organization using AI.
+          </p>
+        </div>
+        <div
+          class="flex items-center justify-center mb-8"
+        >
+          <div
+            class="flex items-center"
+          >
+            <div
+              class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"
+              data-testid="step-indicator-1"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-check w-5 h-5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6 9 17l-5-5"
+                />
+              </svg>
+            </div>
+            <span
+              class="ml-2 text-sm font-medium hidden md:inline text-muted-foreground"
+            >
+              Company Basics
+            </span>
+            <div
+              class="w-8 md:w-16 h-0.5 mx-2 bg-green-500"
+            />
+          </div>
+          <div
+            class="flex items-center"
+          >
+            <div
+              class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"
+              data-testid="step-indicator-2"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-check w-5 h-5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6 9 17l-5-5"
+                />
+              </svg>
+            </div>
+            <span
+              class="ml-2 text-sm font-medium hidden md:inline text-muted-foreground"
+            >
+              Infrastructure
+            </span>
+            <div
+              class="w-8 md:w-16 h-0.5 mx-2 bg-green-500"
+            />
+          </div>
+          <div
+            class="flex items-center"
+          >
+            <div
+              class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"
+              data-testid="step-indicator-3"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-check w-5 h-5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6 9 17l-5-5"
+                />
+              </svg>
+            </div>
+            <span
+              class="ml-2 text-sm font-medium hidden md:inline text-muted-foreground"
+            >
+              Frameworks
+            </span>
+            <div
+              class="w-8 md:w-16 h-0.5 mx-2 bg-green-500"
+            />
+          </div>
+          <div
+            class="flex items-center"
+          >
+            <div
+              class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors border-green-500 bg-green-500 text-white"
+              data-testid="step-indicator-4"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-check w-5 h-5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6 9 17l-5-5"
+                />...
+ Γ¥» Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ Γ¥» tests/components/ai-doc-generator.test.tsx:577:13
+    575|       });
+    576| 
+    577|       await waitFor(() => {
+       |             ^
+    578|         expect(screen.getByTestId('text-progress-percent')).toHaveTextΓÇª
+    579|         expect(screen.getByTestId('progress-generation')).toBeInTheDocΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m43 passed[39m[22m[90m (44)[39m
+[2m   Start at [22m 08:56:16
+[2m   Duration [22m 49.23s[2m (transform 161ms, setup 175ms, collect 476ms, tests 47.66s, environment 594ms, prepare 136ms)[22m
+

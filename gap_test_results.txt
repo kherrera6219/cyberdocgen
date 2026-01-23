@@ -1,0 +1,397 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/software/cyberdocgen[39m
+
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mInitial Rendering[2m > [22mshould render page header with title[32m 235[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mInitial Rendering[2m > [22mshould render export and analyze buttons[32m 95[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mInitial Rendering[2m > [22mshould render executive summary cards[32m 46[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mInitial Rendering[2m > [22mshould display overall score[32m 45[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mInitial Rendering[2m > [22mshould display total gaps count[32m 37[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mInitial Rendering[2m > [22mshould display critical issues count[32m 43[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mInitial Rendering[2m > [22mshould display estimated timeline[32m 38[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould render filter section[32m 29[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould render category filter dropdown[32m 41[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould render priority filter dropdown[32m 34[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould render search button[32m 45[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould filter categories by selection[32m 224[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould filter by priority level[32m 201[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAnalysis Filters[2m > [22mshould reset filters when selecting "All"[33m 418[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mTab Navigation[2m > [22mshould render all tab triggers[32m 71[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mTab Navigation[2m > [22mshould default to Gap Analysis tab[32m 39[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mTab Navigation[2m > [22mshould switch to Framework Coverage tab[32m 108[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mTab Navigation[2m > [22mshould switch to Implementation Roadmap tab[32m 93[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mTab Navigation[2m > [22mshould switch to Priority Actions tab[32m 107[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mGap Analysis Tab Content[2m > [22mshould display all gap categories[32m 37[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mGap Analysis Tab Content[2m > [22mshould display status badges for each category[32m 30[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mGap Analysis Tab Content[2m > [22mshould display implementation scores for each category[32m 28[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mGap Analysis Tab Content[2m > [22mshould display gap counts for each category[32m 27[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mGap Analysis Tab Content[2m > [22mshould display category descriptions[32m 28[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mGap Analysis Tab Content[2m > [22mshould display recommendations for each category[32m 29[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mGap Analysis Tab Content[2m > [22mshould show truncated recommendations with count[32m 26[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mFramework Coverage Tab[2m > [22mshould display all compliance frameworks[32m 53[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mFramework Coverage Tab[2m > [22mshould display framework coverage percentages[32m 98[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mFramework Coverage Tab[2m > [22mshould display control counts[32m 109[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mFramework Coverage Tab[2m > [22mshould display Total Controls, Implemented, and Missing labels[32m 78[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mFramework Coverage Tab[2m > [22mshould display framework status badges[32m 108[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mImplementation Roadmap Tab[2m > [22mshould display timeline alert[32m 108[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mImplementation Roadmap Tab[2m > [22mshould display all four phases[32m 83[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mImplementation Roadmap Tab[2m > [22mshould display phase timelines[32m 102[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mImplementation Roadmap Tab[2m > [22mshould display phase items[32m 109[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mImplementation Roadmap Tab[2m > [22mshould display priority badges for each phase[32m 108[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mPriority Actions Tab[2m > [22mshould display priority recommendations[32m 93[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mPriority Actions Tab[2m > [22mshould display timeframes for each recommendation[32m 93[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mPriority Actions Tab[2m > [22mshould display effort levels[32m 92[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mPriority Actions Tab[2m > [22mshould display impact descriptions[32m 108[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mPriority Actions Tab[2m > [22mshould display priority badges[32m 123[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mImmediate Action Section[2m > [22mshould display immediate action card[32m 30[2mms[22m[39m
+ [31m├ù[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mImmediate Action Section[2m > [22mshould display critical priority alert[32m 44[2mms[22m[39m
+[31m   ΓåÆ Unable to find an element with the text: /Platform currently lacks actual compliance framework integration/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mstyle[31m=[32m""[31m
+[36m>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"p-3 sm:p-6 space-y-4 sm:space-y-6"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-3"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33maria-hidden[31m=[32m"true"[31m
+            [33mclass[31m=[32m"lucide lucide-target h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0"[31m
+            [33mfill[31m=[32m"none"[31m
+            [33mheight[31m=[32m"24"[31m
+            [33mstroke[31m=[32m"currentColor"[31m
+            [33mstroke-linecap[31m=[32m"round"[31m
+            [33mstroke-linejoin[31m=[32m"round"[31m
+            [33mstroke-width[31m=[32m"2"[31m
+            [33mviewBox[31m=[32m"0 0 24 24"[31m
+            [33mwidth[31m=[32m"24"[31m
+            [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+          [36m>[31m
+            [36m<circle[31m
+              [33mcx[31m=[32m"12"[31m
+              [33mcy[31m=[32m"12"[31m
+              [33mr[31m=[32m"10"[31m
+            [36m/>[31m
+            [36m<circle[31m
+              [33mcx[31m=[32m"12"[31m
+              [33mcy[31m=[32m"12"[31m
+              [33mr[31m=[32m"6"[31m
+            [36m/>[31m
+            [36m<circle[31m
+              [33mcx[31m=[32m"12"[31m
+              [33mcy[31m=[32m"12"[31m
+              [33mr[31m=[32m"2"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+          [36m<div>[31m
+            [36m<h1[31m
+              [33mclass[31m=[32m"text-xl sm:text-2xl font-bold"[31m
+            [36m>[31m
+              [0mCompliance Gap Analysis[0m
+            [36m</h1>[31m
+            [36m<p[31m
+              [33mclass[31m=[32m"text-sm sm:text-base text-gray-600 dark:text-gray-400"[31m
+            [36m>[31m
+              [0mComprehensive assessment of platform readiness[0m
+            [36m</p>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex gap-2 flex-wrap"[31m
+        [36m>[31m
+          [36m<button[31m
+            [33mclass[31m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-download h-4 w-4 mr-2"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M12 15V3"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m7 10 5 5 5-5"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"hidden sm:inline"[31m
+            [36m>[31m
+              [0mExport Report[0m
+            [36m</span>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"sm:hidden"[31m
+            [36m>[31m
+              [0mExport[0m
+            [36m</span>[31m
+          [36m</button>[31m
+          [36m<button[31m
+            [33mclass[31m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33maria-hidden[31m=[32m"true"[31m
+              [33mclass[31m=[32m"lucide lucide-refresh-cw h-4 w-4 mr-2"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 3v5h-5"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M8 16H3v5"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"hidden sm:inline"[31m
+            [36m>[31m
+              [0mRun New Analysis[0m
+            [36m</span>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"sm:hidden"[31m
+            [36m>[31m
+              [0mAnalyze[0m
+            [36m</span>[31m
+          [36m</button>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<h2[31m
+        [33mclass[31m=[32m"sr-only"[31m
+        [33mid[31m=[32m"analysis-overview"[31m
+      [36m>[31m
+        [0mAnalysis Overview[0m
+      [36m</h2>[31m
+      [36m<div[31m
+        [33maria-labelledby[31m=[32m"analysis-overview"[31m
+        [33mclass[31m=[32m"grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"rounded-lg border bg-card text-card-foreground shadow-sm"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex flex-col space-y-1.5 p-6 pb-2"[31m
+          [36m>[31m
+            ...[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mImmediate Action Section[2m > [22mshould display action buttons[32m 66[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mUI Components[2m > [22mshould display progress bars[32m 24[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mUI Components[2m > [22mshould display icons throughout the page[32m 25[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mUI Components[2m > [22mshould use proper card components[32m 21[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mResponsive Behavior[2m > [22mshould render mobile-friendly text alternatives[32m 24[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mResponsive Behavior[2m > [22mshould render tab labels with responsive text[32m 36[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAccessibility[2m > [22mshould have proper heading hierarchy[32m 42[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAccessibility[2m > [22mshould have accessible button labels[32m 37[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAccessibility[2m > [22mshould have proper ARIA roles[32m 35[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mAccessibility[2m > [22mshould have progress bars with proper ARIA attributes[32m 21[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mData Calculations[2m > [22mshould correctly calculate overall score[32m 25[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mData Calculations[2m > [22mshould correctly sum total gaps[32m 23[2mms[22m[39m
+ [32mΓ£ô[39m [30m[45m components [49m[39m tests/components/gap-analysis.test.tsx[2m > [22mGap Analysis Page[2m > [22mData Calculations[2m > [22mshould correctly count critical gaps[32m 35[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL   components  tests/components/gap-analysis.test.tsx > Gap Analysis Page > Immediate Action Section > should display critical priority alert
+TestingLibraryElementError: Unable to find an element with the text: /Platform currently lacks actual compliance framework integration/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body
+  style=""
+>
+  <div>
+    <div
+      class="p-3 sm:p-6 space-y-4 sm:space-y-6"
+    >
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
+        <div
+          class="flex items-center gap-3"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-target h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="6"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="2"
+            />
+          </svg>
+          <div>
+            <h1
+              class="text-xl sm:text-2xl font-bold"
+            >
+              Compliance Gap Analysis
+            </h1>
+            <p
+              class="text-sm sm:text-base text-gray-600 dark:text-gray-400"
+            >
+              Comprehensive assessment of platform readiness
+            </p>
+          </div>
+        </div>
+        <div
+          class="flex gap-2 flex-wrap"
+        >
+          <button
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-download h-4 w-4 mr-2"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 15V3"
+              />
+              <path
+                d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+              />
+              <path
+                d="m7 10 5 5 5-5"
+              />
+            </svg>
+            <span
+              class="hidden sm:inline"
+            >
+              Export Report
+            </span>
+            <span
+              class="sm:hidden"
+            >
+              Export
+            </span>
+          </button>
+          <button
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-refresh-cw h-4 w-4 mr-2"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"
+              />
+              <path
+                d="M21 3v5h-5"
+              />
+              <path
+                d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"
+              />
+              <path
+                d="M8 16H3v5"
+              />
+            </svg>
+            <span
+              class="hidden sm:inline"
+            >
+              Run New Analysis
+            </span>
+            <span
+              class="sm:hidden"
+            >
+              Analyze
+            </span>
+          </button>
+        </div>
+      </div>
+      <h2
+        class="sr-only"
+        id="analysis-overview"
+      >
+        Analysis Overview
+      </h2>
+      <div
+        aria-labelledby="analysis-overview"
+        class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+      >
+        <div
+          class="rounded-lg border bg-card text-card-foreground shadow-sm"
+        >
+          <div
+            class="flex flex-col space-y-1.5 p-6 pb-2"
+          >
+            ...
+ Γ¥» Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ Γ¥» tests/components/gap-analysis.test.tsx:592:21
+    590| 
+    591|       expect(screen.getByText('Critical Priority')).toBeInTheDocument(ΓÇª
+    592|       expect(screen.getByText(/Platform currently lacks actual compliaΓÇª
+       |                     ^
+    593|     });
+    594| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m55 passed[39m[22m[90m (56)[39m
+[2m   Start at [22m 08:48:03
+[2m   Duration [22m 5.58s[2m (transform 157ms, setup 166ms, collect 405ms, tests 4.11s, environment 564ms, prepare 136ms)[22m
+

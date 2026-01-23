@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getRuntimeConfig } from '../../../server/config/runtime';
+import { getRuntimeConfig, _resetRuntimeConfig } from '../../../server/config/runtime';
 
 describe('Local Mode Routes', () => {
   describe('Runtime Mode Endpoint', () => {
@@ -47,7 +47,6 @@ describe('Local Mode Routes', () => {
       delete process.env.DEPLOYMENT_MODE;
       delete process.env.LOCAL_DATA_PATH;
       // Reset runtime config singleton
-      const { _resetRuntimeConfig } = require('../../../server/config/runtime');
       _resetRuntimeConfig();
     });
 
@@ -103,7 +102,6 @@ describe('Local Mode Routes', () => {
     it('should enforce localhost binding in local mode', () => {
       // Set local mode with invalid host
       process.env.DEPLOYMENT_MODE = 'local';
-      const { _resetRuntimeConfig } = require('../../../server/config/runtime');
       _resetRuntimeConfig();
 
       const config = getRuntimeConfig();
@@ -121,7 +119,6 @@ describe('Local Mode Routes', () => {
 
     it('should default to cloud mode if DEPLOYMENT_MODE is invalid', () => {
       process.env.DEPLOYMENT_MODE = 'invalid';
-      const { _resetRuntimeConfig } = require('../../../server/config/runtime');
       _resetRuntimeConfig();
 
       const config = getRuntimeConfig();

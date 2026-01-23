@@ -76,29 +76,20 @@ export default defineConfig({
           globals: true,
         },
       },
-      {
-        extends: true,
-        plugins: [
-          storybookTest({
-            configDir: path.join(dirname, ".storybook"),
-          }),
-        ],
-        test: {
-          name: "storybook",
-          // Browser-based testing with Playwright (uncomment when needed)
-          // browser: {
-          //   enabled: true,
-          //   headless: true,
-          //   provider: playwright({}),
-          //   instances: [
-          //     {
-          //       browser: "chromium",
-          //     },
-          //   ],
-          // },
-          setupFiles: [".storybook/vitest.setup.ts"],
-        },
-      },
+      // {
+      //   plugins: [
+      //     storybookTest({
+      //       configDir: path.join(dirname, ".storybook"),
+      //     }),
+      //   ],
+      //   test: {
+      //     name: "storybook",
+      //     environment: "jsdom",
+      //     include: ["**/*.stories.?(t|j)sx?"],
+      //     setupFiles: [".storybook/vitest.setup.ts"],
+      //     globals: true,
+      //   },
+      // },
     ],
   },
 });

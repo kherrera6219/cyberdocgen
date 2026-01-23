@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -168,7 +168,7 @@ export default function AIDocGenerator() {
 
   const watchedFrameworks = form.watch("frameworks");
 
-  const { data: jobStatus, refetch: refetchJob } = useQuery<GenerationJob>({
+  const { data: jobStatus } = useQuery<GenerationJob>({
     queryKey: ["/api/ai/generation-jobs", jobId],
     enabled: !!jobId && currentStep === 5,
     refetchInterval: (query) => {
@@ -822,7 +822,7 @@ export default function AIDocGenerator() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                   <div id="overall-progress-label" className="text-muted-foreground">Overall Progress</div>
-                  <span className="font-semibold text-foreground">
+                  <span className="font-semibold text-foreground" data-testid="text-progress-percent">
                     {jobStatus?.progress || 0}%
                   </span>
                 </div>

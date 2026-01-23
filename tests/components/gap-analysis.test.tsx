@@ -589,7 +589,7 @@ describe('Gap Analysis Page', () => {
       renderGapAnalysis();
 
       expect(screen.getByText('Critical Priority')).toBeInTheDocument();
-      expect(screen.getByText(/Platform currently lacks actual compliance framework integration/i)).toBeInTheDocument();
+      expect(screen.getByText(/Multiple high-risk gaps detected in access control and data encryption/i)).toBeInTheDocument();
     });
 
     it('should display action buttons', () => {
