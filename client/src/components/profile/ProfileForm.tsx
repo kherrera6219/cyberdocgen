@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail } from "lucide-react";
+import { User } from "lucide-react";
 import type { ProfileData } from "@/pages/profile-settings";
 
 // Re-export or duplicate schema if needed. Defining here for self-contained component.
@@ -16,7 +16,7 @@ const profileFormSchema = z.object({
   phoneNumber: z.string().optional(),
 });
 
-type ProfileFormData = z.infer<typeof profileFormSchema>;
+export type ProfileFormData = z.infer<typeof profileFormSchema>;
 
 interface ProfileFormProps {
   profile?: ProfileData;

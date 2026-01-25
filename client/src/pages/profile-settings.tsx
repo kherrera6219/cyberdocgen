@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { User, Settings, Bell, Shield, AlertTriangle } from "lucide-react";
-import { ProfileForm } from "@/components/profile/ProfileForm";
-import { PreferencesForm } from "@/components/profile/PreferencesForm";
-import { NotificationSettingsForm } from "@/components/profile/NotificationSettingsForm";
+import { ProfileForm, type ProfileFormData } from "@/components/profile/ProfileForm";
+import { PreferencesForm, type PreferencesFormData } from "@/components/profile/PreferencesForm";
+import { NotificationSettingsForm, type NotificationsFormData } from "@/components/profile/NotificationSettingsForm";
 import { SecuritySettings } from "@/components/profile/SecuritySettings";
 
 // Type definitions
@@ -79,7 +79,7 @@ export default function ProfileSettings() {
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: ProfileFormData) => {
       return apiRequest("/api/profile/me", "PATCH", data);
     },
     onSuccess: () => {
@@ -99,7 +99,7 @@ export default function ProfileSettings() {
   });
 
   const updatePreferencesMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: PreferencesFormData) => {
       return apiRequest("/api/profile/me/preferences", "PATCH", data);
     },
     onSuccess: () => {
@@ -119,7 +119,7 @@ export default function ProfileSettings() {
   });
 
   const updateNotificationsMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: NotificationsFormData) => {
       return apiRequest("/api/profile/me/notifications", "PATCH", data);
     },
     onSuccess: () => {

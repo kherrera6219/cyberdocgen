@@ -18,7 +18,7 @@ const notificationsFormSchema = z.object({
   marketingEmails: z.boolean(),
 });
 
-type NotificationsFormData = z.infer<typeof notificationsFormSchema>;
+export type NotificationsFormData = z.infer<typeof notificationsFormSchema>;
 
 interface NotificationSettingsFormProps {
   profile?: ProfileData;

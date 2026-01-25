@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,23 @@ export function UserProfile() {
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
   });
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line
+      setFormData(prev => {
+        const newFirstName = user.firstName || '';
+        const newLastName = user.lastName || '';
+        if (prev.firstName !== newFirstName || prev.lastName !== newLastName) {
+          return {
+            firstName: newFirstName,
+            lastName: newLastName,
+          };
+        }
+        return prev;
+      });
+    }
+  }, [user]);
 
   const updateUserMutation = useMutation({
     mutationFn: async (data: typeof formData) => {

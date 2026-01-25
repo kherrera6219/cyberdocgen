@@ -19,7 +19,7 @@ const preferencesFormSchema = z.object({
   aiAssistantEnabled: z.boolean(),
 });
 
-type PreferencesFormData = z.infer<typeof preferencesFormSchema>;
+export type PreferencesFormData = z.infer<typeof preferencesFormSchema>;
 
 interface PreferencesFormProps {
   profile?: ProfileData;
