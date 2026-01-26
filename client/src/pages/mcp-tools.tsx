@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,14 +18,12 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  Clock,
   Shield,
   Globe,
   Zap,
   ChevronRight,
   Code,
   FileJson,
-  AlertCircle
 } from "lucide-react";
 
 interface ToolParameter {
@@ -62,7 +59,6 @@ interface ToolExecutionResult {
 }
 
 export default function MCPTools() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);

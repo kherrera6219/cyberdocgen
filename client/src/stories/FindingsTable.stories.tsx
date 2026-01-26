@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { FindingsTable } from '../src/components/repository/FindingsTable';
+import { FindingsTable } from '../components/repository/FindingsTable';
 
 const meta = {
   title: 'Repository/FindingsTable',

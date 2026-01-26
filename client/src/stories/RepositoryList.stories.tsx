@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { RepositoryList } from '../src/components/repository/RepositoryList';
+import { RepositoryList } from '../components/repository/RepositoryList';
 
 const meta = {
   title: 'Repository/RepositoryList',

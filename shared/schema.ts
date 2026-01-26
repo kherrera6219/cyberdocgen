@@ -1146,7 +1146,7 @@ export const frameworkControlStatuses = pgTable("framework_control_statuses", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertFrameworkControlStatusSchema = createInsertSchema(frameworkControlStatuses).omit({
+export const insertFrameworkControlStatusSchema = cis(frameworkControlStatuses).omit({
   id: true,
   updatedAt: true,
 });
@@ -1216,7 +1216,7 @@ export const documentVersions = pgTable("document_versions", {
   checksum: varchar("checksum", { length: 64 }), // For integrity verification
 });
 
-export const insertDocumentVersionSchema = createInsertSchema(documentVersions).omit({
+export const insertDocumentVersionSchema = cis(documentVersions).omit({
   id: true,
   createdAt: true,
 });
@@ -1272,7 +1272,7 @@ export const auditTrail = pgTable("audit_trail", {
   sessionId: varchar("session_id"),
 });
 
-export const insertAuditTrailSchema = createInsertSchema(auditTrail).omit({
+export const insertAuditTrailSchema = cis(auditTrail).omit({
   id: true,
   timestamp: true,
 });
@@ -1298,7 +1298,7 @@ export const documentApprovals = pgTable("document_approvals", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertDocumentApprovalSchema = createInsertSchema(documentApprovals).omit({
+export const insertDocumentApprovalSchema = cis(documentApprovals).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

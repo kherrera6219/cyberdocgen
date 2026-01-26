@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { TaskBoard } from '../src/components/repository/TaskBoard';
+import { TaskBoard } from '../components/repository/TaskBoard';
 
 const meta = {
   title: 'Repository/TaskBoard',

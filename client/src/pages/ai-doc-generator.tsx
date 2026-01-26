@@ -35,14 +35,14 @@ import {
   Cloud,
   Shield,
   Check,
-  ChevronRight,
-  ChevronLeft,
   Loader2,
-  Download,
-  Eye,
-  AlertCircle,
   CheckCircle2,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  Eye,
+  Download,
 } from "lucide-react";
 import { logger } from '@/utils/logger';
 

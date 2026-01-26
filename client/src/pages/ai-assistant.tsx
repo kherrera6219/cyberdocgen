@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +19,6 @@ import {
   Sparkles,
   FileText,
   Shield,
-  AlertTriangle,
   CheckCircle,
   RefreshCw,
   Wrench,
@@ -36,8 +34,8 @@ import {
   X,
   Image as ImageIcon,
   File,
-  Trash2,
-  Eye,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { logger } from '@/utils/logger';
 
@@ -84,7 +82,7 @@ interface AgentResponse {
 }
 
 export default function AIAssistant() {
-  const { user } = useAuth();
+  // const { user } = useAuth(); // User object not currently used in UI
   const { toast } = useToast();
   const [selectedAgent, setSelectedAgent] = useState<string>("compliance-assistant");
   const [inputMessage, setInputMessage] = useState("");
@@ -284,6 +282,7 @@ export default function AIAssistant() {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = true;

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { RepoUploadZone } from '../src/components/repository/RepoUploadZone';
+import { RepoUploadZone } from '../components/repository/RepoUploadZone';
 
 const meta = {
   title: 'Repository/RepoUploadZone',

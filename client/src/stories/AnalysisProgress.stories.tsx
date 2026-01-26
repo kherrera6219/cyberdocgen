@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { AnalysisProgress } from '../src/components/repository/AnalysisProgress';
+import { AnalysisProgress } from '../components/repository/AnalysisProgress';
 
 const meta = {
   title: 'Repository/AnalysisProgress',
