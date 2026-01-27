@@ -21,12 +21,14 @@ const { autoUpdater } = electronUpdater;
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { fork, ChildProcess } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let serverProcess: ChildProcess | null = null;
 
 // Configure local mode environment variables for the backend
 // This must be done before the backend server starts
@@ -92,6 +94,65 @@ function isPathSafe(requestedPath: string): boolean {
 }
 
 /**
+ * Start the backend server as a child process
+ */
+function startServer() {
+  // Only start server in production (packaged) mode
+  // In development, we run the server separately via npm run dev
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Electron] Development mode detected, skipping server spawn');
+    return;
+  }
+
+  try {
+    const serverPath = path.join(__dirname, '../index.js');
+    console.log('[Electron] Starting backend server from:', serverPath);
+
+    if (!fs.existsSync(serverPath)) {
+      console.error('[Electron] Server file not found at:', serverPath);
+      dialog.showErrorBox('Startup Error', 'Critical component missing: Backend server file not found.');
+      return;
+    }
+
+    serverProcess = fork(serverPath, [], {
+      env: {
+        ...process.env,
+        PORT: '5231',
+        HOST: '127.0.0.1',
+        NODE_ENV: 'production',
+        DEPLOYMENT_MODE: 'local',
+        LOCAL_DATA_PATH: app.getPath('userData'),
+      },
+      stdio: 'pipe' // Pipe output to parent to log it
+    });
+
+    serverProcess.on('spawn', () => {
+      console.log('[Electron] Backend server process spawned, PID:', serverProcess?.pid);
+    });
+
+    serverProcess.on('error', (err) => {
+      console.error('[Electron] Failed to start server process:', err);
+    });
+
+    serverProcess.on('exit', (code, signal) => {
+      console.log(`[Electron] Backend server exited with code ${code} and signal ${signal}`);
+    });
+
+    // Capture stdout/stderr from server
+    if (serverProcess.stdout) {
+      serverProcess.stdout.on('data', (data) => console.log(`[Server] ${data}`));
+    }
+    if (serverProcess.stderr) {
+      serverProcess.stderr.on('data', (data) => console.error(`[Server Error] ${data}`));
+    }
+
+  } catch (error) {
+    console.error('[Electron] Error starting server:', error);
+    dialog.showErrorBox('Startup Error', `Failed to start backend server: ${error}`);
+  }
+}
+
+/**
  * Create the main application window
  */
 function createWindow() {
@@ -146,7 +207,20 @@ function createWindow() {
   const isDev = process.env.NODE_ENV === 'development';
   const url = isDev ? 'http://localhost:5000' : 'http://127.0.0.1:5231';
 
-  mainWindow.loadURL(url);
+  // In production, wait a moment for server to start or retry
+  if (!isDev) {
+    // Attempt to load immediately, but implementing a simple retry logic via reload if failed could be added.
+    // For now, relies on server starting reasonably quickly or the user refreshing.
+    // A more robust approach would be to poll the health endpoint before loading, but standard loadURL usually works if server starts fast.
+    setTimeout(() => {
+        mainWindow?.loadURL(url).catch(e => {
+            console.error('[Electron] Failed to load URL, retrying...', e);
+            setTimeout(() => mainWindow?.loadURL(url), 2000);
+        });
+    }, 1000); // Give server 1s head start
+  } else {
+    mainWindow.loadURL(url);
+  }
 
   // Open DevTools in development
   if (isDev) {
@@ -475,6 +549,7 @@ function setupAutoUpdater() {
  * Application lifecycle
  */
 app.whenReady().then(() => {
+  startServer();
   createWindow();
   createMenu();
   createTray();
@@ -501,4 +576,9 @@ app.on('activate', () => {
 // Graceful shutdown
 app.on('before-quit', () => {
   console.log('[Electron] Application shutting down');
+  if (serverProcess) {
+    console.log('[Electron] Killing backend server process');
+    serverProcess.kill();
+    serverProcess = null;
+  }
 });
