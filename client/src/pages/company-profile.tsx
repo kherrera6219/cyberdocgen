@@ -16,7 +16,7 @@ import { HelpTooltip } from "@/components/help/ContextualHelp";
 import { insertCompanyProfileSchema, type CompanyProfile as CompanyProfileType, type InsertCompanyProfile } from "@shared/schema";
 import { 
   Building, Save, Globe, Briefcase, MapPin, Shield, 
-  Truck, Plus, Trash2, Building2, UserCheck
+  Truck, Plus, Trash2, Building2, UserCheck, RefreshCw
 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -39,7 +39,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
               <FormLabel className="text-xs">Name</FormLabel>
               <FormControl>
                 <Input 
-                  data-testid={`input-personnel-${fieldPrefix}-name`}
+                  data-testid={`input-personnel-${String(fieldPrefix)}-name`}
                   placeholder="Full name" 
                   {...field} 
                   value={field.value || ""} 
@@ -56,7 +56,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
               <FormLabel className="text-xs">Email</FormLabel>
               <FormControl>
                 <Input 
-                  data-testid={`input-personnel-${fieldPrefix}-email`}
+                  data-testid={`input-personnel-${String(fieldPrefix)}-email`}
                   type="email" 
                   placeholder="email@company.com" 
                   {...field} 
@@ -74,7 +74,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
               <FormLabel className="text-xs">Phone</FormLabel>
               <FormControl>
                 <Input 
-                  data-testid={`input-personnel-${fieldPrefix}-phone`}
+                  data-testid={`input-personnel-${String(fieldPrefix)}-phone`}
                   type="tel" 
                   placeholder="+1 (555) 000-0000" 
                   {...field} 
@@ -526,7 +526,7 @@ export default function CompanyProfile() {
                                     if (checked) {
                                       field.onChange([...currentValue, option.id]);
                                     } else {
-                                      field.onChange(currentValue.filter((item) => item !== option.id));
+                                      field.onChange(currentValue.filter((item: string) => item !== option.id));
                                     }
                                   }}
                                 />
@@ -755,7 +755,7 @@ export default function CompanyProfile() {
                             onClick={() => {
                               const current = form.getValues("organizationStructure.subsidiaries") || [];
                               form.setValue("organizationStructure.subsidiaries", 
-                                current.filter((_, i) => i !== index)
+                                current.filter((_: any, i: number) => i !== index)
                               );
                             }}
                           >
@@ -1436,7 +1436,7 @@ export default function CompanyProfile() {
                             onClick={() => {
                               const current = form.getValues("geographicOperations.dataCenterLocations") || [];
                               form.setValue("geographicOperations.dataCenterLocations", 
-                                current.filter((_, i) => i !== index)
+                                current.filter((_: string, i: number) => i !== index)
                               );
                             }}
                           >

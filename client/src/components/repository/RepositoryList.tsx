@@ -63,7 +63,6 @@ export interface RepositorySnapshot {
   detectedFrameworks: string[];
   analysisPhase?: string;
   createdAt: string;
-  organizationId: string;
 }
 
 export interface RepositoryListProps {

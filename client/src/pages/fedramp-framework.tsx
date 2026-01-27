@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
 import { 
   Shield,
   Search,
   FileText,
-  CheckCircle,
-  Clock,
   AlertCircle,
-  XCircle,
   Download,
   Users,
   Lock,

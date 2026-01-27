@@ -57,8 +57,8 @@ export default function EnhancedCompanyProfile() {
     mutationFn: async (data: CompanyProfileFormData) => {
       // Transform form data to match schema
       const profileData: InsertCompanyProfile = {
-        organizationId: (user)?.organizationId || "default-org",
-        createdBy: (user)?.id?.toString() || "unknown-user",
+        organizationId: (user as any)?.organizationId || "default-org",
+        createdBy: user?.id ? String(user.id) : "unknown-user",
         companyName: data.companyName,
         industry: data.industry,
         companySize: data.companySize,

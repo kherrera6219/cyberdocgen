@@ -214,7 +214,7 @@ export function TempUserBanner() {
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
           <AlertTriangle className="h-4 w-4" />
-          <span>Temporary session: {user.displayName || user.firstName} ({user.email})</span>
+          <span>Temporary session: {user.firstName} ({user.email})</span>
         </div>
         <Button 
           variant="ghost" 

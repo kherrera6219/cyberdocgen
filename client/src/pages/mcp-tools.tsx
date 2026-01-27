@@ -24,6 +24,7 @@ import {
   ChevronRight,
   Code,
   FileJson,
+  Clock,
 } from "lucide-react";
 
 interface ToolParameter {

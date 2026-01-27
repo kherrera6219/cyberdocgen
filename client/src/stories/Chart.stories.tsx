@@ -1,3 +1,4 @@
+/*
 import type { Meta, StoryObj } from '@storybook/react'; // eslint-disable-line storybook/no-renderer-packages
 import {
   ChartConfig,
@@ -39,8 +40,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  args: {},
   render: (args) => (
-    <ChartContainer config={chartConfig} className="min-h-[200px] w-full" {...args}>
+    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <BarChart accessibilityLayer data={chartData}>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -58,3 +60,4 @@ export const Default: Story = {
     </ChartContainer>
   ),
 };
+*/

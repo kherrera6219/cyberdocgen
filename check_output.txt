@@ -1,0 +1,157 @@
+
+> rest-express@2.0.1 check
+> tsc
+
+client/src/components/collaboration/DocumentComments.tsx(317,70): error TS2339: Property 'claims' does not exist on type '{ id: string; email: string; firstName: string | null; lastName: string | null; profileImageUrl: string | null; role: string; isActive: boolean; lastLoginAt: Date | null; passwordHash: string | null; ... 11 more ...; updatedAt: Date; }'.
+client/src/components/company-profile/ControlsTab.tsx(48,44): error TS7006: Parameter 'value' implicitly has an 'any' type.
+client/src/components/company-profile/ControlsTab.tsx(115,44): error TS7006: Parameter 'value' implicitly has an 'any' type.
+client/src/components/company-profile/FrameworksTab.tsx(47,42): error TS7006: Parameter 'value' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(42,51): error TS2731: Implicit conversion of a 'symbol' to a 'string' will fail at runtime. Consider wrapping this expression in 'String(...)'.
+client/src/pages/company-profile.tsx(59,51): error TS2731: Implicit conversion of a 'symbol' to a 'string' will fail at runtime. Consider wrapping this expression in 'String(...)'.
+client/src/pages/company-profile.tsx(77,51): error TS2731: Implicit conversion of a 'symbol' to a 'string' will fail at runtime. Consider wrapping this expression in 'String(...)'.
+client/src/pages/company-profile.tsx(529,75): error TS7006: Parameter 'item' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(758,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(758,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(800,51): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(800,54): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(992,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(992,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1066,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1066,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1094,75): error TS7006: Parameter 'item' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1190,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1190,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1344,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1344,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1439,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1439,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1746,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1746,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1837,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1837,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1930,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1930,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(1948,24): error TS2304: Cannot find name 'RefreshCw'.
+client/src/pages/company-profile.tsx(2175,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(2175,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(2255,51): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(2255,54): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(2404,49): error TS7006: Parameter '_' implicitly has an 'any' type.
+client/src/pages/company-profile.tsx(2404,52): error TS7006: Parameter 'i' implicitly has an 'any' type.
+client/src/pages/enhanced-company-profile.tsx(60,33): error TS2339: Property 'organizationId' does not exist on type '{ id: string; email: string; firstName: string | null; lastName: string | null; profileImageUrl: string | null; role: string; isActive: boolean; lastLoginAt: Date | null; passwordHash: string | null; ... 11 more ...; updatedAt: Date; }'.
+client/src/pages/fedramp-framework.tsx(561,21): error TS2304: Cannot find name 'useToast'.
+client/src/pages/fedramp-framework.tsx(770,8): error TS2304: Cannot find name 'Tabs'.
+client/src/pages/fedramp-framework.tsx(772,12): error TS2304: Cannot find name 'TabsList'.
+client/src/pages/fedramp-framework.tsx(773,14): error TS2304: Cannot find name 'TabsTrigger'.
+client/src/pages/fedramp-framework.tsx(776,15): error TS2304: Cannot find name 'TabsTrigger'.
+client/src/pages/fedramp-framework.tsx(777,14): error TS2304: Cannot find name 'TabsTrigger'.
+client/src/pages/fedramp-framework.tsx(780,15): error TS2304: Cannot find name 'TabsTrigger'.
+client/src/pages/fedramp-framework.tsx(781,13): error TS2304: Cannot find name 'TabsList'.
+client/src/pages/fedramp-framework.tsx(805,10): error TS2304: Cannot find name 'TabsContent'.
+client/src/pages/fedramp-framework.tsx(806,12): error TS2304: Cannot find name 'FrameworkSpreadsheet'.
+client/src/pages/fedramp-framework.tsx(810,11): error TS2304: Cannot find name 'TabsContent'.
+client/src/pages/fedramp-framework.tsx(812,10): error TS2304: Cannot find name 'TabsContent'.
+client/src/pages/fedramp-framework.tsx(1128,11): error TS2304: Cannot find name 'TabsContent'.
+client/src/pages/fedramp-framework.tsx(1129,9): error TS2304: Cannot find name 'Tabs'.
+client/src/pages/local-settings.tsx(176,16): error TS2551: Property 'electron' does not exist on type 'Window & typeof globalThis'. Did you mean 'Selection'?
+client/src/pages/local-settings.tsx(178,14): error TS2551: Property 'electron' does not exist on type 'Window & typeof globalThis'. Did you mean 'Selection'?
+client/src/pages/mcp-tools.tsx(329,24): error TS2304: Cannot find name 'Clock'.
+client/src/pages/repository-analysis.tsx(192,13): error TS2322: Type 'import("C:/software/cyberdocgen/client/src/hooks/useRepositoryAPI").RepositorySnapshot[]' is not assignable to type 'import("C:/software/cyberdocgen/client/src/components/repository/RepositoryList").RepositorySnapshot[]'.
+  Property 'organizationId' is missing in type 'import("C:/software/cyberdocgen/client/src/hooks/useRepositoryAPI").RepositorySnapshot' but required in type 'import("C:/software/cyberdocgen/client/src/components/repository/RepositoryList").RepositorySnapshot'.
+client/src/stories/InputOTP.stories.tsx(38,6): error TS2322: Type '{ children: Element[]; name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; ... 296 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }' is not assignable to type 'IntrinsicAttributes & (ComponentPropsWithoutRef<ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>> & RefAttributes<...>)'.
+  Type '{ children: Element[]; name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 295 more ...; ref?: LegacyRef<...> | undefined; }' is not assignable to type 'IntrinsicAttributes & (ComponentPropsWithoutRef<ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>> & RefAttributes<...>)'.
+    Type '{ children: Element[]; name?: string | undefined; id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 295 more ...; ref?: LegacyRef<...> | undefined; }' is not assignable to type 'Omit<Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "onComplete" | "maxLength" | "textAlign" | "pushPasswordManagerStrategy" | "pasteTransformer" | "containerClassName" | "noScriptCSSFallback"> & { ...; } & { ...; } & RefAttributes<...>, "ref">'.
+      Types of property 'render' are incompatible.
+        Type 'InputOTPRenderFn' is not assignable to type 'undefined'.
+client/src/stories/RepositoryList.stories.tsx(92,78): error TS2367: This comparison appears to be unintentional because the types '"completed" | "failed" | "indexed"' and '"extracting"' have no overlap.
+client/src/stories/ToggleGroup.stories.tsx(28,14): error TS2322: Type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' is not assignable to type 'StoryAnnotations<ReactRenderer, { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 270 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }, { ...; } | { ...; }>'.
+  Property 'args' is missing in type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' but required in type '{ args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }; }'.
+client/src/stories/ToggleGroup.stories.tsx(30,18): error TS2783: 'type' is specified more than once, so this usage will be overwritten.
+client/src/stories/ToggleGroup.stories.tsx(44,14): error TS2322: Type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' is not assignable to type 'StoryAnnotations<ReactRenderer, { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; ... 270 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }, { ...; } | { ...; }>'.
+  Property 'args' is missing in type '{ render: (args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }) => Element; }' but required in type '{ args: { id?: string | undefined; role?: AriaRole | undefined; security?: string | undefined; title?: string | undefined; content?: string | undefined; value?: string | undefined; ... 269 more ...; ref?: LegacyRef<...> | undefined; } | { ...; }; }'.
+client/src/stories/ToggleGroup.stories.tsx(46,18): error TS2783: 'type' is specified more than once, so this usage will be overwritten.
+server/providers/auth/entraId.ts(20,18): error TS2352: Conversion of type 'Express.User' to type 'import("C:/software/cyberdocgen/server/providers/interfaces").User' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'email' is missing in type 'Express.User' but required in type 'import("C:/software/cyberdocgen/server/providers/interfaces").User'.
+server/providers/stubs.ts(18,9): error TS2416: Property 'connect' in type 'PostgresDbProvider' is not assignable to the same property in base type 'IDbProvider'.
+  Type '() => Promise<void>' is not assignable to type '() => Promise<IDbConnection>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<IDbConnection>'.
+      Type 'void' is not assignable to type 'IDbConnection'.
+server/providers/stubs.ts(84,9): error TS2416: Property 'save' in type 'CloudStorageProvider' is not assignable to the same property in base type 'IStorageProvider'.
+  Type '(file: Buffer<ArrayBufferLike>, path: string, metadata?: any) => Promise<void>' is not assignable to type '(file: Buffer<ArrayBufferLike>, path: string, metadata?: { contentType?: string | undefined; } | undefined) => Promise<StorageFile>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<StorageFile>'.
+      Type 'void' is not assignable to type 'StorageFile'.
+server/providers/stubs.ts(105,9): error TS2416: Property 'getMetadata' in type 'CloudStorageProvider' is not assignable to the same property in base type 'IStorageProvider'.
+  Type '(uri: string) => Promise<void>' is not assignable to type '(uri: string) => Promise<Pick<StorageFile, "size" | "contentType">>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<Pick<StorageFile, "size" | "contentType">>'.
+      Type 'void' is not assignable to type 'Pick<StorageFile, "size" | "contentType">'.
+server/providers/stubs.ts(117,9): error TS2416: Property 'save' in type 'LocalFsStorageProvider' is not assignable to the same property in base type 'IStorageProvider'.
+  Type '(file: Buffer<ArrayBufferLike>, path: string, metadata?: any) => Promise<void>' is not assignable to type '(file: Buffer<ArrayBufferLike>, path: string, metadata?: { contentType?: string | undefined; } | undefined) => Promise<StorageFile>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<StorageFile>'.
+      Type 'void' is not assignable to type 'StorageFile'.
+server/providers/stubs.ts(138,9): error TS2416: Property 'getMetadata' in type 'LocalFsStorageProvider' is not assignable to the same property in base type 'IStorageProvider'.
+  Type '(uri: string) => Promise<void>' is not assignable to type '(uri: string) => Promise<Pick<StorageFile, "size" | "contentType">>'.
+    Type 'Promise<void>' is not assignable to type 'Promise<Pick<StorageFile, "size" | "contentType">>'.
+      Type 'void' is not assignable to type 'Pick<StorageFile, "size" | "contentType">'.
+server/routes/admin.ts(210,33): error TS7006: Parameter 'integration' implicitly has an 'any' type.
+server/routes/admin.ts(339,33): error TS7006: Parameter 'u' implicitly has an 'any' type.
+server/routes/admin.ts(340,33): error TS7006: Parameter 'u' implicitly has an 'any' type.
+server/routes/admin.ts(344,41): error TS7006: Parameter 'i' implicitly has an 'any' type.
+server/routes/admin.ts(345,44): error TS7006: Parameter 'i' implicitly has an 'any' type.
+server/routes/admin.ts(357,37): error TS7006: Parameter 'u' implicitly has an 'any' type.
+server/routes/auditor.ts(52,13): error TS7006: Parameter 'results' implicitly has an 'any' type.
+server/routes/auditor.ts(52,36): error TS7006: Parameter 'r' implicitly has an 'any' type.
+server/routes/auditor.ts(133,45): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+server/routes/auditor.ts(133,50): error TS7006: Parameter 'stat' implicitly has an 'any' type.
+server/routes/auditor.ts(134,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+server/routes/auditor.ts(178,13): error TS7006: Parameter 'results' implicitly has an 'any' type.
+server/routes/auditor.ts(178,36): error TS7006: Parameter 'r' implicitly has an 'any' type.
+server/routes/auditor.ts(188,13): error TS7006: Parameter 'results' implicitly has an 'any' type.
+server/routes/auditor.ts(188,36): error TS7006: Parameter 'r' implicitly has an 'any' type.
+server/routes/auditor.ts(199,49): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+server/routes/auditor.ts(199,54): error TS7006: Parameter 'doc' implicitly has an 'any' type.
+server/routes/cloudIntegration.ts(155,50): error TS7006: Parameter 'i' implicitly has an 'any' type.
+server/routes/cloudIntegration.ts(178,50): error TS7006: Parameter 'i' implicitly has an 'any' type.
+server/routes/dashboard.ts(35,40): error TS7006: Parameter 'p' implicitly has an 'any' type.
+server/routes/dashboard.ts(83,43): error TS7006: Parameter 'c' implicitly has an 'any' type.
+server/routes/dashboard.ts(84,42): error TS7006: Parameter 'c' implicitly has an 'any' type.
+server/routes/dashboard.ts(85,42): error TS7006: Parameter 'c' implicitly has an 'any' type.
+server/routes/dashboard.ts(150,43): error TS7006: Parameter 'log' implicitly has an 'any' type.
+server/routes/dashboard.ts(195,35): error TS7006: Parameter 'report' implicitly has an 'any' type.
+server/routes/enterpriseAuth.ts(443,28): error TS7006: Parameter 'm' implicitly has an 'any' type.
+server/routes/enterpriseAuth.ts(444,27): error TS7006: Parameter 'm' implicitly has an 'any' type.
+server/routes/enterpriseAuth.ts(445,35): error TS7006: Parameter 'm' implicitly has an 'any' type.
+server/routes/frameworkControlStatuses.ts(40,22): error TS7006: Parameter 's' implicitly has an 'any' type.
+server/routes/frameworkControlStatuses.ts(213,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+server/routes/frameworkControlStatuses.ts(214,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+server/routes/frameworkControlStatuses.ts(215,44): error TS7006: Parameter 's' implicitly has an 'any' type.
+server/routes/frameworkControlStatuses.ts(216,44): error TS7006: Parameter 's' implicitly has an 'any' type.
+server/routes/frameworkControlStatuses.ts(217,47): error TS7006: Parameter 's' implicitly has an 'any' type.
+server/routes/localMode.ts(310,48): error TS2339: Property 'getConfiguredProviders' does not exist on type 'ISecretsProvider'.
+server/routes/repository.ts(239,13): error TS2304: Cannot find name 'repositoryAnalysisRuns'.
+server/routes/repository.ts(240,17): error TS2304: Cannot find name 'repositoryAnalysisRuns'.
+server/routes/repository.ts(241,21): error TS2304: Cannot find name 'repositoryAnalysisRuns'.
+server/routes/roles.ts(139,45): error TS7006: Parameter 'o' implicitly has an 'any' type.
+server/routes/roles.ts(147,42): error TS7006: Parameter 't' implicitly has an 'any' type.
+server/routes/roles.ts(169,29): error TS7006: Parameter 'a' implicitly has an 'any' type.
+server/services/codeSignalDetectorService.ts(571,43): error TS7006: Parameter 'f' implicitly has an 'any' type.
+server/services/codeSignalDetectorService.ts(603,37): error TS7006: Parameter 'f' implicitly has an 'any' type.
+server/services/codeSignalDetectorService.ts(612,40): error TS7006: Parameter 'f' implicitly has an 'any' type.
+server/services/codeSignalDetectorService.ts(623,34): error TS7006: Parameter 'f' implicitly has an 'any' type.
+server/services/repoAnalysisService.ts(338,27): error TS7006: Parameter 'f' implicitly has an 'any' type.
+server/services/repositoryFindingsService.ts(170,25): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: PgColumn<{ name: "status"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "partial" | "pass" | "fail" | "not_observed" | "needs_human"; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>, right: SQLWrapper | ... 4 more ... | "needs_human"): SQL<...>', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'SQLWrapper | "partial" | "pass" | "fail" | "not_observed" | "needs_human"'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "status"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "partial" | "pass" | "fail" | "not_observed" | "needs_human"; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "status"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "partial" | "pass" | "fail" | "not_observed" | "needs_human"; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "status"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "partial" | "pass" | "fail" | "not_observed" | "needs_human"; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'never'.
+server/services/repositoryFindingsService.ts(173,25): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(left: PgColumn<{ name: "confidence_level"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "low" | "high" | "medium"; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, { ...; }>, right: SQLWrapper | ... 2 more ... | "medium"): SQL<...>', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'SQLWrapper | "low" | "high" | "medium"'.
+  Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "confidence_level"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "low" | "high" | "medium"; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+      Type 'PgColumn<{ name: "confidence_level"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "low" | "high" | "medium"; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+  Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+    Argument of type 'PgColumn<{ name: "confidence_level"; tableName: "repository_findings"; dataType: "string"; columnType: "PgVarchar"; data: "low" | "high" | "medium"; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'never'.
+server/services/repositoryFindingsService.ts(418,3): error TS18047: 'finding.evidenceReferences' is possibly 'null'.

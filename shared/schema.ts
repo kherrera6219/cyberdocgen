@@ -1356,7 +1356,7 @@ export const notifications = pgTable("notifications", {
   index("idx_notifications_created_at").on(table.createdAt),
 ]);
 
-export const insertNotificationSchema = createInsertSchema(notifications).omit({
+export const insertNotificationSchema = cis(notifications).omit({
   id: true,
   createdAt: true,
 });
@@ -1596,7 +1596,7 @@ export const contactMessages = pgTable("contact_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertContactMessageSchema = createInsertSchema(contactMessages).omit({
+export const insertContactMessageSchema = cis(contactMessages).omit({
   id: true,
   createdAt: true,
 });
@@ -1623,7 +1623,7 @@ export const roles = pgTable("roles", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertRoleSchema = createInsertSchema(roles).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertRoleSchema = cis(roles).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type Role = typeof roles.$inferSelect;
 
@@ -1641,7 +1641,7 @@ export const roleAssignments = pgTable("role_assignments", {
   index("idx_role_assignment_org").on(table.organizationId),
 ]);
 
-export const insertRoleAssignmentSchema = createInsertSchema(roleAssignments).omit({ id: true, createdAt: true });
+export const insertRoleAssignmentSchema = cis(roleAssignments).omit({ id: true, createdAt: true });
 export type InsertRoleAssignment = z.infer<typeof insertRoleAssignmentSchema>;
 export type RoleAssignment = typeof roleAssignments.$inferSelect;
 
@@ -1661,7 +1661,7 @@ export const projects = pgTable("projects", {
   index("idx_project_org").on(table.organizationId),
 ]);
 
-export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertProjectSchema = cis(projects).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
@@ -1678,7 +1678,7 @@ export const projectMemberships = pgTable("project_memberships", {
   index("idx_project_member_user").on(table.userId),
 ]);
 
-export const insertProjectMembershipSchema = createInsertSchema(projectMemberships).omit({ id: true, joinedAt: true });
+export const insertProjectMembershipSchema = cis(projectMemberships).omit({ id: true, joinedAt: true });
 export type InsertProjectMembership = z.infer<typeof insertProjectMembershipSchema>;
 export type ProjectMembership = typeof projectMemberships.$inferSelect;
 
@@ -1703,7 +1703,7 @@ export const aiSessions = pgTable("ai_sessions", {
   index("idx_ai_session_org").on(table.organizationId),
 ]);
 
-export const insertAiSessionSchema = createInsertSchema(aiSessions).omit({ id: true, createdAt: true });
+export const insertAiSessionSchema = cis(aiSessions).omit({ id: true, createdAt: true });
 export type InsertAiSession = z.infer<typeof insertAiSessionSchema>;
 export type AiSession = typeof aiSessions.$inferSelect;
 

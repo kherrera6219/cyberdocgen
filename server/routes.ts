@@ -33,6 +33,8 @@ import {
 import { tracingMiddleware } from "./middleware/tracing";
 import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
 import { egressControlMiddleware } from "./middleware/egressControl";
+import { isLocalMode } from "./config/runtime";
+import { localAuthBypassMiddleware } from "./providers/auth/localBypass";
 
 import { insertContactMessageSchema } from "@shared/schema";
 import { registerOrganizationsRoutes } from "./routes/organizations";
@@ -112,8 +114,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(validateRouteAccess);
   app.use(logRoutePerformance);
   
+
   // 8. Authentication setup (Uses sessions)
   await setupAuth(app);
+  
+  // Force local auth bypass if in local mode (overrides passport)
+  if (isLocalMode()) {
+    logger.info("Enabling Local Auth Bypass Middleware");
+    app.use(localAuthBypassMiddleware);
+  }
 
   // 9. High-risk operation protection
   app.use('/api', requireMFAForHighRisk);

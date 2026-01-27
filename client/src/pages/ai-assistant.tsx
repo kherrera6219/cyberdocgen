@@ -35,7 +35,9 @@ import {
   Image as ImageIcon,
   File,
   ChevronLeft,
-  ChevronRight,
+  AlertTriangle,
+  Eye,
+  Trash2,
 } from "lucide-react";
 import { logger } from '@/utils/logger';
 

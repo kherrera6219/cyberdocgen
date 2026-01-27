@@ -314,7 +314,7 @@ export function DocumentComments({ documentId, section, lineNumber, className }:
                                   </DropdownMenuItem>
                                 </>
                               )}
-                              {comment.userId === (user?.id || user?.claims?.sub) && (
+                              {comment.userId === (user?.id) && (
                                 <DropdownMenuItem className="text-red-600">
                                   <Trash2 className="h-4 w-4 mr-2" />
                                   Delete

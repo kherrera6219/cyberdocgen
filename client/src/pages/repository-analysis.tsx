@@ -61,7 +61,7 @@ export function RepositoryAnalysisPage() {
   const organizationId = 'org-123';
   const companyProfileId = 'profile-456';
 
-  const handleUpload = async (file: File, metadata: any) => {
+  const handleUpload = async (file: File, metadata: Record<string, unknown>) => {
     try {
       const result = await uploadMutation.mutateAsync({
         file,
@@ -320,7 +320,7 @@ export function RepositoryAnalysisPage() {
         <TabsContent value="tasks" className="mt-6">
           {tasks ? (
             <TaskBoard
-              tasks={tasks as any}
+              tasks={tasks}
               onTaskClick={(task) => console.log('Task:', task)}
               onTaskStatusChange={handleTaskStatusChange}
             />

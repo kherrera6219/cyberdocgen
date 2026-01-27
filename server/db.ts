@@ -1,7 +1,11 @@
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import * as schema from "@shared/schema";
-import { drizzle } from "drizzle-orm/neon-serverless";
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
+import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
 import ws from "ws";
+import path from "path";
+import fs from "fs";
 import { logger } from "./utils/logger";
 
 neonConfig.webSocketConstructor = ws;
@@ -16,9 +20,22 @@ if (!isLocalMode && !process.env.DATABASE_URL) {
 
 // Only initialize PostgreSQL pool in cloud mode
 let pool: Pool | null = null;
-let db: ReturnType<typeof drizzle<typeof schema>> = null as any;
+let db: any = null;
 
-if (!isLocalMode) {
+if (isLocalMode) {
+  try {
+    const dataPath = process.env.LOCAL_DATA_PATH || './local-data';
+    if (!fs.existsSync(dataPath)) {
+      fs.mkdirSync(dataPath, { recursive: true });
+    }
+    const dbPath = path.join(dataPath, 'cyberdocgen.db');
+    logger.info(`Initializing SQLite Drizzle at ${dbPath}`);
+    const sqlite = new Database(dbPath);
+    db = drizzleSqlite(sqlite, { schema });
+  } catch (error) {
+    logger.error("Failed to initialize SQLite", { error });
+  }
+} else {
   // Connection pool configuration with timeouts and error handling
   const poolConfig = {
     connectionString: process.env.DATABASE_URL!,
@@ -45,7 +62,7 @@ if (!isLocalMode) {
   // Configure query timeout (30 seconds default)
   neonConfig.fetchConnectionCache = true;
 
-  db = drizzle({ client: pool, schema });
+  db = drizzleNeon({ client: pool, schema });
 }
 
 /**

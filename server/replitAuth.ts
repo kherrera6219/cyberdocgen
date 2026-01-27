@@ -39,8 +39,31 @@ const getOidcConfig = memoize(
   { maxAge: 3600 * 1000 }
 );
 
+import createMemoryStore from "memorystore";
+
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isLocalMode = process.env.DEPLOYMENT_MODE === 'local';
+
+  if (isLocalMode) {
+    const MemoryStore = createMemoryStore(session);
+    return session({
+      secret: process.env.SESSION_SECRET || 'local-secret',
+      store: new MemoryStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
+      }),
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        secure: false, // Localhost/file doesn't need secure cookies
+        sameSite: 'lax',
+        maxAge: sessionTtl,
+      },
+    });
+  }
+
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
@@ -48,8 +71,6 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
-  
-  const isProduction = process.env.NODE_ENV === 'production';
   
   return session({
     secret: process.env.SESSION_SECRET!,

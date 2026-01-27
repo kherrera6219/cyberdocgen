@@ -75,7 +75,7 @@ export class SnapshotService {
       organizationId,
       generatedAt: new Date().toISOString(),
       fileCount: files.length,
-      files: files.map((f) => ({
+      files: files.map((f: any) => ({
         id: f.id,
         name: f.fileName,
         path: f.filePath,

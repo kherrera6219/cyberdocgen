@@ -38,6 +38,14 @@
 
 ## Latest Updates
 
+**Version 2.4.0 - January 27, 2026** - Local Mode & Windows Persistence:
+
+- ✅ **Offline-Capable Local Mode** - Zero-configuration local deployment using SQLite (no Postgres required)
+- ✅ **Data Persistence** - Seamless automatic switching to SQLite `database.db` when running locally
+- ✅ **Local Auth Bypass** - Automatic "Local Admin" login for desktop users (no SSO required)
+- ✅ **Windows Installer Polishing** - Optimized build process, fixed blank screen issues, and native dependency handling
+- ✅ **Hybrid Architecture** - Single codebase supporting both Cloud (Postgres/SSO) and Local (SQLite/Auth Bypass) targets
+
 **Version 2.3.0 - January 19, 2026** - Connectors & Evidence Ingestion:
 
 - ✅ **Connectors Hub** - Centralized management for external data sources (SharePoint, Jira, Notion)

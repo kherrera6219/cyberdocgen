@@ -173,9 +173,9 @@ export default function LocalSettingsPage() {
     const defaultPath = `${dbInfo?.path}-backup-${timestamp}.db`;
 
     // Check if running in Electron
-    if (window.electron) {
+    if ((window as any).electron) {
       // Trigger backup via Electron IPC
-      window.electron.send('menu-backup-database', defaultPath);
+      (window as any).electron.send('menu-backup-database', defaultPath);
     } else {
       // Fallback for non-Electron environment
       backupMutation.mutate(defaultPath);

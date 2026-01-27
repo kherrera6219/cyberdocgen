@@ -1651,7 +1651,7 @@ export class DatabaseStorage implements IStorage {
         .where(eq(companyProfiles.organizationId, organizationId))
         .orderBy(desc(documents.updatedAt))
         .limit(DEFAULT_LIMIT)
-        .then(results => results.map(result => result.documents));
+        .then((results: any[]) => results.map((result: any) => result.documents));
     }
     return await db.select().from(documents).orderBy(desc(documents.updatedAt)).limit(DEFAULT_LIMIT);
   }
@@ -1726,7 +1726,7 @@ export class DatabaseStorage implements IStorage {
         .where(eq(companyProfiles.organizationId, organizationId))
         .orderBy(desc(generationJobs.createdAt))
         .limit(DEFAULT_LIMIT)
-        .then(results => results.map(result => result.generation_jobs));
+        .then((results: any[]) => results.map((result: any) => result.generation_jobs));
     }
     return await db.select().from(generationJobs).orderBy(desc(generationJobs.createdAt)).limit(DEFAULT_LIMIT);
   }
@@ -2203,7 +2203,7 @@ export class DatabaseStorage implements IStorage {
 
     const stats = {
       totalEvents: results.length,
-      highRiskEvents: results.filter(r => r.riskLevel === 'high' || r.riskLevel === 'critical').length,
+      highRiskEvents: results.filter((r: any) => r.riskLevel === 'high' || r.riskLevel === 'critical').length,
       actions: {} as Record<string, number>,
       entities: {} as Record<string, number>,
     };
@@ -2221,6 +2221,8 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage: IStorage = (!process.env.DATABASE_URL || process.env.DEPLOYMENT_MODE === 'local')
-  ? new MemStorage()
-  : new DatabaseStorage();
+// Use DatabaseStorage for both Cloud (Postgres) and Local (SQLite) modes
+// Fallback to MemStorage only if no database is configured and not in local mode (e.g. limited dev environment)
+export const storage: IStorage = (process.env.DATABASE_URL || process.env.DEPLOYMENT_MODE === 'local')
+  ? new DatabaseStorage()
+  : new MemStorage();

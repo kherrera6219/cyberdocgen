@@ -59,9 +59,9 @@ export interface Task {
   id: string;
   title: string;
   description: string;
-  category: string;
-  priority: string;
-  status: string;
+  category: 'code_change' | 'missing_evidence' | 'policy_needed' | 'procedure_needed';
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  status: 'open' | 'in_progress' | 'completed' | 'dismissed';
   findingId?: string;
   createdAt: string;
 }
@@ -176,8 +176,9 @@ export function useAnalysisStatus(snapshotId: string) {
       return data.data as { analysisRun: AnalysisRun | null; snapshot: Partial<RepositorySnapshot> };
     },
     enabled: !!snapshotId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Poll every 3 seconds if analysis is running
+      const data = query.state.data as { analysisRun: AnalysisRun | null; snapshot: Partial<RepositorySnapshot> } | undefined;
       const isRunning = data?.analysisRun?.phaseStatus === 'running';
       return isRunning ? 3000 : false;
     },
