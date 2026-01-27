@@ -1,0 +1,142 @@
+  ΓÇó electron-builder  version=26.5.0 os=10.0.26200
+  ΓÇó loaded configuration  file=C:\software\cyberdocgen\electron-builder.yml
+  ΓÇó description is missed in the package.json  appPackageFile=C:\software\cyberdocgen\package.json
+  ΓÇó author is missed in the package.json  appPackageFile=C:\software\cyberdocgen\package.json
+  ΓÇó executing @electron/rebuild  electronVersion=40.0.0 arch=x64 buildFromSource=false workspaceRoot=C:\software\cyberdocgen projectDir=./ appDir=./
+  ΓÇó installing native dependencies  arch=x64
+  ΓÇó preparing       moduleName=bcrypt arch=x64
+  ΓÇó finished        moduleName=bcrypt arch=x64
+  ΓÇó preparing       moduleName=better-sqlite3 arch=x64
+  ΓÇó finished        moduleName=better-sqlite3 arch=x64
+  ΓÇó preparing       moduleName=bufferutil arch=x64
+  ΓÇó finished        moduleName=bufferutil arch=x64
+  ΓÇó preparing       moduleName=keytar arch=x64
+  ΓÇó finished        moduleName=keytar arch=x64
+  ΓÇó completed installing native dependencies
+  ΓÇó packaging       platform=win32 arch=x64 electron=40.0.0 appOutDir=dist\packaging\win-unpacked
+  ΓÇó searching for node modules  pm=npm searchDir=C:\software\cyberdocgen
+  ΓÇó updating asar integrity executable resource  executablePath=dist\packaging\win-unpacked\CyberDocGen.exe
+  ΓÇó downloading     url=https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z size=5.6 MB parts=1
+  ΓÇó downloaded      url=https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z duration=1.258s
+  Γ¿» cannot execute  cause=exit status 2
+                    out=
+    7-Zip (a) 21.07 (x64) : Copyright (c) 1999-2021 Igor Pavlov : 2021-12-26
+    
+    Scanning the drive for archives:
+    1 file, 5635384 bytes (5504 KiB)
+    
+    Extracting archive: c:\software\cyberdocgen\.cache\winCodeSign\021777171.7z
+    --
+    Path = c:\software\cyberdocgen\.cache\winCodeSign\021777171.7z
+    Type = 7z
+    Physical Size = 5635384
+    Headers Size = 1492
+    Method = LZMA2:24m LZMA:20 BCJ2
+    Solid = +
+    Blocks = 2
+    
+    
+    Sub items Errors: 2
+    
+    Archives with Errors: 1
+    
+    Sub items Errors: 2
+    
+                    errorOut=ERROR: Cannot create symbolic link : A required privilege is not held by the client. : c:\software\cyberdocgen\.cache\winCodeSign\021777171\darwin\10.12\lib\libcrypto.dylib
+    ERROR: Cannot create symbolic link : A required privilege is not held by the client. : c:\software\cyberdocgen\.cache\winCodeSign\021777171\darwin\10.12\lib\libssl.dylib
+    
+                    command='C:\software\cyberdocgen\node_modules\7zip-bin\win\x64\7za.exe' x -snld -bd 'c:\software\cyberdocgen\.cache\winCodeSign\021777171.7z' '-oc:\software\cyberdocgen\.cache\winCodeSign\021777171'
+                    workingDir=c:\software\cyberdocgen\.cache\winCodeSign
+  ΓÇó downloading     url=https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z size=5.6 MB parts=1
+  ΓÇó downloaded      url=https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z duration=1.02s
+  Γ¿» cannot execute  cause=exit status 2
+                    out=
+    7-Zip (a) 21.07 (x64) : Copyright (c) 1999-2021 Igor Pavlov : 2021-12-26
+    
+    Scanning the drive for archives:
+    1 file, 5635384 bytes (5504 KiB)
+    
+    Extracting archive: c:\software\cyberdocgen\.cache\winCodeSign\740868279.7z
+    --
+    Path = c:\software\cyberdocgen\.cache\winCodeSign\740868279.7z
+    Type = 7z
+    Physical Size = 5635384
+    Headers Size = 1492
+    Method = LZMA2:24m LZMA:20 BCJ2
+    Solid = +
+    Blocks = 2
+    
+    
+    Sub items Errors: 2
+    
+    Archives with Errors: 1
+    
+    Sub items Errors: 2
+    
+                    errorOut=ERROR: Cannot create symbolic link : A required privilege is not held by the client. : c:\software\cyberdocgen\.cache\winCodeSign\740868279\darwin\10.12\lib\libcrypto.dylib
+    ERROR: Cannot create symbolic link : A required privilege is not held by the client. : c:\software\cyberdocgen\.cache\winCodeSign\740868279\darwin\10.12\lib\libssl.dylib
+    
+                    command='C:\software\cyberdocgen\node_modules\7zip-bin\win\x64\7za.exe' x -snld -bd 'c:\software\cyberdocgen\.cache\winCodeSign\740868279.7z' '-oc:\software\cyberdocgen\.cache\winCodeSign\740868279'
+                    workingDir=c:\software\cyberdocgen\.cache\winCodeSign
+  ΓÇó downloading     url=https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z size=5.6 MB parts=1
+  ΓÇó downloaded      url=https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z duration=1.074s
+  Γ¿» cannot execute  cause=exit status 2
+                    out=
+    7-Zip (a) 21.07 (x64) : Copyright (c) 1999-2021 Igor Pavlov : 2021-12-26
+    
+    Scanning the drive for archives:
+    1 file, 5635384 bytes (5504 KiB)
+    
+    Extracting archive: c:\software\cyberdocgen\.cache\winCodeSign\946525243.7z
+    --
+    Path = c:\software\cyberdocgen\.cache\winCodeSign\946525243.7z
+    Type = 7z
+    Physical Size = 5635384
+    Headers Size = 1492
+    Method = LZMA2:24m LZMA:20 BCJ2
+    Solid = +
+    Blocks = 2
+    
+    
+    Sub items Errors: 2
+    
+    Archives with Errors: 1
+    
+    Sub items Errors: 2
+    
+                    errorOut=ERROR: Cannot create symbolic link : A required privilege is not held by the client. : c:\software\cyberdocgen\.cache\winCodeSign\946525243\darwin\10.12\lib\libcrypto.dylib
+    ERROR: Cannot create symbolic link : A required privilege is not held by the client. : c:\software\cyberdocgen\.cache\winCodeSign\946525243\darwin\10.12\lib\libssl.dylib
+    
+                    command='C:\software\cyberdocgen\node_modules\7zip-bin\win\x64\7za.exe' x -snld -bd 'c:\software\cyberdocgen\.cache\winCodeSign\946525243.7z' '-oc:\software\cyberdocgen\.cache\winCodeSign\946525243'
+                    workingDir=c:\software\cyberdocgen\.cache\winCodeSign
+  ΓÇó downloading     url=https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z size=5.6 MB parts=1
+  ΓÇó downloaded      url=https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z duration=1.073s
+  Γ¿» cannot execute  cause=exit status 2
+                    out=
+    7-Zip (a) 21.07 (x64) : Copyright (c) 1999-2021 Igor Pavlov : 2021-12-26
+    
+    Scanning the drive for archives:
+    1 file, 5635384 bytes (5504 KiB)
+    
+    Extracting archive: c:\software\cyberdocgen\.cache\winCodeSign\878819471.7z
+    --
+    Path = c:\software\cyberdocgen\.cache\winCodeSign\878819471.7z
+    Type = 7z
+    Physical Size = 5635384
+    Headers Size = 1492
+    Method = LZMA2:24m LZMA:20 BCJ2
+    Solid = +
+    Blocks = 2
+    
+    
+    Sub items Errors: 2
+    
+    Archives with Errors: 1
+    
+    Sub items Errors: 2
+    
+                    errorOut=ERROR: Cannot create symbolic link : A required privilege is not held by the client. : c:\software\cyberdocgen\.cache\winCodeSign\878819471\darwin\10.12\lib\libcrypto.dylib
+    ERROR: Cannot create symbolic link : A required privilege is not held by the client. : c:\software\cyberdocgen\.cache\winCodeSign\878819471\darwin\10.12\lib\libssl.dylib
+    
+                    command='C:\software\cyberdocgen\node_modules\7zip-bin\win\x64\7za.exe' x -snld -bd 'c:\software\cyberdocgen\.cache\winCodeSign\878819471.7z' '-oc:\software\cyberdocgen\.cache\winCodeSign\878819471'
+                    workingDir=c:\software\cyberdocgen\.cache\winCodeSign

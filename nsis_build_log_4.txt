@@ -1,0 +1,19 @@
+  • electron-builder  version=26.5.0 os=10.0.26200
+  • loaded configuration  file=C:\software\cyberdocgen\electron-builder.yml
+  • description is missed in the package.json  appPackageFile=C:\software\cyberdocgen\package.json
+  • author is missed in the package.json  appPackageFile=C:\software\cyberdocgen\package.json
+  • executing @electron/rebuild  electronVersion=40.0.0 arch=x64 buildFromSource=false workspaceRoot=C:\software\cyberdocgen projectDir=./ appDir=./
+  • installing native dependencies  arch=x64
+  • preparing       moduleName=bcrypt arch=x64
+  • finished        moduleName=bcrypt arch=x64
+  • preparing       moduleName=better-sqlite3 arch=x64
+  • finished        moduleName=better-sqlite3 arch=x64
+  • preparing       moduleName=bufferutil arch=x64
+  • finished        moduleName=bufferutil arch=x64
+  • preparing       moduleName=keytar arch=x64
+  • finished        moduleName=keytar arch=x64
+  • completed installing native dependencies
+  • packaging       platform=win32 arch=x64 electron=40.0.0 appOutDir=dist\packaging\win-unpacked
+  • searching for node modules  pm=npm searchDir=C:\software\cyberdocgen
+  • updating asar integrity executable resource  executablePath=dist\packaging\win-unpacked\CyberDocGen.exe
+  ⨯ image C:\software\cyberdocgen\build\icon.ico must be at least 256x256

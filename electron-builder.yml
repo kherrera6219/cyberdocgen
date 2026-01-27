@@ -9,17 +9,11 @@ files:
   - package.json
 win:
   target:
-    - msix
-  icon: public/favicon.ico
-msix:
-  identityName: CyberDocGen
-  publisher: CN=CyberDocGen, O=CyberDocGen, L=Seattle, S=Washington, C=US
-  publisherDisplayName: CyberDocGen Corp
-  allowElevatedPrivileges: false
-  applicationId: CyberDocGen
-  languages:
-    - en-US
-  capabilities:
-    - internetClient
-    - privateNetworkClientServer
-  store: true # Microsoft Store submission enabled
+    - nsis
+  icon: node_modules/app-builder-lib/templates/icons/proton-native/proton-native.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  deleteAppDataOnUninstall: true
+  artifactName: "${productName}-Setup-${version}.${ext}"
