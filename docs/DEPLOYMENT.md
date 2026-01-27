@@ -2,7 +2,123 @@
 
 ## Overview
 
-CyberDocGen is designed for deployment on Replit's cloud platform with automatic scaling, health monitoring, and zero-downtime updates. This guide covers deployment configuration, environment setup, and operational procedures for production environments.
+CyberDocGen supports **two deployment modes**:
+
+1. **Cloud Mode (SaaS)**: Multi-tenant web application on Replit with PostgreSQL and cloud storage
+2. **Desktop Mode (Windows 11)**: Standalone offline application with SQLite and local file storage
+
+This guide covers both deployment configurations.
+
+---
+
+## Windows Desktop Deployment
+
+### Deployment Strategy
+
+**Target Platform:** Windows 11 (x64)  
+**Packaging:** NSIS Installer (`.exe`) for local distribution  
+**Future Option:** MSIX for Microsoft Store submission
+
+### Build Process
+
+#### Prerequisites
+- Node.js 20+
+- Windows 11 development machine
+- Application icon in `build/icon.ico` (multi-resolution: 16x16 to 256x256)
+
+#### Build Commands
+
+```bash
+# Full desktop build (includes all steps)
+npm run build:win
+
+# Or step-by-step:
+npm run build              # Build frontend (Vite)
+npm run electron:build     # Build Electron main process
+npx electron-builder build --win nsis  # Package installer
+```
+
+#### Output
+
+```
+dist/packaging/
+├── CyberDocGen-Setup-2.0.1.exe  # NSIS installer
+└── win-unpacked/                # Portable/testing version
+```
+
+### Installation Behavior
+
+- **Scope:** Per-user (no admin rights required)
+- **Install Location:** `%LOCALAPPDATA%\Programs\CyberDocGen`
+- **Data Location:** `%APPDATA%\Roaming\CyberDocGen`
+- **Shortcuts:** Desktop + Start Menu
+- **Uninstall:** Registered in Apps & Features
+
+### Local Mode Configuration
+
+Desktop app automatically runs in local mode with:
+
+- **Database:** SQLite at `%APPDATA%\Roaming\CyberDocGen\cyberdocgen.db`
+- **Storage:** Local files at `%APPDATA%\Roaming\CyberDocGen\files`
+- **Authentication:** Bypassed (auto-login as "Local Admin")
+- **Server:** Localhost-only binding (`127.0.0.1:5231`)
+- **Secrets:** Windows Credential Manager (via keytar)
+
+### Distribution Options
+
+#### Option 1: Direct Download (Current)
+- Host `.exe` on website or GitHub Releases
+- Users download and run installer
+- Requires code signing certificate to avoid SmartScreen warnings
+
+#### Option 2: Microsoft Store (Future)
+- Convert to MSIX packaging
+- Submit via Microsoft Partner Center
+- Automatic updates via Windows Store
+- See [`MICROSOFT_STORE_SUBMISSION_GUIDE.md`](../MICROSOFT_STORE_SUBMISSION_GUIDE.md)
+
+### Code Signing (Required for Production)
+
+```powershell
+# Sign the installer (requires Authenticode certificate)
+SignTool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /a "dist/packaging/CyberDocGen-Setup-2.0.1.exe"
+```
+
+**Certificate Options:**
+- **EV Certificate:** Immediate trust, $400-500/year (DigiCert, Sectigo)
+- **Standard Certificate:** Reputation build-up, $100-200/year
+
+### Auto-Updates
+
+Configured via `electron-updater`:
+
+```yaml
+# electron-builder.yml
+publish:
+  provider: github
+  owner: kherrera6219
+  repo: cyberdocgen
+  releaseType: release
+```
+
+Updates are checked every 4 hours and on startup.
+
+### Troubleshooting Desktop Builds
+
+**Issue:** Icon not appearing  
+**Solution:** Verify `build/icon.ico` exists and is referenced in `electron-builder.yml`
+
+**Issue:** SmartScreen warning  
+**Solution:** Sign installer with Authenticode certificate
+
+**Issue:** Server fails to start  
+**Solution:** Check logs at `%APPDATA%\Roaming\CyberDocGen\logs`
+
+---
+
+## Cloud Deployment (Replit/SaaS)
+
+
 
 ## Prerequisites
 

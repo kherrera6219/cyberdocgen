@@ -10,7 +10,7 @@ files:
 win:
   target:
     - nsis
-  icon: node_modules/app-builder-lib/templates/icons/proton-native/proton-native.ico
+  icon: build/icon.ico
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
