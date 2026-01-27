@@ -31,7 +31,11 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
 describe('Accessibility Tests', () => {
   describe('Pages', () => {
     it('Landing page should not have any accessibility violations', async () => {
-      const { container } = render(<Landing />);
+      const { container } = render(
+        <Wrapper>
+          <Landing />
+        </Wrapper>
+      );
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });
