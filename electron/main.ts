@@ -105,8 +105,16 @@ function startServer() {
   }
 
   try {
-    const serverPath = path.join(__dirname, '../index.js');
+    // In production, the server file is in app.asar.unpacked/dist/index.js
+    // because we use asarUnpack in electron-builder.yml
+    // __dirname when built is: resources/app.asar/dist/electron
+    const serverPath = process.env.NODE_ENV === 'production' 
+      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'index.js')
+      : path.join(__dirname, '../../dist/index.js');
+    
     console.log('[Electron] Starting backend server from:', serverPath);
+    console.log('[Electron] __dirname:', __dirname);
+    console.log('[Electron] process.resourcesPath:', process.resourcesPath);
 
     if (!fs.existsSync(serverPath)) {
       console.error('[Electron] Server file not found at:', serverPath);
