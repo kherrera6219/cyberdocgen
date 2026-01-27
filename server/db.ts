@@ -14,9 +14,12 @@ neonConfig.webSocketConstructor = ws;
 // This file is only used in cloud mode
 const isLocalMode = process.env.DEPLOYMENT_MODE === 'local';
 
-if (!isLocalMode && !process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
-}
+// DATABASE_URL validation moved to providers - they check at runtime after env is set
+// Early check removed because DEPLOYMENT_MODE isn't set when this module loads
+// if (!isLocalMode && !process.env.DATABASE_URL) {
+//   throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+// }
+
 
 // Only initialize PostgreSQL pool in cloud mode
 let pool: Pool | null = null;

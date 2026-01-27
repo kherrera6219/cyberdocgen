@@ -1,7 +1,12 @@
-import { initTelemetry } from "./monitoring/telemetry";
-
-// Initialize OpenTelemetry
-initTelemetry();
+// Initialize OpenTelemetry with error handling
+// In local mode, telemetry may not be critical - allow server to start anyway
+try {
+  const { initTelemetry } = await import("./monitoring/telemetry.js");
+  initTelemetry();
+  console.log('[Server] Telemetry initialized');
+} catch (error) {
+  console.warn('[Server] Telemetry initialization failed (non-critical):', error);
+}
 
 import express from "express";
 import crypto from "crypto";
@@ -14,10 +19,29 @@ import { healthCheckHandler, readinessCheckHandler, livenessCheckHandler } from 
 import { getRuntimeConfig, logRuntimeConfig } from "./config/runtime";
 import { getProviders } from "./providers";
 
+// Log startup phase
+console.log('==================================================');
+console.log('[Server] Starting CyberDocGen Backend Server');
+console.log(`[Server] Node version: ${process.version}`);
+console.log(`[Server] Platform: ${process.platform}`);
+console.log(`[Server] PID: ${process.pid}`);
+console.log(`[Server] Working directory: ${process.cwd()}`);
+console.log(`[Server] Environment: ${process.env.NODE_ENV || 'not set'}`);
+console.log(`[Server] Deployment mode: ${process.env.DEPLOYMENT_MODE || 'not set'}`);
+console.log('==================================================');
+
 // Validate environment variables before starting
-validateEnvironment();
+console.log('[Server] Validating environment variables...');
+try {
+  validateEnvironment();
+  console.log('[Server] Environment validation passed');
+} catch (error) {
+  console.error('[Server] FATAL: Environment validation failed:', error);
+  throw error;
+}
 
 // Log runtime configuration
+console.log('[Server] Logging runtime configuration...');
 logRuntimeConfig();
 
 const app = express();
@@ -55,35 +79,51 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 });
 
 (async () => {
+  console.log('[Server] === STARTING ASYNC INITIALIZATION ===');
+  
   // Initialize providers (database, storage, auth, secrets)
   let providers;
   try {
+    console.log('[Server] Step 1: Initializing providers...');
     logger.info('Initializing providers...');
     providers = await getProviders();
+    console.log('[Server] Step 1: Providers initializedsuccessfully');
 
     // Connect to database
+    console.log('[Server] Step 2: Connecting to database...');
     await providers.db.connect();
     logger.info('Database connection established');
+    console.log('[Server] Step 2: Database connected successfully');
 
     // Run database migrations
+    console.log('[Server] Step 3: Running database migrations...');
     await providers.db.migrate();
     logger.info('Database migrations complete');
+    console.log('[Server] Step 3: Migrations completed successfully');
 
     // Verify database health
+    console.log('[Server] Step 4: Running database health check...');
     const isHealthy = await providers.db.healthCheck();
     if (!isHealthy) {
       throw new Error('Database health check failed');
     }
     logger.info('Database health check passed');
+    console.log('[Server] Step 4: Health check passed');
 
     // Initialize auth provider if needed
+    console.log('[Server] Step 5: Initializing auth provider...');
     if (providers.auth.initialize) {
       await providers.auth.initialize();
       logger.info('Auth provider initialized');
+      console.log('[Server] Step 5: Auth provider initialized');
+    } else {
+      console.log('[Server] Step 5: Auth provider does not need initialization');
     }
 
     logger.info('All providers initialized successfully');
+    console.log('[Server] === ALL PROVIDERS INITIALIZED ===');
   } catch (error) {
+    console.error('[Server] FATAL ERROR during provider initialization:', error);
     logger.error('Failed to initialize providers', { error });
     process.exit(1);
   }

@@ -22,6 +22,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { fork, ChildProcess } from 'child_process';
+import { startupLogger } from './startup-logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -97,14 +98,21 @@ function isPathSafe(requestedPath: string): boolean {
  * Start the backend server as a child process
  */
 function startServer() {
+  // Start new logging session
+  startupLogger.startSession();
+  startupLogger.info('=== STARTING SERVER STARTUP SEQUENCE ===');
+
   // Only start server in production (packaged) mode
   // In development, we run the server separately via npm run dev
   if (process.env.NODE_ENV === 'development') {
+    startupLogger.info('Development mode detected, skipping server spawn');
     console.log('[Electron] Development mode detected, skipping server spawn');
     return;
   }
 
   try {
+    startupLogger.info('Starting server in production mode');
+
     // In production, the server file is in app.asar.unpacked/dist/index.js
     // because we use asarUnpack in electron-builder.yml
     // __dirname when built is: resources/app.asar/dist/electron
@@ -112,51 +120,132 @@ function startServer() {
       ? path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'index.js')
       : path.join(__dirname, '../../dist/index.js');
     
+    startupLogger.info('Server path resolution', {
+      serverPath,
+      __dirname,
+      resourcesPath: process.resourcesPath,
+      nodeEnv: process.env.NODE_ENV
+    });
+
     console.log('[Electron] Starting backend server from:', serverPath);
     console.log('[Electron] __dirname:', __dirname);
     console.log('[Electron] process.resourcesPath:', process.resourcesPath);
 
+    // Verify server file exists
     if (!fs.existsSync(serverPath)) {
+      const error = `Server file not found at: ${serverPath}`;
+      startupLogger.error('CRITICAL: Server file missing', { serverPath });
       console.error('[Electron] Server file not found at:', serverPath);
       dialog.showErrorBox('Startup Error', 'Critical component missing: Backend server file not found.');
       return;
     }
 
-    serverProcess = fork(serverPath, [], {
-      env: {
-        ...process.env,
-        PORT: '5231',
-        HOST: '127.0.0.1',
-        NODE_ENV: 'production',
-        DEPLOYMENT_MODE: 'local',
-        LOCAL_DATA_PATH: app.getPath('userData'),
-      },
-      stdio: 'pipe' // Pipe output to parent to log it
+    startupLogger.info('Server file exists, preparing to fork');
+
+    // Prepare environment variables
+    const serverEnv = {
+      ...process.env,
+      PORT: '5231',
+      HOST: '127.0.0.1',
+      NODE_ENV: 'production',
+      DEPLOYMENT_MODE: 'local',
+      LOCAL_DATA_PATH: app.getPath('userData'),
+    };
+
+    startupLogger.info('Environment variables for server', {
+      PORT: serverEnv.PORT,
+      HOST: serverEnv.HOST,
+      NODE_ENV: serverEnv.NODE_ENV,
+      DEPLOYMENT_MODE: serverEnv.DEPLOYMENT_MODE,
+      LOCAL_DATA_PATH: serverEnv.LOCAL_DATA_PATH,
     });
 
+    // Fork the server process
+    startupLogger.info('Forking server process...');
+    
+    serverProcess = fork(serverPath, [], {
+      env: serverEnv,
+      stdio: 'pipe', // Pipe output to parent to log it
+      cwd: path.dirname(serverPath) // Set working directory to server directory
+    });
+
+    startupLogger.info('Fork initiated', {pid: serverProcess.pid});
+
+    // Handle spawn event
     serverProcess.on('spawn', () => {
+      startupLogger.info('Server process spawned successfully', {
+        pid: serverProcess?.pid
+      });
       console.log('[Electron] Backend server process spawned, PID:', serverProcess?.pid);
     });
 
+    // Handle errors
     serverProcess.on('error', (err) => {
+      startupLogger.error('Server process error', {
+        error: err.message,
+        stack: err.stack,
+        code: (err as any).code
+      });
       console.error('[Electron] Failed to start server process:', err);
     });
 
+    // Handle exit
     serverProcess.on('exit', (code, signal) => {
+      startupLogger.error('Server process exited', {
+        exitCode: code,
+        signal: signal,
+        timestamp: new Date().toISOString()
+      });
       console.log(`[Electron] Backend server exited with code ${code} and signal ${signal}`);
     });
 
-    // Capture stdout/stderr from server
+    // Capture stdout from server
     if (serverProcess.stdout) {
-      serverProcess.stdout.on('data', (data) => console.log(`[Server] ${data}`));
-    }
-    if (serverProcess.stderr) {
-      serverProcess.stderr.on('data', (data) => console.error(`[Server Error] ${data}`));
+      serverProcess.stdout.on('data', (data) => {
+        startupLogger.serverOutput(data);
+        console.log(`[Server] ${data}`);
+      });
     }
 
+    // Capture stderr from server
+    if (serverProcess.stderr) {
+      serverProcess.stderr.on('data', (data) => {
+        startupLogger.serverError(data);
+        console.error(`[Server Error] ${data}`);
+      });
+    }
+
+    // Set timeout to detect if server hangs
+    const startupTimeout = setTimeout(() => {
+      startupLogger.warn('Server startup timeout - server did not start within 30 seconds', {
+        pid: serverProcess?.pid,
+        processRunning: serverProcess && !serverProcess.killed
+      });
+    }, 30000);
+
+    // Clear timeout if server exits
+    serverProcess.on('exit', () => {
+      clearTimeout(startupTimeout);
+    });
+
+    startupLogger.info('Server startup sequence initiated successfully', {
+      logPath: startupLogger.getLogPath()
+    });
+
   } catch (error) {
+    const errorDetails = {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      type: error instanceof Error ? error.constructor.name : typeof error
+    };
+
+    startupLogger.error('CRITICAL: Exception during server startup', errorDetails);
     console.error('[Electron] Error starting server:', error);
-    dialog.showErrorBox('Startup Error', `Failed to start backend server: ${error}`);
+    
+    dialog.showErrorBox(
+      'Startup Error', 
+      `Failed to start backend server: ${errorDetails.message}\n\nLog file: ${startupLogger.getLogPath()}`
+    );
   }
 }
 
