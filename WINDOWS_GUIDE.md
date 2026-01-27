@@ -25,18 +25,21 @@ npm run build:win
 If the standard build fails, you can run the steps individually:
 
 1. **Build Frontend**:
-
    ```powershell
    npm run build
    ```
 
-2. **Build Electron Main Process**:
+2. **Build Backend Server**:
+   ```powershell
+   node scripts/build-server.js
+   ```
 
+3. **Build Electron Main Process**:
    ```powershell
    npm run electron:build
    ```
 
-3. **Package for Windows**:
+4. **Package for Windows**:
    ```powershell
    npx electron-builder build --win nsis
    ```
@@ -44,26 +47,21 @@ If the standard build fails, you can run the steps individually:
 ## Configuration Details
 
 ### `electron-builder.yml`
-
-The configuration has been updated for local deployment:
-
+The configuration has been hardened for production:
 - **Target**: `nsis` (Standard Windows Installer)
-- **Identity**: Placeholder identity used (not signed for Store)
-- **Icon**: Uses `node_modules/app-builder-lib/templates/icons/proton-native/proton-native.ico` as a fallback if custom branding is missing.
+- **Data Retention**: Prompts user to keep/remove data on uninstall.
+- **ASAR Unpacking**: Critical native modules (`better-sqlite3`, `keytar`) are unpacked for reliable execution.
 
-### Local Cache Workaround
+## Troubleshooting & Diagnostics
 
-If you encounter permission errors during the `winCodeSign` download/extraction step (common on some Windows environments), use a local cache directory:
-
-```powershell
-# Set cache to a local directory
-$env:ELECTRON_BUILDER_CACHE="c:\software\cyberdocgen\.cache"
-
-# Run build
-npx electron-builder build --win nsis
-```
+If the packaged application fails to start:
+1. Run the native diagnostic tool:
+   ```powershell
+   node scripts/diagnostic.js
+   ```
+2. Check the detailed startup logs:
+   `%APPDATA%/CyberDocGen/logs/startup.log`
 
 ## Output
-
 The generated installer is located at:
-`dist/packaging/CyberDocGen-Setup-2.0.1.exe`
+`dist/packaging/CyberDocGen-Setup-2.4.0.exe`

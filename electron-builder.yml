@@ -22,5 +22,6 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
-  deleteAppDataOnUninstall: true
+  deleteAppDataOnUninstall: false
+  include: build/installer.nsh
   artifactName: "${productName}-Setup-${version}.${ext}"

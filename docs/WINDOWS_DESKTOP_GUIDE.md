@@ -14,11 +14,16 @@ Instead of connecting to an external PostgreSQL database defined by `DATABASE_UR
 - Database File Location: `C:\Users\%USERNAME%\AppData\Roaming\CyberDocGen\cyberdocgen.db` (or `local-data/` in dev mode).
 - **No configuration required**: The app detects "Local Mode" and handles migrations automatically.
 
-### 2. Authentication Bypass (Local Admin)
+### 2. Authentication Bypass (Seamless Entry)
 Since there is no Cloud SSO (Google/Microsoft) in an offline environment:
-- The application automatically logs you in as a **"Local Admin"**.
-- No password is required.
-- You have full access to all features instantly.
+- The application implements a seamless login bypass for local mode.
+- Users are automatically recognized as **"Local Admin"**.
+- Clicking "Sign In" or "Login" navigates directly to the dashboard, providing a frictionless experience.
+
+### 3. Process Management & Hardening
+- **Orphan Cleanup**: Stale backend processes from previous crashes are automatically terminated on startup.
+- **Dynamic Porting**: The backend automatically binds to an available port (starting at `5231`) to avoid conflicts.
+- **Health Polling**: The UI waits for a successful `/health` check before loading, ensuring the server is ready.
 
 ---
 
@@ -40,11 +45,11 @@ npm run build:win
 
 This pipeline performs the following:
 1.  **Vite Build**: Compiles the React frontend.
-2.  **Server Bundle**: Bundles the Node.js backend using `esbuild`.
+2.  **Server Bundle**: Bundles the Node.js backend to `.cjs` for ASAR compatibility.
 3.  **Electron Build**: Compiles the main process.
-4.  **Packaging**: Uses `electron-builder` to package binaries and creating the installer.
+4.  **Packaging**: Uses `electron-builder` with custom NSIS scripts for data retention choices.
 
-**Output Location**: `./dist/`
+**Output Location**: `./dist/packaging/`
 - `CyberDocGen Setup 2.4.0.exe` (Installer)
 - `win-unpacked/` (Portable executable for testing)
 
@@ -52,28 +57,23 @@ This pipeline performs the following:
 
 ## Installation & Running
 
-1.  Navigate to `dist/`.
+1.  Navigate to `dist/packaging/`.
 2.  Run `CyberDocGen Setup 2.4.0.exe`.
 3.  The application will install to `AppData\Local\Programs\cyberdocgen`.
-4.  It will launch automatically.
-5.  **First Run**: You might see a blank screen for 3-5 seconds while the embedded backend server boots up and initializes the SQLite database.
+4.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings).
 
 ---
 
 ## Troubleshooting
 
 ### "Application shows a blank white screen"
-- This usually means the backend server failed to start.
-- Check the logs in `C:\Users\%USERNAME%\AppData\Roaming\CyberDocGen\logs\`.
-- Ensure port `5000` is not occupied. The internal server tries to bind to port 5000.
+- This usually means the backend server failed to start or initialization is taking longer than usual.
+- Check the robust startup logs: `%APPDATA%\Roaming\CyberDocGen\logs\startup.log`.
+- Run `node scripts/diagnostic.js` to verify environment health.
+
+### "Port Conflict"
+- The app automatically attempts to find an available port starting from `5231`. Ensure your firewall allows local loopback traffic on this range.
 
 ### "Database Error" or "Missing Table"
-- If the database schema changes, the local SQLite file might be incompatible.
-- **Fix**: Delete `C:\Users\%USERNAME%\AppData\Roaming\CyberDocGen\cyberdocgen.db` and restart the app to recreate a fresh database.
-
-### Build Fails with "winCodeSign" error
-- This is a known issue with `electron-builder` cache on some systems.
-- **Fix**: Run the build with a custom cache directory:
-  ```powershell
-  $env:ELECTRON_BUILDER_CACHE="c:\software\cyberdocgen\.cache"; npm run build:win
-  ```
+- If the database schema changes significantly, the local SQLite file might be incompatible.
+- **Fix**: Delete `%APPDATA%\Roaming\CyberDocGen\cyberdocgen.db` and restart the app to recreate a fresh database.

@@ -1,8 +1,8 @@
 # CyberDocGen - Technical Development TODOs
 
-**Last Updated:** January 19, 2026
-**Status:** Phase 7 Finalization (Technical Tracks)
-**Coverage:** 46%+ Overall (Core Services @ 75%+)
+**Last Updated:** January 27, 2026
+**Status:** Phase 9 (Desktop Production Readiness)
+**Coverage:** 48%+ Overall (Core Services @ 85%+)
 
 ---
 
@@ -48,16 +48,18 @@
 
 ## ✅ RECENTLY COMPLETED - Coding Track
 
+### Desktop App Readiness & Hardening
+- [x] **Backend Packaging**: Migrated server to `.cjs` with `utilityProcess.fork` support.
+- [x] **Login Bypass**: Implemented seamless local authentication with direct redirection.
+- [x] **Process Monitoring**: Added PID-based orphan cleanup and dynamic port assignment.
+- [x] **Uninstaller Polish**: Custom NSIS script for user-controlled data retention.
+- [x] **Health Polling**: Integrated active `/health` polling for UI load synchronization.
+
 ### Infrastructure Wrapper
 - [x] **Electron Main Process**: Secure window management and external link handling in `electron/main.ts`.
 - [x] **Windows Installer Build**: Configured `electron-builder` for NSIS (Setup.exe) local deployment.
 - [x] **Local Build Guide**: Created `WINDOWS_GUIDE.md` with detailed build instructions.
 
-### Core Flows
-- [x] **OIDC Callback**: Fixed token claim validation in `server/routes/microsoftAuth.ts`.
-- [x] **Compliance Automation**: Created `scripts/validate-wack.ts` for automated Windows App Certification Kit checks.
 ### Quality Tracks
-- [x] **Test Coverage Expansion (Batch 5 - MCP)**: Achieved 75%+ for all core MCP components.
-- [x] **Test Coverage Expansion (Batch 4 - API Routes)**: Reached 75%+ coverage for Documents, Gap Analysis, and Enterprise Auth.
-- [x] **Test Coverage Expansion (Batch 2)**: Achieved 75%+ for `storage.ts`, `aiOrchestrator.ts`, and `enterpriseAuthService.ts`.
-- [x] **Core Services Hardening**: Verified all failure modes and fallback logic.
+- [x] **Coverage Expansion**: Achieved 85%+ for critical services and 1100+ total passing tests.
+- [x] **Diagnostic Tools**: Created `scripts/diagnostic.js` for environment health checks.

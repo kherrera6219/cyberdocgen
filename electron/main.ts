@@ -32,12 +32,12 @@ let serverProcess: Electron.UtilityProcess | null = null;
 
 // Configure local mode environment variables for the backend
 // This must be done before the backend server starts
-process.env.DEPLOYMENT_MODE = 'local';
-process.env.LOCAL_DATA_PATH = app.getPath('userData');
-process.env.LOCAL_PORT = '5231';
+let currentServerPort = 5231;
 
-console.log('[Electron] Local mode configured');
-console.log('[Electron] User data path:', app.getPath('userData'));
+startupLogger.info('Local mode configured', {
+  userDataPath: app.getPath('userData'),
+  initialPort: currentServerPort
+});
 
 // Window state persistence
 interface WindowState {
@@ -96,21 +96,31 @@ function isPathSafe(requestedPath: string): boolean {
 /**
  * Start the backend server as a child process
  */
-function startServer() {
+async function startServer() {
   // Start new logging session
   startupLogger.startSession();
   startupLogger.info('=== STARTING SERVER STARTUP SEQUENCE ===');
 
-  // Only start server in production (packaged) mode
-  // In development, we run the server separately via npm run dev
   if (!app.isPackaged && process.env.NODE_ENV === 'development') {
     startupLogger.info('Development mode detected (not packaged), skipping server spawn');
-    console.log('[Electron] Development mode detected (not packaged), skipping server spawn');
     return;
   }
 
+  // Phase 2.1: Orphaned Process Cleanup
+  cleanupOrphanedProcesses();
+
   try {
     startupLogger.info('Starting server in production mode');
+
+    // Phase 2.2: Find available port before starting
+    try {
+      currentServerPort = await findAvailablePort(5231);
+      startupLogger.info(`Using port ${currentServerPort}`);
+    } catch (e) {
+      startupLogger.error('Failed to find an available port', { error: String(e) });
+      dialog.showErrorBox('Startup Error', 'Could not find an available port to start the backend server.');
+      return;
+    }
 
     // In production, the server file is inside app.asar
     // utilityProcess handles ASAR paths natively
@@ -125,13 +135,9 @@ function startServer() {
       nodeEnv: process.env.NODE_ENV
     });
 
-    console.log('[Electron] Starting backend server from:', serverPath);
-
     // Verify server file exists (fs.existsSync works inside ASAR in Electron)
     if (!fs.existsSync(serverPath)) {
-      const error = `Server file not found at: ${serverPath}`;
       startupLogger.error('CRITICAL: Server file missing', { serverPath });
-      console.error('[Electron] Server file not found at:', serverPath);
       dialog.showErrorBox('Startup Error', 'Critical component missing: Backend server file not found.');
       return;
     }
@@ -141,7 +147,7 @@ function startServer() {
     // Prepare environment variables
     const serverEnv = {
       ...process.env,
-      PORT: '5231',
+      PORT: currentServerPort.toString(),
       HOST: '127.0.0.1',
       NODE_ENV: 'production',
       DEPLOYMENT_MODE: 'local',
@@ -166,8 +172,15 @@ function startServer() {
 
     startupLogger.info('UtilityProcess fork initiated', {pid: serverProcess.pid});
     
-    // utilityProcess doesn't have a 'spawn' event, it's considered spawned on fork
-    console.log('[Electron] Backend server process spawned, PID:', serverProcess.pid);
+    // Write PID for orphan tracking
+    if (serverProcess.pid) {
+      try {
+        const pidPath = path.join(app.getPath('userData'), 'server.pid');
+        fs.writeFileSync(pidPath, serverProcess.pid.toString());
+      } catch (e) {
+        startupLogger.error('Failed to write PID file', { error: String(e) });
+      }
+    }
 
     // Handle process events
     // utilityProcess uses standard event emitter API
@@ -177,14 +190,12 @@ function startServer() {
         exitCode: code,
         timestamp: new Date().toISOString()
       });
-      console.log(`[Electron] Backend server exited with code ${code}`);
     });
 
     // Capture stdout from server
     if (serverProcess.stdout) {
       serverProcess.stdout.on('data', (data: Buffer) => {
         startupLogger.serverOutput(data.toString());
-        console.log(`[Server] ${data}`);
       });
     }
 
@@ -192,7 +203,6 @@ function startServer() {
     if (serverProcess.stderr) {
       serverProcess.stderr.on('data', (data: Buffer) => {
         startupLogger.serverError(data.toString());
-        console.error(`[Server Error] ${data}`);
       });
     }
 
@@ -209,7 +219,8 @@ function startServer() {
     });
 
     startupLogger.info('Server startup sequence initiated successfully', {
-      logPath: startupLogger.getLogPath()
+      logPath: startupLogger.getLogPath(),
+      port: currentServerPort
     });
 
   } catch (error) {
@@ -220,7 +231,6 @@ function startServer() {
     };
 
     startupLogger.error('CRITICAL: Exception during server startup', errorDetails);
-    console.error('[Electron] Error starting server:', error);
     
     dialog.showErrorBox(
       'Startup Error', 
@@ -282,19 +292,18 @@ function createWindow() {
   });
 
   const isDev = process.env.NODE_ENV === 'development';
-  const url = isDev ? 'http://localhost:5000' : 'http://127.0.0.1:5231';
+  const url = isDev ? 'http://localhost:5000' : `http://127.0.0.1:${currentServerPort}`;
 
-  // In production, wait a moment for server to start or retry
+  // In production, wait for backend health check
   if (!isDev) {
-    // Attempt to load immediately, but implementing a simple retry logic via reload if failed could be added.
-    // For now, relies on server starting reasonably quickly or the user refreshing.
-    // A more robust approach would be to poll the health endpoint before loading, but standard loadURL usually works if server starts fast.
-    setTimeout(() => {
-        mainWindow?.loadURL(url).catch(e => {
-            console.error('[Electron] Failed to load URL, retrying...', e);
-            setTimeout(() => mainWindow?.loadURL(url), 2000);
-        });
-    }, 1000); // Give server 1s head start
+    waitForBackend(url).then(() => {
+      mainWindow?.loadURL(url).catch(e => {
+        console.error('[Electron] Failed to load URL:', e);
+      });
+    }).catch(err => {
+      startupLogger.error('Backend readiness check failed', { error: err.message });
+      dialog.showErrorBox('Startup Error', `The application backend failed to start. Detail: ${err.message}`);
+    });
   } else {
     mainWindow.loadURL(url);
   }
@@ -562,7 +571,12 @@ function setupIpcHandlers() {
  */
 function setupAutoUpdater() {
   // Configure auto-updater
-  autoUpdater.logger = console;
+  autoUpdater.logger = {
+    info: (m: string) => startupLogger.info(`[AutoUpdater] ${m}`),
+    warn: (m: string) => startupLogger.warn(`[AutoUpdater] ${m}`),
+    error: (m: string) => startupLogger.error(`[AutoUpdater] ${m}`),
+    debug: (m: string) => startupLogger.info(`[AutoUpdater] ${m}`),
+  } as any;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
 
@@ -578,26 +592,25 @@ function setupAutoUpdater() {
 
   // Handle update events
   autoUpdater.on('checking-for-update', () => {
-    console.log('[AutoUpdater] Checking for updates...');
+    startupLogger.info('Checking for updates...');
   });
 
   autoUpdater.on('update-available', (info) => {
-    console.log('[AutoUpdater] Update available:', info.version);
+    startupLogger.info(`Update available: ${info.version}`);
     mainWindow?.webContents.send('update-available', info);
   });
 
   autoUpdater.on('update-not-available', (info) => {
-    console.log('[AutoUpdater] Update not available:', info.version);
+    startupLogger.info(`Update not available: ${info.version}`);
   });
 
   autoUpdater.on('download-progress', (progress) => {
-    const message = `Downloaded ${progress.percent.toFixed(1)}%`;
-    console.log('[AutoUpdater]', message);
+    startupLogger.info(`Download progress: ${progress.percent.toFixed(1)}%`);
     mainWindow?.webContents.send('update-download-progress', progress);
   });
 
   autoUpdater.on('update-downloaded', (info) => {
-    console.log('[AutoUpdater] Update downloaded:', info.version);
+    startupLogger.info(`Update downloaded: ${info.version}`);
     mainWindow?.webContents.send('update-downloaded', info);
 
     // Prompt user to restart
@@ -617,7 +630,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.on('error', (error) => {
-    console.error('[AutoUpdater] Error:', error);
+    startupLogger.error('AutoUpdater error', { error: error.message });
     mainWindow?.webContents.send('update-error', error.message);
   });
 }
@@ -633,7 +646,7 @@ app.whenReady().then(() => {
   setupIpcHandlers();
   setupAutoUpdater();
 
-  console.log('[Electron] Application ready');
+  startupLogger.info('Application ready');
 });
 
 app.on('window-all-closed', () => {
@@ -652,10 +665,104 @@ app.on('activate', () => {
 
 // Graceful shutdown
 app.on('before-quit', () => {
-  console.log('[Electron] Application shutting down');
+  startupLogger.info('Application shutting down');
+  
+  // Clean up PID file
+  try {
+    const pidPath = path.join(app.getPath('userData'), 'server.pid');
+    if (fs.existsSync(pidPath)) {
+      fs.unlinkSync(pidPath);
+    }
+  } catch {
+    // Ignore cleanup errors for silent exit
+  }
+
   if (serverProcess) {
-    console.log('[Electron] Killing backend server process');
+    const pid = serverProcess.pid;
+    startupLogger.info(`Killing backend server process: ${pid}`);
     serverProcess.kill();
     serverProcess = null;
   }
 });
+
+/**
+ * Cleanup orphaned backend processes from previous crashes
+ */
+function cleanupOrphanedProcesses() {
+  const pidPath = path.join(app.getPath('userData'), 'server.pid');
+  if (fs.existsSync(pidPath)) {
+    try {
+      const data = fs.readFileSync(pidPath, 'utf8').trim();
+      const oldPid = parseInt(data, 10);
+      if (oldPid && !isNaN(oldPid)) {
+        try {
+          process.kill(oldPid, 0); // Check if process exists
+          startupLogger.warn(`Orphaned server process detected: ${oldPid}, killing...`);
+          process.kill(oldPid, 'SIGTERM'); 
+        } catch {
+          // Process does not exist, which is fine
+        }
+      }
+    } catch (error) {
+      startupLogger.error('Error cleaning up orphans', { error: String(error) });
+    }
+    
+    try { 
+      fs.unlinkSync(pidPath); 
+    } catch (rmErr) {
+      startupLogger.warn('Failed to remove stale PID file', { error: String(rmErr) });
+    }
+  }
+}
+
+/**
+ * Find an available port starting from basePort
+ */
+import { createServer } from 'http';
+
+async function findAvailablePort(basePort: number, maxAttempts = 10): Promise<number> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const port = basePort + i;
+    const isAvailable = await new Promise<boolean>((resolve) => {
+      const server = createServer();
+      server.listen(port, '127.0.0.1');
+      server.on('listening', () => {
+        server.close(() => resolve(true));
+      });
+      server.on('error', () => {
+        resolve(false);
+      });
+    });
+
+    if (isAvailable) return port;
+  }
+  throw new Error(`Could not find available port after ${maxAttempts} attempts`);
+}
+
+/**
+ * Poll the backend health endpoint until it responds or times out
+ */
+async function waitForBackend(baseUrl: string, maxAttempts = 30): Promise<void> {
+  startupLogger.info(`Polling backend readiness at ${baseUrl}/health...`);
+  
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const response = await fetch(`${baseUrl}/health`);
+      if (response.ok) {
+        startupLogger.info('Backend is ready!');
+        return;
+      }
+    } catch (e) {
+      // Not ready yet
+    }
+    
+    // Check if process still alive
+    if (serverProcess && !serverProcess.pid) {
+       throw new Error('Backend server process exited unexpectedly during startup.');
+    }
+
+    await new Promise(r => setTimeout(r, 500));
+  }
+  
+  throw new Error('Timeout waiting for backend server to start.');
+}
