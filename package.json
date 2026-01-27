@@ -6,7 +6,7 @@
   "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build": "vite build && node scripts/build-server.js",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push",
@@ -82,6 +82,7 @@
     "@uppy/progress-bar": "^4.3.2",
     "@uppy/react": "^4.5.2",
     "adm-zip": "^0.5.16",
+    "axios": "^1.13.4",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.6.2",
     "class-variance-authority": "^0.7.1",
@@ -112,6 +113,7 @@
     "memorystore": "^1.6.7",
     "minimatch": "^10.1.1",
     "multer": "^2.0.2",
+    "nanoid": "^5.0.9",
     "next-themes": "^0.4.6",
     "openai": "^5.23.2",
     "openid-client": "^6.6.4",
@@ -182,7 +184,7 @@
     "drizzle-kit": "^0.31.8",
     "electron": "^40.0.0",
     "electron-builder": "^26.4.0",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
@@ -210,8 +212,5 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.9"
-  },
-  "overrides": {
-    "esbuild": "^0.27.0"
   }
 }

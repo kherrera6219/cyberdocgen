@@ -196,6 +196,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // OpenAPI Documentation - Interactive Swagger UI
   // Disabled by default in production (when NODE_ENV !== 'development')
   // Enable with ENABLE_SWAGGER=true if needed
+  // Configuration endpoint to allow frontend to detect deployment mode
+  app.get("/api/config", (req: Request, res: Response) => {
+    res.json({
+      deploymentMode: isLocalMode() ? 'local' : 'cloud',
+      isProduction: process.env.NODE_ENV === 'production'
+    });
+  });
+
   const isDevEnvironment = process.env.NODE_ENV === 'development';
   const enableSwagger = process.env.ENABLE_SWAGGER === 'true';
   if (isDevEnvironment || enableSwagger) {

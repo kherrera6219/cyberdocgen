@@ -7,6 +7,7 @@ import type { Express, Request, Response, NextFunction, RequestHandler } from "e
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { isLocalMode } from "./config/runtime";
 import { logger } from "./utils/logger";
 import { 
   UnauthorizedError, 
@@ -406,6 +407,12 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const isAuthenticatedMethod = typeof req.isAuthenticated === 'function'
       ? req.isAuthenticated()
       : false;
+
+    // For local mode, we bypass the expires_at check since the user is synthetic
+    // and doesn't have an OIDC token expiry.
+    if (isLocalMode()) {
+      return next();
+    }
 
     if (!isAuthenticatedMethod || !user?.expires_at) {
       return next(new UnauthorizedError("Authentication required"));

@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Menu, X } from "lucide-react";
 import { TemporaryLoginDialog } from "@/components/TemporaryLoginDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PublicHeaderProps {
   showBetaBadge?: boolean;
 }
 
 export function PublicHeader({ showBetaBadge = true }: PublicHeaderProps) {
+  const { isLocalMode } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location] = useLocation();
 
@@ -56,7 +58,7 @@ export function PublicHeader({ showBetaBadge = true }: PublicHeaderProps) {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login">
+            <Link href={isLocalMode ? "/dashboard" : "/login"}>
               <Button variant="ghost" data-testid="header-sign-in">
                 Sign In
               </Button>

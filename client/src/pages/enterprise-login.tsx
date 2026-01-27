@@ -12,6 +12,7 @@ import { AlertCircle, Lock, Mail, Shield, KeyRound } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Email or username is required'),
@@ -24,7 +25,14 @@ export default function EnterpriseLogin() {
   const [, setLocation] = useLocation();
   const [requiresMFA, setRequiresMFA] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/dashboard");
+    }
+  }, [isAuthenticated, setLocation]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;

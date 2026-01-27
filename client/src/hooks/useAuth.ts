@@ -3,6 +3,15 @@ import { logger } from '../utils/logger';
 import { User } from "@shared/schema";
 
 export function useAuth() {
+  const { data: config } = useQuery<{ deploymentMode: 'cloud' | 'local'; isProduction: boolean }>({
+    queryKey: ["/api/config"],
+    queryFn: async () => {
+      const res = await fetch("/api/config");
+      return res.json();
+    },
+    staleTime: Infinity,
+  });
+
   const { data: user, isLoading, isFetching, status } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
@@ -37,5 +46,7 @@ export function useAuth() {
     isLoading: showLoading,
     isAuthenticated: !!user,
     isTemporaryUser,
+    deploymentMode: config?.deploymentMode || 'cloud',
+    isLocalMode: config?.deploymentMode === 'local',
   };
 }

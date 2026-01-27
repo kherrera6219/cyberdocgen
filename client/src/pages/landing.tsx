@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { TemporaryLoginDialog } from "@/components/TemporaryLoginDialog";
 import { PublicHeader } from "@/components/layout/PublicHeader";
+import { useAuth } from "@/hooks/useAuth";
 
 function Footer() {
   return (
@@ -82,6 +83,7 @@ function Footer() {
 }
 
 export function Landing() {
+  const { isLocalMode } = useAuth();
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
     if (!savedTheme) {
@@ -126,18 +128,30 @@ export function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6 px-4">
-              <TemporaryLoginDialog 
-                trigger={
-                  <Button 
-                    size="lg" 
-                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
-                    data-testid="button-get-started"
-                  >
-                    Login
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                }
-              />
+              {isLocalMode ? (
+                <Button 
+                  size="lg" 
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
+                  onClick={() => window.location.href = '/dashboard'}
+                  data-testid="button-get-started"
+                >
+                  Enter App
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              ) : (
+                <TemporaryLoginDialog 
+                  trigger={
+                    <Button 
+                      size="lg" 
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
+                      data-testid="button-get-started"
+                    >
+                      Login
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  }
+                />
+              )}
 
               <Button 
                 variant="outline" 

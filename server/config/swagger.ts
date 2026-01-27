@@ -7,10 +7,11 @@
 
 import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Swagger configuration needs to handle both ESM and CJS environments
+// When bundled as CJS, __dirname is already available.
+const actualDirname = typeof __dirname !== 'undefined' 
+  ? __dirname 
+  : path.dirname(fileURLToPath(import.meta.url));
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -431,8 +432,8 @@ Common HTTP status codes:
     ],
   },
   apis: [
-    path.join(__dirname, '../routes.ts'),
-    path.join(__dirname, '../routes/**/*.ts'),
+    path.join(actualDirname, '../routes.ts'),
+    path.join(actualDirname, '../routes/**/*.ts'),
   ],
 };
 

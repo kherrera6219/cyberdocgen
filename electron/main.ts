@@ -15,13 +15,12 @@
  * - Auto-update mechanism (Sprint 3)
  */
 
-import { app, BrowserWindow, shell, Menu, Tray, nativeImage, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, shell, Menu, Tray, nativeImage, ipcMain, dialog, utilityProcess } from 'electron';
 import electronUpdater from 'electron-updater';
 const { autoUpdater } = electronUpdater;
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { fork, ChildProcess } from 'child_process';
 import { startupLogger } from './startup-logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,7 +28,7 @@ const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-let serverProcess: ChildProcess | null = null;
+let serverProcess: Electron.UtilityProcess | null = null;
 
 // Configure local mode environment variables for the backend
 // This must be done before the backend server starts
@@ -104,34 +103,31 @@ function startServer() {
 
   // Only start server in production (packaged) mode
   // In development, we run the server separately via npm run dev
-  if (process.env.NODE_ENV === 'development') {
-    startupLogger.info('Development mode detected, skipping server spawn');
-    console.log('[Electron] Development mode detected, skipping server spawn');
+  if (!app.isPackaged && process.env.NODE_ENV === 'development') {
+    startupLogger.info('Development mode detected (not packaged), skipping server spawn');
+    console.log('[Electron] Development mode detected (not packaged), skipping server spawn');
     return;
   }
 
   try {
     startupLogger.info('Starting server in production mode');
 
-    // In production, the server file is in app.asar.unpacked/dist/index.js
-    // because we use asarUnpack in electron-builder.yml
-    // __dirname when built is: resources/app.asar/dist/electron
-    const serverPath = process.env.NODE_ENV === 'production' 
-      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'index.js')
-      : path.join(__dirname, '../../dist/index.js');
+    // In production, the server file is inside app.asar
+    // utilityProcess handles ASAR paths natively
+    const serverPath = app.isPackaged
+      ? path.join(app.getAppPath(), 'dist', 'index.cjs')
+      : path.join(__dirname, '../../dist/index.cjs');
     
     startupLogger.info('Server path resolution', {
       serverPath,
       __dirname,
-      resourcesPath: process.resourcesPath,
+      appPath: app.getAppPath(),
       nodeEnv: process.env.NODE_ENV
     });
 
     console.log('[Electron] Starting backend server from:', serverPath);
-    console.log('[Electron] __dirname:', __dirname);
-    console.log('[Electron] process.resourcesPath:', process.resourcesPath);
 
-    // Verify server file exists
+    // Verify server file exists (fs.existsSync works inside ASAR in Electron)
     if (!fs.existsSync(serverPath)) {
       const error = `Server file not found at: ${serverPath}`;
       startupLogger.error('CRITICAL: Server file missing', { serverPath });
@@ -140,7 +136,7 @@ function startServer() {
       return;
     }
 
-    startupLogger.info('Server file exists, preparing to fork');
+    startupLogger.info('Server file exists, preparing to fork via utilityProcess');
 
     // Prepare environment variables
     const serverEnv = {
@@ -160,57 +156,42 @@ function startServer() {
       LOCAL_DATA_PATH: serverEnv.LOCAL_DATA_PATH,
     });
 
-    // Fork the server process
-    startupLogger.info('Forking server process...');
+    // Fork the server process using utilityProcess
+    startupLogger.info('Forking server process via utilityProcess...');
     
-    serverProcess = fork(serverPath, [], {
+    serverProcess = utilityProcess.fork(serverPath, [], {
       env: serverEnv,
-      stdio: 'pipe', // Pipe output to parent to log it
-      cwd: path.dirname(serverPath) // Set working directory to server directory
+      stdio: 'pipe',
     });
 
-    startupLogger.info('Fork initiated', {pid: serverProcess.pid});
+    startupLogger.info('UtilityProcess fork initiated', {pid: serverProcess.pid});
+    
+    // utilityProcess doesn't have a 'spawn' event, it's considered spawned on fork
+    console.log('[Electron] Backend server process spawned, PID:', serverProcess.pid);
 
-    // Handle spawn event
-    serverProcess.on('spawn', () => {
-      startupLogger.info('Server process spawned successfully', {
-        pid: serverProcess?.pid
-      });
-      console.log('[Electron] Backend server process spawned, PID:', serverProcess?.pid);
-    });
-
-    // Handle errors
-    serverProcess.on('error', (err) => {
-      startupLogger.error('Server process error', {
-        error: err.message,
-        stack: err.stack,
-        code: (err as any).code
-      });
-      console.error('[Electron] Failed to start server process:', err);
-    });
-
-    // Handle exit
-    serverProcess.on('exit', (code, signal) => {
+    // Handle process events
+    // utilityProcess uses standard event emitter API
+    
+    serverProcess.on('exit', (code: number) => {
       startupLogger.error('Server process exited', {
         exitCode: code,
-        signal: signal,
         timestamp: new Date().toISOString()
       });
-      console.log(`[Electron] Backend server exited with code ${code} and signal ${signal}`);
+      console.log(`[Electron] Backend server exited with code ${code}`);
     });
 
     // Capture stdout from server
     if (serverProcess.stdout) {
-      serverProcess.stdout.on('data', (data) => {
-        startupLogger.serverOutput(data);
+      serverProcess.stdout.on('data', (data: Buffer) => {
+        startupLogger.serverOutput(data.toString());
         console.log(`[Server] ${data}`);
       });
     }
 
     // Capture stderr from server
     if (serverProcess.stderr) {
-      serverProcess.stderr.on('data', (data) => {
-        startupLogger.serverError(data);
+      serverProcess.stderr.on('data', (data: Buffer) => {
+        startupLogger.serverError(data.toString());
         console.error(`[Server Error] ${data}`);
       });
     }
@@ -218,8 +199,7 @@ function startServer() {
     // Set timeout to detect if server hangs
     const startupTimeout = setTimeout(() => {
       startupLogger.warn('Server startup timeout - server did not start within 30 seconds', {
-        pid: serverProcess?.pid,
-        processRunning: serverProcess && !serverProcess.killed
+        pid: serverProcess?.pid
       });
     }, 30000);
 
