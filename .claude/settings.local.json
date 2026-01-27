@@ -12,7 +12,8 @@
       "Bash(git config:*)",
       "Bash(tasklist:*)",
       "Bash(findstr:*)",
-      "Bash(npm rebuild:*)"
+      "Bash(npm rebuild:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

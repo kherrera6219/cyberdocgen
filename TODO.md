@@ -50,7 +50,8 @@
 
 ### Infrastructure Wrapper
 - [x] **Electron Main Process**: Secure window management and external link handling in `electron/main.ts`.
-- [x] **MSIX Build Pipeline**: Integrated `electron-builder` configuration for standardized Windows distribution.
+- [x] **Windows Installer Build**: Configured `electron-builder` for NSIS (Setup.exe) local deployment.
+- [x] **Local Build Guide**: Created `WINDOWS_GUIDE.md` with detailed build instructions.
 
 ### Core Flows
 - [x] **OIDC Callback**: Fixed token claim validation in `server/routes/microsoftAuth.ts`.

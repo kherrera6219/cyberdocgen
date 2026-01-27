@@ -27,6 +27,11 @@ electron-builder-debug.log
 release
 *.msix
 *.exe
+build/
+.cache/
+*.7z
+*_log.txt
+nsis_build_log*.txt
 
 # Local A11y and test results
 a11y_*.json
