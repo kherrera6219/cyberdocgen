@@ -25,7 +25,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
-    "build:msix": "npm run build && npm run electron:build && electron-builder build --win msix"
+    "build:win": "npm run build && npm run electron:build && electron-builder build --win nsis"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
