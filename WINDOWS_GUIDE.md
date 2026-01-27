@@ -17,10 +17,8 @@ This guide documents how to build the local Windows installer (`.exe`) for Cyber
 To build the installer, run:
 
 ```powershell
-npm run build:msix
+npm run build:win
 ```
-
-_Note: The script name `build:msix` is legacy; it now builds an NSIS installer based on the updated `electron-builder.yml` configuration._
 
 ### 2. Manual Build Steps (Troubleshooting)
 

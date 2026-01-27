@@ -16,7 +16,8 @@
  */
 
 import { app, BrowserWindow, shell, Menu, Tray, nativeImage, ipcMain, dialog } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import electronUpdater from 'electron-updater';
+const { autoUpdater } = electronUpdater;
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';

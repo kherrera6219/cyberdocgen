@@ -19,7 +19,7 @@
     "build-storybook": "storybook build",
     "prepare": "husky",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5000 && electron .\"",
-    "electron:build": "esbuild electron/main.ts electron/preload.ts --platform=node --bundle --format=esm --outdir=dist/electron",
+    "electron:build": "esbuild electron/main.ts electron/preload.ts --platform=node --bundle --format=esm --packages=external --outdir=dist/electron",
     "test:a11y": "vitest run tests/accessibility",
     "test:size": "npm run build && tsx scripts/check-bundle-size.ts",
     "test:e2e": "playwright test",
