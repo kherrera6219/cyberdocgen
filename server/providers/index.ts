@@ -7,6 +7,7 @@
 
 import { getRuntimeConfig, isLocalMode } from '../config/runtime';
 import type { Providers } from './interfaces';
+import { logger } from '../utils/logger';
 
 /**
  * Create all providers based on current deployment mode
@@ -14,7 +15,7 @@ import type { Providers } from './interfaces';
 export async function createProviders(): Promise<Providers> {
   const config = getRuntimeConfig();
   
-  console.log(`Creating providers for ${config.mode} mode...`);
+  logger.debug(`Creating providers for ${config.mode} mode...`);
   
   const providers: Providers = {
     db: await createDbProvider(),
@@ -23,7 +24,7 @@ export async function createProviders(): Promise<Providers> {
     auth: await createAuthProvider(),
   };
   
-  console.log('All providers created successfully');
+  logger.debug('All providers created successfully');
   
   return providers;
 }

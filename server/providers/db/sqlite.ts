@@ -11,6 +11,7 @@ import Database from 'better-sqlite3';
 import type { IDbProvider, IDbConnection, IDbTransaction } from '../interfaces';
 import path from 'path';
 import fs from 'fs';
+import { logger } from '../../utils/logger';
 
 export class SqliteDbProvider implements IDbProvider {
   private filePath: string;
@@ -21,18 +22,18 @@ export class SqliteDbProvider implements IDbProvider {
   }
 
   async connect(): Promise<IDbConnection> {
-    console.log(`[SqliteDbProvider] Connecting to: ${this.filePath}`);
+    logger.debug(`[SqliteDbProvider] Connecting to: ${this.filePath}`);
 
     // Ensure directory exists
     const dir = path.dirname(this.filePath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
-      console.log(`[SqliteDbProvider] Created directory: ${dir}`);
+      logger.debug(`[SqliteDbProvider] Created directory: ${dir}`);
     }
 
     // Initialize database with better-sqlite3
     this.db = new Database(this.filePath, {
-      verbose: (msg) => console.log('[SQLite]', msg),
+      verbose: (msg) => logger.debug('[SQLite]', msg),
       fileMustExist: false,
     });
 
@@ -43,7 +44,7 @@ export class SqliteDbProvider implements IDbProvider {
     this.db.pragma('temp_store = MEMORY');
     this.db.pragma('foreign_keys = ON');
 
-    console.log('[SqliteDbProvider] Connected successfully with WAL mode');
+    logger.debug('[SqliteDbProvider] Connected successfully with WAL mode');
 
     return {
       query: async <T>(sql: string, params?: any[]) => {
@@ -65,7 +66,7 @@ export class SqliteDbProvider implements IDbProvider {
       await this.connect();
     }
 
-    console.log('[SqliteDbProvider] Starting database migration...');
+    logger.debug('[SqliteDbProvider] Starting database migration...');
 
     // Create migrations table if it doesn't exist
     this.db!.exec(`
@@ -82,20 +83,20 @@ export class SqliteDbProvider implements IDbProvider {
       'SELECT COALESCE(MAX(version), 0) as version FROM _migrations'
     ).get() as { version: number };
 
-    console.log(`[SqliteDbProvider] Current schema version: ${currentVersion.version}`);
+    logger.debug(`[SqliteDbProvider] Current schema version: ${currentVersion.version}`);
 
     // Load and apply pending migrations
     const migrations = this.getPendingMigrations(currentVersion.version);
 
     if (migrations.length === 0) {
-      console.log('[SqliteDbProvider] No pending migrations');
+      logger.debug('[SqliteDbProvider] No pending migrations');
       return;
     }
 
-    console.log(`[SqliteDbProvider] Applying ${migrations.length} migration(s)...`);
+    logger.debug(`[SqliteDbProvider] Applying ${migrations.length} migration(s)...`);
 
     for (const migration of migrations) {
-      console.log(`[SqliteDbProvider] Applying migration ${migration.version}: ${migration.name}`);
+      logger.debug(`[SqliteDbProvider] Applying migration ${migration.version}: ${migration.name}`);
 
       try {
         // Execute migration in a transaction
@@ -107,14 +108,14 @@ export class SqliteDbProvider implements IDbProvider {
         });
 
         applyMigration();
-        console.log(`[SqliteDbProvider] Migration ${migration.version} applied successfully`);
+        logger.debug(`[SqliteDbProvider] Migration ${migration.version} applied successfully`);
       } catch (error) {
-        console.error(`[SqliteDbProvider] Migration ${migration.version} failed:`, error);
+        logger.error(`[SqliteDbProvider] Migration ${migration.version} failed:`, error);
         throw error;
       }
     }
 
-    console.log('[SqliteDbProvider] Migration complete');
+    logger.debug('[SqliteDbProvider] Migration complete');
   }
 
   /**
@@ -316,9 +317,9 @@ export class SqliteDbProvider implements IDbProvider {
       const rows = stmt.all(...(params || []));
       return rows as T[];
     } catch (error) {
-      console.error('[SqliteDbProvider] Query error:', error);
-      console.error('[SqliteDbProvider] SQL:', sql);
-      console.error('[SqliteDbProvider] Params:', params);
+      logger.error('[SqliteDbProvider] Query error:', error);
+      logger.error('[SqliteDbProvider] SQL:', sql);
+      logger.error('[SqliteDbProvider] Params:', params);
       throw error;
     }
   }
@@ -342,23 +343,23 @@ export class SqliteDbProvider implements IDbProvider {
 
     // Manually handle transaction with BEGIN/COMMIT/ROLLBACK for async support
     try {
-      console.log('[SQLite] BEGIN');
+      logger.debug('[SQLite] BEGIN');
       this.db.prepare('BEGIN').run();
 
       const result = await callback(transaction);
 
-      console.log('[SQLite] COMMIT');
+      logger.debug('[SQLite] COMMIT');
       this.db.prepare('COMMIT').run();
 
       return result;
     } catch (error) {
-      console.error('[SqliteDbProvider] Transaction error:', error);
+      logger.error('[SqliteDbProvider] Transaction error:', error);
 
       try {
-        console.log('[SQLite] ROLLBACK');
+        logger.debug('[SQLite] ROLLBACK');
         this.db.prepare('ROLLBACK').run();
       } catch (rollbackError) {
-        console.error('[SqliteDbProvider] Rollback error:', rollbackError);
+        logger.error('[SqliteDbProvider] Rollback error:', rollbackError);
       }
 
       throw error;
@@ -375,14 +376,14 @@ export class SqliteDbProvider implements IDbProvider {
       const result = this.db.prepare('SELECT 1 as test').get();
       return result !== undefined;
     } catch (error) {
-      console.error('[SqliteDbProvider] Health check failed:', error);
+      logger.error('[SqliteDbProvider] Health check failed:', error);
       return false;
     }
   }
 
   async close(): Promise<void> {
     if (this.db) {
-      console.log('[SqliteDbProvider] Closing SQLite database');
+      logger.debug('[SqliteDbProvider] Closing SQLite database');
       this.db.close();
       this.db = null;
     }
@@ -396,14 +397,14 @@ export class SqliteDbProvider implements IDbProvider {
       throw new Error('Database not connected');
     }
 
-    console.log('[SqliteDbProvider] Running maintenance...');
+    logger.debug('[SqliteDbProvider] Running maintenance...');
 
     try {
       this.db.exec('VACUUM');
       this.db.exec('ANALYZE');
-      console.log('[SqliteDbProvider] Maintenance complete');
+      logger.debug('[SqliteDbProvider] Maintenance complete');
     } catch (error) {
-      console.error('[SqliteDbProvider] Maintenance error:', error);
+      logger.error('[SqliteDbProvider] Maintenance error:', error);
       throw error;
     }
   }
@@ -416,7 +417,7 @@ export class SqliteDbProvider implements IDbProvider {
       throw new Error('Database not connected');
     }
 
-    console.log(`[SqliteDbProvider] Creating backup: ${destinationPath}`);
+    logger.debug(`[SqliteDbProvider] Creating backup: ${destinationPath}`);
 
     try {
       // Ensure backup directory exists
@@ -427,9 +428,9 @@ export class SqliteDbProvider implements IDbProvider {
 
       // Use better-sqlite3 backup API
       await this.db.backup(destinationPath);
-      console.log('[SqliteDbProvider] Backup complete');
+      logger.debug('[SqliteDbProvider] Backup complete');
     } catch (error) {
-      console.error('[SqliteDbProvider] Backup error:', error);
+      logger.error('[SqliteDbProvider] Backup error:', error);
       throw error;
     }
   }
@@ -438,7 +439,7 @@ export class SqliteDbProvider implements IDbProvider {
    * Restore from a backup
    */
   async restore(backupPath: string): Promise<void> {
-    console.log(`[SqliteDbProvider] Restoring from backup: ${backupPath}`);
+    logger.debug(`[SqliteDbProvider] Restoring from backup: ${backupPath}`);
 
     if (!fs.existsSync(backupPath)) {
       throw new Error(`Backup file not found: ${backupPath}`);
@@ -454,9 +455,9 @@ export class SqliteDbProvider implements IDbProvider {
       // Reconnect
       await this.connect();
 
-      console.log('[SqliteDbProvider] Restore complete');
+      logger.debug('[SqliteDbProvider] Restore complete');
     } catch (error) {
-      console.error('[SqliteDbProvider] Restore error:', error);
+      logger.error('[SqliteDbProvider] Restore error:', error);
       throw error;
     }
   }

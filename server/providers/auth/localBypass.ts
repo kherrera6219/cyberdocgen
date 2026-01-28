@@ -48,8 +48,8 @@ export class LocalAuthBypassProvider implements IAuthProvider {
   }
   
   async initialize(): Promise<void> {
-    console.log('[LocalAuthBypassProvider] Auth bypass enabled for local mode');
-    console.log('[LocalAuthBypassProvider] Using synthetic user: local-admin');
+    logger.debug('[LocalAuthBypassProvider] Auth bypass enabled for local mode');
+    logger.debug('[LocalAuthBypassProvider] Using synthetic user: local-admin');
   }
 }
 

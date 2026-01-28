@@ -12,18 +12,19 @@ import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs/promises';
 import fsSync from 'fs';
+import { logger } from '../../utils/logger';
 
 export class LocalFsStorageProvider implements IStorageProvider {
   private basePath: string;
 
   constructor(basePath: string) {
     this.basePath = basePath;
-    console.log(`[LocalFsStorageProvider] Initialized with basePath: ${basePath}`);
+    logger.debug(`[LocalFsStorageProvider] Initialized with basePath: ${basePath}`);
 
     // Create base directory if it doesn't exist
     if (!fsSync.existsSync(basePath)) {
       fsSync.mkdirSync(basePath, { recursive: true });
-      console.log(`[LocalFsStorageProvider] Created base directory: ${basePath}`);
+      logger.debug(`[LocalFsStorageProvider] Created base directory: ${basePath}`);
     }
   }
 
@@ -33,7 +34,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
   private async ensureDirectory(dir: string): Promise<void> {
     if (!fsSync.existsSync(dir)) {
       await fs.mkdir(dir, { recursive: true });
-      console.log(`[LocalFsStorageProvider] Created directory: ${dir}`);
+      logger.debug(`[LocalFsStorageProvider] Created directory: ${dir}`);
     }
   }
 
@@ -78,7 +79,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
       throw new Error(`Invalid file path: ${storagePath}`);
     }
 
-    console.log(`[LocalFsStorageProvider] Saving file: ${filePath} -> ${storagePath}`);
+    logger.debug(`[LocalFsStorageProvider] Saving file: ${filePath} -> ${storagePath}`);
 
     try {
       // Ensure parent directory exists
@@ -90,7 +91,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
       // Calculate hash for integrity verification
       const hash = crypto.createHash('sha256').update(file).digest('hex');
 
-      console.log(`[LocalFsStorageProvider] File saved successfully: ${storagePath}`);
+      logger.debug(`[LocalFsStorageProvider] File saved successfully: ${storagePath}`);
 
       return {
         path: filePath,
@@ -100,7 +101,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
         hash,
       };
     } catch (error) {
-      console.error('[LocalFsStorageProvider] Save error:', error);
+      logger.error('[LocalFsStorageProvider] Save error:', error);
       throw new Error(`Failed to save file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -114,14 +115,14 @@ export class LocalFsStorageProvider implements IStorageProvider {
       throw new Error(`Invalid file URI: ${uri}`);
     }
 
-    console.log(`[LocalFsStorageProvider] Reading file: ${filePath}`);
+    logger.debug(`[LocalFsStorageProvider] Reading file: ${filePath}`);
 
     try {
       const buffer = await fs.readFile(filePath);
-      console.log(`[LocalFsStorageProvider] File read successfully: ${filePath} (${buffer.length} bytes)`);
+      logger.debug(`[LocalFsStorageProvider] File read successfully: ${filePath} (${buffer.length} bytes)`);
       return buffer;
     } catch (error) {
-      console.error('[LocalFsStorageProvider] Read error:', error);
+      logger.error('[LocalFsStorageProvider] Read error:', error);
       throw new Error(`Failed to read file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -150,18 +151,18 @@ export class LocalFsStorageProvider implements IStorageProvider {
       throw new Error(`Invalid file URI: ${uri}`);
     }
 
-    console.log(`[LocalFsStorageProvider] Deleting file: ${filePath}`);
+    logger.debug(`[LocalFsStorageProvider] Deleting file: ${filePath}`);
 
     try {
       await fs.unlink(filePath);
-      console.log(`[LocalFsStorageProvider] File deleted successfully: ${filePath}`);
+      logger.debug(`[LocalFsStorageProvider] File deleted successfully: ${filePath}`);
     } catch (error) {
       // If file doesn't exist, that's fine - already deleted
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-        console.log(`[LocalFsStorageProvider] File already deleted or does not exist: ${filePath}`);
+        logger.debug(`[LocalFsStorageProvider] File already deleted or does not exist: ${filePath}`);
         return;
       }
-      console.error('[LocalFsStorageProvider] Delete error:', error);
+      logger.error('[LocalFsStorageProvider] Delete error:', error);
       throw new Error(`Failed to delete file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -169,7 +170,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
   async list(prefix?: string): Promise<StorageFile[]> {
     const searchPath = prefix ? path.join(this.basePath, prefix) : this.basePath;
 
-    console.log(`[LocalFsStorageProvider] Listing files in: ${searchPath}`);
+    logger.debug(`[LocalFsStorageProvider] Listing files in: ${searchPath}`);
 
     // Ensure base directory exists
     if (!fsSync.existsSync(this.basePath)) {
@@ -183,10 +184,10 @@ export class LocalFsStorageProvider implements IStorageProvider {
       // Recursively list all files
       await this.listFilesRecursive(searchPath, files);
 
-      console.log(`[LocalFsStorageProvider] Found ${files.length} files`);
+      logger.debug(`[LocalFsStorageProvider] Found ${files.length} files`);
       return files;
     } catch (error) {
-      console.error('[LocalFsStorageProvider] List error:', error);
+      logger.error('[LocalFsStorageProvider] List error:', error);
       throw new Error(`Failed to list files: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -227,7 +228,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
       }
     } catch (error) {
       // Skip directories that can't be read
-      console.warn(`[LocalFsStorageProvider] Cannot read directory: ${dir}`, error);
+      logger.warn(`[LocalFsStorageProvider] Cannot read directory: ${dir}`, error);
     }
   }
 
@@ -239,7 +240,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
       throw new Error(`Invalid file URI: ${uri}`);
     }
 
-    console.log(`[LocalFsStorageProvider] Getting metadata for: ${filePath}`);
+    logger.debug(`[LocalFsStorageProvider] Getting metadata for: ${filePath}`);
 
     try {
       const stats = await fs.stat(filePath);
@@ -251,7 +252,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
         contentType,
       };
     } catch (error) {
-      console.error('[LocalFsStorageProvider] Get metadata error:', error);
+      logger.error('[LocalFsStorageProvider] Get metadata error:', error);
       throw new Error(`Failed to get file metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -292,7 +293,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
    * Get total storage size and file count
    */
   async getStorageStats(): Promise<{ totalSize: number; fileCount: number; path: string }> {
-    console.log('[LocalFsStorageProvider] Calculating storage statistics...');
+    logger.debug('[LocalFsStorageProvider] Calculating storage statistics...');
 
     if (!fsSync.existsSync(this.basePath)) {
       return { totalSize: 0, fileCount: 0, path: this.basePath };
@@ -306,7 +307,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
       fileCount++;
     });
 
-    console.log(`[LocalFsStorageProvider] Storage stats: ${fileCount} files, ${totalSize} bytes`);
+    logger.debug(`[LocalFsStorageProvider] Storage stats: ${fileCount} files, ${totalSize} bytes`);
 
     return {
       totalSize,
@@ -337,7 +338,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
         }
       }
     } catch (error) {
-      console.warn(`[LocalFsStorageProvider] Cannot calculate size for: ${dir}`, error);
+      logger.warn(`[LocalFsStorageProvider] Cannot calculate size for: ${dir}`, error);
     }
   }
 
@@ -345,7 +346,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
    * Clean up empty directories
    */
   async cleanupEmptyDirectories(): Promise<number> {
-    console.log('[LocalFsStorageProvider] Cleaning up empty directories...');
+    logger.debug('[LocalFsStorageProvider] Cleaning up empty directories...');
 
     let removedCount = 0;
 
@@ -361,7 +362,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
           // Directory is empty, remove it
           await fs.rmdir(dir);
           removedCount++;
-          console.log(`[LocalFsStorageProvider] Removed empty directory: ${dir}`);
+          logger.debug(`[LocalFsStorageProvider] Removed empty directory: ${dir}`);
           return true;
         }
 
@@ -376,11 +377,11 @@ export class LocalFsStorageProvider implements IStorageProvider {
         if (remainingEntries.length === 0 && dir !== this.basePath) {
           await fs.rmdir(dir);
           removedCount++;
-          console.log(`[LocalFsStorageProvider] Removed empty directory: ${dir}`);
+          logger.debug(`[LocalFsStorageProvider] Removed empty directory: ${dir}`);
           return true;
         }
       } catch (error) {
-        console.warn(`[LocalFsStorageProvider] Cannot cleanup directory: ${dir}`, error);
+        logger.warn(`[LocalFsStorageProvider] Cannot cleanup directory: ${dir}`, error);
       }
 
       return false;
@@ -388,7 +389,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
 
     await cleanup(this.basePath);
 
-    console.log(`[LocalFsStorageProvider] Cleanup complete. Removed ${removedCount} empty directories`);
+    logger.debug(`[LocalFsStorageProvider] Cleanup complete. Removed ${removedCount} empty directories`);
     return removedCount;
   }
 }

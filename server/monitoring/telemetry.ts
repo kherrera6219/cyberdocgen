@@ -13,8 +13,8 @@ export function initTelemetry() {
   
   process.on('SIGTERM', () => {
     sdk.shutdown()
-      .then(() => console.log('Tracing terminated'))
-      .catch((error) => console.log('Error terminating tracing', error))
+      .then(() => logger.debug('Tracing terminated'))
+      .catch((error) => logger.debug('Error terminating tracing', error))
       .finally(() => process.exit(0));
   });
 }

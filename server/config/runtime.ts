@@ -56,7 +56,7 @@ function getDeploymentMode(): DeploymentMode {
   }
   
   // Default to cloud mode for safety
-  console.warn(
+  logger.warn(
     `Invalid DEPLOYMENT_MODE: "${process.env.DEPLOYMENT_MODE}". ` +
     `Expected "cloud" or "local". Defaulting to "cloud".`
   );
@@ -196,14 +196,14 @@ export function _resetRuntimeConfig(): void {
 export function logRuntimeConfig(): void {
   const config = getRuntimeConfig();
   
-  console.log('='.repeat(60));
-  console.log('CyberDocGen Runtime Configuration');
-  console.log('='.repeat(60));
-  console.log(`Deployment Mode: ${config.mode.toUpperCase()}`);
-  console.log(`Server: ${config.server.host}:${config.server.port}`);
-  console.log(`Database: ${config.database.type}`);
-  console.log(`Storage: ${config.storage.type}`);
-  console.log(`Auth: ${config.auth.enabled ? config.auth.provider : 'disabled'}`);
-  console.log(`Features: ${JSON.stringify(config.features, null, 2)}`);
-  console.log('='.repeat(60));
+  logger.debug('='.repeat(60));
+  logger.debug('CyberDocGen Runtime Configuration');
+  logger.debug('='.repeat(60));
+  logger.debug(`Deployment Mode: ${config.mode.toUpperCase()}`);
+  logger.debug(`Server: ${config.server.host}:${config.server.port}`);
+  logger.debug(`Database: ${config.database.type}`);
+  logger.debug(`Storage: ${config.storage.type}`);
+  logger.debug(`Auth: ${config.auth.enabled ? config.auth.provider : 'disabled'}`);
+  logger.debug(`Features: ${JSON.stringify(config.features, null, 2)}`);
+  logger.debug('='.repeat(60));
 }

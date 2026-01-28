@@ -16,7 +16,7 @@ export class PostgresDbProvider implements IDbProvider {
   
   async connect(): Promise<IDbConnection> {
     // Will delegate to existing db.ts Drizzle setup
-    console.log('[PostgresDbProvider] Connecting to PostgreSQL...');
+    logger.debug('[PostgresDbProvider] Connecting to PostgreSQL...');
     
     // TODO(sprint-1): Integrate with existing db.ts connection
     // For now, return a stub that will be replaced
@@ -28,14 +28,14 @@ export class PostgresDbProvider implements IDbProvider {
         throw new Error('PostgresDbProvider.execute() - Use existing db module');
       },
       close: async () => {
-        console.log('[PostgresDbProvider] Connection closed');
+        logger.debug('[PostgresDbProvider] Connection closed');
       },
     };
   }
   
   async migrate(): Promise<void> {
     // Uses existing Drizzle migration system
-    console.log('[PostgresDbProvider] Migrations handled by db:push or db:migrate');
+    logger.debug('[PostgresDbProvider] Migrations handled by db:push or db:migrate');
   }
   
   async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
@@ -55,13 +55,13 @@ export class PostgresDbProvider implements IDbProvider {
       // TODO: Import and use databaseHealthService.checkHealth()
       return true;
     } catch (error) {
-      console.error('[PostgresDbProvider] Health check failed:', error);
+      logger.error('[PostgresDbProvider] Health check failed:', error);
       return false;
     }
   }
   
   async close(): Promise<void> {
-    console.log('[PostgresDbProvider] Closing PostgreSQL connections');
+    logger.debug('[PostgresDbProvider] Closing PostgreSQL connections');
     // Pool cleanup handled by existing db.ts
   }
 }

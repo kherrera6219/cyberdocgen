@@ -7,6 +7,7 @@
 
 import type { IDbProvider, IStorageProvider, ISecretsProvider, IAuthProvider, AuthContext } from './interfaces';
 import type { Request } from 'express';
+import { logger } from '../utils/logger';
 
 // ============================================================================
 // PostgreSQL Provider (Sprint 0 Stub - to be implemented in Sprint 1)
@@ -20,7 +21,7 @@ export class PostgresDbProvider implements IDbProvider {
   }
   
   async migrate() {
-    console.log('[PostgresDbProvider] Migration stub - will use existing Drizzle setup');
+    logger.debug('[PostgresDbProvider] Migration stub - will use existing Drizzle setup');
   }
   
   async query<T>(sql: string, params?: any[]): Promise<T[]> {
@@ -37,7 +38,7 @@ export class PostgresDbProvider implements IDbProvider {
   }
   
   async close() {
-    console.log('[PostgresDbProvider] Close stub');
+    logger.debug('[PostgresDbProvider] Close stub');
   }
 }
 
@@ -49,12 +50,12 @@ export class SqliteDbProvider implements IDbProvider {
   constructor(private filePath: string) {}
   
   async connect() {
-    console.log(`[SqliteDbProvider] Would connect to: ${this.filePath}`);
+    logger.debug(`[SqliteDbProvider] Would connect to: ${this.filePath}`);
     return {} as any;
   }
   
   async migrate() {
-    console.log('[SqliteDbProvider] Auto-migration stub - to be implemented in Sprint 1');
+    logger.debug('[SqliteDbProvider] Auto-migration stub - to be implemented in Sprint 1');
   }
   
   async query<T>(sql: string, params?: any[]): Promise<T[]> {
@@ -70,7 +71,7 @@ export class SqliteDbProvider implements IDbProvider {
   }
   
   async close() {
-    console.log('[SqliteDbProvider] Close stub');
+    logger.debug('[SqliteDbProvider] Close stub');
   }
 }
 
@@ -95,7 +96,7 @@ export class CloudStorageProvider implements IStorageProvider {
   }
   
   async delete(uri: string): Promise<void> {
-    console.log('[CloudStorageProvider] Delete stub');
+    logger.debug('[CloudStorageProvider] Delete stub');
   }
   
   async list(prefix?: string) {
@@ -115,7 +116,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
   constructor(private basePath: string) {}
   
   async save(file: Buffer, path: string, metadata?: any) {
-    console.log(`[LocalFsStorageProvider] Would save to: ${this.basePath}/${path}`);
+    logger.debug(`[LocalFsStorageProvider] Would save to: ${this.basePath}/${path}`);
     throw new Error('LocalFsStorageProvider.save() - To be implemented in Sprint 1');
   }
   
@@ -128,7 +129,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
   }
   
   async delete(uri: string): Promise<void> {
-    console.log('[LocalFsStorageProvider] Delete stub');
+    logger.debug('[LocalFsStorageProvider] Delete stub');
   }
   
   async list(prefix?: string) {
@@ -146,7 +147,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
 
 export class EnvironmentSecretsProvider implements ISecretsProvider {
   async set(key: string, value: string): Promise<void> {
-    console.warn('[EnvironmentSecretsProvider] Cannot set environment variables at runtime');
+    logger.warn('[EnvironmentSecretsProvider] Cannot set environment variables at runtime');
   }
   
   async get(key: string): Promise<string | null> {
@@ -155,7 +156,7 @@ export class EnvironmentSecretsProvider implements ISecretsProvider {
   }
   
   async delete(key: string): Promise<void> {
-    console.warn('[EnvironmentSecretsProvider] Cannot delete environment variables');
+    logger.warn('[EnvironmentSecretsProvider] Cannot delete environment variables');
   }
   
   async listKeys(): Promise<string[]> {
@@ -172,18 +173,18 @@ export class EnvironmentSecretsProvider implements ISecretsProvider {
 
 export class WindowsCredentialManagerProvider implements ISecretsProvider {
   async set(key: string, value: string): Promise<void> {
-    console.log(`[WindowsCredentialManagerProvider] Would store key: ${key}`);
+    logger.debug(`[WindowsCredentialManagerProvider] Would store key: ${key}`);
     // Will use keytar.setPassword('CyberDocGen', key, value)
     throw new Error('WindowsCredentialManagerProvider - To be implemented in Sprint 3 (requires keytar)');
   }
   
   async get(key: string): Promise<string | null> {
-    console.log(`[WindowsCredentialManagerProvider] Would retrieve key: ${key}`);
+    logger.debug(`[WindowsCredentialManagerProvider] Would retrieve key: ${key}`);
     return null;
   }
   
   async delete(key: string): Promise<void> {
-    console.log(`[WindowsCredentialManagerProvider] Would delete key: ${key}`);
+    logger.debug(`[WindowsCredentialManagerProvider] Would delete key: ${key}`);
   }
   
   async listKeys(): Promise<string[]> {
@@ -213,7 +214,7 @@ export class EntraIdAuthProvider implements IAuthProvider {
   }
   
   async initialize() {
-    console.log('[EntraIdAuthProvider] Would initialize Passport middleware');
+    logger.debug('[EntraIdAuthProvider] Would initialize Passport middleware');
   }
 }
 

@@ -13,6 +13,7 @@
  */
 
 import type { ISecretsProvider } from '../interfaces';
+import { logger } from '../../utils/logger';
 
 // Service name for Windows Credential Manager
 const SERVICE_NAME = 'CyberDocGen';
@@ -39,10 +40,10 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
       // Dynamically import keytar (native module)
       this.keytar = await import('keytar');
       this.isKeytarAvailable = true;
-      console.log('[WindowsCredentialManagerProvider] Initialized successfully');
+      logger.debug('[WindowsCredentialManagerProvider] Initialized successfully');
     } catch (error) {
-      console.warn('[WindowsCredentialManagerProvider] keytar not available:', error);
-      console.warn('[WindowsCredentialManagerProvider] Falling back to environment variables');
+      logger.warn('[WindowsCredentialManagerProvider] keytar not available:', error);
+      logger.warn('[WindowsCredentialManagerProvider] Falling back to environment variables');
       this.isKeytarAvailable = false;
     }
   }
@@ -58,7 +59,7 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
     await this.ensureInitialized();
 
     if (!this.isKeytarAvailable) {
-      console.log(`[WindowsCredentialManagerProvider] Keytar not available, cannot store key: ${key}`);
+      logger.debug(`[WindowsCredentialManagerProvider] Keytar not available, cannot store key: ${key}`);
       throw new Error(
         'Windows Credential Manager not available. ' +
         'This may be due to running on a non-Windows platform or missing native dependencies.'
@@ -67,9 +68,9 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
 
     try {
       await this.keytar.setPassword(SERVICE_NAME, key, value);
-      console.log(`[WindowsCredentialManagerProvider] Stored key: ${key}`);
+      logger.debug(`[WindowsCredentialManagerProvider] Stored key: ${key}`);
     } catch (error) {
-      console.error(`[WindowsCredentialManagerProvider] Failed to store key: ${key}`, error);
+      logger.error(`[WindowsCredentialManagerProvider] Failed to store key: ${key}`, error);
       throw new Error(`Failed to store secret in Windows Credential Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -82,7 +83,7 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
       const envKey = key.toUpperCase().replace(/-/g, '_');
       const value = process.env[envKey];
       if (value) {
-        console.log(`[WindowsCredentialManagerProvider] Retrieved key from environment: ${key}`);
+        logger.debug(`[WindowsCredentialManagerProvider] Retrieved key from environment: ${key}`);
         return value;
       }
       return null;
@@ -91,11 +92,11 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
     try {
       const value = await this.keytar.getPassword(SERVICE_NAME, key);
       if (value) {
-        console.log(`[WindowsCredentialManagerProvider] Retrieved key: ${key}`);
+        logger.debug(`[WindowsCredentialManagerProvider] Retrieved key: ${key}`);
       }
       return value;
     } catch (error) {
-      console.error(`[WindowsCredentialManagerProvider] Failed to retrieve key: ${key}`, error);
+      logger.error(`[WindowsCredentialManagerProvider] Failed to retrieve key: ${key}`, error);
       return null;
     }
   }
@@ -104,19 +105,19 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
     await this.ensureInitialized();
 
     if (!this.isKeytarAvailable) {
-      console.log(`[WindowsCredentialManagerProvider] Keytar not available, cannot delete key: ${key}`);
+      logger.debug(`[WindowsCredentialManagerProvider] Keytar not available, cannot delete key: ${key}`);
       return;
     }
 
     try {
       const deleted = await this.keytar.deletePassword(SERVICE_NAME, key);
       if (deleted) {
-        console.log(`[WindowsCredentialManagerProvider] Deleted key: ${key}`);
+        logger.debug(`[WindowsCredentialManagerProvider] Deleted key: ${key}`);
       } else {
-        console.log(`[WindowsCredentialManagerProvider] Key not found: ${key}`);
+        logger.debug(`[WindowsCredentialManagerProvider] Key not found: ${key}`);
       }
     } catch (error) {
-      console.error(`[WindowsCredentialManagerProvider] Failed to delete key: ${key}`, error);
+      logger.error(`[WindowsCredentialManagerProvider] Failed to delete key: ${key}`, error);
       throw new Error(`Failed to delete secret from Windows Credential Manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -133,7 +134,7 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
       const credentials = await this.keytar.findCredentials(SERVICE_NAME);
       return credentials.map((c: { account: string }) => c.account);
     } catch (error) {
-      console.error('[WindowsCredentialManagerProvider] Failed to list keys', error);
+      logger.error('[WindowsCredentialManagerProvider] Failed to list keys', error);
       return [];
     }
   }

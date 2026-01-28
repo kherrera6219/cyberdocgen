@@ -92,7 +92,7 @@ export function tracingMiddleware() {
 
     // Don't log health check endpoints to reduce noise
     if (!req.path.includes('/health') && !req.path.includes('/ready') && !req.path.includes('/live')) {
-      console.log(JSON.stringify(requestLog));
+      logger.debug(JSON.stringify(requestLog));
     }
 
     // Track response for logging
@@ -112,7 +112,7 @@ export function tracingMiddleware() {
 
       // Don't log health check endpoints to reduce noise
       if (!req.path.includes('/health') && !req.path.includes('/ready') && !req.path.includes('/live')) {
-        console.log(JSON.stringify(responseLog));
+        logger.debug(JSON.stringify(responseLog));
       }
     });
 
@@ -158,5 +158,5 @@ export function logWithTrace(
     ...data,
   };
 
-  console.log(JSON.stringify(logEntry));
+  logger.debug(JSON.stringify(logEntry));
 }

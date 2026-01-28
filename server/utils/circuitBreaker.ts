@@ -151,7 +151,7 @@ export class CircuitBreaker {
     }
 
     // Log state change
-    console.log(JSON.stringify({
+    logger.debug(JSON.stringify({
       type: 'circuit_breaker_state_change',
       name: this.options.name,
       from: oldState,

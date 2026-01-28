@@ -66,7 +66,7 @@ export class IngestionService {
 
     // 6. Trigger Async Processing (Fire-and-forget)
     this.triggerProcessing(record.id, record.filePath, record.fileName, category).catch(err => {
-        console.error(`[Ingestion] Background processing failed for ${record.id}:`, err);
+        logger.error(`[Ingestion] Background processing failed for ${record.id}:`, err);
     });
     
     return record;
@@ -76,7 +76,7 @@ export class IngestionService {
    * Background processing workflow: Extra text -> Index (Embeddings) -> Analyze -> Update Profile
    */
   async triggerProcessing(fileId: string, filePath: string, fileName: string, category: string) {
-    console.log(`[Ingestion] Starting processing for ${fileId}...`);
+    logger.debug(`[Ingestion] Starting processing for ${fileId}...`);
     
     try {
         // Update status to extracting
@@ -108,10 +108,10 @@ export class IngestionService {
 
         // 4. Complete
         await this.updateStatus(fileId, 'completed');
-        console.log(`[Ingestion] Processing completed for ${fileId}`);
+        logger.debug(`[Ingestion] Processing completed for ${fileId}`);
 
     } catch (error) {
-        console.error(`[Ingestion] Error processing ${fileId}:`, error);
+        logger.error(`[Ingestion] Error processing ${fileId}:`, error);
         await this.updateStatus(fileId, 'failed');
     }
   }
