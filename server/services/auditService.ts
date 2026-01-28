@@ -130,9 +130,10 @@ export class AuditService {
         });
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to log audit event', { 
-        error: error?.message || 'Unknown error', 
+        error: errMessage, 
         auditEntry: entry 
       });
     }
@@ -191,8 +192,9 @@ export class AuditService {
         page,
         limit
       };
-    } catch (error: any) {
-      logger.error('Failed to retrieve audit logs', { error: error?.message || 'Unknown error' });
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to retrieve audit logs', { error: errMessage });
       return { data: [], total: 0, page: 1, limit: 50 };
     }
   }
@@ -215,8 +217,9 @@ export class AuditService {
   async getAuditById(id: string, organizationId: string): Promise<AuditLog | null> {
     try {
       return await storage.getAuditLogById(id, organizationId);
-    } catch (error: any) {
-      logger.error('Failed to get audit log by ID', { id, organizationId, error: error?.message || 'Unknown error' });
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to get audit log by ID', { id, organizationId, error: errMessage });
       return null;
     }
   }
@@ -227,8 +230,9 @@ export class AuditService {
   async getStats(organizationId: string): Promise<any> {
     try {
       return await storage.getAuditStats(organizationId);
-    } catch (error: any) {
-      logger.error('Failed to get audit statistics', { error: error?.message || 'Unknown error' });
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to get audit statistics', { error: errMessage });
       return {
         totalEvents: 0,
         highRiskEvents: 0,
@@ -419,8 +423,9 @@ export function auditMiddleware(action: string, resourceType: string) {
     try {
       await auditService.auditFromRequest(req, action, resourceType);
       next();
-    } catch (error: any) {
-      logger.error('Audit middleware failed', { error: error?.message || 'Unknown error' });
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Audit middleware failed', { error: errMessage });
       next(); // Continue even if audit fails
     }
   };

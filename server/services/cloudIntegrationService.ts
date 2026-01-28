@@ -273,10 +273,11 @@ export class CloudIntegrationService {
       });
 
       return integration.id;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AppError) throw error;
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to create cloud integration', { 
-        error: error.message,
+        error: errMessage,
         provider: config.provider,
         userId: config.userId,
       });
@@ -364,8 +365,9 @@ export class CloudIntegrationService {
       });
 
       return { synced, errors };
-    } catch (error: any) {
-      logger.error('Cloud sync failed', { integrationId, error: error.message });
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Cloud sync failed', { integrationId, error: errMessage });
       
       // Update sync status to error
       await db.update(cloudIntegrations)
@@ -414,10 +416,11 @@ export class CloudIntegrationService {
         thumbnailLink: file.thumbnailLink || undefined,
         parents: file.parents || undefined,
       })) || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AppError) throw error;
-      logger.error('Failed to sync Google Drive files', { error: error.message });
-      throw new BadGatewayError('Failed to sync Google Drive files', { originalError: error.message });
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to sync Google Drive files', { error: errMessage });
+      throw new BadGatewayError('Failed to sync Google Drive files', { originalError: errMessage });
     }
   }
 
@@ -454,10 +457,11 @@ export class CloudIntegrationService {
         downloadLink: file['@microsoft.graph.downloadUrl'],
         thumbnailLink: file.thumbnails?.[0]?.medium?.url,
       })) || [];
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AppError) throw error;
-      logger.error('Failed to sync OneDrive files', { error: error.message });
-      throw new BadGatewayError('Failed to sync OneDrive files', { originalError: error.message });
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to sync OneDrive files', { error: errMessage });
+      throw new BadGatewayError('Failed to sync OneDrive files', { originalError: errMessage });
     }
   }
 
@@ -560,8 +564,9 @@ export class CloudIntegrationService {
       });
 
       return true;
-    } catch (error: any) {
-      logger.error('Failed to apply PDF security', { fileId, error: error.message });
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to apply PDF security', { fileId, error: errMessage });
       throw error;
     }
   }
@@ -633,11 +638,12 @@ export class CloudIntegrationService {
 
       logger.info('Cloud integration deleted', { integrationId, userId });
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to delete cloud integration', { 
         integrationId, 
         userId, 
-        error: error.message 
+        error: errMessage 
       });
       throw error;
     }

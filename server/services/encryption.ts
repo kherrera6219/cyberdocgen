@@ -61,8 +61,9 @@ export class EncryptionService {
       });
 
       return encryptedData;
-    } catch (error: any) {
-      logger.error('Encryption failed', { error: error.message, classification });
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Encryption failed', { error: errMessage, classification });
       throw new Error('Failed to encrypt sensitive data');
     }
   }
@@ -94,9 +95,10 @@ export class EncryptionService {
       });
 
       return decrypted;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Decryption failed', { 
-        error: error.message, 
+        error: errMessage, 
         encryptionVersion: encryptedData.encryptionVersion 
       });
       throw new Error('Failed to decrypt sensitive data: authentication failed or data corrupted');
@@ -120,9 +122,10 @@ export class EncryptionService {
       });
 
       return decrypted;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Legacy v1 decryption failed', { 
-        error: error.message, 
+        error: errMessage, 
         encryptionVersion: encryptedData.encryptionVersion 
       });
       throw new Error('Failed to decrypt legacy v1 data');
