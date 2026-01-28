@@ -42,7 +42,7 @@
 ### Refactoring & Type Safety
 
 - [ ] **Logger Migration**: Replace remaining `console.log` statements (130+ in server/*) with structured `logger`.
-- [ ] **TypeScript Cleanup**: Remove `any` types from `encryption.ts` (6), `auditService.ts` (6), `cloudIntegrationService.ts` (7).
+- [/] **TypeScript Cleanup**: Fixed 14 catch block `any` types → `unknown`. Interface definitions unchanged (require larger refactor).
 - [x] **Modernize Async**: Refactored legacy `.then().catch()` chains to `async/await`.
 
 ### UI/UX Implementation
