@@ -13,7 +13,7 @@
 - [x] **Microsoft Entra ID (OIDC/PKCE)**: Core authentication flow implemented.
 - [x] **Google Drive OAuth 2.0**: Full OAuth flow implemented in `cloudIntegrationService.ts` using `OAuth2Client`.
 - [x] **OneDrive OAuth 2.0**: Full OAuth flow implemented using Microsoft Graph token exchange.
-- [ ] **MFA Logic Alignment**: Refactor `server/services/mfaService.ts` to support contextual authentication signals from Entra ID tokens.
+- [x] **MFA Logic Alignment**: Enhanced `server/providers/auth/entraId.ts` with contextual auth signals (amr/acr/device claims).
 
 ### Security & Compliance Coding
 
@@ -26,14 +26,14 @@
 
 ### Telemetry & Tracking
 
-- [ ] **Error Monitoring**: Implement Sentry (or equivalent) SDK wrappers for both Frontend and Backend.
+- [x] **Error Monitoring**: Sentry SDK implemented in `server/monitoring/sentry.ts` and `client/src/lib/sentry.ts`.
 - [x] **AI Latency Instrumentation**: OpenTelemetry installed and configured in `server/monitoring/telemetry.ts`.
 - [x] **Audit Telemetry**: High-risk audit events logged via structured logger with `HIGH_RISK_AUDIT_EVENT` tags.
 
 ### Performance Engineering
 
-- [ ] **Benchmarking Scripts**: Create `scripts/benchmark-ai.ts` using `autocannon` to establish baseline latency.
-- [ ] **Bundle Governance**: Implement a custom Vite plugin or script to enforce a 200KB chunk size limit in CI.
+- [x] **Benchmarking Scripts**: Created `scripts/benchmark-ai.ts` using `autocannon` for baseline latency testing.
+- [x] **Bundle Governance**: Vite plugin created in `client/vite-plugins/bundleGovernance.ts` (200KB limit, CI enforcement).
 
 ---
 
@@ -52,9 +52,16 @@
 
 ---
 
-## ✅ RECENTLY COMPLETED - Coding Track
+## ✅ RECENTLY COMPLETED - January 27, 2026 Session
 
-### Desktop App Readiness & Hardening (January 2026)
+### New Implementations (This Session)
+
+- [x] **Sentry Error Monitoring**: Full SDK for server (`server/monitoring/sentry.ts`) and client (`client/src/lib/sentry.ts`).
+- [x] **Benchmarking Scripts**: Created `scripts/benchmark-ai.ts` with autocannon load testing.
+- [x] **Bundle Governance Plugin**: `client/vite-plugins/bundleGovernance.ts` with 200KB limit enforcement.
+- [x] **MFA Entra ID Signals**: Enhanced `server/providers/auth/entraId.ts` with amr/acr/device claim extraction.
+
+### Desktop App Readiness & Hardening (Earlier in January 2026)
 
 - [x] **Backend Packaging**: Migrated server to `.cjs` with `utilityProcess.fork` support.
 - [x] **Login Bypass**: Implemented seamless local authentication with direct redirection.
@@ -62,14 +69,14 @@
 - [x] **Uninstaller Polish**: Custom NSIS script for user-controlled data retention.
 - [x] **Health Polling**: Integrated active `/health` polling for UI load synchronization.
 
-### Cloud Integrations (January 2026)
+### Cloud Integrations
 
 - [x] **Google Drive OAuth**: Full `@googleapis/drive` integration with offline access.
 - [x] **OneDrive OAuth**: Full Microsoft Graph integration with token refresh.
 - [x] **AI Moderation**: OpenAI Moderation API + mock fallback for safety checks.
 - [x] **Audit HMAC Chaining**: Tamper-proof audit logs with signature verification.
 
-### Infrastructure Wrapper
+### Infrastructure
 
 - [x] **Electron Main Process**: Secure window management and external link handling.
 - [x] **Windows Installer Build**: Configured `electron-builder` for NSIS local deployment.
@@ -88,7 +95,13 @@
 
 | Priority   | Total | Done | Remaining |
 | ---------- | ----- | ---- | --------- |
-| 🎯 High    | 6     | 5    | 1         |
-| 🟠 Medium  | 5     | 2    | 3         |
+| 🎯 High    | 6     | 6    | 0         |
+| 🟠 Medium  | 5     | 5    | 0         |
 | 🔵 Low     | 5     | 2    | 3         |
-| **Total**  | 16    | 9    | **7**     |
+| **Total**  | 16    | 13   | **3**     |
+
+### Remaining Items (3)
+
+1. **Logger Migration** - 130+ console.log statements in server/*
+2. **TypeScript Cleanup** - 19 `any` types across 3 files
+3. **Visual Regression** - Playwright visual comparison tests
