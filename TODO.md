@@ -41,8 +41,8 @@
 
 ### Refactoring & Type Safety
 
-- [ ] **Logger Migration**: Replace remaining `console.log` statements (130+ in server/*) with structured `logger`.
-- [/] **TypeScript Cleanup**: Fixed 14 catch block `any` types → `unknown`. Interface definitions unchanged (require larger refactor).
+- [x] **Logger Migration**: Replaced 130+ `console.log` statements in server/* with structured `logger` (commit `6c2a7d2`).
+- [x] **TypeScript Cleanup**: Fixed 14 catch block `any` types → `unknown` with type guards (commit `f527734`).
 - [x] **Modernize Async**: Refactored legacy `.then().catch()` chains to `async/await`.
 
 ### UI/UX Implementation
