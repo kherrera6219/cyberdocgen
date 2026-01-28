@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Playwright E2E Test Configuration
+ * Playwright E2E & Visual Regression Test Configuration
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
@@ -21,6 +21,11 @@ export default defineConfig({
   globalTimeout: 10 * 60 * 1000, // 10 minutes max for entire test run
   expect: {
     timeout: 5000, // 5 seconds for expect assertions
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.02,
+      threshold: 0.2,
+      animations: "disabled",
+    },
   },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -45,6 +50,17 @@ export default defineConfig({
     {
       name: "webkit",
       use: { ...devices["Desktop Safari"] },
+    },
+    // Visual regression tests - run separately with: npx playwright test --project=visual-chromium
+    {
+      name: "visual-chromium",
+      testDir: "./tests/visual",
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          args: ["--font-render-hinting=none", "--disable-gpu"],
+        },
+      },
     },
   ],
 
