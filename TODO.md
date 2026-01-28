@@ -48,7 +48,7 @@
 ### UI/UX Implementation
 
 - [x] **Storybook Coverage**: 53 story files created covering all major UI components.
-- [ ] **Visual Regression**: Integrate `playwright` visual comparison tests for the primary compliance scorecard view.
+- [x] **Visual Regression**: Created `tests/visual/visual-regression.spec.ts` with 9 Playwright tests (scorecard, responsive, dark mode).
 
 ---
 
@@ -59,7 +59,7 @@
 - [x] **Sentry Error Monitoring**: Full SDK for server (`server/monitoring/sentry.ts`) and client (`client/src/lib/sentry.ts`).
 - [x] **Benchmarking Scripts**: Created `scripts/benchmark-ai.ts` with autocannon load testing.
 - [x] **Bundle Governance Plugin**: `client/vite-plugins/bundleGovernance.ts` with 200KB limit enforcement.
-- [x] **MFA Entra ID Signals**: Enhanced `server/providers/auth/entraId.ts` with amr/acr/device claim extraction.
+- [x] **Visual Regression Tests**: Created `tests/visual/visual-regression.spec.ts` with 9 tests for scorecard, gap analysis, responsive layouts, dark mode.
 
 ### Desktop App Readiness & Hardening (Earlier in January 2026)
 
@@ -97,11 +97,11 @@
 | ---------- | ----- | ---- | --------- |
 | 🎯 High    | 6     | 6    | 0         |
 | 🟠 Medium  | 5     | 5    | 0         |
-| 🔵 Low     | 5     | 2    | 3         |
-| **Total**  | 16    | 13   | **3**     |
+| 🔵 Low     | 5     | 3    | 2         |
+| **Total**  | 16    | 14   | **2**     |
 
-### Remaining Items (3)
+### Remaining Items (2)
 
 1. **Logger Migration** - 130+ console.log statements in server/*
 2. **TypeScript Cleanup** - 19 `any` types across 3 files
-3. **Visual Regression** - Playwright visual comparison tests
+
