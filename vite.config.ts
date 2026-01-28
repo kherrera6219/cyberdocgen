@@ -2,8 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-
 import { visualizer } from "rollup-plugin-visualizer";
+import { bundleGovernance } from "./client/vite-plugins/bundleGovernance";
 
 export default defineConfig({
   plugins: [
@@ -14,6 +14,12 @@ export default defineConfig({
       filename: "dist/stats.html",
       gzipSize: true,
       brotliSize: true,
+    }),
+    // Bundle size enforcement (fails build in CI if chunks exceed 200KB)
+    bundleGovernance({
+      maxChunkSize: 200,
+      maxTotalSize: 2000,
+      failOnViolation: !!process.env.CI,
     }),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined

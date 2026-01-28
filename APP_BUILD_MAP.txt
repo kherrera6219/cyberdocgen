@@ -1,0 +1,740 @@
+C:\software\cyberdocgen
+├── .claude
+│   └── settings.local.json
+├── .dockerignore
+├── .env.example
+├── .env.production.example
+├── .eslintrc.cjs
+├── .github
+│   ├── ISSUE_TEMPLATE
+│   │   ├── bug_report.md
+│   │   └── feature_request.md
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── workflows
+│       ├── ci.yml
+│       ├── docker-build.yml
+│       ├── generator-generic-ossf-slsa3-publish.yml
+│       └── npm-grunt.yml
+├── .gitignore
+├── .husky
+│   ├── _
+│   │   ├── .gitignore
+│   │   ├── applypatch-msg
+│   │   ├── commit-msg
+│   │   ├── h
+│   │   ├── husky.sh
+│   │   ├── post-applypatch
+│   │   ├── post-checkout
+│   │   ├── post-commit
+│   │   ├── post-merge
+│   │   ├── post-rewrite
+│   │   ├── pre-applypatch
+│   │   ├── pre-auto-gc
+│   │   ├── pre-commit
+│   │   ├── pre-merge-commit
+│   │   ├── pre-push
+│   │   ├── pre-rebase
+│   │   └── prepare-commit-msg
+│   └── pre-commit
+├── .lintstagedrc.json
+├── .prettierrc.json
+├── .storybook
+│   ├── main.ts
+│   ├── preview.ts
+│   └── vitest.setup.ts
+├── .vscode
+│   └── extensions.json
+├── attached_assets
+│   └── generated_images
+│       ├── ai_document_generation_interface.png
+│       ├── auditor_workspace_interface.png
+│       ├── continuous_monitoring_dashboard.png
+│       ├── gap_analysis_dashboard_interface.png
+│       ├── multi-framework_compliance_support.png
+│       └── team_collaboration_workspace.png
+├── aws
+│   └── buildspec.yml
+├── azure
+│   └── pipeline.yaml
+├── CHANGELOG.md
+├── client
+│   ├── index.html
+│   ├── public
+│   │   ├── icons
+│   │   │   └── app-icon.svg
+│   │   ├── manifest.json
+│   │   ├── manifest.webmanifest
+│   │   ├── offline.html
+│   │   └── sw.js
+│   ├── README.md
+│   └── src
+│       ├── App.tsx
+│       ├── components
+│       │   ├── activity
+│       │   ├── admin
+│       │   ├── ai
+│       │   ├── auth
+│       │   ├── cloud
+│       │   ├── collaboration
+│       │   ├── company-profile
+│       │   ├── compliance
+│       │   ├── dashboard
+│       │   ├── DocumentUploader.tsx
+│       │   ├── ErrorBoundary.tsx
+│       │   ├── evidence
+│       │   ├── generation
+│       │   ├── help
+│       │   ├── IconButton.tsx
+│       │   ├── layout
+│       │   ├── loading
+│       │   ├── local-mode
+│       │   ├── navigation
+│       │   ├── NetworkBanner.tsx
+│       │   ├── notifications
+│       │   ├── ObjectStorageManager.tsx
+│       │   ├── onboarding
+│       │   ├── profile
+│       │   ├── PWAInstallPrompt.tsx
+│       │   ├── repository
+│       │   ├── SkipNavigation.tsx
+│       │   ├── storage
+│       │   ├── templates
+│       │   ├── TemporaryLoginDialog.tsx
+│       │   ├── ui
+│       │   └── upload
+│       ├── contexts
+│       │   └── OrganizationContext.tsx
+│       ├── hooks
+│       │   ├── use-mobile.tsx
+│       │   ├── use-storage.ts
+│       │   ├── use-toast.ts
+│       │   ├── useAccessibility.ts
+│       │   ├── useAuth.ts
+│       │   ├── useOnlineStatus.ts
+│       │   └── useRepositoryAPI.ts
+│       ├── index.css
+│       ├── lib
+│       │   ├── authUtils.ts
+│       │   ├── queryClient.ts
+│       │   ├── sentry.ts
+│       │   ├── serviceWorker.ts
+│       │   └── utils.ts
+│       ├── main.tsx
+│       ├── pages
+│       │   ├── about.tsx
+│       │   ├── admin-settings.tsx
+│       │   ├── ai-assistant.tsx
+│       │   ├── ai-doc-generator.tsx
+│       │   ├── ai-hub.tsx
+│       │   ├── api-keys.tsx
+│       │   ├── audit-trail.tsx
+│       │   ├── auditor-workspace.tsx
+│       │   ├── cloud-integrations.tsx
+│       │   ├── company-profile.tsx
+│       │   ├── connectors-hub.tsx
+│       │   ├── contact.tsx
+│       │   ├── control-approvals.tsx
+│       │   ├── dashboard.tsx
+│       │   ├── document-versions.tsx
+│       │   ├── document-workspace.tsx
+│       │   ├── documents.tsx
+│       │   ├── enhanced-company-profile.tsx
+│       │   ├── enterprise-login.tsx
+│       │   ├── enterprise-signup.tsx
+│       │   ├── evidence-ingestion.tsx
+│       │   ├── export-center.tsx
+│       │   ├── features.tsx
+│       │   ├── fedramp-framework.tsx
+│       │   ├── forgot-password.tsx
+│       │   ├── gap-analysis.tsx
+│       │   ├── home.tsx
+│       │   ├── iso27001-framework.tsx
+│       │   ├── landing.tsx
+│       │   ├── local-settings.tsx
+│       │   ├── mcp-tools.tsx
+│       │   ├── mfa-setup.tsx
+│       │   ├── nist-framework.tsx
+│       │   ├── not-found.tsx
+│       │   ├── organization-setup.tsx
+│       │   ├── pricing.tsx
+│       │   ├── privacy.tsx
+│       │   ├── profile-settings.tsx
+│       │   ├── repository-analysis.tsx
+│       │   ├── reset-password.tsx
+│       │   ├── soc2-framework.tsx
+│       │   ├── terms.tsx
+│       │   └── user-profile.tsx
+│       ├── stories
+│       │   ├── Accordion.stories.tsx
+│       │   ├── Alert.stories.tsx
+│       │   ├── AlertDialog.stories.tsx
+│       │   ├── AnalysisProgress.stories.tsx
+│       │   ├── AspectRatio.stories.tsx
+│       │   ├── Avatar.stories.tsx
+│       │   ├── Badge.stories.tsx
+│       │   ├── Breadcrumb.stories.tsx
+│       │   ├── Button.stories.tsx
+│       │   ├── Calendar.stories.tsx
+│       │   ├── Card.stories.tsx
+│       │   ├── Carousel.stories.tsx
+│       │   ├── Chart.stories.tsx
+│       │   ├── Checkbox.stories.tsx
+│       │   ├── Collapsible.stories.tsx
+│       │   ├── Command.stories.tsx
+│       │   ├── ContextMenu.stories.tsx
+│       │   ├── Dialog.stories.tsx
+│       │   ├── Drawer.stories.tsx
+│       │   ├── DropdownMenu.stories.tsx
+│       │   ├── FindingsTable.stories.tsx
+│       │   ├── Form.stories.tsx
+│       │   ├── HoverCard.stories.tsx
+│       │   ├── IconButton.stories.tsx
+│       │   ├── Input.stories.tsx
+│       │   ├── InputOTP.stories.tsx
+│       │   ├── Label.stories.tsx
+│       │   ├── Menubar.stories.tsx
+│       │   ├── NavigationMenu.stories.tsx
+│       │   ├── Pagination.stories.tsx
+│       │   ├── Popover.stories.tsx
+│       │   ├── Progress.stories.tsx
+│       │   ├── RadioGroup.stories.tsx
+│       │   ├── RepositoryList.stories.tsx
+│       │   ├── RepoUploadZone.stories.tsx
+│       │   ├── Resizable.stories.tsx
+│       │   ├── ScrollArea.stories.tsx
+│       │   ├── Select.stories.tsx
+│       │   ├── Separator.stories.tsx
+│       │   ├── Sheet.stories.tsx
+│       │   ├── Skeleton.stories.tsx
+│       │   ├── Slider.stories.tsx
+│       │   ├── SnapshotManager.stories.tsx
+│       │   ├── Switch.stories.tsx
+│       │   ├── Table.stories.tsx
+│       │   ├── Tabs.stories.tsx
+│       │   ├── TaskBoard.stories.tsx
+│       │   ├── Textarea.stories.tsx
+│       │   ├── Toast.stories.tsx
+│       │   ├── Toggle.stories.tsx
+│       │   ├── ToggleGroup.stories.tsx
+│       │   ├── Tooltip.stories.tsx
+│       │   └── WebImportDialog.stories.tsx
+│       ├── styles
+│       │   ├── accessibleColors.ts
+│       │   ├── focusStyles.css
+│       │   ├── focusStyles.ts
+│       │   └── tokens.css
+│       └── utils
+│           ├── accessibility.ts
+│           ├── logger.ts
+│           └── performance.ts
+├── CODE_OF_CONDUCT.md
+├── COMMERCIAL_LICENSE.md
+├── components.json
+├── CONTRIBUTING.md
+├── development-archive
+│   ├── a11y-results
+│   │   ├── a11y_ai.json
+│   │   ├── a11y_debug.json
+│   │   ├── a11y_docs.json
+│   │   ├── a11y_gap.json
+│   │   ├── a11y_mfa.json
+│   │   └── a11y_results.json
+│   ├── documentation-archive
+│   │   ├── assets
+│   │   │   ├── Pasted--CyberDocGen-Industry-Standard-Update-Plan-Created-Dece_1766194718750.txt
+│   │   │   ├── Pasted--CyberDocGen-Industry-Standard-Update-Plan-Created-Dece_1766194778926.txt
+│   │   │   └── Pasted-8-potential-vulnerabilities-found-Last-ran-on-1-42-pm-D_1766094508442.txt
+│   │   ├── refactoring
+│   │   │   ├── REFACTORING_GUIDE.md
+│   │   │   └── REFACTORING_RECOMMENDATIONS.md
+│   │   ├── ux-review-findings.md
+│   │   └── wireframes
+│   │       ├── 01-login.md
+│   │       ├── 02-dashboard.md
+│   │       ├── 03-documents-list.md
+│   │       ├── 04-document-detail.md
+│   │       ├── 05-gap-analysis.md
+│   │       ├── 06-mfa-setup.md
+│   │       ├── 07-signup.md
+│   │       ├── 08-audit-trail.md
+│   │       ├── 09-cloud-integrations.md
+│   │       ├── 10-ai-assistant.md
+│   │       ├── 11-user-profile.md
+│   │       ├── 12-password-recovery.md
+│   │       ├── 13-document-editor.md
+│   │       ├── 14-compliance-frameworks.md
+│   │       ├── 15-risk-assessment.md
+│   │       ├── 16-reports-export.md
+│   │       ├── 17-organization-settings.md
+│   │       ├── 18-user-management.md
+│   │       ├── 19-role-management.md
+│   │       ├── 20-admin-dashboard.md
+│   │       ├── 21-system-settings.md
+│   │       ├── 22-industry-specialization.md
+│   │       ├── 23-document-analyzer.md
+│   │       ├── 24-ai-dashboard.md
+│   │       ├── 25-document-generation.md
+│   │       └── README.md
+│   ├── logs
+│   │   ├── build-verification.log
+│   │   ├── check_output.txt
+│   │   ├── diagnostic-report.log
+│   │   ├── nsis_rebuild_log_2.txt
+│   │   ├── nsis_rebuild_log.txt
+│   │   ├── startup_debug.txt
+│   │   ├── test_failures_v2.log
+│   │   ├── test_failures_v3.log
+│   │   ├── test_failures.log
+│   │   └── test_output.txt
+│   ├── resources
+│   │   └── winCodeSign.7z
+│   └── sprint-plans
+│       └── WINDOWS_LOCAL_MODE_SPRINT_PLAN.md
+├── docker-compose.prod.yml
+├── docker-compose.yml
+├── Dockerfile
+├── Dockerfile.dev
+├── docs
+│   ├── ACCESSIBILITY.md
+│   ├── AI_GOVERNANCE.md
+│   ├── ALERTING_RULES.md
+│   ├── API.md
+│   ├── architecture
+│   │   ├── ARCHITECTURE.md
+│   │   └── RUNTIME_MODES.md
+│   ├── ARCHITECTURE.md
+│   ├── CHAOS_TESTING.md
+│   ├── CODEBASE_OVERVIEW.md
+│   ├── COMPREHENSIVE_CODEBASE_DOCUMENTATION.md
+│   ├── DEFINITION_OF_DONE.md
+│   ├── DEPLOYMENT.md
+│   ├── DESIGN_SYSTEM.md
+│   ├── development
+│   │   └── CODING_STANDARDS.md
+│   ├── DEVELOPMENT_GUIDE.md
+│   ├── ENVIRONMENT_SETUP.md
+│   ├── EU_AI_ACT_COMPLIANCE.md
+│   ├── INCIDENT_RESPONSE.md
+│   ├── MODEL_CARDS.md
+│   ├── OPENAPI.md
+│   ├── project-analysis
+│   │   ├── CODE_TODO_INDEX.txt
+│   │   ├── DIRECTORY_STATS.txt
+│   │   ├── DOCS_INDEX.md
+│   │   ├── DUPLICATE_CODE_FILES.txt
+│   │   ├── FILE_STATS_SUMMARY.txt
+│   │   ├── FILE_STRUCTURE_MAP.txt
+│   │   ├── FULL_FILE_INVENTORY.csv
+│   │   ├── FULL_REVIEW_REPORT.md
+│   │   └── LARGE_FILES.txt
+│   ├── PWA.md
+│   ├── RUNBOOKS.md
+│   ├── SECURITY_AUDIT.md
+│   ├── SECURITY_PRODUCTION_REVIEW.md
+│   ├── SECURITY_TESTING_PLAYBOOK.md
+│   ├── SECURITY.md
+│   ├── SLO_DEFINITIONS.md
+│   ├── SSDF_MAPPING.md
+│   ├── strategy
+│   │   └── FRAMEWORK_COMPLETION_STRATEGY.md
+│   ├── SUPPLY_CHAIN_SECURITY.md
+│   ├── TESTING.md
+│   ├── TOKEN_MANAGEMENT.md
+│   ├── TROUBLESHOOTING.md
+│   └── WINDOWS_DESKTOP_GUIDE.md
+├── drizzle.config.ts
+├── electron
+│   ├── main.ts
+│   ├── preload.ts
+│   └── startup-logger.ts
+├── electron-builder.yml
+├── eslint.config.js
+├── gcp
+│   └── cloudbuild.yaml
+├── k8s
+│   ├── configmap.yaml
+│   ├── deployment.yaml
+│   ├── ingress.yaml
+│   ├── namespace.yaml
+│   ├── secret.yaml.example
+│   └── service.yaml
+├── LICENSE
+├── LICENSES_ALLOWED.md
+├── MICROSOFT_STORE_SUBMISSION_GUIDE.md
+├── monitoring
+│   └── prometheus.yml
+├── package-lock.json
+├── package.json
+├── playwright.config.ts
+├── postcss.config.js
+├── prettier.config.js
+├── PROJECT_STATUS.md
+├── public
+│   ├── favicon.ico
+│   ├── manifest.json
+│   ├── offline.html
+│   └── sw.js
+├── README.md
+├── scripts
+│   ├── build-server.js
+│   ├── check_mcp_coverage.cjs
+│   ├── check-bundle-size.ts
+│   ├── convert-png-to-ico.ps1
+│   ├── diagnostic.js
+│   ├── encrypt-existing-data.ts
+│   ├── final-production-validation.ts
+│   ├── generate-encryption-key.ts
+│   ├── generate-sbom.ts
+│   ├── production-build-check.ts
+│   ├── production-deployment-check.ts
+│   ├── production-startup.ts
+│   ├── README.md
+│   ├── seed-beta-testers.ts
+│   ├── test-local-mode.sh
+│   ├── validate-compliance.ts
+│   ├── validate-wack.ts
+│   └── verify-build.js
+├── server
+│   ├── config
+│   │   ├── index.ts
+│   │   ├── runtime.test.ts
+│   │   ├── runtime.ts
+│   │   └── swagger.ts
+│   ├── db.ts
+│   ├── index.ts
+│   ├── mcp
+│   │   ├── agentClient.ts
+│   │   ├── index.ts
+│   │   ├── initialize.ts
+│   │   ├── INTEGRATION_GUIDE.md
+│   │   ├── integration.ts
+│   │   ├── README.md
+│   │   ├── server.ts
+│   │   ├── toolRegistry.ts
+│   │   ├── tools
+│   │   │   ├── advanced.ts
+│   │   │   ├── external.ts
+│   │   │   └── internal.ts
+│   │   └── types.ts
+│   ├── middleware
+│   │   ├── egressControl.ts
+│   │   ├── mfa.ts
+│   │   ├── multiTenant.ts
+│   │   ├── production.ts
+│   │   ├── rateLimiter.ts
+│   │   ├── routeValidation.ts
+│   │   ├── security.ts
+│   │   └── tracing.ts
+│   ├── monitoring
+│   │   ├── metrics.ts
+│   │   ├── sentry.ts
+│   │   └── telemetry.ts
+│   ├── providers
+│   │   ├── auth
+│   │   │   ├── entraId.ts
+│   │   │   └── localBypass.ts
+│   │   ├── db
+│   │   │   ├── postgres.ts
+│   │   │   └── sqlite.ts
+│   │   ├── index.ts
+│   │   ├── interfaces.ts
+│   │   ├── secrets
+│   │   │   ├── environment.ts
+│   │   │   └── windowsCredMan.ts
+│   │   ├── storage
+│   │   │   ├── cloud.ts
+│   │   │   └── localFs.ts
+│   │   └── stubs.ts
+│   ├── README.md
+│   ├── replitAuth.ts
+│   ├── routes
+│   │   ├── admin.ts
+│   │   ├── ai
+│   │   │   ├── analysis.ts
+│   │   │   ├── chat.ts
+│   │   │   ├── fineTuning.ts
+│   │   │   ├── generation.ts
+│   │   │   ├── index.ts
+│   │   │   ├── industry.ts
+│   │   │   ├── models.ts
+│   │   │   ├── quality.ts
+│   │   │   ├── risk.ts
+│   │   │   ├── shared.ts
+│   │   │   ├── stats.ts
+│   │   │   └── vision.ts
+│   │   ├── aiSessions.ts
+│   │   ├── analytics.ts
+│   │   ├── approvals.ts
+│   │   ├── auditor.ts
+│   │   ├── auditTrail.ts
+│   │   ├── clientErrors.ts
+│   │   ├── cloudIntegration.ts
+│   │   ├── companyProfiles.ts
+│   │   ├── connectors.ts
+│   │   ├── controls.ts
+│   │   ├── dashboard.ts
+│   │   ├── documents.ts
+│   │   ├── enterpriseAuth.ts
+│   │   ├── evidence.ts
+│   │   ├── export.ts
+│   │   ├── frameworkControlStatuses.ts
+│   │   ├── gapAnalysis.ts
+│   │   ├── generationJobs.ts
+│   │   ├── health.ts
+│   │   ├── localMode.ts
+│   │   ├── mfa.ts
+│   │   ├── microsoftAuth.ts
+│   │   ├── notifications.ts
+│   │   ├── organizations.ts
+│   │   ├── projects.ts
+│   │   ├── repository.ts
+│   │   ├── roles.ts
+│   │   ├── storage.ts
+│   │   ├── templates.ts
+│   │   ├── userProfile.ts
+│   │   └── web-import.ts
+│   ├── routes.ts
+│   ├── scripts
+│   │   └── migrate.ts
+│   ├── services
+│   │   ├── adobeIntegrationService.ts
+│   │   ├── aiClients.ts
+│   │   ├── aiFineTuningService.ts
+│   │   ├── aiGuardrailsService.ts
+│   │   ├── aiModels.ts
+│   │   ├── aiOrchestrator.ts
+│   │   ├── alertingService.ts
+│   │   ├── anthropic.ts
+│   │   ├── auditService.ts
+│   │   ├── chaosTestingService.ts
+│   │   ├── chatbot.ts
+│   │   ├── cloudIntegrationService.ts
+│   │   ├── codeSignalDetectorService.ts
+│   │   ├── companyDataExtractionService.ts
+│   │   ├── complianceDeadlineService.ts
+│   │   ├── complianceGapAnalysis.ts
+│   │   ├── connectorService.ts
+│   │   ├── controlMappingService.ts
+│   │   ├── databaseHealthService.ts
+│   │   ├── dataResidencyService.ts
+│   │   ├── dataRetentionAutomation.ts
+│   │   ├── dataRetentionService.ts
+│   │   ├── documentAnalysis.ts
+│   │   ├── documentTemplates
+│   │   │   ├── fedramp
+│   │   │   ├── iso27001
+│   │   │   ├── nist
+│   │   │   ├── operational
+│   │   │   ├── soc2
+│   │   │   └── types.ts
+│   │   ├── documentTemplates.ts
+│   │   ├── documentWorkflowService.ts
+│   │   ├── emailService.ts
+│   │   ├── encryption.ts
+│   │   ├── enterpriseAuthService.ts
+│   │   ├── frameworkSpreadsheetService.ts
+│   │   ├── geminiVision.ts
+│   │   ├── ingestionService.ts
+│   │   ├── keyRotationService.ts
+│   │   ├── mfaService.ts
+│   │   ├── microsoftAuthService.ts
+│   │   ├── microsoftGraphService.ts
+│   │   ├── modelTransparencyService.ts
+│   │   ├── objectStorageService.ts
+│   │   ├── openai.ts
+│   │   ├── pdfSecurityService.ts
+│   │   ├── performanceService.ts
+│   │   ├── qualityScoring.ts
+│   │   ├── repoAnalysisService.ts
+│   │   ├── repoParserService.ts
+│   │   ├── repositoryFindingsService.ts
+│   │   ├── riskAssessment.ts
+│   │   ├── sessionRiskScoringService.ts
+│   │   ├── snapshotService.ts
+│   │   ├── systemConfigService.ts
+│   │   ├── threatDetectionService.ts
+│   │   ├── types.ts
+│   │   ├── versionService.ts
+│   │   └── webCrawlerService.ts
+│   ├── static.ts
+│   ├── storage.ts
+│   ├── types
+│   │   ├── express-session.d.ts
+│   │   └── express.d.ts
+│   ├── utils
+│   │   ├── circuitBreaker.ts
+│   │   ├── errorHandler.ts
+│   │   ├── errorHandling.ts
+│   │   ├── health.ts
+│   │   ├── logger.ts
+│   │   ├── logSanitizer.ts
+│   │   ├── routeHelpers.ts
+│   │   └── validation.ts
+│   ├── validation
+│   │   ├── requestSchemas.ts
+│   │   ├── schemas.ts
+│   │   └── templateSchemas.ts
+│   └── vite.ts
+├── shared
+│   ├── schema-migrations.ts
+│   ├── schema.ts
+│   └── types
+│       └── framework.ts
+├── STORE_SUBMISSION_CHECKLIST.md
+├── stories
+│   ├── assets
+│   │   ├── accessibility.png
+│   │   ├── accessibility.svg
+│   │   ├── addon-library.png
+│   │   ├── assets.png
+│   │   ├── avif-test-image.avif
+│   │   ├── context.png
+│   │   ├── discord.svg
+│   │   ├── docs.png
+│   │   ├── figma-plugin.png
+│   │   ├── github.svg
+│   │   ├── share.png
+│   │   ├── styling.png
+│   │   ├── testing.png
+│   │   ├── theming.png
+│   │   ├── tutorials.svg
+│   │   └── youtube.svg
+│   ├── button.css
+│   ├── Button.stories.ts
+│   ├── Button.tsx
+│   ├── Configure.mdx
+│   ├── header.css
+│   ├── Header.stories.ts
+│   ├── Header.tsx
+│   ├── page.css
+│   ├── Page.stories.ts
+│   └── Page.tsx
+├── tailwind.config.ts
+├── test-data
+├── tests
+│   ├── accessibility
+│   │   └── accessibility.test.tsx
+│   ├── ai
+│   │   └── evaluation-suite.test.ts
+│   ├── components
+│   │   ├── admin
+│   │   │   ├── CloudIntegrationList.test.tsx
+│   │   │   ├── OAuthSettings.test.tsx
+│   │   │   ├── PDFSecuritySettings.test.tsx
+│   │   │   └── UserRoleManager.test.tsx
+│   │   ├── ai-components.test.tsx
+│   │   ├── ai-doc-generator.test.tsx
+│   │   ├── CloudIntegrationsPage.test.tsx
+│   │   ├── dashboard
+│   │   │   ├── CompanyProfileSummary.test.tsx
+│   │   │   ├── FrameworkGenerationCards.test.tsx
+│   │   │   ├── GenerationProgressDialog.test.tsx
+│   │   │   ├── QuickStats.test.tsx
+│   │   │   └── RecentDocuments.test.tsx
+│   │   ├── dashboard.test.tsx
+│   │   ├── documents.test.tsx
+│   │   ├── DocumentUploader.test.tsx
+│   │   ├── ErrorBoundary.test.tsx
+│   │   ├── FrameworkSpreadsheet.test.tsx
+│   │   ├── gap-analysis.test.tsx
+│   │   ├── ObjectStorageManager.test.tsx
+│   │   ├── profile
+│   │   │   ├── NotificationSettingsForm.test.tsx
+│   │   │   ├── PreferencesForm.test.tsx
+│   │   │   ├── ProfileForm.test.tsx
+│   │   │   └── SecuritySettings.test.tsx
+│   │   ├── PWAInstallPrompt.test.tsx
+│   │   ├── storage
+│   │   │   ├── FileListView.test.tsx
+│   │   │   └── StorageStatsView.test.tsx
+│   │   ├── stories
+│   │   │   └── storybook.test.tsx
+│   │   ├── TemporaryLoginDialog.test.tsx
+│   │   └── upload
+│   │       └── FileListItem.test.tsx
+│   ├── e2e
+│   │   ├── auth.spec.ts
+│   │   ├── document-workflow.spec.ts
+│   │   └── upload.spec.ts
+│   ├── integration
+│   │   ├── aiRoutes.test.ts
+│   │   ├── api.test.ts
+│   │   ├── auth.test.ts
+│   │   ├── critical-user-flows.test.ts
+│   │   ├── documents.test.ts
+│   │   ├── e2e-flows.test.ts
+│   │   ├── enterprise-auth.test.ts
+│   │   ├── frameworkControlStatuses.test.ts
+│   │   ├── gap-analysis.test.ts
+│   │   ├── health.test.ts
+│   │   ├── ingestion.test.ts
+│   │   ├── mcp-server.test.ts
+│   │   ├── security.test.ts
+│   │   ├── storage-advanced.test.ts
+│   │   └── workflow-integration.test.ts
+│   ├── pages
+│   │   └── landing.test.tsx
+│   ├── setup.ts
+│   └── unit
+│       ├── agent-client.test.ts
+│       ├── ai-services.test.ts
+│       ├── aiFineTuningService.test.ts
+│       ├── aiGuardrails.test.ts
+│       ├── aiGuardrailsService.test.ts
+│       ├── aiModels.test.ts
+│       ├── aiOrchestrator.test.ts
+│       ├── auditService.test.ts
+│       ├── auth.test.ts
+│       ├── chatbot.test.ts
+│       ├── circuitBreaker.test.ts
+│       ├── cloudIntegrationService.test.ts
+│       ├── complianceDeadlineService.test.ts
+│       ├── complianceGapAnalysis.test.ts
+│       ├── dataResidencyService.test.ts
+│       ├── dataRetentionAutomation.test.ts
+│       ├── dataRetentionService.test.ts
+│       ├── documents.test.ts
+│       ├── documentTemplates.test.ts
+│       ├── documentWorkflowService.test.ts
+│       ├── emailService.test.ts
+│       ├── encryption.test.ts
+│       ├── encryptionService.test.ts
+│       ├── enterpriseAuthService.test.ts
+│       ├── errorHandler.test.ts
+│       ├── errorHandling.test.ts
+│       ├── frameworkSpreadsheetService.test.ts
+│       ├── gap-analysis.test.ts
+│       ├── geminiVision.test.ts
+│       ├── keyRotationService.test.ts
+│       ├── logger.test.ts
+│       ├── logSanitizer.test.ts
+│       ├── mcp-core.test.ts
+│       ├── mcp-tool-registry.test.ts
+│       ├── mcp-tools.test.ts
+│       ├── metrics.test.ts
+│       ├── mfa.test.ts
+│       ├── mfaService.test.ts
+│       ├── multiTenant.test.ts
+│       ├── pdfSecurityService.test.ts
+│       ├── providers
+│       │   ├── db
+│       │   ├── secrets
+│       │   └── storage
+│       ├── qualityScoring.test.ts
+│       ├── qualityScoringService.test.ts
+│       ├── requestSchemas.test.ts
+│       ├── riskAssessment.test.ts
+│       ├── routes
+│       │   └── localMode.test.ts
+│       ├── sessionRiskScoringService.test.ts
+│       ├── storage-db.test.ts
+│       ├── storage.test.ts
+│       ├── threatDetectionService.test.ts
+│       └── validation.test.ts
+├── TODO.md
+├── tsconfig.eslint.json
+├── tsconfig.json
+├── vite.config.ts
+├── vitest.config.ts
+├── vitest.shims.d.ts
+└── WINDOWS_GUIDE.md

@@ -19,6 +19,15 @@ import { serveStatic } from "./static";
     console.warn('[Server] Telemetry initialization failed (non-critical):', error);
   }
 
+  // Initialize Sentry error monitoring
+  try {
+    const { initializeSentry } = await import("./monitoring/sentry.js");
+    initializeSentry();
+    console.log('[Server] Sentry error monitoring initialized');
+  } catch (error) {
+    console.warn('[Server] Sentry initialization failed (non-critical):', error);
+  }
+
   // Log startup phase
   console.log('==================================================');
   console.log('[Server] Starting CyberDocGen Backend Server');
