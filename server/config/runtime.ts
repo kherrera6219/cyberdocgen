@@ -120,13 +120,16 @@ function buildLocalModeConfig(): RuntimeConfig {
   // For now, use a placeholder that will be replaced during Electron integration
   const userDataPath = process.env.LOCAL_DATA_PATH || './local-data';
   
+  // Allow env overrides for host/port even in local mode
+  const host = process.env.HOST || '127.0.0.1';
+  const port = parseInt(process.env.PORT || process.env.LOCAL_PORT || '5231', 10);
+
   return {
     mode: 'local',
     server: {
-      // SECURITY: Bind to localhost only in local mode
-      host: '127.0.0.1',
-      port: parseInt(process.env.LOCAL_PORT || '5231', 10),
-      baseUrl: `http://127.0.0.1:${parseInt(process.env.LOCAL_PORT || '5231', 10)}`,
+      host,
+      port,
+      baseUrl: `http://${host}:${port}`,
     },
     database: {
       type: 'sqlite',

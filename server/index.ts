@@ -81,6 +81,23 @@ const initializationPromise = (async () => {
 
 })();
 
+// Local development server
+if (process.env.NODE_ENV !== 'production' || process.env.LOCAL_SERVER === 'true') {
+  const config = getRuntimeConfig();
+  const PORT = config.server.port;
+  const HOST = config.server.host;
+  
+  initializationPromise.then(() => {
+    app.listen(PORT, HOST, () => {
+      logger.info(`🚀 Local development server running at http://${HOST}:${PORT}`);
+      logger.info(`Health check: http://${HOST}:${PORT}/health`);
+    });
+  }).catch((error) => {
+    logger.error('Failed to start local server:', error);
+    process.exit(1);
+  });
+}
+
 // Export the express app as a single HTTPS Cloud Function.
 // Firebase will handle the server lifecycle.
 export const api = onRequest(async (req, res) => {

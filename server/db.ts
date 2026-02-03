@@ -10,18 +10,9 @@ import { logger } from "./utils/logger";
 
 neonConfig.webSocketConstructor = ws;
 
-// In local mode, we use SQLite via providers instead of PostgreSQL
-// This file is only used in cloud mode
+// Check deployment mode from environment
 const isLocalMode = process.env.DEPLOYMENT_MODE === 'local';
 
-// DATABASE_URL validation moved to providers - they check at runtime after env is set
-// Early check removed because DEPLOYMENT_MODE isn't set when this module loads
-// if (!isLocalMode && !process.env.DATABASE_URL) {
-//   throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
-// }
-
-
-// Only initialize PostgreSQL pool in cloud mode
 let pool: Pool | null = null;
 let db: any = null;
 
@@ -39,33 +30,38 @@ if (isLocalMode) {
     logger.error("Failed to initialize SQLite", { error });
   }
 } else {
-  // Connection pool configuration with timeouts and error handling
-  const poolConfig = {
-    connectionString: process.env.DATABASE_URL!,
-    max: 20, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-    connectionTimeoutMillis: 10000, // Return error after 10 seconds if connection cannot be established
-  };
+  // In cloud mode, require DATABASE_URL
+  if (!process.env.DATABASE_URL) {
+    logger.warn("DATABASE_URL is not set. Database initialization may fail.");
+  } else {
+    // Connection pool configuration with timeouts and error handling
+    const poolConfig = {
+      connectionString: process.env.DATABASE_URL!,
+      max: 20, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+      connectionTimeoutMillis: 10000, // Return error after 10 seconds if connection cannot be established
+    };
 
-  pool = new Pool(poolConfig);
+    pool = new Pool(poolConfig);
 
-  // Connection pool error handling
-  pool.on("error", (err) => {
-    logger.error("Unexpected database pool error", { error: err.message, stack: err.stack });
-  });
+    // Connection pool error handling
+    pool.on("error", (err) => {
+      logger.error("Unexpected database pool error", { error: err.message, stack: err.stack });
+    });
 
-  pool.on("connect", () => {
-    logger.debug("New database connection established");
-  });
+    pool.on("connect", () => {
+      logger.debug("New database connection established");
+    });
 
-  pool.on("remove", () => {
-    logger.debug("Database connection removed from pool");
-  });
+    pool.on("remove", () => {
+      logger.debug("Database connection removed from pool");
+    });
 
-  // Configure query timeout (30 seconds default)
-  neonConfig.fetchConnectionCache = true;
+    // Configure query timeout (30 seconds default)
+    neonConfig.fetchConnectionCache = true;
 
-  db = drizzleNeon({ client: pool, schema });
+    db = drizzleNeon({ client: pool, schema });
+  }
 }
 
 /**
@@ -73,6 +69,22 @@ if (isLocalMode) {
  */
 export function getDb() {
   if (!db) {
+    // Attempt lazy initialization if null
+    logger.warn("Database not initialized. Attempting lazy initialization...");
+    if (isLocalMode) {
+        try {
+            const dataPath = process.env.LOCAL_DATA_PATH || './local-data';
+            if (!fs.existsSync(dataPath)) {
+              fs.mkdirSync(dataPath, { recursive: true });
+            }
+            const dbPath = path.join(dataPath, 'cyberdocgen.db');
+            const sqlite = new Database(dbPath);
+            db = drizzleSqlite(sqlite, { schema });
+            return db;
+        } catch (error) {
+            throw new Error("Failed to lazily initialize SQLite: " + error);
+        }
+    }
     throw new Error("Database not initialized. Ensure connect() is called first.");
   }
   return db;
@@ -85,8 +97,8 @@ export { pool, db };
  */
 export async function testDatabaseConnection(): Promise<boolean> {
   if (!pool) {
-    // In local mode, providers handle database connection testing
-    return true;
+    // In local mode, if db is initialized, we assume it's working (file-based)
+    return !!db;
   }
 
   try {
