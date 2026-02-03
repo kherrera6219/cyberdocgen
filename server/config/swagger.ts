@@ -7,6 +7,8 @@
 
 import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
 // Swagger configuration needs to handle both ESM and CJS environments
 // When bundled as CJS, __dirname is already available.
 const actualDirname = typeof __dirname !== 'undefined' 

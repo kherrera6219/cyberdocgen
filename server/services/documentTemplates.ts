@@ -9,17 +9,17 @@ import {
   type TemplateGenerationResult,
   type SimpleTemplateVariableConfig
 } from '../validation/templateSchemas';
-import { DocumentTemplate, TemplateVariable } from './types';
+import type { DocumentTemplate, TemplateVariable } from './types';
 
 // Import Modularized Templates
-import { ISO27001Templates, AdditionalISO27001Templates, ExtendedISO27001Templates } from './documentTemplates/iso27001/index.ts';
-import { SOC2Templates, AdditionalSOC2OperationalTemplates, ExtendedSOC2Templates } from './documentTemplates/soc2/index.ts';
-import { FedRAMPLowTemplates, FedRAMPModerateTemplates, FedRAMPHighTemplates, FedRAMPCoreTemplates, FedRAMPAttachmentTemplates } from './documentTemplates/fedramp/index.ts';
-import { NISTTemplates } from './documentTemplates/nist/index.ts';
-import { OperationalTemplates, CertificationDocumentTemplates } from './documentTemplates/operational/index.ts';
+import { ISO27001Templates, AdditionalISO27001Templates, ExtendedISO27001Templates } from './documentTemplates/iso27001/index';
+import { SOC2Templates, AdditionalSOC2OperationalTemplates, ExtendedSOC2Templates } from './documentTemplates/soc2/index';
+import { FedRAMPLowTemplates, FedRAMPModerateTemplates, FedRAMPHighTemplates, FedRAMPCoreTemplates, FedRAMPAttachmentTemplates } from './documentTemplates/fedramp/index';
+import { NISTTemplates } from './documentTemplates/nist/index';
+import { OperationalTemplates, CertificationDocumentTemplates } from './documentTemplates/operational/index';
 
 // Re-export types for backward compatibility or external use
-export { DocumentTemplate, TemplateVariable };
+export type { DocumentTemplate, TemplateVariable };
 // Export individual template sets if needed (though usually accessed via service/AllDocumentTemplates)
 export { ISO27001Templates, AdditionalISO27001Templates, ExtendedISO27001Templates };
 export { SOC2Templates, AdditionalSOC2OperationalTemplates, ExtendedSOC2Templates };
