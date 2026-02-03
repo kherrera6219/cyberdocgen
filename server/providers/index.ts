@@ -35,13 +35,9 @@ export async function createProviders(): Promise<Providers> {
 async function createDbProvider() {
   const config = getRuntimeConfig();
   
-  if (config.database.type === 'sqlite') {
-    const { SqliteDbProvider } = await import('./db/sqlite');
-    return new SqliteDbProvider(config.database.filePath!);
-  }
-  
-  // Default: Postgres (cloud mode)
+  // Forcing the use of PostgresDbProvider for Google Cloud SQL.
   const { PostgresDbProvider } = await import('./db/postgres');
+  // The DATABASE_URL environment variable should be set to the Google Cloud SQL connection string.
   return new PostgresDbProvider(config.database.connection!);
 }
 

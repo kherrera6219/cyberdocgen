@@ -1,7 +1,7 @@
 import { type CompanyProfile } from "@shared/schema";
 /* eslint-env node */
 import { generateDocument as generateWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
-import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights } from "./anthropic";
+import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights, generateContentWithClaude } from "./anthropic";
 import { generateContentWithGemini, getGeminiClient } from "./gemini";
 import { aiGuardrailsService, type GuardrailCheckResult } from "./aiGuardrailsService";
 import { getOpenAIClient, getAnthropicClient } from "./aiClients";

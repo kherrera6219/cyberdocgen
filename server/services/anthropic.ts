@@ -188,8 +188,8 @@ Provide analysis in JSON format:
     const message = await getAnthropicClient().messages.create({
       max_tokens: 1000,
       messages: [
-        { 
-          role: 'user', 
+        {
+          role: 'user',
           content: systemPrompt
         }
       ],
@@ -206,7 +206,7 @@ Provide analysis in JSON format:
         priorityActions: insights.priorityActions || []
       };
     }
-    
+
     throw new Error('Unexpected response format from Claude');
   } catch (error) {
     logger.error("Error generating compliance insights:", error);
@@ -216,5 +216,30 @@ Provide analysis in JSON format:
       recommendations: ["Manual assessment recommended"],
       priorityActions: ["Contact compliance expert"]
     };
+  }
+}
+
+export async function generateContentWithClaude(prompt: string): Promise<string> {
+  try {
+    const message = await getAnthropicClient().messages.create({
+      max_tokens: 2000,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      model: DEFAULT_MODEL_STR,
+    });
+
+    const content = message.content[0];
+    if (content.type === 'text') {
+      return content.text;
+    }
+
+    throw new Error('Unexpected response format from Claude');
+  } catch (error) {
+    logger.error("Error generating content with Claude:", error);
+    throw new Error(`Failed to generate content with Claude: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

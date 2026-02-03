@@ -6,6 +6,8 @@
  */
 
 import type { IDbProvider, IDbConnection, IDbTransaction } from '../interfaces';
+import { logger } from '../../utils/logger';
+import { db, testDatabaseConnection, closeDatabaseConnections } from '../../db';
 
 export class PostgresDbProvider implements IDbProvider {
   private connectionString: string;
@@ -15,20 +17,19 @@ export class PostgresDbProvider implements IDbProvider {
   }
   
   async connect(): Promise<IDbConnection> {
-    // Will delegate to existing db.ts Drizzle setup
-    logger.debug('[PostgresDbProvider] Connecting to PostgreSQL...');
-    
-    // TODO(sprint-1): Integrate with existing db.ts connection
-    // For now, return a stub that will be replaced
+    // Connection is managed by the singleton db instance from db.ts
+    logger.debug('[PostgresDbProvider] Connection handled by db.ts');
     return {
       query: async <T>(sql: string, params?: any[]) => {
-        throw new Error('PostgresDbProvider.query() - Use existing db module');
+        // This is a compatibility layer. Use the Drizzle ORM directly.
+        return db.query(sql, params);
       },
       execute: async (sql: string, params?: any[]) => {
-        throw new Error('PostgresDbProvider.execute() - Use existing db module');
+        // This is a compatibility layer. Use the Drizzle ORM directly.
+        return db.execute(sql, params);
       },
       close: async () => {
-        logger.debug('[PostgresDbProvider] Connection closed');
+        // Closing is handled globally by closeDatabaseConnections
       },
     };
   }
@@ -40,7 +41,6 @@ export class PostgresDbProvider implements IDbProvider {
   
   async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
     // Delegate to existing Drizzle/Postgres setup
-    // This is a compatibility layer - actual queries use Drizzle ORM
     throw new Error('PostgresDbProvider.query() - Use Drizzle ORM directly');
   }
   
@@ -50,18 +50,13 @@ export class PostgresDbProvider implements IDbProvider {
   }
   
   async healthCheck(): Promise<boolean> {
-    // Will use existing databaseHealthService
-    try {
-      // TODO: Import and use databaseHealthService.checkHealth()
-      return true;
-    } catch (error) {
-      logger.error('[PostgresDbProvider] Health check failed:', error);
-      return false;
-    }
+    // Use the health check from db.ts
+    return await testDatabaseConnection();
   }
   
   async close(): Promise<void> {
     logger.debug('[PostgresDbProvider] Closing PostgreSQL connections');
-    // Pool cleanup handled by existing db.ts
+    // Pool cleanup handled by db.ts
+    await closeDatabaseConnections();
   }
 }

@@ -2,6 +2,7 @@
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { logger } from "../utils/logger";
 
 async function runMigration() {
   if (!process.env.DATABASE_URL) {

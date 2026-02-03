@@ -40,3 +40,4 @@ test_output.txt
 playwright-report/
 test-results/
 .playwright/
+gcloud-service-key.json

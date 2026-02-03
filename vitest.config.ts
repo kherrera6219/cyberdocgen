@@ -61,6 +61,9 @@ export default defineConfig({
           setupFiles: ["./tests/setup.ts"],
           globals: true,
         },
+        ssr: {
+            noExternal: ['html-encoding-sniffer', '@exodus/bytes', 'uuid'],
+        }
       },
       {
         plugins: [react()],

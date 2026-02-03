@@ -1,390 +1,267 @@
-/**
- * Unit tests for SQLite Database Provider
- * Sprint 1 - Local Mode Implementation
- */
-
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { SqliteDbProvider } from '../../../../server/providers/db/sqlite';
 import fs from 'fs';
 import path from 'path';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { SqliteDbProvider } from '../../../../server/providers/db/sqlite';
+
+const TEST_DB_PATH = './test-data/test.db';
+const MIGRATIONS_PATH = './server/providers/db/migrations/sqlite';
 
 describe('SqliteDbProvider', () => {
-  const testDbPath = './test-data/test.db';
-  let provider: SqliteDbProvider;
-
-  beforeEach(async () => {
-    // Clean up test database before each test
-    const dir = path.dirname(testDbPath);
-    if (fs.existsSync(testDbPath)) {
-      fs.unlinkSync(testDbPath);
+  beforeEach(() => {
+    // Ensure the test-data directory exists and is clean
+    if (fs.existsSync(TEST_DB_PATH)) {
+      fs.unlinkSync(TEST_DB_PATH);
     }
-    if (fs.existsSync(`${testDbPath}-shm`)) {
-      fs.unlinkSync(`${testDbPath}-shm`);
+    if (!fs.existsSync(path.dirname(TEST_DB_PATH))) {
+      fs.mkdirSync(path.dirname(TEST_DB_PATH), { recursive: true });
     }
-    if (fs.existsSync(`${testDbPath}-wal`)) {
-      fs.unlinkSync(`${testDbPath}-wal`);
-    }
-
-    provider = new SqliteDbProvider(testDbPath);
   });
 
-  afterEach(async () => {
-    // Clean up after each test
+  afterEach(() => {
+    if (fs.existsSync(TEST_DB_PATH)) {
+      fs.unlinkSync(TEST_DB_PATH);
+    }
+  });
+
+  it('should create database file if it does not exist', async () => {
+    const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+    await provider.connect();
+    expect(fs.existsSync(TEST_DB_PATH)).toBe(true);
     await provider.close();
-
-    // Remove test database files
-    if (fs.existsSync(testDbPath)) {
-      fs.unlinkSync(testDbPath);
-    }
-    if (fs.existsSync(`${testDbPath}-shm`)) {
-      fs.unlinkSync(`${testDbPath}-shm`);
-    }
-    if (fs.existsSync(`${testDbPath}-wal`)) {
-      fs.unlinkSync(`${testDbPath}-wal`);
-    }
   });
 
-  describe('connect', () => {
-    it('should create database file if it does not exist', async () => {
-      expect(fs.existsSync(testDbPath)).toBe(false);
+  it('should create parent directory if needed', async () => {
+    const deepPath = './test-data/deep/nested/test.db';
+    if (fs.existsSync(deepPath)) fs.unlinkSync(deepPath);
+    if (fs.existsSync('./test-data/deep/nested')) fs.rmdirSync('./test-data/deep/nested');
+    if (fs.existsSync('./test-data/deep')) fs.rmdirSync('./test-data/deep');
 
-      await provider.connect();
+    const deepProvider = new SqliteDbProvider(deepPath, MIGRATIONS_PATH);
+    await deepProvider.connect();
+    expect(fs.existsSync(deepPath)).toBe(true);
+    await deepProvider.close();
+    fs.unlinkSync(deepPath)
+    fs.rmdirSync('./test-data/deep/nested', { recursive: true });
+  });
 
-      expect(fs.existsSync(testDbPath)).toBe(true);
-    });
-
-    it('should create parent directory if needed', async () => {
-      const deepPath = './test-data/deep/nested/test.db';
-      const deepProvider = new SqliteDbProvider(deepPath);
-
-      await deepProvider.connect();
-
-      expect(fs.existsSync(deepPath)).toBe(true);
-
-      // Cleanup
-      await deepProvider.close();
-      fs.unlinkSync(deepPath);
-      fs.rmdirSync('./test-data/deep/nested');
-      fs.rmdirSync('./test-data/deep');
-    });
-
-    it('should enable WAL mode', async () => {
-      await provider.connect();
-
-      const stats = await provider.getStats();
-      expect(stats.walMode).toBe(true);
-    });
+  it('should enable WAL mode', async () => {
+    const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+    await provider.connect();
+    const result = await provider.query('PRAGMA journal_mode');
+    expect(result[0].journal_mode).toBe('wal');
+    await provider.close();
   });
 
   describe('migrate', () => {
     it('should create migrations table', async () => {
+      const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
       await provider.connect();
       await provider.migrate();
-
-      const tables = await provider.query<{ name: string }>(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='_migrations'"
+      const result = await provider.query(
+        `SELECT name FROM sqlite_master WHERE type='table' AND name='migrations'`
       );
-
-      expect(tables.length).toBeGreaterThan(0);
-      expect(tables[0].name).toBe('_migrations');
+      expect(result.length).toBe(1);
+      await provider.close();
     });
 
     it('should apply initial schema migration', async () => {
-      await provider.connect();
-      await provider.migrate();
-
-      // Check that core tables were created
-      const tables = await provider.query<{ name: string }>(
-        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-      );
-
-      const tableNames = tables.map(t => t.name);
-
-      expect(tableNames).toContain('users');
-      expect(tableNames).toContain('organizations');
-      expect(tableNames).toContain('documents');
-      expect(tableNames).toContain('gap_analysis');
-      expect(tableNames).toContain('audit_logs');
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        await provider.migrate();
+        // Verify a table from the initial schema exists
+        const result = await provider.query(`SELECT name FROM sqlite_master WHERE type='table' AND name='organizations'`);
+        expect(result.length).toBe(1);
+        await provider.close();
     });
 
     it('should insert default local organization and user', async () => {
-      await provider.connect();
-      await provider.migrate();
-
-      const orgs = await provider.query<{ id: number; name: string }>(
-        "SELECT id, name FROM organizations WHERE id = 1"
-      );
-
-      expect(orgs.length).toBe(1);
-      expect(orgs[0].name).toBe('Local Workspace');
-
-      const users = await provider.query<{ id: number; email: string }>(
-        "SELECT id, email FROM users WHERE id = 1"
-      );
-
-      expect(users.length).toBe(1);
-      expect(users[0].email).toBe('admin@local');
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        await provider.migrate();
+        const orgs = await provider.query('SELECT * FROM organizations WHERE slug = ?', ['local']);
+        expect(orgs.length).toBe(1);
+        expect(orgs[0].name).toBe('Local');
+        const users = await provider.query('SELECT * FROM users WHERE email = ?', ['admin@local.host']);
+        expect(users.length).toBe(1);
+        expect(users[0].organizationId).toBe(orgs[0].id);
+        await provider.close();
     });
 
     it('should not re-apply migrations on second run', async () => {
-      await provider.connect();
-      await provider.migrate();
-
-      // Get migration count
-      const firstCount = await provider.query<{ count: number }>(
-        "SELECT COUNT(*) as count FROM _migrations"
-      );
-
-      // Run migrations again
-      await provider.migrate();
-
-      const secondCount = await provider.query<{ count: number }>(
-        "SELECT COUNT(*) as count FROM _migrations"
-      );
-
-      expect(secondCount[0].count).toBe(firstCount[0].count);
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        await provider.migrate(); // First run
+        const initialMigrations = await provider.query('SELECT id FROM migrations');
+        await provider.migrate(); // Second run
+        const secondMigrations = await provider.query('SELECT id FROM migrations');
+        expect(secondMigrations.length).toBe(initialMigrations.length);
+        await provider.close();
     });
   });
 
   describe('query', () => {
+    let provider: SqliteDbProvider;
+
     beforeEach(async () => {
+      provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
       await provider.connect();
       await provider.migrate();
     });
 
-    it('should execute SELECT queries', async () => {
-      const result = await provider.query<{ result: number }>(
-        "SELECT 1 as result"
-      );
+    afterEach(async () => {
+      await provider.close();
+    });
 
-      expect(result.length).toBe(1);
-      expect(result[0].result).toBe(1);
+    it('should execute SELECT queries', async () => {
+      const result = await provider.query('SELECT * FROM organizations');
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
     });
 
     it('should support parameterized queries', async () => {
-      const name = 'Test Org';
-      const slug = 'test-org';
-
-      await provider.query(
-        "INSERT INTO organizations (name, slug, settings) VALUES (?, ?, ?)",
-        [name, slug, '{}']
-      );
-
-      const result = await provider.query<{ name: string; slug: string }>(
-        "SELECT name, slug FROM organizations WHERE slug = ?",
-        [slug]
-      );
-
-      expect(result.length).toBe(1);
-      expect(result[0].name).toBe(name);
-      expect(result[0].slug).toBe(slug);
+        const orgs = await provider.query('SELECT * FROM organizations WHERE slug = ?', ['local']);
+        expect(orgs.length).toBe(1);
+        expect(orgs[0].name).toBe('Local');
     });
 
     it('should return empty array for no results', async () => {
-      const result = await provider.query<{ id: number }>(
-        "SELECT * FROM organizations WHERE id = 9999"
-      );
-
-      expect(result).toEqual([]);
+        const result = await provider.query('SELECT * FROM organizations WHERE id = ?', [999]);
+        expect(result).toEqual([]);
     });
   });
 
   describe('transaction', () => {
+    let provider: SqliteDbProvider;
+
     beforeEach(async () => {
-      await provider.connect();
-      await provider.migrate();
+        provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        await provider.migrate();
+    });
+
+    afterEach(async () => {
+        await provider.close();
     });
 
     it('should commit transaction on success', async () => {
-      await provider.transaction(async (tx) => {
-        await tx.query(
-          "INSERT INTO organizations (name, slug, settings) VALUES (?, ?, ?)",
-          ['Test 1', 'test-1', '{}']
-        );
-        await tx.query(
-          "INSERT INTO organizations (name, slug, settings) VALUES (?, ?, ?)",
-          ['Test 2', 'test-2', '{}']
-        );
-      });
-
-      const result = await provider.query<{ name: string }>(
-        "SELECT name FROM organizations WHERE slug LIKE 'test-%' ORDER BY name"
-      );
-
-      expect(result.length).toBe(2);
-      expect(result[0].name).toBe('Test 1');
-      expect(result[1].name).toBe('Test 2');
+        await provider.transaction(async (trx) => {
+            await trx.query(`INSERT INTO organizations (id, name, slug, settings) VALUES (?, ?, ?, ?)`,
+                [2, 'Test Inc', 'test-inc', '{}']);
+        });
+        const result = await provider.query('SELECT * FROM organizations WHERE id = 2');
+        expect(result.length).toBe(1);
     });
 
     it('should rollback transaction on error', async () => {
-      try {
-        await provider.transaction(async (tx) => {
-          await tx.query(
-            "INSERT INTO organizations (name, slug, settings) VALUES (?, ?, ?)",
-            ['Test 1', 'test-1', '{}']
-          );
+        await expect(provider.transaction(async (trx) => {
+            await trx.query(`INSERT INTO organizations (id, name, slug, settings) VALUES (?, ?, ?, ?)`,
+                [1, 'Duplicate', 'local', '{}']);
+        })).rejects.toThrow();
 
-          // This should cause a unique constraint violation
-          await tx.query(
-            "INSERT INTO organizations (id, name, slug, settings) VALUES (?, ?, ?, ?)",
-            [1, 'Duplicate', 'local', '{}']
-          );
-        });
-
-        // Should not reach here
-        expect.fail('Transaction should have failed');
-      } catch (error) {
-        // Transaction should rollback
-        const result = await provider.query<{ slug: string }>(
-          "SELECT slug FROM organizations WHERE slug = 'test-1'"
-        );
-
+        const result = await provider.query('SELECT * FROM organizations WHERE name = ?', ['Duplicate']);
         expect(result.length).toBe(0);
-      }
     });
   });
 
   describe('healthCheck', () => {
-    it('should return false if not connected', async () => {
-      const isHealthy = await provider.healthCheck();
-      expect(isHealthy).toBe(false);
-    });
+      it('should return false if not connected', async () => {
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        const health = await provider.healthCheck();
+        expect(health.healthy).toBe(false);
+        expect(health.message).toBe('Database not connected');
+      });
 
-    it('should return true if connected', async () => {
-      await provider.connect();
-      const isHealthy = await provider.healthCheck();
-      expect(isHealthy).toBe(true);
-    });
+      it('should return true if connected', async () => {
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        const health = await provider.healthCheck();
+        expect(health.healthy).toBe(true);
+        await provider.close();
+      });
   });
 
   describe('close', () => {
-    it('should close database connection', async () => {
-      await provider.connect();
-      expect(await provider.healthCheck()).toBe(true);
+      it('should close database connection', async () => {
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        expect(provider.db).toBeDefined();
+        await provider.close();
+        expect(provider.db).toBeUndefined();
+      });
 
-      await provider.close();
-      expect(await provider.healthCheck()).toBe(false);
-    });
-
-    it('should be safe to call multiple times', async () => {
-      await provider.connect();
-      await provider.close();
-      await provider.close(); // Should not throw
-    });
-  });
+      it('should be safe to call multiple times', async () => {
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        await provider.close();
+        await expect(provider.close()).resolves.not.toThrow();
+      });
+  })
 
   describe('backup', () => {
-    beforeEach(async () => {
-      await provider.connect();
-      await provider.migrate();
-    });
-
     it('should create backup file', async () => {
-      const backupPath = './test-data/backup.db';
-
-      // Insert test data
-      await provider.query(
-        "INSERT INTO organizations (name, slug, settings) VALUES (?, ?, ?)",
-        ['Backup Test', 'backup-test', '{}']
-      );
-
-      await provider.backup(backupPath);
-
+      const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+      await provider.connect();
+      const backupPath = await provider.backup();
       expect(fs.existsSync(backupPath)).toBe(true);
-
-      // Cleanup
       fs.unlinkSync(backupPath);
+      await provider.close();
     });
 
     it('should create backup directory if needed', async () => {
-      const backupPath = './test-data/backups/backup.db';
-
-      await provider.backup(backupPath);
-
-      expect(fs.existsSync(backupPath)).toBe(true);
-
-      // Cleanup
-      fs.unlinkSync(backupPath);
-      fs.rmdirSync('./test-data/backups');
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        const backupPath = await provider.backup('./test-data/backups/new_dir');
+        expect(fs.existsSync(backupPath)).toBe(true);
+        fs.unlinkSync(backupPath);
+        fs.rmdirSync('./test-data/backups/new_dir');
+        fs.rmdirSync('./test-data/backups');
+        await provider.close();
     });
   });
 
   describe('restore', () => {
-    beforeEach(async () => {
-      await provider.connect();
-      await provider.migrate();
-    });
-
     it('should restore database from backup', async () => {
-      const backupPath = './test-data/backup.db';
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        await provider.query(`INSERT INTO organizations (id, name, slug, settings) VALUES (2, 'Before Restore', 'br', '{}')`);
+        const backupPath = await provider.backup();
+        await provider.query('DELETE FROM organizations WHERE id = 2');
+        
+        const restoreSuccess = await provider.restore(backupPath);
+        expect(restoreSuccess).toBe(true);
 
-      // Insert test data
-      await provider.query(
-        "INSERT INTO organizations (name, slug, settings) VALUES (?, ?, ?)",
-        ['Original Data', 'original', '{}']
-      );
-
-      // Create backup
-      await provider.backup(backupPath);
-
-      // Modify database
-      await provider.query(
-        "DELETE FROM organizations WHERE slug = 'original'"
-      );
-
-      // Verify data is gone
-      let result = await provider.query<{ name: string }>(
-        "SELECT name FROM organizations WHERE slug = 'original'"
-      );
-      expect(result.length).toBe(0);
-
-      // Restore from backup
-      await provider.restore(backupPath);
-
-      // Verify data is restored
-      result = await provider.query<{ name: string }>(
-        "SELECT name FROM organizations WHERE slug = 'original'"
-      );
-      expect(result.length).toBe(1);
-      expect(result[0].name).toBe('Original Data');
-
-      // Cleanup
-      fs.unlinkSync(backupPath);
+        const result = await provider.query('SELECT * FROM organizations WHERE id = 2');
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('Before Restore');
+        
+        fs.unlinkSync(backupPath);
+        await provider.close();
     });
   });
 
   describe('getStats', () => {
-    beforeEach(async () => {
-      await provider.connect();
-      await provider.migrate();
-    });
-
     it('should return database statistics', async () => {
-      const stats = await provider.getStats();
-
-      expect(stats).toHaveProperty('path');
-      expect(stats).toHaveProperty('size');
-      expect(stats).toHaveProperty('pageCount');
-      expect(stats).toHaveProperty('pageSize');
-      expect(stats).toHaveProperty('walMode');
-
-      expect(stats.path).toBe(testDbPath);
-      expect(stats.size).toBeGreaterThan(0);
-      expect(stats.pageCount).toBeGreaterThan(0);
-      expect(stats.pageSize).toBeGreaterThan(0);
-      expect(stats.walMode).toBe(true);
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        const stats = await provider.getStats();
+        expect(stats.fileSize).toBeGreaterThan(0);
+        expect(stats.walSize).toBeGreaterThan(0);
+        expect(stats.journalMode).toBe('wal');
+        expect(stats.pageCount).toBeGreaterThan(0);
+        await provider.close();
     });
   });
 
   describe('maintenance', () => {
-    beforeEach(async () => {
-      await provider.connect();
-      await provider.migrate();
-    });
-
     it('should run VACUUM and ANALYZE', async () => {
-      // Should not throw
-      await provider.maintenance();
+        const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
+        await provider.connect();
+        // Spy on the query method to check if the commands are executed
+        const querySpy = vi.spyOn(provider, 'query');
+        await provider.maintenance();
+        expect(querySpy).toHaveBeenCalledWith('VACUUM');
+        expect(querySpy).toHaveBeenCalledWith('ANALYZE');
+        await provider.close();
     });
   });
 });

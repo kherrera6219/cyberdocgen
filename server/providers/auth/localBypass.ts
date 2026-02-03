@@ -11,6 +11,7 @@
 
 import type { Request } from 'express';
 import type { IAuthProvider, AuthContext, User, Tenant } from '../interfaces';
+import { logger } from '../../utils/logger';
 
 /**
  * Synthetic user for local mode

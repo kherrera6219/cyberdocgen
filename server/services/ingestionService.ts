@@ -6,6 +6,7 @@ import { documentAnalysisService } from "./documentAnalysis";
 import { AppError } from "../utils/errorHandling";
 import { createHash } from "crypto";
 import * as path from "path";
+import { logger } from "../utils/logger";
 
 // Supported file types for ingestion
 const SUPPORTED_TYPES = ['.pdf', '.docx', '.xlsx', '.png', '.jpg', '.jpeg', '.txt'];
