@@ -22,6 +22,7 @@ export interface RuntimeConfig {
     type: 'postgres' | 'sqlite';
     connection?: string; // Postgres connection string
     filePath?: string;   // SQLite file path
+    migrationsPath?: string;
   };
   storage: {
     type: 'cloud' | 'local';
@@ -90,6 +91,7 @@ function buildCloudModeConfig(): RuntimeConfig {
     database: {
       type: 'postgres',
       connection: process.env.DATABASE_URL,
+      migrationsPath: 'server/migrations/postgres',
     },
     storage: {
       type: 'cloud',
@@ -134,6 +136,7 @@ function buildLocalModeConfig(): RuntimeConfig {
     database: {
       type: 'sqlite',
       filePath: `${userDataPath}/cyberdocgen.db`,
+      migrationsPath: 'server/migrations/sqlite',
     },
     storage: {
       type: 'local',

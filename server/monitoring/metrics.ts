@@ -161,6 +161,10 @@ class MetricsCollector {
       ? responseTimes.sort((a, b) => a - b)[Math.floor(responseTimes.length * 0.95)]
       : 0;
 
+    const serverErrors = Object.keys(this.metrics.requests.byStatus)
+      .filter(status => Number(status) >= 500)
+      .reduce((acc, status) => acc + this.metrics.requests.byStatus[Number(status)], 0);
+
     return {
       ...this.metrics,
       uptime,
@@ -169,7 +173,7 @@ class MetricsCollector {
         p95ResponseTime,
         requestsPerSecond: uptime > 0 ? (this.metrics.requests.total / uptime) : 0,
         errorRate: this.metrics.requests.total > 0 
-          ? ((this.metrics.requests.byStatus[500] || 0) / this.metrics.requests.total) * 100
+          ? (serverErrors / this.metrics.requests.total) * 100
           : 0,
         authFailureRate: this.metrics.security.authAttempts > 0
           ? (this.metrics.security.failedAuths / this.metrics.security.authAttempts) * 100

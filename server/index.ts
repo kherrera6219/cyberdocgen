@@ -45,6 +45,10 @@ const initializationPromise = (async () => {
   app.get('/health', healthCheckHandler);
   app.get('/ready', readinessCheckHandler);
   app.get('/live', livenessCheckHandler);
+  
+  app.get('/', (req, res) => {
+    res.status(200).send('Welcome to the API!');
+  });
 
   app.use((req: any, res: any, next: any) => {
     req.requestId = crypto.randomUUID();

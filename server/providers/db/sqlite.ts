@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
-import { IDbProvider, HealthCheck, QueryResult, DbStats } from './types';
-import { logger } from '../utils/logger';
+import { IDbProvider, HealthCheck, QueryResult, DbStats } from '../types';
+import { logger } from '../../utils/logger';
 
 export class SqliteDbProvider implements IDbProvider {
   private db: Database.Database | null = null;

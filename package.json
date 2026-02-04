@@ -5,9 +5,9 @@
   "main": "dist/electron/main.js",
   "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsx server/index.ts",
+    "dev": "cross-env DEPLOYMENT_MODE=cloud NODE_ENV=development tsx server/index.ts",
     "build": "vite build && node scripts/build-server.js",
-    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "test": "vitest",
