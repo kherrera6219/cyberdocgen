@@ -436,11 +436,13 @@ class DocumentWorkflowService {
         archive: `Document "${documentTitle}" has been archived`,
         restore: `Document "${documentTitle}" has been restored`,
       };
+      const messageMap = new Map(Object.entries(messages));
+      const notificationMessage = messageMap.get(action) || `Document "${documentTitle}" workflow updated`;
 
       await this.createNotification(
         triggeredBy,
         "document",
-        messages[action],
+        notificationMessage,
         documentId
       );
 

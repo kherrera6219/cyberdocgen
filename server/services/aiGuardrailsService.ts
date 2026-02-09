@@ -250,24 +250,23 @@ class AIGuardrailsService {
     const detectedTypes: string[] = [];
     let sanitized = text;
 
-    // PII pattern source strings (without flags) for fresh instantiation
-    const piiPatternSources: Record<string, string> = {
-      email: '\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b',
-      ssn: '\\b\\d{3}-\\d{2}-\\d{4}\\b',
-      credit_card: '\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b',
-      phone: '\\b(\\+\\d{1,2}\\s?)?((\\(\\d{3}\\)|\\d{3})[\\s.-]?\\d{3}[\\s.-]?\\d{4}|\\d{3}-\\d{4})\\b',
-      ip_address: '\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b',
-    };
+    const piiPatterns: Array<{ type: string; pattern: RegExp }> = [
+      { type: 'email', pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g },
+      { type: 'ssn', pattern: /\b\d{3}-\d{2}-\d{4}\b/g },
+      { type: 'credit_card', pattern: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g },
+      // eslint-disable-next-line security/detect-unsafe-regex -- bounded detection-only pattern
+      { type: 'phone', pattern: /\b(\+\d{1,2}\s?)?((\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}|\d{3}-\d{4})\b/g },
+      // eslint-disable-next-line security/detect-unsafe-regex -- bounded detection-only pattern
+      { type: 'ip_address', pattern: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g },
+    ];
 
-    // Detect and redact each PII type with fresh regex instances
-    for (const [type, patternSource] of Object.entries(piiPatternSources)) {
-      // Create fresh regex for detection
-      const detectPattern = new RegExp(patternSource, 'g');
-      if (detectPattern.test(text)) {
+    // Detect and redact each PII type.
+    for (const { type, pattern } of piiPatterns) {
+      pattern.lastIndex = 0;
+      if (pattern.test(text)) {
         detectedTypes.push(type);
-        // Create fresh regex for replacement
-        const replacePattern = new RegExp(patternSource, 'g');
-        sanitized = sanitized.replace(replacePattern, `[REDACTED_${type.toUpperCase()}]`);
+        pattern.lastIndex = 0;
+        sanitized = sanitized.replace(pattern, `[REDACTED_${type.toUpperCase()}]`);
       }
     }
 

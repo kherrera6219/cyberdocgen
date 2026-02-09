@@ -255,16 +255,16 @@ JSON Response:`;
         const parsed = JSON.parse(cleanedContent);
         const dataQuality = parsed.dataQuality || 'unknown';
         
-        const confidenceMap: Record<string, number> = {
-          'high': 0.9,
-          'medium': 0.6,
-          'low': 0.4,
-          'unknown': 0.2,
-        };
+        const confidenceMap = new Map<string, number>([
+          ['high', 0.9],
+          ['medium', 0.6],
+          ['low', 0.4],
+          ['unknown', 0.2],
+        ]);
 
         return {
           ...parsed,
-          confidence: confidenceMap[dataQuality] || 0.3,
+          confidence: confidenceMap.get(String(dataQuality)) || 0.3,
           source: 'research',
           extractedAt: new Date().toISOString(),
         };
@@ -285,33 +285,44 @@ JSON Response:`;
     existing: Partial<ExtractedCompanyData>,
     newData: ExtractedCompanyData
   ): ExtractedCompanyData {
-    const merged: ExtractedCompanyData = {
+    const mergedBase: Partial<ExtractedCompanyData> = {
       ...existing,
       confidence: Math.max(existing.confidence || 0, newData.confidence),
       source: newData.source,
       extractedAt: newData.extractedAt,
     };
+    const mergedMap = new Map<string, unknown>(Object.entries(mergedBase));
 
     for (const [key, value] of Object.entries(newData)) {
       if (value !== null && value !== undefined) {
-        const existingValue = (existing as any)[key];
+        const existingValue = mergedMap.get(key);
         
         if (!existingValue) {
-          (merged as any)[key] = value;
-        } else if (typeof value === 'object' && !Array.isArray(value)) {
-          (merged as any)[key] = { ...existingValue, ...value };
+          mergedMap.set(key, value);
+        } else if (
+          typeof value === 'object' &&
+          value !== null &&
+          !Array.isArray(value) &&
+          typeof existingValue === 'object' &&
+          existingValue !== null &&
+          !Array.isArray(existingValue)
+        ) {
+          mergedMap.set(key, {
+            ...(existingValue as Record<string, unknown>),
+            ...(value as Record<string, unknown>),
+          });
         } else if (Array.isArray(value) && Array.isArray(existingValue)) {
           const uniqueItems = new Map();
           [...existingValue, ...value].forEach(item => {
             const key = typeof item === 'object' ? JSON.stringify(item) : item;
             uniqueItems.set(key, item);
           });
-          (merged as any)[key] = Array.from(uniqueItems.values());
+          mergedMap.set(key, Array.from(uniqueItems.values()));
         }
       }
     }
 
-    return merged;
+    return Object.fromEntries(mergedMap) as unknown as ExtractedCompanyData;
   }
 
   private extractTextFromHtml(html: string): string {

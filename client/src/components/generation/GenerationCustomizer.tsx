@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,9 +100,11 @@ export function GenerationCustomizer({ framework, onGenerate, onCancel, isLoadin
   };
 
   const sections = frameworkSections[framework as keyof typeof frameworkSections] || [];
-  const selectedSections = form.watch("includeSections");
-  const complianceLevel = form.watch("complianceLevel");
-  const detailLevel = form.watch("detailLevel");
+  const selectedSections = useWatch({ control: form.control, name: "includeSections" }) || [];
+  const complianceLevel = useWatch({ control: form.control, name: "complianceLevel" });
+  const detailLevel = useWatch({ control: form.control, name: "detailLevel" });
+  const tone = useWatch({ control: form.control, name: "tone" });
+  const audience = useWatch({ control: form.control, name: "audience" });
 
   const getDetailLevelDescription = (level: string) => {
     switch (level) {
@@ -430,15 +432,15 @@ export function GenerationCustomizer({ framework, onGenerate, onCancel, isLoadin
                         </div>
                         <div>
                           <Label className="text-sm font-medium">Tone</Label>
-                          <p className="text-sm text-gray-600 capitalize">{form.watch("tone")}</p>
+                          <p className="text-sm text-gray-600 capitalize">{tone}</p>
                         </div>
                         <div>
                           <Label className="text-sm font-medium">Detail Level</Label>
-                          <p className="text-sm text-gray-600 capitalize">{form.watch("detailLevel")}</p>
+                          <p className="text-sm text-gray-600 capitalize">{detailLevel}</p>
                         </div>
                         <div>
                           <Label className="text-sm font-medium">Audience</Label>
-                          <p className="text-sm text-gray-600 capitalize">{form.watch("audience")}</p>
+                          <p className="text-sm text-gray-600 capitalize">{audience}</p>
                         </div>
                       </div>
                       

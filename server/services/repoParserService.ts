@@ -476,35 +476,35 @@ export class RepoParserService {
    * Detect programming language from file extension
    */
   private detectLanguage(fileName: string, ext: string): string | null {
-    const languageMap: Record<string, string> = {
-      '.js': 'JavaScript',
-      '.jsx': 'JavaScript',
-      '.ts': 'TypeScript',
-      '.tsx': 'TypeScript',
-      '.py': 'Python',
-      '.java': 'Java',
-      '.go': 'Go',
-      '.rb': 'Ruby',
-      '.php': 'PHP',
-      '.c': 'C',
-      '.cpp': 'C++',
-      '.cs': 'C#',
-      '.rs': 'Rust',
-      '.kt': 'Kotlin',
-      '.swift': 'Swift',
-      '.sql': 'SQL',
-      '.sh': 'Shell',
-      '.bash': 'Bash',
-      '.ps1': 'PowerShell',
-      '.yaml': 'YAML',
-      '.yml': 'YAML',
-      '.json': 'JSON',
-      '.xml': 'XML',
-      '.md': 'Markdown',
-      '.tf': 'Terraform',
-    };
+    const languageMap = new Map<string, string>([
+      ['.js', 'JavaScript'],
+      ['.jsx', 'JavaScript'],
+      ['.ts', 'TypeScript'],
+      ['.tsx', 'TypeScript'],
+      ['.py', 'Python'],
+      ['.java', 'Java'],
+      ['.go', 'Go'],
+      ['.rb', 'Ruby'],
+      ['.php', 'PHP'],
+      ['.c', 'C'],
+      ['.cpp', 'C++'],
+      ['.cs', 'C#'],
+      ['.rs', 'Rust'],
+      ['.kt', 'Kotlin'],
+      ['.swift', 'Swift'],
+      ['.sql', 'SQL'],
+      ['.sh', 'Shell'],
+      ['.bash', 'Bash'],
+      ['.ps1', 'PowerShell'],
+      ['.yaml', 'YAML'],
+      ['.yml', 'YAML'],
+      ['.json', 'JSON'],
+      ['.xml', 'XML'],
+      ['.md', 'Markdown'],
+      ['.tf', 'Terraform'],
+    ]);
 
-    return languageMap[ext] || null;
+    return languageMap.get(ext) || null;
   }
 
   /**

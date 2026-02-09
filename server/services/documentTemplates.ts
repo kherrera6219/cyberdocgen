@@ -39,18 +39,33 @@ export const AllDocumentTemplates: Record<string, DocumentTemplate[]> = {
   'Certification': CertificationDocumentTemplates
 };
 
+const TEMPLATE_PLACEHOLDER_OPEN = '{{';
+const TEMPLATE_PLACEHOLDER_CLOSE = '}}';
+
+const templateEntries = Object.entries(AllDocumentTemplates);
+
+function getTemplatesForFramework(framework: string): DocumentTemplate[] {
+  const match = templateEntries.find(([name]) => name === framework);
+  return match ? match[1] : [];
+}
+
+function replaceTemplateToken(content: string, key: string, value: string): string {
+  const token = `${TEMPLATE_PLACEHOLDER_OPEN}${key}${TEMPLATE_PLACEHOLDER_CLOSE}`;
+  return content.split(token).join(value);
+}
+
 // Template management functions
 export class DocumentTemplateService {
   
   // Get templates by framework
   static getTemplatesByFramework(framework: string): DocumentTemplate[] {
-    return AllDocumentTemplates[framework] || [];
+    return getTemplatesForFramework(framework);
   }
 
   // Get template by ID
   static getTemplateById(templateId: string): DocumentTemplate | null {
-    for (const framework in AllDocumentTemplates) {
-      const template = AllDocumentTemplates[framework].find(t => t.id === templateId);
+    for (const [, templates] of templateEntries) {
+      const template = templates.find(t => t.id === templateId);
       if (template) return template;
     }
     return null;
@@ -79,16 +94,18 @@ export class DocumentTemplateService {
     }
 
     const errors: string[] = [];
+    const providedVariables = new Map(Object.entries(variables));
     
     // Check if templateVariables exists
     if (template.templateVariables) {
       for (const [key, config] of Object.entries(template.templateVariables)) {
-        if (config.required && !variables[key]) {
+        const providedValue = providedVariables.get(key);
+        if (config.required && !providedValue) {
           errors.push(`Required variable '${config.label}' is missing`);
         }
         
-        if (variables[key] && config.type === 'select' && config.options) {
-          if (!config.options.includes(variables[key])) {
+        if (providedValue && config.type === 'select' && config.options) {
+          if (!config.options.includes(String(providedValue))) {
             errors.push(`Invalid value for '${config.label}'. Must be one of: ${config.options.join(', ')}`);
           }
         }
@@ -121,15 +138,14 @@ export class DocumentTemplateService {
     
     // Replace variables in content
     for (const [key, value] of Object.entries(variables)) {
-      const placeholder = new RegExp(`{{${key}}}`, 'g');
-      content = content.replace(placeholder, String(value));
+      content = replaceTemplateToken(content, key, String(value));
     }
 
     // Handle any remaining unfilled variables
     const remainingVars = content.match(/{{[\w_]+}}/g);
     if (remainingVars) {
       for (const remainingVar of remainingVars) {
-        content = content.replace(remainingVar, '[TO BE COMPLETED]');
+        content = content.split(remainingVar).join('[TO BE COMPLETED]');
       }
     }
 
@@ -148,23 +164,24 @@ export class DocumentTemplateService {
   } {
     let totalTemplates = 0;
     let requiredCount = 0;
-    const byFramework: Record<string, number> = {};
-    const byCategory: Record<string, number> = {};
+    const byFramework = new Map<string, number>();
+    const byCategory = new Map<string, number>();
 
     for (const [framework, templates] of Object.entries(AllDocumentTemplates)) {
-      byFramework[framework] = templates.length;
+      byFramework.set(framework, templates.length);
       totalTemplates += templates.length;
 
       templates.forEach(template => {
         if (template.required) requiredCount++;
-        byCategory[template.category] = (byCategory[template.category] || 0) + 1;
+        const categoryCount = byCategory.get(template.category) ?? 0;
+        byCategory.set(template.category, categoryCount + 1);
       });
     }
 
     return {
       totalTemplates,
-      byFramework,
-      byCategory,
+      byFramework: Object.fromEntries(byFramework),
+      byCategory: Object.fromEntries(byCategory),
       requiredCount
     };
   }
@@ -254,23 +271,23 @@ export class DocumentTemplateService {
     // Replace all variables with validated values
     for (const [key, value] of Object.entries(validatedVars)) {
       if (value !== undefined && value !== null) {
-        const placeholder = new RegExp(`{{${key}}}`, 'g');
-        content = content.replace(placeholder, String(value));
+        content = replaceTemplateToken(content, key, String(value));
       }
     }
 
     // Check for any remaining unfilled variables
     const warnings: string[] = [];
     const remainingVars = extractTemplateVariables(content);
+    const templateVariables = new Map(Object.entries(template.templateVariables ?? {}));
     if (remainingVars.length > 0) {
       for (const remainingVar of remainingVars) {
         // Safe access to templateVariables
-        const config = template.templateVariables ? template.templateVariables[remainingVar] : undefined;
+        const config = templateVariables.get(remainingVar);
         if (config && !config.required) {
           warnings.push(`Optional variable '${remainingVar}' was not provided`);
-          content = content.replace(new RegExp(`{{${remainingVar}}}`, 'g'), '[Not Specified]');
+          content = replaceTemplateToken(content, remainingVar, '[Not Specified]');
         } else {
-          content = content.replace(new RegExp(`{{${remainingVar}}}`, 'g'), '[TO BE COMPLETED]');
+          content = replaceTemplateToken(content, remainingVar, '[TO BE COMPLETED]');
         }
       }
     }

@@ -9,6 +9,7 @@ export type { DocumentTemplate };
 
 // Re-export frameworkTemplates from centralized documentTemplates service
 export const frameworkTemplates = AllDocumentTemplates;
+const frameworkTemplateMap = new Map(Object.entries(frameworkTemplates));
 
 export async function generateDocument(
   template: DocumentTemplate,
@@ -84,7 +85,7 @@ export async function generateComplianceDocuments(
   framework: string,
   onProgress?: (progress: number, current: string) => void
 ): Promise<string[]> {
-  const templates = frameworkTemplates[framework];
+  const templates = frameworkTemplateMap.get(framework);
   if (!templates) {
     throw new Error(`No templates found for framework: ${framework}`);
   }
@@ -92,8 +93,7 @@ export async function generateComplianceDocuments(
   const documents: string[] = [];
   const total = templates.length;
 
-  for (let i = 0; i < templates.length; i++) {
-    const template = templates[i];
+  for (const [i, template] of templates.entries()) {
     const progress = Math.round(((i + 1) / total) * 100);
     
     if (onProgress) {

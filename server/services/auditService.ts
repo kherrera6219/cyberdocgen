@@ -377,8 +377,21 @@ export class AuditService {
 
       // Risk stats
       const risk = (log.riskLevel as RiskLevel) || RiskLevel.LOW;
-      if (risk in stats.byRisk) {
-        stats.byRisk[risk]++;
+      switch (risk) {
+        case RiskLevel.LOW:
+          stats.byRisk[RiskLevel.LOW]++;
+          break;
+        case RiskLevel.MEDIUM:
+          stats.byRisk[RiskLevel.MEDIUM]++;
+          break;
+        case RiskLevel.HIGH:
+          stats.byRisk[RiskLevel.HIGH]++;
+          break;
+        case RiskLevel.CRITICAL:
+          stats.byRisk[RiskLevel.CRITICAL]++;
+          break;
+        default:
+          stats.byRisk[RiskLevel.LOW]++;
       }
     });
 

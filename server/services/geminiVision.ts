@@ -47,7 +47,9 @@ export async function analyzeImage(
         If there's text, extract it. If there's a diagram, explain it. Provide comprehensive analysis.`
     };
 
-    const analysisPrompt = systemPrompts[analysisType] + (prompt ? `\n\nAdditional context: ${prompt}` : '');
+    const promptMap = new Map<string, string>(Object.entries(systemPrompts));
+    const selectedPrompt = promptMap.get(analysisType) || systemPrompts.general;
+    const analysisPrompt = selectedPrompt + (prompt ? `\n\nAdditional context: ${prompt}` : '');
     
     let imageContent: { inlineData: { data: string; mimeType: string } };
     

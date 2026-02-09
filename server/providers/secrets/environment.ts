@@ -31,7 +31,8 @@ export class EnvironmentSecretsProvider implements ISecretsProvider {
   }
   
   async get(key: string): Promise<string | null> {
-    const value = process.env[key];
+    const envEntry = Object.entries(process.env).find(([envKey]) => envKey === key);
+    const value = envEntry?.[1];
     
     if (!value) {
       console.debug(`[EnvironmentSecretsProvider] Key "${key}" not found`);

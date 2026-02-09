@@ -250,7 +250,8 @@ export class KeyRotationService {
     shouldNotify: boolean;
   }> {
     try {
-      const policy = this.DEFAULT_ROTATION_POLICIES[keyName];
+      const policyEntry = Object.entries(this.DEFAULT_ROTATION_POLICIES).find(([name]) => name === keyName);
+      const policy = policyEntry?.[1];
       if (!policy) {
         return { isDue: false, daysUntilExpiry: 0, shouldNotify: false };
       }

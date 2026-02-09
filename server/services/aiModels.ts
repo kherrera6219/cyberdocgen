@@ -58,8 +58,10 @@ export const MODEL_SELECTION_STRATEGY = {
   },
 } as const;
 
+const modelStrategyMap = new Map(Object.entries(MODEL_SELECTION_STRATEGY));
+
 export const getOptimalModel = (taskType: keyof typeof MODEL_SELECTION_STRATEGY) => {
-  return MODEL_SELECTION_STRATEGY[taskType];
+  return modelStrategyMap.get(taskType);
 };
 
 export const getAllModels = () => AI_MODELS;

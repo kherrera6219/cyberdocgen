@@ -53,7 +53,7 @@ export interface SimpleTemplateVariableConfig {
 export function createDynamicVariableSchema(
   templateVariables: Record<string, SimpleTemplateVariableConfig>
 ): z.ZodObject<any> {
-  const schemaShape: Record<string, z.ZodTypeAny> = {};
+  const schemaEntries: Array<[string, z.ZodTypeAny]> = [];
 
   for (const [key, config] of Object.entries(templateVariables)) {
     let fieldSchema: z.ZodTypeAny;
@@ -98,10 +98,10 @@ export function createDynamicVariableSchema(
       fieldSchema = fieldSchema.optional();
     }
 
-    schemaShape[key] = fieldSchema;
+    schemaEntries.push([key, fieldSchema]);
   }
 
-  return z.object(schemaShape);
+  return z.object(Object.fromEntries(schemaEntries));
 }
 
 export const generateFromTemplateSchema = z.object({

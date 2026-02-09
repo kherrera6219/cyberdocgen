@@ -426,6 +426,7 @@ Provide 2-3 specific remediation recommendations in JSON format:
     const maturityLevel = Math.round(averageMaturity);
 
     const maturityLabels = ['', 'Initial', 'Developing', 'Defined', 'Managed', 'Optimizing'];
+    const maturityLabel = maturityLabels.at(maturityLevel) || 'Initial';
     
     return {
       id: '',
@@ -433,7 +434,7 @@ Provide 2-3 specific remediation recommendations in JSON format:
       framework: framework as any,
       maturityLevel,
       assessmentData: {
-        maturityLabel: maturityLabels[maturityLevel],
+        maturityLabel,
         averageScore: Math.round(averageMaturity * 20), // Convert to 0-100 scale
         controlsAssessed: findings.length,
         implementationBreakdown: {

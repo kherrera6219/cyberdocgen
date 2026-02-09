@@ -254,8 +254,7 @@ export class RepoAnalysisService {
       };
 
       // Execute phases sequentially
-      for (let i = 0; i < this.phases.length; i++) {
-        const phase = this.phases[i];
+      for (const [i, phase] of this.phases.entries()) {
         
         // Update phase status
         await this.updateRunStatus(runId, {

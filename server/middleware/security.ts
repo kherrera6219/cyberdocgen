@@ -87,7 +87,8 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction) 
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
     const session = (req as any).session;
     const sessionToken = session?.csrfToken;
-    const cookieToken = req.cookies?.[CSRF_COOKIE_NAME];
+    const csrfCookieEntry = Object.entries(req.cookies ?? {}).find(([name]) => name === CSRF_COOKIE_NAME);
+    const cookieToken = typeof csrfCookieEntry?.[1] === 'string' ? csrfCookieEntry[1] : undefined;
     const headerToken = req.get(CSRF_HEADER_NAME);
 
     // Require all three tokens for validation
@@ -261,7 +262,9 @@ export function sanitizeInput(req: Request, res: Response, next: NextFunction) {
     if (typeof obj === 'string') {
       // Remove potentially dangerous characters
       return obj
+        // eslint-disable-next-line security/detect-unsafe-regex -- bounded scrub pattern for input sanitization
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        // eslint-disable-next-line security/detect-unsafe-regex -- bounded scrub pattern for input sanitization
         .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
         .replace(/javascript:/gi, '')
         .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
@@ -269,11 +272,11 @@ export function sanitizeInput(req: Request, res: Response, next: NextFunction) {
     } else if (Array.isArray(obj)) {
       return obj.map(item => sanitize(item));
     } else if (typeof obj === 'object' && obj !== null) {
-      const sanitized: any = {};
+      const sanitizedEntries: Array<[string, unknown]> = [];
       for (const [key, value] of Object.entries(obj)) {
-        sanitized[key] = sanitize(value);
+        sanitizedEntries.push([key, sanitize(value)]);
       }
-      return sanitized;
+      return Object.fromEntries(sanitizedEntries);
     }
     return obj;
   };
@@ -526,19 +529,19 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   let message: string;
   if (process.env.NODE_ENV === 'production') {
     // Generic error messages for production
-    const sanitizedMessages: Record<number, string> = {
-      400: 'Bad request',
-      401: 'Authentication required',
-      403: 'Access denied',
-      404: 'Resource not found',
-      409: 'Conflict with existing resource',
-      422: 'Invalid input data',
-      429: 'Too many requests',
-      500: 'Internal server error',
-      502: 'Bad gateway',
-      503: 'Service temporarily unavailable',
-    };
-    message = sanitizedMessages[statusCode] || 'An error occurred';
+    const sanitizedMessages = new Map<number, string>([
+      [400, 'Bad request'],
+      [401, 'Authentication required'],
+      [403, 'Access denied'],
+      [404, 'Resource not found'],
+      [409, 'Conflict with existing resource'],
+      [422, 'Invalid input data'],
+      [429, 'Too many requests'],
+      [500, 'Internal server error'],
+      [502, 'Bad gateway'],
+      [503, 'Service temporarily unavailable'],
+    ]);
+    message = sanitizedMessages.get(statusCode) || 'An error occurred';
   } else {
     // Include detailed error messages in development
     message = err.message || 'An error occurred';

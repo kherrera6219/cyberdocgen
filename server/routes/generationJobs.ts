@@ -76,7 +76,8 @@ export function registerGenerateDocumentsRoutes(router: Router) {
       throw new NotFoundError("Company profile not found");
     }
 
-    const templates = frameworkTemplates[framework];
+    const frameworkTemplateMap = new Map(Object.entries(frameworkTemplates));
+    const templates = frameworkTemplateMap.get(framework);
     if (!templates) {
       throw new ValidationError(`Invalid framework: ${framework}`);
     }
@@ -113,9 +114,12 @@ export function registerGenerateDocumentsRoutes(router: Router) {
           }
         );
 
-        for (let i = 0; i < documents.length; i++) {
-          const template = templates[i];
-          const result = documents[i];
+        const templateQueue = [...templates];
+        for (const result of documents) {
+          const template = templateQueue.shift();
+          if (!template) {
+            break;
+          }
           
           await storage.createDocument({
             companyProfileId,

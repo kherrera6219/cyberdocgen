@@ -614,15 +614,14 @@ class ConnectorService {
         return value.map(redact);
       }
       if (value && typeof value === "object") {
-        const output: Record<string, any> = {};
-        for (const [key, fieldValue] of Object.entries(value)) {
+        const redactedEntries = Object.entries(value).map(([key, fieldValue]) => {
           if (secretKeys.some((secretKey) => key.toLowerCase().includes(secretKey))) {
-            output[key] = "********";
-          } else {
-            output[key] = redact(fieldValue);
+            return [key, "********"] as const;
           }
-        }
-        return output;
+
+          return [key, redact(fieldValue)] as const;
+        });
+        return Object.fromEntries(redactedEntries);
       }
       return value;
     };

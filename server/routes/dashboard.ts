@@ -52,25 +52,24 @@ export function registerDashboardRoutes(app: Router) {
     const frameworks = [...new Set(allDocs.map(d => d.framework))];
     
     // Calculate framework-specific stats
-    const frameworkStats: Record<string, { total: number; completed: number; progress: number }> = {};
+    const frameworkTargets = new Map<string, number>([
+      ['ISO27001', 14],
+      ['SOC2', 12],
+      ['FEDRAMP', 15],
+      ['NIST', 10],
+    ]);
+    const frameworkStatsEntries: Array<[string, { total: number; completed: number; progress: number }]> = [];
     
-    const frameworkTargets: Record<string, number> = {
-      'ISO27001': 14,
-      'SOC2': 12,
-      'FEDRAMP': 15,
-      'NIST': 10
-    };
-    
-    for (const framework of Object.keys(frameworkTargets)) {
+    for (const [framework, target] of frameworkTargets.entries()) {
       const frameworkDocs = allDocs.filter(d => d.framework === framework);
       const frameworkCompleted = frameworkDocs.filter(d => d.status === 'complete').length;
-      const target = (frameworkTargets as any)[framework];
-      frameworkStats[framework] = {
+      frameworkStatsEntries.push([framework, {
         total: frameworkDocs.length,
         completed: frameworkCompleted,
         progress: Math.round((frameworkCompleted / target) * 100)
-      };
+      }]);
     }
+    const frameworkStats = Object.fromEntries(frameworkStatsEntries) as Record<string, { total: number; completed: number; progress: number }>;
 
     // Get control statuses scoped to organization
     const controlStatuses = await db

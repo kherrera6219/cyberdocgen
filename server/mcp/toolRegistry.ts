@@ -120,7 +120,8 @@ class ToolRegistry {
       // Use circuit breaker for external tools
       if (tool.type === ToolType.EXTERNAL) {
         // Find matching breaker or use a generic one
-        const breaker = (circuitBreakers as any)[name] || circuitBreakers.openai; // Fallback to settings
+        const breakerMap = new Map<string, typeof circuitBreakers.openai>(Object.entries(circuitBreakers));
+        const breaker = breakerMap.get(name) || circuitBreakers.openai; // Fallback to settings
         result = await breaker.execute(() => tool.handler(params, context));
       } else {
         result = await tool.handler(params, context);

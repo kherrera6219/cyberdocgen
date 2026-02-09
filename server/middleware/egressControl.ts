@@ -179,9 +179,10 @@ export function egressControlMiddleware(options: EgressControlOptions = {}) {
     // Extract URLs from request body
     const urlFields = ['url', 'targetUrl', 'callbackUrl', 'webhookUrl', 'redirectUrl'];
     const body = req.body || {};
+    const bodyEntries = new Map<string, unknown>(Object.entries(body));
     
     for (const field of urlFields) {
-      const fieldValue = body[field];
+      const fieldValue = bodyEntries.get(field);
       if (fieldValue && typeof fieldValue === 'string') {
         const validation = validateUrl(fieldValue, options);
         

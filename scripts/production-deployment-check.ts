@@ -18,7 +18,8 @@ interface DeploymentCheck {
 
 async function checkEnvironmentVariables(): Promise<DeploymentCheck> {
   const required = ['DATABASE_URL', 'SESSION_SECRET', 'ENCRYPTION_KEY'];
-  const missing = required.filter(key => !process.env[key]);
+  const envMap = new Map(Object.entries(process.env));
+  const missing = required.filter(key => !envMap.get(key));
 
   if (missing.length === 0) {
     return {

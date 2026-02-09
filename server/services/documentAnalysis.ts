@@ -249,8 +249,8 @@ Keep the response focused and actionable.`;
     if (sectionStart === -1) return [];
     
     const bullets: string[] = [];
-    for (let i = sectionStart + 1; i < lines.length; i++) {
-      const line = lines[i].trim();
+    for (const rawLine of lines.slice(sectionStart + 1)) {
+      const line = rawLine.trim();
       if (line.startsWith('-') || line.startsWith('•') || line.startsWith('*')) {
         bullets.push(line.substring(1).trim());
       } else if (line === '' || bullets.length > 0) {

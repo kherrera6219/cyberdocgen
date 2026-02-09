@@ -198,14 +198,14 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
       .where(eq(frameworkControlStatuses.organizationId, organizationId));
 
     // Group by framework
-    const summary: Record<string, {
+    const summaryEntries: Array<[string, {
       total: number;
       implemented: number;
       inProgress: number;
       notStarted: number;
       notApplicable: number;
       progress: number;
-    }> = {};
+    }]> = [];
 
     const frameworks = ['iso27001', 'soc2', 'fedramp', 'nist'];
     
@@ -217,15 +217,16 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
       const notApplicable = fwStatuses.filter(s => s.status === 'not_applicable').length;
       const applicable = fwStatuses.length - notApplicable;
       
-      summary[fw] = {
+      summaryEntries.push([fw, {
         total: fwStatuses.length,
         implemented,
         inProgress,
         notStarted,
         notApplicable,
         progress: applicable > 0 ? Math.round((implemented / applicable) * 100) : 0
-      };
+      }]);
     }
+    const summary = Object.fromEntries(summaryEntries);
 
     res.json({
       success: true,

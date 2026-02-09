@@ -261,32 +261,32 @@ export class LocalFsStorageProvider implements IStorageProvider {
    * Get MIME type from file extension
    */
   private getContentTypeFromExtension(ext: string): string {
-    const mimeTypes: Record<string, string> = {
-      '.txt': 'text/plain',
-      '.pdf': 'application/pdf',
-      '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      '.xls': 'application/vnd.ms-excel',
-      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      '.ppt': 'application/vnd.ms-powerpoint',
-      '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      '.json': 'application/json',
-      '.xml': 'application/xml',
-      '.csv': 'text/csv',
-      '.md': 'text/markdown',
-      '.html': 'text/html',
-      '.htm': 'text/html',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.gif': 'image/gif',
-      '.svg': 'image/svg+xml',
-      '.zip': 'application/zip',
-      '.tar': 'application/x-tar',
-      '.gz': 'application/gzip',
-    };
+    const mimeTypes = new Map<string, string>([
+      ['.txt', 'text/plain'],
+      ['.pdf', 'application/pdf'],
+      ['.doc', 'application/msword'],
+      ['.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      ['.xls', 'application/vnd.ms-excel'],
+      ['.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+      ['.ppt', 'application/vnd.ms-powerpoint'],
+      ['.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+      ['.json', 'application/json'],
+      ['.xml', 'application/xml'],
+      ['.csv', 'text/csv'],
+      ['.md', 'text/markdown'],
+      ['.html', 'text/html'],
+      ['.htm', 'text/html'],
+      ['.jpg', 'image/jpeg'],
+      ['.jpeg', 'image/jpeg'],
+      ['.png', 'image/png'],
+      ['.gif', 'image/gif'],
+      ['.svg', 'image/svg+xml'],
+      ['.zip', 'application/zip'],
+      ['.tar', 'application/x-tar'],
+      ['.gz', 'application/gzip'],
+    ]);
 
-    return mimeTypes[ext] || 'application/octet-stream';
+    return mimeTypes.get(ext) || 'application/octet-stream';
   }
 
   /**

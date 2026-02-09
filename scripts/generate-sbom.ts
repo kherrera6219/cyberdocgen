@@ -274,13 +274,14 @@ class SBOMGenerator {
 `;
 
     // Count licenses
-    const licenseCounts: Record<string, number> = {};
+    const licenseCounts = new Map<string, number>();
     dependencies.forEach((pkg) => {
       const license = pkg.license || "Unknown";
-      licenseCounts[license] = (licenseCounts[license] || 0) + 1;
+      const currentCount = licenseCounts.get(license) || 0;
+      licenseCounts.set(license, currentCount + 1);
     });
 
-    Object.entries(licenseCounts)
+    Array.from(licenseCounts.entries())
       .sort((a, b) => b[1] - a[1])
       .forEach(([license, count]) => {
         summary += `- ${license}: ${count} packages\n`;

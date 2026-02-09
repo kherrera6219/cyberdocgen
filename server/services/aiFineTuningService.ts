@@ -128,6 +128,8 @@ const INDUSTRY_CONFIGURATIONS: Record<string, IndustryConfig> = {
   }
 };
 
+const industryConfigurationMap = new Map(Object.entries(INDUSTRY_CONFIGURATIONS));
+
 export class AIFineTuningService {
   private getOpenAI(): OpenAI {
     return getOpenAIClient();
@@ -141,14 +143,14 @@ export class AIFineTuningService {
    * Get available industry configurations
    */
   getIndustryConfigurations(): IndustryConfig[] {
-    return Object.values(INDUSTRY_CONFIGURATIONS);
+    return Array.from(industryConfigurationMap.values());
   }
 
   /**
    * Get specific industry configuration
    */
   getIndustryConfiguration(industryId: string): IndustryConfig | null {
-    return INDUSTRY_CONFIGURATIONS[industryId] || null;
+    return industryConfigurationMap.get(industryId) || null;
   }
 
   /**
@@ -300,24 +302,24 @@ Respond in JSON format:
     baseConfig: IndustryConfig,
     request: FineTuningRequest
   ): Promise<Record<string, string>> {
-    const customPrompts: Record<string, string> = { ...baseConfig.customPrompts };
+    const customPromptMap = new Map(Object.entries(baseConfig.customPrompts));
 
     if (request.customInstructions) {
       // Enhance prompts with custom instructions
-      Object.keys(customPrompts).forEach(key => {
-        customPrompts[key] += `\n\nAdditional Requirements: ${request.customInstructions}`;
+      customPromptMap.forEach((prompt, key) => {
+        customPromptMap.set(key, `${prompt}\n\nAdditional Requirements: ${request.customInstructions}`);
       });
     }
 
     if (request.requirements.length > 0) {
       // Add specific requirements to prompts
       const requirementContext = request.requirements.join(', ');
-      Object.keys(customPrompts).forEach(key => {
-        customPrompts[key] += `\n\nSpecific Requirements: ${requirementContext}`;
+      customPromptMap.forEach((prompt, key) => {
+        customPromptMap.set(key, `${prompt}\n\nSpecific Requirements: ${requirementContext}`);
       });
     }
 
-    return customPrompts;
+    return Object.fromEntries(customPromptMap);
   }
 
   /**

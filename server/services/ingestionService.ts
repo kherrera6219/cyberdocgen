@@ -130,16 +130,16 @@ export class IngestionService {
    * Helper to get MIME type
    */
   private getMimeType(ext: string): string {
-    const map: Record<string, string> = {
-      '.pdf': 'application/pdf',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.txt': 'text/plain'
-    };
-    return map[ext] || 'application/octet-stream';
+    const mimeTypeMap = new Map<string, string>([
+      ['.pdf', 'application/pdf'],
+      ['.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      ['.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+      ['.png', 'image/png'],
+      ['.jpg', 'image/jpeg'],
+      ['.jpeg', 'image/jpeg'],
+      ['.txt', 'text/plain'],
+    ]);
+    return mimeTypeMap.get(ext) || 'application/octet-stream';
   }
 }
 

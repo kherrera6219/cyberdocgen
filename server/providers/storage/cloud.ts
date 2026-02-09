@@ -45,22 +45,22 @@ export class CloudStorageProvider implements IStorageProvider {
 
   private getContentType(filePath: string): string {
     const ext = path.posix.extname(filePath).toLowerCase();
-    const mimeMap: Record<string, string> = {
-      '.json': 'application/json',
-      '.pdf': 'application/pdf',
-      '.txt': 'text/plain',
-      '.md': 'text/markdown',
-      '.csv': 'text/csv',
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.webp': 'image/webp',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      '.zip': 'application/zip',
-    };
+    const mimeMap = new Map<string, string>([
+      ['.json', 'application/json'],
+      ['.pdf', 'application/pdf'],
+      ['.txt', 'text/plain'],
+      ['.md', 'text/markdown'],
+      ['.csv', 'text/csv'],
+      ['.png', 'image/png'],
+      ['.jpg', 'image/jpeg'],
+      ['.jpeg', 'image/jpeg'],
+      ['.webp', 'image/webp'],
+      ['.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      ['.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+      ['.zip', 'application/zip'],
+    ]);
 
-    return mimeMap[ext] || 'application/octet-stream';
+    return mimeMap.get(ext) || 'application/octet-stream';
   }
 
   async save(

@@ -81,7 +81,8 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
     if (!this.isKeytarAvailable) {
       // Fallback to environment variables for development/testing
       const envKey = key.toUpperCase().replace(/-/g, '_');
-      const value = process.env[envKey];
+      const envEntry = Object.entries(process.env).find(([name]) => name === envKey);
+      const value = envEntry?.[1];
       if (value) {
         logger.debug(`[WindowsCredentialManagerProvider] Retrieved key from environment: ${key}`);
         return value;

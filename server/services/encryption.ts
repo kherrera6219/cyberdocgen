@@ -216,20 +216,27 @@ export async function decrypt(encryptedData: string | EncryptedData): Promise<st
  * Encrypt sensitive company profile data
  */
 export async function encryptCompanyProfile(profile: any): Promise<any> {
-  const sensitiveFields = [
-    'taxId', 'ssn', 'bankAccount', 'routingNumber',
-    'apiKey', 'apiKeys', 'credentials', 'financialData', 'encryptionKey'
-  ];
-
-  const encrypted = { ...profile };
-
-  for (const field of sensitiveFields) {
-    if (encrypted[field]) {
-      encrypted[field] = await encrypt(encrypted[field]);
-    }
+  if (!profile || typeof profile !== 'object') {
+    return profile;
   }
 
-  return encrypted;
+  const sensitiveFields = new Set([
+    'taxId', 'ssn', 'bankAccount', 'routingNumber',
+    'apiKey', 'apiKeys', 'credentials', 'financialData', 'encryptionKey'
+  ]);
+
+  const encryptedEntries = await Promise.all(
+    Object.entries(profile).map(async ([field, value]) => {
+      if (sensitiveFields.has(field) && value !== undefined && value !== null) {
+        const plainValue = typeof value === 'string' ? value : String(value);
+        return [field, await encrypt(plainValue)] as const;
+      }
+
+      return [field, value] as const;
+    })
+  );
+
+  return Object.fromEntries(encryptedEntries);
 }
 
 /**
@@ -247,15 +254,17 @@ export async function encryptDataAtRest(data: any, dataType: string): Promise<an
   };
 
   if (typeof data === 'object' && !Array.isArray(data)) {
-    const encrypted = { ...data };
+    const encryptedEntries = await Promise.all(
+      Object.entries(data).map(async ([key, value]) => {
+        if (typeof value === 'string' && shouldEncryptField(key, dataType)) {
+          return [key, await encrypt(value)] as const;
+        }
 
-    for (const [key, value] of Object.entries(data)) {
-      if (typeof value === 'string' && shouldEncryptField(key, dataType)) {
-        encrypted[key] = await encrypt(value);
-      }
-    }
+        return [key, value] as const;
+      })
+    );
 
-    return { ...encrypted, _encryption: encryptionMetadata };
+    return { ...Object.fromEntries(encryptedEntries), _encryption: encryptionMetadata };
   }
 
   if (typeof data === 'string') {
@@ -274,28 +283,31 @@ export async function encryptDataAtRest(data: any, dataType: string): Promise<an
 export async function decryptDataAtRest(data: any): Promise<any> {
   if (!data || !data._encryption) return data;
 
-  const decrypted = { ...data };
-  delete decrypted._encryption;
-
   if (data.encryptedValue) {
     return await decrypt(data.encryptedValue);
   }
 
-  for (const [key, value] of Object.entries(decrypted)) {
-    if (key !== '_encryption') {
-      try {
-        if (typeof value === 'string') {
-          decrypted[key] = await decrypt(value);
-        } else if (typeof value === 'object' && value !== null && 'encryptedValue' in value) {
-           decrypted[key] = await decrypt(value as EncryptedData);
-        }
-      } catch {
-        decrypted[key] = value;
-      }
-    }
-  }
+  const decryptedEntries = await Promise.all(
+    Object.entries(data)
+      .filter(([key]) => key !== '_encryption')
+      .map(async ([key, value]) => {
+        try {
+          if (typeof value === 'string') {
+            return [key, await decrypt(value)] as const;
+          }
 
-  return decrypted;
+          if (typeof value === 'object' && value !== null && 'encryptedValue' in value) {
+            return [key, await decrypt(value as EncryptedData)] as const;
+          }
+        } catch {
+          // Keep original value when decryption fails.
+        }
+
+        return [key, value] as const;
+      })
+  );
+
+  return Object.fromEntries(decryptedEntries);
 }
 
 /**

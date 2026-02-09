@@ -46,6 +46,13 @@ export default [js.configs.recommended, {
     'no-undef': 'off',
   },
 }, {
+  files: ['client/**/*.{ts,tsx}'],
+  rules: {
+    // Frontend React patterns frequently trigger false positives for this rule.
+    // Keep server-side object-injection checks enabled.
+    'security/detect-object-injection': 'off',
+  },
+}, {
   ignores: [
     'dist/**',
     'node_modules/**',

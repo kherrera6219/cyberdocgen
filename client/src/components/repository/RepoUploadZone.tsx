@@ -32,7 +32,7 @@ export function RepoUploadZone({
   const [success, setSuccess] = useState(false);
   const [repoName, setRepoName] = useState('');
 
-  const validateFile = (file: File): string | null => {
+  const validateFile = useCallback((file: File): string | null => {
     if (!file.name.endsWith('.zip')) {
       return 'Only .zip files are allowed';
     }
@@ -41,7 +41,7 @@ export function RepoUploadZone({
       return `File size exceeds ${maxSize}MB limit`;
     }
     return null;
-  };
+  }, [maxSize]);
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -77,7 +77,7 @@ export function RepoUploadZone({
         setIsUploading(false);
       }
     },
-    [onUpload, organizationId, companyProfileId, repoName, maxSize]
+    [onUpload, organizationId, companyProfileId, repoName, validateFile]
   );
 
   const handleDrop = useCallback(

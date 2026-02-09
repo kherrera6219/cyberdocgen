@@ -64,7 +64,11 @@ const onLimitReached = (tier: string, req: Request) => {
 };
 
 function createRateLimiter(tier: keyof typeof rateLimitConfigs) {
-  const config = rateLimitConfigs[tier];
+  const configMap = new Map(Object.entries(rateLimitConfigs));
+  const config = configMap.get(tier);
+  if (!config) {
+    throw new Error(`Unknown rate limiter tier: ${tier}`);
+  }
   
   return rateLimit({
     windowMs: config.windowMs,

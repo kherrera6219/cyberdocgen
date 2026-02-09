@@ -741,8 +741,7 @@ export class CodeSignalDetectorService {
     const matches: Array<{ text: string; lineNumber: number }> = [];
     const lines = content.split('\n');
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+    for (const [i, line] of lines.entries()) {
       for (const pattern of patterns) {
         if (pattern.test(line)) {
           matches.push({

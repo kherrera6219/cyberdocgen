@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -147,7 +147,6 @@ export default function AIDocGenerator() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [jobId, setJobId] = useState<string | null>(null);
-  const [generatedDocs, setGeneratedDocs] = useState<GeneratedDocument[]>([]);
   const [selectedDoc, setSelectedDoc] = useState<GeneratedDocument | null>(null);
 
   const form = useForm<FormData>({
@@ -166,7 +165,7 @@ export default function AIDocGenerator() {
     },
   });
 
-  const watchedFrameworks = form.watch("frameworks");
+  const watchedFrameworks = useWatch({ control: form.control, name: "frameworks" }) || [];
 
   const { data: jobStatus } = useQuery<GenerationJob>({
     queryKey: ["/api/ai/generation-jobs", jobId],
@@ -174,6 +173,14 @@ export default function AIDocGenerator() {
     refetchInterval: (query) => {
       if (!query.state.data) return 2000;
       return query.state.data.status === "running" ? 2000 : false;
+    },
+  });
+  const { data: generatedDocs = [] } = useQuery<GeneratedDocument[]>({
+    queryKey: ["/api/documents", "ai-generated", jobId],
+    enabled: !!jobId && jobStatus?.status === "completed",
+    queryFn: async () => {
+      const docs = await apiRequest("/api/documents?aiGenerated=true");
+      return docs.slice(-10);
     },
   });
 
@@ -214,22 +221,6 @@ export default function AIDocGenerator() {
       });
     },
   });
-
-  useEffect(() => {
-    if (jobStatus?.status === "completed") {
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
-      fetchGeneratedDocs();
-    }
-  }, [jobStatus?.status]);
-
-  const fetchGeneratedDocs = async () => {
-    try {
-      const docs = await apiRequest("/api/documents?aiGenerated=true");
-      setGeneratedDocs(docs.slice(-10));
-    } catch (error) {
-      logger.error("Failed to fetch documents:", error);
-    }
-  };
 
   const nextStep = async () => {
     let fieldsToValidate: (keyof FormData)[] = [];
@@ -950,7 +941,6 @@ export default function AIDocGenerator() {
                   onClick={() => {
                     setCurrentStep(1);
                     setJobId(null);
-                    setGeneratedDocs([]);
                     form.reset();
                   }}
                   data-testid="button-generate-more"

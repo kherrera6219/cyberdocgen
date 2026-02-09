@@ -362,9 +362,12 @@ Provide a helpful, actionable response.`;
       ]
     };
 
-    return framework && framework in frameworkQuestions 
-      ? frameworkQuestions[framework]
-      : baseQuestions;
+    if (!framework) {
+      return baseQuestions;
+    }
+
+    const frameworkQuestionMap = new Map<string, string[]>(Object.entries(frameworkQuestions));
+    return frameworkQuestionMap.get(framework) || baseQuestions;
   }
 }
 

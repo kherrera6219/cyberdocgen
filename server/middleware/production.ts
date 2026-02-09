@@ -13,18 +13,18 @@ export function sanitizeError(error: any): { message: string; code?: string } {
   }
 
   // In production, only expose safe error messages
-  const safeErrors: Record<string, string> = {
-    'ValidationError': 'Invalid input data',
-    'UnauthorizedError': 'Authentication required',
-    'ForbiddenError': 'Access denied',
-    'NotFoundError': 'Resource not found',
-    'ConflictError': 'Resource already exists',
-    'RateLimitError': 'Too many requests',
-  };
+  const safeErrors = new Map<string, string>([
+    ['ValidationError', 'Invalid input data'],
+    ['UnauthorizedError', 'Authentication required'],
+    ['ForbiddenError', 'Access denied'],
+    ['NotFoundError', 'Resource not found'],
+    ['ConflictError', 'Resource already exists'],
+    ['RateLimitError', 'Too many requests'],
+  ]);
 
   const errorType = error.constructor.name;
   return {
-    message: safeErrors[errorType] || 'Internal server error',
+    message: safeErrors.get(errorType) || 'Internal server error',
     code: error.code && ['VALIDATION_ERROR', 'AUTH_ERROR'].includes(error.code) ? error.code : undefined,
   };
 }

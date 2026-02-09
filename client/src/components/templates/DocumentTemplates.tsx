@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
@@ -94,6 +94,7 @@ export function DocumentTemplates({
       variables: [],
     },
   });
+  const watchedVariables = useWatch({ control: form.control, name: "variables" }) || [];
 
   // Fetch templates
   const { data: templates = [], isLoading } = useQuery<DocumentTemplate[]>({
@@ -398,11 +399,11 @@ This procedure defines the process for managing user access to {COMPANY_NAME}'s 
                     )}
                   />
 
-                  {form.watch("variables").length > 0 && (
+                  {watchedVariables.length > 0 && (
                     <div>
                       <FormLabel>Detected Variables</FormLabel>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {form.watch("variables").map((variable, index) => (
+                        {watchedVariables.map((variable, index) => (
                           <Badge key={index} variant="outline">
                             {variable}
                           </Badge>

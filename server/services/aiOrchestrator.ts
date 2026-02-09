@@ -258,7 +258,8 @@ export class AIOrchestrator {
 
     // Use actual templates if available, otherwise fallback for tests
     const templateSource = frameworkTemplates || fallbackFrameworkTemplates;
-    const templates = templateSource[framework];
+    const templateSourceMap = new Map(Object.entries(templateSource));
+    const templates = templateSourceMap.get(framework);
     if (!templates) {
       throw new Error(`No templates found for framework: ${framework}`);
     }
@@ -266,8 +267,7 @@ export class AIOrchestrator {
     const results: DocumentGenerationResult[] = [];
     const total = templates.length;
     
-    for (let i = 0; i < templates.length; i++) {
-      const template = templates[i];
+    for (const [i, template] of templates.entries()) {
       const progress = Math.round(((i + 1) / total) * 100);
       
       if (onProgress) {

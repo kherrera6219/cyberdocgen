@@ -104,7 +104,8 @@ export function registerFrameworksRoutes(router: Router) {
 
     const documents = await storage.getDocumentsByCompanyProfile(companyProfileId as string);
     const frameworkDocs = documents.filter(doc => doc.framework === framework);
-    const templates = (frameworkTemplates as Record<string, any[]>)[framework] || [];
+    const templateMap = new Map<string, any[]>(Object.entries(frameworkTemplates as Record<string, any[]>));
+    const templates = templateMap.get(framework) || [];
     
     const completedDocs = frameworkDocs.filter(doc => doc.status === 'complete').length;
     const totalDocs = templates.length;

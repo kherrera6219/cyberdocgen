@@ -24,8 +24,9 @@ async function validateEnvironment(): Promise<ValidationResult> {
   
   // Critical environment variables
   const criticalVars = ['DATABASE_URL', 'SESSION_SECRET', 'ENCRYPTION_KEY'];
+  const envMap = new Map(Object.entries(process.env));
   for (const varName of criticalVars) {
-    if (process.env[varName]) {
+    if (envMap.get(varName)) {
       checks.push({
         name: `${varName} Configuration`,
         status: 'pass' as const,

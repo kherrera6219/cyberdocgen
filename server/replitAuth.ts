@@ -299,7 +299,8 @@ export function requirePermission(permission: string): RequestHandler {
           return false; // Invalid permissions JSON, skip this role
         }
         
-        return permissions[permission] === true;
+        const permissionMap = new Map<string, boolean>(Object.entries(permissions));
+        return permissionMap.get(permission) === true;
       });
 
       if (!hasPermission) {

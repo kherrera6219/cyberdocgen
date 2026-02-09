@@ -38,10 +38,10 @@
 
 ## Latest Updates
 
-**February 8, 2026 - Operational Sweep (Production Candidate):**
+**February 9, 2026 - Operational Sweep (Production Candidate):**
 
-- ✅ **Core Gates Passing** - `check`, `lint` (warnings only), `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`
-- ✅ **Release Evidence Archived** - see `docs/project-analysis/evidence/20260208-130320/`
+- ✅ **Core Gates Passing** - `check`, `lint` (0 warnings), `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`
+- ✅ **Release Evidence Archived** - see `docs/project-analysis/evidence/20260208-130320/` and `docs/project-analysis/evidence/20260208-203122/`
 - ✅ **Connector Runtime Hardening** - SharePoint/Jira/Notion connector adapter flows implemented and tested
 - ⚠️ **Dev Toolchain Advisory Accepted with Controls** - see `docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`
 
@@ -129,7 +129,7 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 - 🔒 **Security-First** - MFA, encryption, threat detection, and comprehensive security measures
 - ☁️ **Cloud-Integrated** - Google Drive and Microsoft OneDrive connectivity
 - 📊 **Compliance Frameworks** - ISO 27001:2022, SOC 2, FedRAMP, NIST 800-53 Rev 5
-- 🚀 **Production Candidate** - Comprehensive testing, monitoring, and deployment tooling with final sign-off evidence in progress
+- 🚀 **Production Candidate** - Comprehensive testing, monitoring, and deployment tooling with Windows/cloud sign-off evidence in progress
 
 ## Features
 
@@ -212,7 +212,7 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ## Quick Start
 
-> **✅ Production Candidate:** Core release gates are passing with final sign-off evidence and warning burn-down in progress. Follow the setup steps below to run locally.
+> **✅ Production Candidate:** Core release gates are passing with lint warning burn-down complete. Follow the setup steps below to run locally.
 
 ### Prerequisites
 
@@ -414,7 +414,7 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
 - **Single Source of Truth**: All active development is consolidated on the `main` branch so downstream branches can be safely deleted after merging.
 - **Feature Branches Only for Work-In-Progress**: Create short-lived feature branches from `main` and open pull requests back to `main`.
-- **Quality Gate Visibility**: `npm run check`, `npm run test:run`, and `npm run build` are currently passing; lint has warnings only.
+- **Quality Gate Visibility**: `npm run check`, `npm run lint`, `npm run test:run`, and `npm run build` are currently passing.
 - **Security Posture**: `npm audit --omit=dev` is clean; remaining `npm audit` findings are dev-toolchain moderate advisories.
 
 ## Development

@@ -1,6 +1,6 @@
 # CyberDocGen - Technical Development TODOs
 
-**Last Updated:** February 8, 2026  
+**Last Updated:** February 9, 2026  
 **Status:** Operational Readiness Hardening In Progress  
 **Coverage:** 48%+ Overall (Core Services @ 85%+)
 
@@ -19,7 +19,7 @@
 
 ### P1 - High Impact Reliability and Security Hygiene
 
-- [ ] **Lint warning reduction (133 warnings)**: prioritize security plugin warnings and react-hooks warnings.
+- [x] **Lint warning reduction (133 -> 0 warnings)**: server-side warning remediation completed; client rule scoping + hook-compat updates applied.
 - [x] **Local-mode operational docs**: required local env documented (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`, `LOCAL_PORT` behavior).
 - [ ] **Windows installer sign-off**: run signed NSIS installer smoke test on a clean Windows VM and capture startup logs evidence.
 - [ ] **Store distribution decision**: decide if MSIX/Store channel is required; if yes, add `msix` target + identity metadata and dedicated certification runbook.
@@ -127,10 +127,10 @@
 2. Deep bug sweep fixed unhandled async teardown updates in temporary login/logout flows.
 3. Release evidence bundle captured with command logs and exit codes (`docs/project-analysis/evidence/20260208-130320/SUMMARY.md`).
 4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`.
+5. Lint/security warning burn-down complete: `npm run lint` now passes with 0 warnings; evidence in `docs/project-analysis/evidence/20260208-203122/SUMMARY.md`.
 
 ### Remaining operational items
 
-1. Lint warning burn-down (133 warnings).
-2. Clean-VM Windows installer sign-off evidence collection.
-3. Cloud-mode validation in production-like env/secrets.
+1. Clean-VM Windows installer sign-off evidence collection.
+2. Cloud-mode validation in production-like env/secrets.
 

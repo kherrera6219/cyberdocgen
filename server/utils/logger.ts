@@ -14,13 +14,18 @@ const PII_PATTERNS = [
   // SSN with delimiters only (avoid matching generic 9-digit IDs)
   { pattern: /\b\d{3}[-.\s]\d{2}[-.\s]\d{4}\b/g, replacement: '[SSN_REDACTED]' },
   // Credit card numbers with optional separators
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded groups used for redaction-only
   { pattern: /\b(?:\d{4}[-.\s]?){3}\d{4}\b/g, replacement: '[CREDIT_CARD_REDACTED]' },
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded groups used for redaction-only
   { pattern: /\b(?:\+?1[-.]?)?\(?[0-9]{3}\)?[-.]?[0-9]{3}[-.]?[0-9]{4}\b/g, replacement: '[PHONE_REDACTED]' },
   // IPv4 addresses
   { pattern: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, replacement: '[IP_REDACTED]' },
   // IPv6 addresses (simplified pattern)
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded groups used for redaction-only
   { pattern: /\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b/g, replacement: '[IP_REDACTED]' },
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded groups used for redaction-only
   { pattern: /\b(?:[0-9a-fA-F]{1,4}:){1,7}:\b/g, replacement: '[IP_REDACTED]' },
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded groups used for redaction-only
   { pattern: /::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}\b/g, replacement: '[IP_REDACTED]' },
   // Credentials in various formats
   { pattern: /(?:password|passwd|pwd|secret|token|apikey|api_key|bearer|authorization)\s*[:=]\s*["']?[^"'\s]{4,}/gi, replacement: '[CREDENTIAL_REDACTED]' },
@@ -47,16 +52,16 @@ function scrubPIIFromObject(obj: unknown): unknown {
     return obj.map(item => scrubPIIFromObject(item));
   }
   if (typeof obj === 'object') {
-    const scrubbed: Record<string, unknown> = {};
+    const scrubbedEntries: Array<[string, unknown]> = [];
     for (const [key, value] of Object.entries(obj)) {
       // Redact sensitive keys entirely
       if (/password|secret|token|apikey|api_key|authorization|bearer/i.test(key)) {
-        scrubbed[key] = '[REDACTED]';
+        scrubbedEntries.push([key, '[REDACTED]']);
       } else {
-        scrubbed[key] = scrubPIIFromObject(value);
+        scrubbedEntries.push([key, scrubPIIFromObject(value)]);
       }
     }
-    return scrubbed;
+    return Object.fromEntries(scrubbedEntries);
   }
   return obj;
 }

@@ -194,11 +194,17 @@ class VersionService {
     const modified: string[] = [];
 
     // Basic diff algorithm - in production, use a proper diff library
-    const maxLength = Math.max(lines1.length, lines2.length);
-    
-    for (let i = 0; i < maxLength; i++) {
-      const line1 = lines1[i];
-      const line2 = lines2[i];
+    const iterator1 = lines1[Symbol.iterator]();
+    const iterator2 = lines2[Symbol.iterator]();
+
+    while (true) {
+      const nextLine1 = iterator1.next();
+      const nextLine2 = iterator2.next();
+      if (nextLine1.done && nextLine2.done) {
+        break;
+      }
+      const line1 = nextLine1.done ? undefined : nextLine1.value;
+      const line2 = nextLine2.done ? undefined : nextLine2.value;
 
       if (line1 === undefined && line2 !== undefined) {
         added.push(line2);

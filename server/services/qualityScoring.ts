@@ -403,8 +403,12 @@ Focus on high-impact, practical improvements.`;
     if (scores.length < 2) return 0;
     
     let totalChange = 0;
-    for (let i = 1; i < scores.length; i++) {
-      totalChange += scores[i].score - scores[i-1].score;
+    let previousScore: (typeof scores)[number] | null = null;
+    for (const scoreEntry of scores) {
+      if (previousScore) {
+        totalChange += scoreEntry.score - previousScore.score;
+      }
+      previousScore = scoreEntry;
     }
     
     return totalChange / (scores.length - 1);

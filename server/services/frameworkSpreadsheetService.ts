@@ -52,6 +52,8 @@ const FRAMEWORK_TEMPLATES: Record<string, DocumentTemplate[]> = {
   'NIST-800-53': NISTTemplates,
 };
 
+const frameworkTemplateMap = new Map(Object.entries(FRAMEWORK_TEMPLATES));
+
 /**
  * Maps company profile data to template variables
  */
@@ -229,9 +231,10 @@ function templateToSpreadsheetFields(
   mappedValues: Record<string, string>
 ): SpreadsheetField[] {
   const fields: SpreadsheetField[] = [];
+  const mappedValueMap = new Map(Object.entries(mappedValues));
 
   for (const [key, variable] of Object.entries(template.templateVariables || {})) {
-    const mappedValue = mappedValues[key] || '';
+    const mappedValue = mappedValueMap.get(key) || '';
     
     fields.push({
       id: `${template.id}-${key}`,
@@ -259,7 +262,7 @@ class FrameworkSpreadsheetService {
     framework: string,
     companyProfile: CompanyProfile | null
   ): Promise<SpreadsheetTemplate[]> {
-    const templates = FRAMEWORK_TEMPLATES[framework];
+    const templates = frameworkTemplateMap.get(framework);
     
     if (!templates) {
       throw new Error(`No templates found for framework: ${framework}`);
@@ -382,25 +385,25 @@ Respond ONLY with the JSON array, no additional text.`;
     const nextYear = new Date(today);
     nextYear.setFullYear(nextYear.getFullYear() + 1);
 
-    const defaults: Record<string, string> = {
-      approval_date: today.toISOString().split('T')[0],
-      next_review_date: nextYear.toISOString().split('T')[0],
-      risk_scale_type: 'Qualitative (5x5 matrix)',
-      risk_appetite: 'Moderate',
-      risk_tolerance: 'Medium',
-      likelihood_method: 'Historical data and expert judgment',
-      primary_locations: companyProfile.headquarters || 'Corporate Headquarters',
-      data_centers: 'Primary and Disaster Recovery sites',
-      remote_locations: 'Remote workforce enabled',
-      exclusions: 'No significant exclusions',
-      legal_requirements: 'GDPR, CCPA, and applicable industry regulations',
-    };
+    const defaults = new Map<string, string>([
+      ['approval_date', today.toISOString().split('T')[0]],
+      ['next_review_date', nextYear.toISOString().split('T')[0]],
+      ['risk_scale_type', 'Qualitative (5x5 matrix)'],
+      ['risk_appetite', 'Moderate'],
+      ['risk_tolerance', 'Medium'],
+      ['likelihood_method', 'Historical data and expert judgment'],
+      ['primary_locations', companyProfile.headquarters || 'Corporate Headquarters'],
+      ['data_centers', 'Primary and Disaster Recovery sites'],
+      ['remote_locations', 'Remote workforce enabled'],
+      ['exclusions', 'No significant exclusions'],
+      ['legal_requirements', 'GDPR, CCPA, and applicable industry regulations'],
+    ]);
 
     if (type === 'date') {
       return today.toISOString().split('T')[0];
     }
 
-    return defaults[variableKey] || '';
+    return defaults.get(variableKey) || '';
   }
 
   /**

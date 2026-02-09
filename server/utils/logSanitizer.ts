@@ -34,18 +34,22 @@ const PATTERNS = {
   email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
   
   // IPv4: 192.168.1.1
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded segments used only for log masking
   ipv4: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,
   
   // IPv6 (simplified)
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded groups used only for log masking
   ipv6: /\b(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}\b/g,
   
   // US Phone: (123) 456-7890, 123-456-7890, etc.
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded pattern used only for log masking
   phone: /\b(?:\+1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b/g,
   
   // SSN: 123-45-6789
   ssn: /\b\d{3}-\d{2}-\d{4}\b/g,
   
   // Credit Card: 4111-1111-1111-1111 or 4111111111111111
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded pattern used only for log masking
   creditCard: /\b(?:\d{4}[-\s]?){3}\d{4}\b/g,
   
   // JWT token (common pattern)
@@ -140,19 +144,19 @@ export function sanitizeObject<T>(
   }
   
   if (typeof obj === 'object') {
-    const sanitized: Record<string, unknown> = {};
+    const sanitizedEntries: Array<[string, unknown]> = [];
     
     for (const [key, value] of Object.entries(obj)) {
       // Completely redact known sensitive keys
       const lowercaseKey = key.toLowerCase();
       if (SENSITIVE_KEYS.some(k => lowercaseKey.includes(k))) {
-        sanitized[key] = '[REDACTED]';
+        sanitizedEntries.push([key, '[REDACTED]']);
       } else {
-        sanitized[key] = sanitizeObject(value, options);
+        sanitizedEntries.push([key, sanitizeObject(value, options)]);
       }
     }
     
-    return sanitized as T;
+    return Object.fromEntries(sanitizedEntries) as T;
   }
   
   return obj;
@@ -226,7 +230,7 @@ export function sanitizeRequestForLogging(req: {
   params?: unknown;
   headers?: Record<string, string | string[] | undefined>;
 } {
-  const sanitizedHeaders: Record<string, string | undefined> = {};
+  const sanitizedHeaderEntries: Array<[string, string | undefined]> = [];
   
   if (req.headers) {
     for (const [key, value] of Object.entries(req.headers)) {
@@ -236,11 +240,11 @@ export function sanitizeRequestForLogging(req: {
         lowercaseKey === 'cookie' ||
         lowercaseKey === 'x-api-key'
       ) {
-        sanitizedHeaders[key] = '[REDACTED]';
+        sanitizedHeaderEntries.push([key, '[REDACTED]']);
       } else if (Array.isArray(value)) {
-        sanitizedHeaders[key] = value.map(v => sanitizeString(v)).join(', ');
+        sanitizedHeaderEntries.push([key, value.map(v => sanitizeString(v)).join(', ')]);
       } else if (typeof value === 'string') {
-        sanitizedHeaders[key] = sanitizeString(value);
+        sanitizedHeaderEntries.push([key, sanitizeString(value)]);
       }
     }
   }
@@ -249,6 +253,6 @@ export function sanitizeRequestForLogging(req: {
     body: req.body ? sanitizeObject(req.body) : undefined,
     query: req.query ? sanitizeObject(req.query) : undefined,
     params: req.params ? sanitizeObject(req.params) : undefined,
-    headers: sanitizedHeaders,
+    headers: Object.fromEntries(sanitizedHeaderEntries),
   };
 }
