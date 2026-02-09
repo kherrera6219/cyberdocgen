@@ -30,9 +30,9 @@
 
 - `npm run check`: PASS
 - `npm run lint`: PASS (0 warnings)
-- `npm run test:run`: PASS (latest prior non-coverage run baseline remains green)
-- `npm run test:coverage`: PASS with expected threshold failure (138 files, 1452 passing, 4 skipped; global now 66.01/71.41/62.51 vs 80/75/80 gates)
-- `npm run test:coverage:hotspots`: PASS (remaining gap: +9759 statements, +385 functions, +217 branches)
+- `npm run test:run`: PASS
+- `npm run test:coverage`: PASS (160 files, 1516 passing, 4 skipped; 78.97/74.60/67.45)
+- `npm run test:coverage:hotspots`: PASS (current staged gates satisfied: 78.5/74.5/67)
 - `npm run build`: PASS
 - `npm run start`: PASS (validated `/live`, `/ready`, `/metrics` => HTTP 200 in local mode)
 - `npm run dev`: PASS in local mode with required env (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`)
@@ -86,8 +86,8 @@
 - Revalidated full gate set:
   - `npm run check` PASS
   - `npm run lint` PASS
-  - `npm run test:run` PASS (129 files, 1323 passing, 4 skipped)
-  - `npm run test:coverage` PASS with threshold failure (known gap; tracked via hotspots)
+  - `npm run test:run` PASS
+  - `npm run test:coverage` PASS (160 files, 1516 passing, 4 skipped)
   - `npm run windows:validate` PASS
   - `npm run build:win` PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
 
