@@ -139,6 +139,7 @@ JSON Response:`;
       } catch (error) {
         logger.error('Failed to fetch website content:', error);
         return {
+          websiteUrl: url,
           confidence: 0,
           source: 'website',
           extractedAt: new Date().toISOString(),

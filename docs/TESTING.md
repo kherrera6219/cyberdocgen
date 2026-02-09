@@ -53,16 +53,13 @@ Our testing strategy follows these principles:
 
 Latest validated run:
 
-- `npm run test:run`: **PASS** (112 files, 1230 passing, 4 skipped)
-- `npm run test:coverage`: **PASS with threshold failures expected** (global gates remain 80/75)
-- `npm run lint`: **PASS** (0 warnings)
-- `npm run check`: **PASS**
+- `npm run test:coverage`: **PASS with threshold failures expected** (123 files, 1280 passing, 4 skipped; global gates remain 80/75)
 
 Global coverage snapshot:
 
-- Statements/Lines: **55.90%**
-- Functions: **50.97%**
-- Branches: **67.13%**
+- Statements/Lines: **59.02%**
+- Functions: **53.70%**
+- Branches: **68.04%**
 
 Coverage infrastructure and newest additions:
 
@@ -77,6 +74,14 @@ Coverage infrastructure and newest additions:
 - Expanded backend route/service tests:
   - `tests/unit/routes/localModeRoutes.test.ts`
   - `tests/unit/connectorService.test.ts`
+  - `tests/unit/routes/projectsRoutes.test.ts`
+  - `tests/unit/routes/analyticsRoutes.test.ts`
+  - `tests/unit/routes/mfaRoutes.test.ts`
+  - `tests/unit/routes/approvalsRoutes.test.ts`
+  - `tests/unit/routes/auditTrailRoutes.test.ts`
+  - `tests/unit/routes/auditorRoutes.test.ts`
+  - `tests/unit/versionService.test.ts`
+  - `tests/unit/companyDataExtractionService.test.ts`
 - New high-gap page and route coverage suites:
   - `tests/components/pages/company-profile.interactions.test.tsx`
   - `tests/components/pages/account-and-auth-pages.test.tsx`

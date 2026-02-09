@@ -2,7 +2,7 @@ import { Router, Response, NextFunction } from 'express';
 import { eq, and, desc } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../db';
-import { projects, projectMemberships, users, userOrganizations, insertProjectSchema } from '@shared/schema';
+import { projects, projectMemberships, users, userOrganizations } from '@shared/schema';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { 
@@ -36,6 +36,15 @@ const updateProjectSchema = z.object({
   status: z.string().optional(),
   framework: z.string().optional(),
   targetCompletionDate: z.string().datetime().optional(),
+});
+
+const createProjectSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  status: z.enum(['active', 'archived', 'completed']).optional(),
+  framework: z.string().optional(),
+  targetCompletionDate: z.string().datetime().optional(),
+  organizationId: z.string().uuid().optional(),
 });
 
 /**
@@ -119,9 +128,7 @@ router.get('/:id', isAuthenticated, secureHandler(async (req: MultiTenantRequest
 /**
  * Create new project
  */
-router.post('/', isAuthenticated, requireOrganization, validateInput(insertProjectSchema.extend({
-  organizationId: z.string().uuid().optional(),
-})), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+router.post('/', isAuthenticated, requireOrganization, validateInput(createProjectSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   const userId = getRequiredUserId(req);
   const organizationId = req.organizationId!;
   const projectData = { ...req.body, organizationId, createdBy: userId };
