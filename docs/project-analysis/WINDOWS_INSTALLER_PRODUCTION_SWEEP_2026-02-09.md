@@ -81,8 +81,11 @@ Results:
 Known non-blocking runtime warnings still observed in test output:
 
 - React `act(...)` warning in specific test contexts
-- jsdom `requestSubmit()` not implemented warnings
 - Vitest deprecation warning for `environmentMatchGlobs`
+
+Resolved in follow-up patch:
+
+- jsdom `requestSubmit()` not-implemented warning in `ai-doc-generator` tests (fixed by setting explicit `type="button"` on non-submit actions inside the form).
 
 ## Operational TODO (Remaining)
 

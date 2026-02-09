@@ -5,9 +5,10 @@
  * These tests run on critical components and pages to catch accessibility violations.
  */
 
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Extend expect matchers
 expect.extend(toHaveNoViolations);
@@ -16,12 +17,91 @@ expect.extend(toHaveNoViolations);
 import { SkipNavigation, MainContent } from '../../client/src/components/SkipNavigation';
 import { Landing } from '../../client/src/pages/landing';
 import Dashboard from '../../client/src/pages/dashboard';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '../../client/src/lib/queryClient';
 import { OrganizationProvider } from '../../client/src/contexts/OrganizationContext';
 
+vi.mock('../../client/src/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    isTemporaryUser: false,
+    deploymentMode: 'cloud',
+    isLocalMode: false,
+  }),
+}));
+
+vi.mock('../../client/src/contexts/OrganizationContext', () => ({
+  OrganizationProvider: ({ children }: { children: React.ReactNode }) => children,
+  useOrganization: () => ({
+    profile: {
+      id: 'profile-test',
+      companyName: 'Test Company',
+      industry: 'Technology',
+      size: '51-200',
+      location: 'United States',
+    },
+    profiles: [],
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+}));
+
+vi.mock('@/components/dashboard/GenerationProgressDialog', () => ({
+  GenerationProgressDialog: () => null,
+}));
+
+vi.mock('@/components/ai/AIInsightsDashboard', () => ({
+  AIInsightsDashboard: () => <div data-testid="a11y-ai-insights" />,
+}));
+
+vi.mock('@/components/ai/RiskHeatmap', () => ({
+  RiskHeatmap: () => <div data-testid="a11y-risk-heatmap" />,
+}));
+
+vi.mock('@/components/ai/ControlPrioritizer', () => ({
+  ControlPrioritizer: () => <div data-testid="a11y-control-prioritizer" />,
+}));
+
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: Infinity,
+        gcTime: 0,
+        queryFn: async ({ queryKey }) => {
+          const key = Array.isArray(queryKey) ? String(queryKey[0]) : String(queryKey);
+
+          if (key.includes('/api/config')) {
+            return { deploymentMode: 'cloud', isProduction: false };
+          }
+          if (key.includes('/api/auth/user')) {
+            return null;
+          }
+          if (key.includes('/api/company-profiles') || key.includes('/api/documents')) {
+            return [];
+          }
+
+          return [];
+        },
+      },
+    },
+  });
+}
+
+let testQueryClient: QueryClient;
+
+beforeEach(() => {
+  testQueryClient = createTestQueryClient();
+});
+
+afterEach(() => {
+  testQueryClient.clear();
+});
+
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={testQueryClient}>
     <OrganizationProvider>
       {children}
     </OrganizationProvider>

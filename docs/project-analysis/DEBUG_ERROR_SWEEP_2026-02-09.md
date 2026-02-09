@@ -55,5 +55,17 @@ Outcome:
 ## Remaining Non-Blocking Warning Noise
 
 - React `act(...)` warnings in some dashboard/accessibility tests.
-- jsdom `requestSubmit()` warning in `ai-doc-generator` tests.
 - Vitest deprecation warning for `environmentMatchGlobs`.
+
+## Follow-up Fixes (Same Day)
+
+- Fixed `ai-doc-generator` step-action buttons to use explicit `type="button"` for non-submit in-form actions, eliminating jsdom `requestSubmit()` warning noise and preventing unintended native form submits.
+- Added targeted accessibility test harness mocks for auth/organization/dashboard subcomponents to reduce non-deterministic query churn during a11y audits.
+
+Follow-up validation:
+
+- `npm run check`: PASS
+- `npm run lint`: PASS
+- `npm run test:run`: PASS (`100` files, `1153` passed, `4` skipped)
+- `npm run windows:validate`: PASS
+- `npm run build:win`: PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)

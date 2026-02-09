@@ -95,6 +95,6 @@ Follow-up same-day rerun after debug/error sweep:
 
 ## Residual Risk / Follow-up
 
-1. Keep existing known non-blocking test warnings (React `act`, jsdom `requestSubmit`) on cleanup backlog.
+1. Keep existing known non-blocking test warnings (React `act`) plus Vitest `environmentMatchGlobs` deprecation on cleanup backlog.
 2. Add CI policy check ensuring `description` and `author` remain populated for release builds.
 3. Execute clean-VM signed installer smoke as final release evidence.

@@ -150,9 +150,12 @@ describe('Dashboard Component', () => {
   };
 
   describe('Initial Rendering', () => {
-    it('should render dashboard title', () => {
+    it('should render dashboard title', async () => {
       renderDashboard();
-      expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
+
+      // Wait for lazy dashboard sections to settle to avoid suspended-resource act warnings.
+      expect(await screen.findByText(/Dashboard/i)).toBeInTheDocument();
+      expect(await screen.findByTestId('ai-insights')).toBeInTheDocument();
     });
 
     it('should show loading skeleton while fetching data', () => {

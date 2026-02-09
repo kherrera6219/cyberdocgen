@@ -748,6 +748,7 @@ export default function AIDocGenerator() {
               Estimated documents to generate: {(values.frameworks?.length || 0) * 3}
             </p>
             <Button
+              type="button"
               size="lg"
               className="w-full"
               onClick={handleGenerate}
@@ -860,6 +861,7 @@ export default function AIDocGenerator() {
                 {jobStatus?.errorMessage || "An error occurred during generation."}
               </p>
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => setCurrentStep(4)}
                 data-testid="button-retry-generation"
@@ -909,6 +911,7 @@ export default function AIDocGenerator() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => setSelectedDoc(doc)}
@@ -918,6 +921,7 @@ export default function AIDocGenerator() {
                           View
                         </Button>
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
                           data-testid={`button-download-doc-${doc.id}`}
@@ -937,6 +941,7 @@ export default function AIDocGenerator() {
 
               <div className="flex justify-center pt-4">
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={() => {
                     setCurrentStep(1);
@@ -962,6 +967,7 @@ export default function AIDocGenerator() {
                     </CardDescription>
                   </div>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="icon"
                     onClick={() => setSelectedDoc(null)}

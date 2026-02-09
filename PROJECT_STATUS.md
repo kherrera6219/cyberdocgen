@@ -64,8 +64,11 @@
 Known non-blocking warning noise still observed:
 
 - React `act(...)` warnings in selected dashboard/accessibility tests.
-- jsdom `requestSubmit()` warning in `ai-doc-generator` tests.
 - Vitest deprecation warning for `environmentMatchGlobs` (migration to project-based config still pending).
+
+Resolved in follow-up sweep:
+
+- jsdom `requestSubmit()` warning in `ai-doc-generator` tests (fixed by adding explicit `type="button"` to non-submit in-form actions).
 
 ---
 

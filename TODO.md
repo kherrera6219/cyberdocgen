@@ -31,7 +31,7 @@
 - [ ] **Storybook lint strategy**: either modernize story files to current rules or keep explicit non-prod exclusions documented.
 - [ ] **Route coverage cleanup**: expand tests around repository analysis and temp-auth route gating.
 - [ ] **Documentation consistency pass**: reconcile historical “0 vulnerabilities” and old production claims across status docs.
-- [ ] **Test warning cleanup**: remove residual React `act(...)` + jsdom `requestSubmit()` noise and migrate off deprecated Vitest `environmentMatchGlobs`.
+- [ ] **Test warning cleanup**: remove residual React `act(...)` noise and migrate off deprecated Vitest `environmentMatchGlobs` (jsdom `requestSubmit()` warning already remediated in `ai-doc-generator`).
 
 ---
 
