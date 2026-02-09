@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed local desktop/local-mode startup in production builds by allowing server listen boot when `DEPLOYMENT_MODE=local`.
 - Removed residual test warning sources from operational sweeps (`act(...)`/suspense timing and jsdom navigation noise).
 - Resolved dashboard accessibility heading-order violation by correcting section heading semantics in company profile summary cards.
+- Remediated dependency advisories by upgrading `axios`/`drizzle-kit` and overriding `@esbuild-kit/core-utils` transitive `esbuild`, resulting in clean `npm audit` and `npm audit --omit=dev`.
 
 ## [2.2.0] - 2026-01-19
 

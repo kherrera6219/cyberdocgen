@@ -6,7 +6,7 @@
 **Status:** Production Candidate (Core Gates Passing, Windows Release Sign-Off Pending)
 **Test Coverage:** 85.40% statements/lines, 81.47% functions, 80.14% branches
 **Test Suite:** 1516 passing, 4 skipped
-**Security:** 0 prod advisories (`npm audit --omit=dev`), dev-toolchain advisory risk accepted with controls (`docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`)
+**Security:** 0 advisories in both production and full dependency trees (`npm audit --omit=dev` and `npm audit`)
 **TypeScript Errors:** 0
 **ESLint Errors:** 0 (0 warnings)
 

@@ -89,7 +89,7 @@
     "@uppy/progress-bar": "^4.3.2",
     "@uppy/react": "^4.5.2",
     "adm-zip": "^0.5.16",
-    "axios": "^1.13.4",
+    "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.6.2",
     "class-variance-authority": "^0.7.1",
@@ -192,7 +192,7 @@
     "axe-core": "^4.11.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "^0.31.9",
     "electron": "^40.0.0",
     "electron-builder": "^26.4.0",
     "esbuild": "^0.27.2",
@@ -220,6 +220,11 @@
     "vitest": "^3.2.4",
     "wait-on": "^9.0.3",
     "web-vitals": "^5.1.0"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.12"
+    }
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.9"

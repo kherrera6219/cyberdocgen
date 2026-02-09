@@ -14,7 +14,7 @@
 - [x] **Re-run security validation**: `npm audit`, smoke tests, and deployment verification executed after updates.
 - [x] **Align Windows validation tooling with actual packaging target**: `scripts/validate-wack.ts` now validates NSIS and optional MSIX paths.
 - [x] **Implement connector adapters**: SharePoint/Jira/Notion adapter list/fetch flows implemented with tenant-scoped config access and import tests.
-- [x] **Resolve/accept dev-toolchain advisories**: temporary risk acceptance documented with controls in `docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`.
+- [x] **Resolve dev-toolchain advisories**: dependency refresh + overrides eliminated the prior `drizzle-kit`/`esbuild` advisory chain (`npm audit` now clean).
 - [x] **Lock release evidence**: gate outputs archived in `docs/project-analysis/evidence/20260208-130320/`.
 
 ### P1 - High Impact Reliability and Security Hygiene
