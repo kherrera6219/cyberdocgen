@@ -25,7 +25,7 @@ export function CompanyProfileSummary({ profile, onEdit }: CompanyProfileSummary
       <CardContent className="p-4 sm:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           <div>
-            <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Basic Information</h3>
+            <h2 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Basic Information</h2>
             <div className="space-y-2">
               <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Company:</span> {profile.companyName}</p>
               <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Industry:</span> {profile.industry}</p>
@@ -35,7 +35,7 @@ export function CompanyProfileSummary({ profile, onEdit }: CompanyProfileSummary
           </div>
 
           <div>
-            <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Technical Environment</h3>
+            <h2 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">Technical Environment</h2>
             <div className="space-y-2">
               <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Cloud:</span> {profile.cloudInfrastructure?.join(', ') ?? 'Not specified'}</p>
               <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300"><span className="font-medium">Data Classification:</span> {profile.dataClassification ?? 'Not specified'}</p>

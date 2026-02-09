@@ -6,7 +6,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -127,6 +127,13 @@ describe('Accessibility Tests', () => {
           <Dashboard />
         </Wrapper>
       );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('a11y-ai-insights')).toBeInTheDocument();
+        expect(screen.getByTestId('a11y-risk-heatmap')).toBeInTheDocument();
+        expect(screen.getByTestId('a11y-control-prioritizer')).toBeInTheDocument();
+      });
+
       const results = await axe(container);
       expect(results).toHaveNoViolations();
     });

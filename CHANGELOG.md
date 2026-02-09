@@ -5,6 +5,19 @@ All notable changes to CyberDocGen will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Migrated Vitest environment routing to `test.projects` and removed deprecated `environmentMatchGlobs`.
+- Updated onboarding tutorial action navigation to SPA routing (`wouter`) instead of hard browser redirects.
+
+### Fixed
+
+- Fixed local desktop/local-mode startup in production builds by allowing server listen boot when `DEPLOYMENT_MODE=local`.
+- Removed residual test warning sources from operational sweeps (`act(...)`/suspense timing and jsdom navigation noise).
+- Resolved dashboard accessibility heading-order violation by correcting section heading semantics in company profile summary cards.
+
 ## [2.2.0] - 2026-01-19
 
 ### Added

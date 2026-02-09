@@ -18,9 +18,11 @@
 - `npm run build`: PASS
 - `npm run windows:validate`: PASS
 - `npm run build:win`: PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
+- `node scripts/verify-build.js`: PASS (`/live` + `/ready` probes in local deployment mode)
 - Production bug fixes included:
   - stable controlled defaults for enhanced profile personnel fields
   - resilient API success parsing for `204`/empty + plain-text responses
+  - production/local-mode startup gate fix for `DEPLOYMENT_MODE=local`
 
 ---
 
@@ -91,14 +93,12 @@
   - `npm run windows:validate` PASS
   - `npm run build:win` PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
 
-Known non-blocking warning noise still observed:
+Warning cleanup status: resolved in latest sweep and validation runs.
 
-- React `act(...)` warnings in selected dashboard/accessibility tests.
-- Vitest deprecation warning for `environmentMatchGlobs` (migration to project-based config still pending).
-
-Resolved in follow-up sweep:
-
-- jsdom `requestSubmit()` warning in `ai-doc-generator` tests (fixed by adding explicit `type="button"` to non-submit in-form actions).
+- React `act(...)`/suspense warning noise removed from dashboard accessibility test path.
+- Vitest deprecation removed by migrating to `test.projects`.
+- jsdom onboarding navigation warning removed by replacing hard redirects with router navigation.
+- jsdom `requestSubmit()` warning in `ai-doc-generator` remains fixed (explicit `type="button"` on non-submit actions).
 
 ---
 

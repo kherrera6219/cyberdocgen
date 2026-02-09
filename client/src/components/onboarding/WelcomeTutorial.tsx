@@ -1,10 +1,11 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, ArrowRight, ArrowLeft, X, Lightbulb, Target, Zap } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface TutorialStep {
   id: string;
@@ -57,6 +58,7 @@ interface WelcomeTutorialProps {
 export function WelcomeTutorial({ isOpen, onClose, onComplete }: WelcomeTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [, setLocation] = useLocation();
 
   const handleNext = () => {
     if (currentStep < tutorialSteps.length - 1) {
@@ -82,7 +84,7 @@ export function WelcomeTutorial({ isOpen, onClose, onComplete }: WelcomeTutorial
 
   const handleActionClick = (actionUrl?: string) => {
     if (actionUrl) {
-      window.location.href = actionUrl;
+      setLocation(actionUrl);
     }
     onComplete();
     onClose();

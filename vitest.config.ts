@@ -16,6 +16,17 @@ const sharedConfig = {
   },
 };
 
+const nodeTestInclude = [
+  "tests/unit/**/*.test.ts",
+  "tests/integration/**/*.test.ts",
+  "tests/ai/**/*.test.ts",
+];
+
+const jsdomTestInclude = [
+  "tests/components/**/*.test.tsx",
+  "tests/accessibility/**/*.test.tsx",
+];
+
 export default defineConfig({
   plugins: [react()],
   esbuild: {
@@ -26,17 +37,23 @@ export default defineConfig({
   test: {
     globals: true,
     setupFiles: ["./tests/setup.ts"],
-    environment: "node",
-    environmentMatchGlobs: [
-      ["tests/components/**", "jsdom"],
-      ["tests/accessibility/**", "jsdom"],
-    ],
-    include: [
-      "tests/unit/**/*.test.ts",
-      "tests/integration/**/*.test.ts",
-      "tests/ai/**/*.test.ts",
-      "tests/components/**/*.test.tsx",
-      "tests/accessibility/**/*.test.tsx",
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "node",
+          environment: "node",
+          include: nodeTestInclude,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "jsdom",
+          environment: "jsdom",
+          include: jsdomTestInclude,
+        },
+      },
     ],
     server: {
       deps: {

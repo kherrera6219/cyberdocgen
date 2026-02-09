@@ -85,8 +85,13 @@ const initializationPromise = (async () => {
 
 })();
 
-// Local development server
-if (process.env.NODE_ENV !== 'production' || process.env.LOCAL_SERVER === 'true') {
+// Start a local HTTP server for development and desktop local-mode runtime.
+const shouldRunLocalServer =
+  process.env.NODE_ENV !== 'production' ||
+  process.env.LOCAL_SERVER === 'true' ||
+  process.env.DEPLOYMENT_MODE?.toLowerCase() === 'local';
+
+if (shouldRunLocalServer) {
   const config = getRuntimeConfig();
   const PORT = config.server.port;
   const HOST = config.server.host;
