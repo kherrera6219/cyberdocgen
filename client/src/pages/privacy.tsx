@@ -69,7 +69,7 @@ function Footer() {
             <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
             <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
           </div>
-          <p className="text-gray-400 text-sm">2025 CyberDocGen by Lucentry.ai LLC. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">2025 CyberDocGen by Lucentry.AI. All rights reserved.</p>
         </div>
       </div>
     </footer>

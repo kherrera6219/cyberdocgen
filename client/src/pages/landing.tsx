@@ -23,7 +23,7 @@ function Footer() {
               <span className="text-xl font-bold">CyberDocGen</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">
-              Enterprise-grade compliance automation powered by AI. A product of Lucentry.ai LLC.
+              Enterprise-grade compliance automation powered by AI. A product of Lucentry.AI.
             </p>
             <div className="space-y-2 text-sm text-gray-400">
               <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ function Footer() {
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-gray-400 text-sm">
-            2025 Lucentry.ai LLC. All rights reserved.
+            2025 Lucentry.AI. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-gray-400">
             <Badge variant="outline" className="border-gray-600 text-gray-400">Beta</Badge>

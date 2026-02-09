@@ -1,5 +1,6 @@
 appId: com.cyberdocgen.app
 productName: CyberDocGen
+copyright: "Copyright © 2026 Lucentry.AI"
 directories:
   output: dist/packaging
   buildResources: build

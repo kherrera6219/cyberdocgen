@@ -129,7 +129,7 @@ export function PublicFooter() {
               <span className="text-xl font-bold">CyberDocGen</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">
-              Enterprise-grade compliance automation powered by AI. A product of Lucentry.ai LLC.
+              Enterprise-grade compliance automation powered by AI. A product of Lucentry.AI.
             </p>
           </div>
 
@@ -180,7 +180,7 @@ export function PublicFooter() {
 
         <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-gray-400 text-sm">
-            &copy; {new Date().getFullYear()} Lucentry.ai LLC. All rights reserved.
+            &copy; {new Date().getFullYear()} Lucentry.AI. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-sm text-gray-400">
             <a href="mailto:CEO@lucentry.ai" className="hover:text-white transition-colors">CEO@lucentry.ai</a>

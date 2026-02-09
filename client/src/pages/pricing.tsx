@@ -17,7 +17,7 @@ function Footer() {
             <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
           </div>
           <div className="text-center md:text-left">
-            <p className="text-gray-400 text-sm">A product of Lucentry.ai LLC</p>
+            <p className="text-gray-400 text-sm">A product of Lucentry.AI</p>
             <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
               <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
               <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
@@ -28,7 +28,7 @@ function Footer() {
             <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
             <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
           </div>
-          <p className="text-gray-400 text-sm">2025 Lucentry.ai LLC</p>
+          <p className="text-gray-400 text-sm">2025 Lucentry.AI</p>
         </div>
       </div>
     </footer>
