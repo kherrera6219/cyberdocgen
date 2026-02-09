@@ -21,7 +21,7 @@
     "lint": "eslint .",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "prepare": "husky",
+    "prepare": "node -e \"const fs=require('fs');const p='node_modules/husky/bin.js';if(fs.existsSync(p)){require('child_process').execFileSync(process.execPath,[p],{stdio:'inherit'});}else{console.log('husky not installed; skipping prepare');}\"",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5000 && electron .\"",
     "electron:build": "esbuild electron/main.ts electron/preload.ts --platform=node --bundle --format=esm --packages=external --outdir=dist/electron",
     "test:a11y": "vitest run tests/accessibility",

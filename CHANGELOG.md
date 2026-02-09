@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated Vitest environment routing to `test.projects` and removed deprecated `environmentMatchGlobs`.
 - Updated onboarding tutorial action navigation to SPA routing (`wouter`) instead of hard browser redirects.
 - Raised enforced global coverage thresholds to `80/80/80/80` and aligned baseline docs to latest full-suite coverage (`85.40/80.14/81.47`).
+- Hardened npm lifecycle behavior for production-only installs by making `prepare` skip Husky setup when `husky` is not installed.
 
 ### Fixed
 
@@ -19,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed residual test warning sources from operational sweeps (`act(...)`/suspense timing and jsdom navigation noise).
 - Resolved dashboard accessibility heading-order violation by correcting section heading semantics in company profile summary cards.
 - Remediated dependency advisories by upgrading `axios`/`drizzle-kit` and overriding `@esbuild-kit/core-utils` transitive `esbuild`, resulting in clean `npm audit` and `npm audit --omit=dev`.
+- Restored Docker CI build reliability by including `scripts/` in Docker build context so `node scripts/build-server.js` resolves during `npm run build`.
+- Stabilized Linux CI execution for `tests/integration/e2e-flows.test.ts` by increasing async setup/teardown test hook timeouts to 30 seconds.
 
 ## [2.2.0] - 2026-01-19
 

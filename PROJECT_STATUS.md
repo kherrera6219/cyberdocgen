@@ -16,6 +16,8 @@
 - `npm run lint`: PASS
 - `npm run test:coverage`: PASS (`160` files, `1516` passing, `4` skipped)
 - `npm run build`: PASS
+- `docker build -t cyberdocgen-ci-repro .`: PASS (multi-stage build including production dependency install)
+- `docker run --rm -v C:/software/cyberdocgen:/app -w /app node:20-alpine sh -lc "npm ci && npx vitest --run tests/integration/e2e-flows.test.ts"`: PASS (CI-like Linux runtime)
 - `npm run windows:validate`: PASS
 - `npm run build:win`: PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
 - `node scripts/verify-build.js`: PASS (`/live` + `/ready` probes in local deployment mode)
@@ -23,6 +25,8 @@
   - stable controlled defaults for enhanced profile personnel fields
   - resilient API success parsing for `204`/empty + plain-text responses
   - production/local-mode startup gate fix for `DEPLOYMENT_MODE=local`
+  - Docker build context correction for `scripts/build-server.js` resolution
+  - CI integration test setup timeout stabilization (`e2e-flows` before/after hooks at 30s)
 
 ---
 

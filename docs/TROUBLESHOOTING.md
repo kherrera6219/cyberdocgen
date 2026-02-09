@@ -647,6 +647,53 @@ Error: Build failed with X errors
    npx madge --circular --extensions ts,tsx ./
    ```
 
+### Docker build fails with missing `scripts/build-server.js`
+
+**Symptom:**
+```bash
+Error: Cannot find module '/app/scripts/build-server.js'
+```
+
+**Why it happens:**
+
+- `npm run build` calls `node scripts/build-server.js`.
+- Docker context excluded `scripts/` via `.dockerignore`.
+
+**Solutions:**
+
+1. **Keep build scripts in Docker context:**
+   ```bash
+   # Ensure .dockerignore does not exclude scripts/
+   cat .dockerignore
+   ```
+
+2. **Rebuild Docker image from clean context:**
+   ```bash
+   docker build --no-cache -t cyberdocgen .
+   ```
+
+### `npm ci --only=production` fails in Docker due Husky
+
+**Symptom:**
+```bash
+sh: husky: not found
+npm ERR! command failed
+```
+
+**Why it happens:**
+
+- `prepare` runs during install.
+- Production-only installs omit devDependencies, so `husky` binary is unavailable.
+
+**Solutions:**
+
+1. **Use a guard in `prepare` script** (already implemented in this project):
+   ```bash
+   npm pkg get scripts.prepare
+   ```
+
+2. **If you customize scripts, keep `prepare` no-op safe when Husky is absent.**
+
 ### Production server errors
 
 **Symptom:**

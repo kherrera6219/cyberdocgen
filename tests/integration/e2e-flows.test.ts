@@ -20,13 +20,13 @@ describe('E2E Flow Tests', () => {
     app = express();
     app.use(express.json());
     server = await registerRoutes(app);
-  });
+  }, 30000);
 
   afterAll(async () => {
     if (server) {
       server.close();
     }
-  });
+  }, 30000);
 
   describe('Onboarding Flow', () => {
     describe('Organization Setup', () => {
