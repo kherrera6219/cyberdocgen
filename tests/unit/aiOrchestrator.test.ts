@@ -44,7 +44,7 @@ vi.mock('../../server/utils/circuitBreaker', () => ({
 
 describe('AIOrchestrator', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.restoreAllMocks(); // Use restoreAllMocks to prevent test pollution
         // Default safe guardrails
         (aiGuardrailsService.checkGuardrails as any).mockResolvedValue({ 
             allowed: true, 
@@ -99,21 +99,21 @@ describe('AIOrchestrator', () => {
     describe('generateContent', () => {
         it('generates content successfully', async () => {
             (circuitBreakers.openai.execute as any).mockResolvedValue('Generated content');
-            
+
             const result = await aiOrchestrator.generateContent({ prompt: 'test' });
-            
+
             expect(result.result.content).toBe('Generated content');
             expect(result.blocked).toBe(false);
         });
 
-        it('generates content successfully with Anthropic fallback', async () => {
+        it('generates content successfully with Gemini fallback', async () => {
             vi.mocked(circuitBreakers.openai.execute).mockRejectedValueOnce(new Error('OpenAI Down'));
-            vi.mocked(circuitBreakers.anthropic.execute).mockResolvedValueOnce('Anthropic Fallback');
+            vi.mocked(circuitBreakers.gemini.execute).mockResolvedValueOnce('Gemini Fallback');
 
             const result = await aiOrchestrator.generateContent({ prompt: 'test' });
-            
-            expect(result.result.content).toBe('Anthropic Fallback');
-            expect(result.result.model).toBe('claude-sonnet-4');
+
+            expect(result.result.content).toBe('Gemini Fallback');
+            expect(result.result.model).toBe('gemini-3-pro');
         });
     });
 

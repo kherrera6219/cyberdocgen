@@ -28,10 +28,10 @@ export function getAnthropicClient(): Anthropic {
 
 export function getGeminiClient(): GoogleGenAI {
   if (!geminiClient) {
-    if (!process.env.GOOGLE_API_KEY) {
-      throw new Error('GOOGLE_API_KEY environment variable is not set');
+    if (!process.env.GOOGLE_GENERATIVE_AI_KEY) {
+      throw new Error('GOOGLE_GENERATIVE_AI_KEY environment variable is not set');
     }
-    geminiClient = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
+    geminiClient = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_KEY });
   }
   return geminiClient;
 }
@@ -45,5 +45,5 @@ export function hasAnthropicKey(): boolean {
 }
 
 export function hasGeminiKey(): boolean {
-  return !!process.env.GOOGLE_API_KEY;
+  return !!process.env.GOOGLE_GENERATIVE_AI_KEY;
 }

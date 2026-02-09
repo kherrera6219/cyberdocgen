@@ -1,0 +1,17 @@
+{
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "predeploy": [
+      "npm install",
+      "npm run build"
+    ],
+    "frameworksBackend": {
+      "region": "us-central1"
+    }
+  }
+}

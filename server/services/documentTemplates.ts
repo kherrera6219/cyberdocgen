@@ -12,11 +12,11 @@ import {
 import type { DocumentTemplate, TemplateVariable } from './types';
 
 // Import Modularized Templates
-import { ISO27001Templates, AdditionalISO27001Templates, ExtendedISO27001Templates } from './documentTemplates/iso27001';
-import { SOC2Templates, AdditionalSOC2OperationalTemplates, ExtendedSOC2Templates } from './documentTemplates/soc2';
-import { FedRAMPLowTemplates, FedRAMPModerateTemplates, FedRAMPHighTemplates, FedRAMPCoreTemplates, FedRAMPAttachmentTemplates } from './documentTemplates/fedramp';
-import { NISTTemplates } from './documentTemplates/nist';
-import { OperationalTemplates, CertificationDocumentTemplates } from './documentTemplates/operational';
+import { ISO27001Templates, AdditionalISO27001Templates, ExtendedISO27001Templates } from './documentTemplates/iso27001/index';
+import { SOC2Templates, AdditionalSOC2OperationalTemplates, ExtendedSOC2Templates } from './documentTemplates/soc2/index';
+import { FedRAMPLowTemplates, FedRAMPModerateTemplates, FedRAMPHighTemplates, FedRAMPCoreTemplates, FedRAMPAttachmentTemplates } from './documentTemplates/fedramp/index';
+import { NISTTemplates } from './documentTemplates/nist/index';
+import { OperationalTemplates, CertificationDocumentTemplates } from './documentTemplates/operational/index';
 
 // Re-export types for backward compatibility or external use
 export type { DocumentTemplate, TemplateVariable };

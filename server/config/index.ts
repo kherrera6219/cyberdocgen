@@ -22,7 +22,7 @@ export const config = {
     url: process.env.REDIS_URL,
   },
   storage: {
-    provider: process.env.STORAGE_PROVIDER || "local", // 'gcs', 's3', 'azure', 'local'
+    provider: "gcs", // Force Google Cloud Storage
     bucket: process.env.STORAGE_BUCKET,
     region: process.env.STORAGE_REGION,
   },

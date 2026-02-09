@@ -37,10 +37,9 @@ async function createDbProvider() {
   
   if (config.database.type === 'sqlite') {
     const { SqliteDbProvider } = await import('./db/sqlite');
-    return new SqliteDbProvider(config.database.filePath!);
+    return new SqliteDbProvider(config.database.filePath!, config.database.migrationsPath!);
   }
   
-  // Default: Postgres (cloud mode)
   const { PostgresDbProvider } = await import('./db/postgres');
   return new PostgresDbProvider(config.database.connection!);
 }
