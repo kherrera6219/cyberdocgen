@@ -48,7 +48,7 @@ This pipeline performs the following:
 2.  **Vite Build**: Compiles the React frontend.
 3.  **Server Bundle**: Bundles the Node.js backend to `.cjs` for ASAR compatibility.
 4.  **Electron Build**: Compiles the main process.
-5.  **Packaging**: Uses `electron-builder` with custom NSIS scripts for data retention choices.
+5.  **Packaging**: Uses `electron-builder` with custom NSIS scripts for guided install UX, completion notifications, and uninstall data retention choices.
 
 Optional post-build verification:
 
@@ -66,8 +66,29 @@ node scripts/verify-build.js
 
 1.  Navigate to `dist/packaging/`.
 2.  Run `CyberDocGen-Setup-<version>.exe`.
-3.  The application will install to `AppData\Local\Programs\cyberdocgen`.
-4.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings).
+3.  Choose an installation location in the installer wizard (default is `AppData\Local\Programs\cyberdocgen`).
+4.  Wait for the installer progress page to complete, then confirm the installation completion prompt.
+5.  Launch CyberDocGen and configure your AI provider API key(s) in **Settings -> AI API Keys**.
+6.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings). Uninstall progress and a completion notification are shown.
+
+---
+
+## Microsoft Standard Installer Checklist (NSIS Path)
+
+The current desktop installer aligns to the requested baseline for direct `.exe` distribution:
+
+- Assisted installer flow (`oneClick: false`)
+- Install location chooser
+- Installer and uninstaller progress pages
+- Completion notification for both install and uninstall
+- Desktop and Start Menu shortcuts
+- Built-in uninstaller with data retention/removal prompt
+- Versioned setup artifact naming (`CyberDocGen-Setup-<version>.exe`)
+
+Remaining enterprise-grade recommendations:
+- Sign installer binaries with an Authenticode certificate
+- Build SmartScreen reputation via signed releases and consistent publisher identity
+- Add EV code signing if immediate SmartScreen trust is required
 
 ---
 

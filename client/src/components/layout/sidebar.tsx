@@ -19,6 +19,7 @@ import {
   Settings,
   Cloud,
   User,
+  KeyRound,
   Wand2,
   Zap,
   Upload,
@@ -70,7 +71,9 @@ const complianceNavItems: NavItem[] = [
 ];
 
 const settingsNavItems: NavItem[] = [
+  { href: "/api-keys", icon: KeyRound, label: "AI API Keys" },
   { href: "/cloud-integrations", icon: Cloud, label: "Cloud Integrations" },
+  { href: "/local-settings", icon: Settings, label: "Local Settings" },
   { href: "/admin", icon: Settings, label: "Admin Settings" },
   { href: "/profile/settings", icon: User, label: "User Settings" },
 ];

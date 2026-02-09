@@ -51,10 +51,22 @@ dist/packaging/
 ### Installation Behavior
 
 - **Scope:** Per-user (no admin rights required)
-- **Install Location:** `%LOCALAPPDATA%\Programs\CyberDocGen`
+- **Installer Flow:** Assisted NSIS wizard (`oneClick: false`)
+- **Install Location:** User-selectable (default `%LOCALAPPDATA%\Programs\CyberDocGen`)
 - **Data Location:** `%APPDATA%\Roaming\CyberDocGen`
 - **Shortcuts:** Desktop + Start Menu
+- **Progress UX:** Standard progress pages for install and uninstall
+- **Completion UX:** Explicit completion notifications for install and uninstall
 - **Uninstall:** Registered in Apps & Features
+- **Uninstall Data Choice:** User can keep or delete `%APPDATA%\CyberDocGen` and `%LOCALAPPDATA%\CyberDocGen`
+
+### First Run Requirements (Desktop Mode)
+
+No cloud database setup is required for local desktop usage. End users only need to add AI provider API keys in the app after installation:
+
+- OpenAI
+- Anthropic
+- Google AI
 
 ### Local Mode Configuration
 

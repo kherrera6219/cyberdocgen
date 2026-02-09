@@ -21,8 +21,13 @@ win:
   forceCodeSigning: false
 nsis:
   oneClick: false
+  allowElevation: true
+  perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "CyberDocGen"
+  runAfterFinish: true
   deleteAppDataOnUninstall: false
   include: build/installer.nsh
   artifactName: "${productName}-Setup-${version}.${ext}"

@@ -51,8 +51,32 @@ If the standard build fails, you can run the steps individually:
 ### `electron-builder.yml`
 The configuration has been hardened for production:
 - **Target**: `nsis` (Standard Windows Installer)
+- **Guided Installer UX**: `oneClick: false` (wizard flow with install progress page)
+- **Install Location Selection**: `allowToChangeInstallationDirectory: true`
+- **Shortcuts**: Desktop + Start Menu shortcuts are created by default
+- **Post-Install Launch**: `runAfterFinish: true`
+- **Versioned Artifacts**: `CyberDocGen-Setup-<version>.exe`
 - **Data Retention**: Prompts user to keep/remove data on uninstall.
 - **ASAR Unpacking**: Critical native modules (`better-sqlite3`, `keytar`) are unpacked for reliable execution.
+- **Custom NSIS Hooks**: `build/installer.nsh` provides install/uninstall completion notifications and data retention prompts.
+
+## First-Run Requirements
+
+No cloud database or server configuration is required for Windows local mode. After installation, users only need to configure AI provider API keys inside the app:
+
+- OpenAI
+- Anthropic
+- Google AI
+
+The API key management screen is available under **Settings -> AI API Keys**.
+
+## Uninstall Behavior
+
+The generated NSIS uninstaller includes:
+
+- Standard uninstall progress page
+- Prompt to keep or remove `%APPDATA%\CyberDocGen` and `%LOCALAPPDATA%\CyberDocGen`
+- Explicit completion notification when uninstall finishes
 
 ## Troubleshooting & Diagnostics
 
