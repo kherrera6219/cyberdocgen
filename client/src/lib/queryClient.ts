@@ -198,7 +198,8 @@ export async function apiRequest(
   }
 
   const headers: Record<string, string> = {};
-  if (payload) {
+  const hasPayload = payload !== undefined;
+  if (hasPayload) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -212,12 +213,25 @@ export async function apiRequest(
   const res = await fetch(url, {
     method,
     headers,
-    body: payload ? JSON.stringify(payload) : undefined,
+    body: hasPayload ? JSON.stringify(payload) : undefined,
     credentials: "include",
   });
 
   await throwIfResNotOk(res);
-  return res.json();
+  if (res.status === 204 || res.status === 205) {
+    return null;
+  }
+
+  const responseText = await res.text();
+  if (!responseText) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return responseText;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

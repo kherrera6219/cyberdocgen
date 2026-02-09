@@ -49,17 +49,17 @@ Our testing strategy follows these principles:
 
 - **Vitest** - Fast unit test framework (Vite-native)
 
-### Current Baseline (February 9, 2026)
+### Current Baseline (February 9, 2026 - Post Bug/Error Sweep)
 
 Latest validated run:
 
-- `npm run test:coverage`: **PASS** (160 files, 1514 passing, 4 skipped)
+- `npm run test:coverage`: **PASS** (160 files, 1516 passing, 4 skipped)
 
 Global coverage snapshot:
 
 - Statements/Lines: **78.97%**
 - Functions: **67.45%**
-- Branches: **74.56%**
+- Branches: **74.60%**
 
 Coverage infrastructure and newest additions:
 
@@ -108,6 +108,11 @@ Coverage infrastructure and newest additions:
   - `tests/components/pages/control-approvals.interactions.test.tsx`
   - `tests/components/pages/evidence-ingestion.interactions.test.tsx`
   - `tests/unit/queryClient.apiRequest.test.ts`
+    - Includes no-content (`204`) and plain-text response handling regressions.
+
+- Bug/error sweep fixes validated in this baseline:
+  - Controlled-form default fixes for enhanced profile personnel inputs (`client/src/pages/enhanced-company-profile.tsx`).
+  - Safer API response parsing for empty and non-JSON success responses (`client/src/lib/queryClient.ts`).
 
 
 - **Testing Library** - React component testing

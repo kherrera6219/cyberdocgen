@@ -4,11 +4,23 @@
 
 **Version:** 2.4.0
 **Status:** Production Candidate (Core Gates Passing, Windows Release Sign-Off Pending)
-**Test Coverage:** 66.01% statements/lines, 62.51% functions, 71.41% branches
-**Test Suite:** 1452 passing, 4 skipped
+**Test Coverage:** 78.97% statements/lines, 67.45% functions, 74.60% branches
+**Test Suite:** 1516 passing, 4 skipped
 **Security:** 0 prod advisories (`npm audit --omit=dev`), dev-toolchain advisory risk accepted with controls (`docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`)
 **TypeScript Errors:** 0
 **ESLint Errors:** 0 (0 warnings)
+
+### Latest Validation Refresh (February 9, 2026 - Post Bug/Error Sweep)
+
+- `npm run check`: PASS
+- `npm run lint`: PASS
+- `npm run test:coverage`: PASS (`160` files, `1516` passing, `4` skipped)
+- `npm run build`: PASS
+- `npm run windows:validate`: PASS
+- `npm run build:win`: PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
+- Production bug fixes included:
+  - stable controlled defaults for enhanced profile personnel fields
+  - resilient API success parsing for `204`/empty + plain-text responses
 
 ---
 

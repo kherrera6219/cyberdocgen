@@ -45,6 +45,17 @@ export default function EnhancedCompanyProfile() {
       cloudInfrastructure: [],
       dataClassification: "",
       businessApplications: "",
+      ceoName: "",
+      cisoName: "",
+      cisoEmail: "",
+      securityOfficerName: "",
+      securityOfficerEmail: "",
+      complianceOfficerName: "",
+      complianceOfficerEmail: "",
+      itManagerName: "",
+      itManagerEmail: "",
+      legalCounselName: "",
+      legalCounselEmail: "",
       complianceFrameworks: [],
       contactInfo: undefined,
       selectedFrameworks: [],
@@ -203,12 +214,6 @@ export default function EnhancedCompanyProfile() {
           </Tabs>
 
           <div className="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700">
-            {/* Submit button logic could be added here if needed, or rely on tabs to save state. 
-                Currently the form handles submit at the top level. 
-                Wait, where is the submit button? 
-                The original file didn't seem to show a submit button in the view_file output (it was cut off or I missed it).
-                Let's double check providing one. The original file cut off at line 800.
-                Assuming there should be a save button. */}
             <button
                type="submit"
                className="inline-flex justify-center rounded-md border border-transparent bg-primary py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"

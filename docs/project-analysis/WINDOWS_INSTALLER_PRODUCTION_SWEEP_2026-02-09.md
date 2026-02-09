@@ -67,7 +67,7 @@ npm run windows:validate
 npm run check
 npm run lint
 npm run build:win
-npm run test:run
+npm run test:coverage
 ```
 
 Results:
@@ -76,7 +76,7 @@ Results:
 - `check`: pass
 - `lint`: pass (0 warnings)
 - `build:win`: pass, produced `dist/packaging/CyberDocGen-Setup-2.4.0.exe`
-- `test:run`: pass (`100` test files, `1153` tests passed, `4` skipped)
+- `test:coverage`: pass (`160` test files, `1516` tests passed, `4` skipped; global coverage 78.97 statements/lines, 74.60 branches, 67.45 functions)
 
 Known non-blocking runtime warnings still observed in test output:
 
@@ -86,6 +86,8 @@ Known non-blocking runtime warnings still observed in test output:
 Resolved in follow-up patch:
 
 - jsdom `requestSubmit()` not-implemented warning in `ai-doc-generator` tests (fixed by setting explicit `type="button"` on non-submit actions inside the form).
+- Runtime warning in enhanced company profile personnel fields (fixed by providing stable controlled defaults).
+- API success-response parsing edge cases (fixed to safely handle `204`/empty and plain-text responses in `apiRequest` with unit coverage).
 
 ## Operational TODO (Remaining)
 

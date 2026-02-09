@@ -85,4 +85,34 @@ describe("apiRequest compatibility", () => {
       }),
     );
   });
+
+  it("returns null for successful no-content responses", async () => {
+    document.cookie = "csrf-token=test-csrf";
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    const result = await apiRequest("/api/no-content", "DELETE");
+
+    expect(result).toBeNull();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/no-content",
+      expect.objectContaining({
+        method: "DELETE",
+      }),
+    );
+  });
+
+  it("returns plain text for successful non-JSON responses", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response("ok", {
+        status: 200,
+        headers: {
+          "content-type": "text/plain",
+        },
+      }),
+    );
+
+    const result = await apiRequest("/api/text", "GET");
+
+    expect(result).toBe("ok");
+  });
 });
