@@ -98,7 +98,7 @@ export default function EvidenceIngestion() {
         reader.onload = () => {
           const base64String = (reader.result as string).split(',')[1];
           
-          apiRequest("POST", "/api/evidence/upload", {
+          apiRequest("/api/evidence/upload", "POST", {
             fileName: file.name,
             fileData: base64String,
             snapshotId: selectedSnapshotId,

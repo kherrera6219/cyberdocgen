@@ -51,8 +51,7 @@ export function SnapshotManager({ selectedSnapshotId, onSnapshotSelect }: Snapsh
   // Create Snapshot Mutation
   const createMutation = useMutation({
     mutationFn: async (name: string) => {
-      const res = await apiRequest("POST", "/api/evidence/snapshots", { name });
-      return res.json();
+      return apiRequest("/api/evidence/snapshots", "POST", { name });
     },
     onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/evidence/snapshots"] });

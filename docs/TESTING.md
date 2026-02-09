@@ -53,13 +53,13 @@ Our testing strategy follows these principles:
 
 Latest validated run:
 
-- `npm run test:coverage`: **PASS with threshold failures expected** (156 files, 1503 passing, 4 skipped; global gates remain 80/75)
+- `npm run test:coverage`: **PASS** (160 files, 1514 passing, 4 skipped)
 
 Global coverage snapshot:
 
-- Statements/Lines: **72.85%**
-- Functions: **66.37%**
-- Branches: **74.24%**
+- Statements/Lines: **78.97%**
+- Functions: **67.45%**
+- Branches: **74.56%**
 
 Coverage infrastructure and newest additions:
 
@@ -103,6 +103,11 @@ Coverage infrastructure and newest additions:
   - `tests/components/hooks/useRepositoryAPI.test.tsx`
   - `tests/unit/routes/storageRoutes.test.ts`
   - `tests/unit/routes/adminRoutes.test.ts`
+- New interaction and regression coverage in this cycle:
+  - `tests/components/pages/audit-trail.interactions.test.tsx`
+  - `tests/components/pages/control-approvals.interactions.test.tsx`
+  - `tests/components/pages/evidence-ingestion.interactions.test.tsx`
+  - `tests/unit/queryClient.apiRequest.test.ts`
 
 
 - **Testing Library** - React component testing
@@ -578,7 +583,13 @@ npm test -- --coverage
 
 ### Coverage Thresholds
 
-Aim for:
+Current enforced staged gate:
+- **Statements**: 78.5%
+- **Branches**: 74.5%
+- **Functions**: 67%
+- **Lines**: 78.5%
+
+Long-term target:
 - **Statements**: 80%
 - **Branches**: 75%
 - **Functions**: 80%

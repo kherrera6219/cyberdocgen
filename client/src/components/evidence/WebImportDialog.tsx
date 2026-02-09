@@ -32,7 +32,7 @@ export function WebImportDialog({ snapshotId, trigger }: WebImportDialogProps) {
 
     try {
         setIsLoading(true);
-        await apiRequest("POST", "/api/web-import/crawl", {
+        await apiRequest("/api/web-import/crawl", "POST", {
             url,
             maxDepth: depth[0],
             maxPages,

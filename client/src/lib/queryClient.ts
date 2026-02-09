@@ -165,21 +165,36 @@ async function throwIfResNotOk(res: Response) {
 }
 
 type ApiRequestOptions = { method?: string; body?: unknown };
+const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
 export async function apiRequest(
-  url: string,
-  methodOrOptions?: string | ApiRequestOptions,
+  urlOrMethod: string,
+  methodOrUrlOrOptions?: string | ApiRequestOptions,
   body?: unknown,
 ): Promise<any> {
+  let url = urlOrMethod;
   let method = 'GET';
   let payload: unknown;
 
-  if (typeof methodOrOptions === 'string') {
-    method = methodOrOptions;
-    payload = body;
-  } else if (methodOrOptions) {
-    method = methodOrOptions.method ?? 'GET';
-    payload = methodOrOptions.body;
+  if (typeof methodOrUrlOrOptions === 'string') {
+    const isLegacyMethodFirst =
+      HTTP_METHODS.has(urlOrMethod.toUpperCase()) &&
+      (methodOrUrlOrOptions.startsWith("/") ||
+        methodOrUrlOrOptions.startsWith("http://") ||
+        methodOrUrlOrOptions.startsWith("https://"));
+
+    if (isLegacyMethodFirst) {
+      // Backward compatibility for legacy call sites: apiRequest("POST", "/api/...", body)
+      method = urlOrMethod.toUpperCase();
+      url = methodOrUrlOrOptions;
+      payload = body;
+    } else {
+      method = methodOrUrlOrOptions.toUpperCase();
+      payload = body;
+    }
+  } else if (methodOrUrlOrOptions) {
+    method = (methodOrUrlOrOptions.method ?? 'GET').toUpperCase();
+    payload = methodOrUrlOrOptions.body;
   }
 
   const headers: Record<string, string> = {};
