@@ -74,15 +74,37 @@ export default function ApiKeysPage() {
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
+  const { data: appConfig, isLoading: configLoading } = useQuery<{
+    deploymentMode: 'cloud' | 'local';
+    isProduction: boolean;
+  }>({
+    queryKey: ['/api/config'],
+    queryFn: async () => {
+      const res = await fetch('/api/config');
+      if (!res.ok) throw new Error('Failed to load app config');
+      return res.json();
+    },
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const isLocalMode = appConfig?.deploymentMode === 'local';
 
   // Fetch configured providers
-  const { data: configured, isLoading } = useQuery<ConfiguredProviders>({
+  const {
+    data: configured,
+    isLoading,
+    isError: configuredQueryError,
+    error: configuredError,
+  } = useQuery<ConfiguredProviders>({
     queryKey: ['api-keys-configured'],
     queryFn: async () => {
       const res = await fetch('/api/local/api-keys/configured');
       if (!res.ok) throw new Error('Failed to fetch configured providers');
       return res.json();
     },
+    enabled: isLocalMode,
+    retry: false,
   });
 
   // Save API key mutation
@@ -223,6 +245,33 @@ export default function ApiKeysPage() {
     return configured?.configured.includes(providerId) || false;
   };
 
+  if (configLoading) {
+    return (
+      <div className="container mx-auto py-8 max-w-5xl">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLocalMode) {
+    return (
+      <div className="container mx-auto py-8 max-w-5xl">
+        <h1 className="text-3xl font-bold flex items-center gap-2 mb-4">
+          <Key className="h-8 w-8" />
+          AI Provider API Keys
+        </h1>
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            This page is only available in local desktop mode. In cloud mode, configure provider credentials through your deployment environment.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8 max-w-5xl">
       <div className="mb-6">
@@ -242,6 +291,15 @@ export default function ApiKeysPage() {
           with your Windows login credentials and never leave your computer.
         </AlertDescription>
       </Alert>
+
+      {configuredQueryError && (
+        <Alert className="mb-6" variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load API key status: {configuredError instanceof Error ? configuredError.message : 'Unknown error'}. Retry after verifying local mode services are running.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -329,7 +387,7 @@ export default function ApiKeysPage() {
                       </div>
                       <Button
                         onClick={() => handleTest(provider.id)}
-                        disabled={!apiKeys[provider.id] || testingProvider === provider.id}
+                        disabled={!apiKeys[provider.id] || testingProvider === provider.id || configuredQueryError}
                         variant="outline"
                       >
                         {testingProvider === provider.id ? (
@@ -340,7 +398,7 @@ export default function ApiKeysPage() {
                       </Button>
                       <Button
                         onClick={() => handleSave(provider.id)}
-                        disabled={!apiKeys[provider.id] || saveMutation.isPending}
+                        disabled={!apiKeys[provider.id] || saveMutation.isPending || configuredQueryError}
                       >
                         {saveMutation.isPending ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -356,7 +414,7 @@ export default function ApiKeysPage() {
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDelete(provider.id)}
-                        disabled={deleteMutation.isPending}
+                        disabled={deleteMutation.isPending || configuredQueryError}
                       >
                         {deleteMutation.isPending ? (
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />

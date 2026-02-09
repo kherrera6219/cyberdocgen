@@ -85,9 +85,16 @@ function saveWindowState(state: WindowState): void {
  */
 function isPathSafe(requestedPath: string): boolean {
   try {
+    if (typeof requestedPath !== 'string' || requestedPath.trim().length === 0) {
+      return false;
+    }
+
     const resolved = path.resolve(requestedPath);
     const allowed = path.resolve(app.getPath('userData'));
-    return resolved.startsWith(allowed);
+    const relative = path.relative(allowed, resolved);
+
+    // Prevent prefix-bypass paths like "...\\CyberDocGen2\\..."
+    return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
   } catch {
     return false;
   }
@@ -697,8 +704,10 @@ function cleanupOrphanedProcesses() {
       if (oldPid && !isNaN(oldPid)) {
         try {
           process.kill(oldPid, 0); // Check if process exists
-          startupLogger.warn(`Orphaned server process detected: ${oldPid}, killing...`);
-          process.kill(oldPid, 'SIGTERM'); 
+          startupLogger.warn(
+            `Potential orphan server process detected: ${oldPid}. ` +
+            'Skipping forced termination to avoid PID-reuse killing of unrelated processes.',
+          );
         } catch {
           // Process does not exist, which is fine
         }

@@ -90,6 +90,11 @@ Remaining enterprise-grade recommendations:
 - Build SmartScreen reputation via signed releases and consistent publisher identity
 - Add EV code signing if immediate SmartScreen trust is required
 
+Local hardening updates:
+- API key management and local settings pages are local-mode only (hidden in cloud mode navigation and guarded at runtime).
+- Backup/restore operations enforce validated `.db` paths under app data or user profile roots.
+- Local API key validation includes provider format checks and upstream timeout protection.
+
 ---
 
 ## Troubleshooting

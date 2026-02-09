@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { 
@@ -54,6 +55,7 @@ const frameworkNavItems: NavItem[] = [
 const documentNavItems: NavItem[] = [
   { href: "/documents", icon: Folder, label: "All Documents" },
   { href: "/evidence-ingestion", icon: Upload, label: "Evidence Upload" },
+  { href: "/connectors", icon: Cloud, label: "Connectors Hub" },
   { href: "/export", icon: FolderOutput, label: "Export Center" },
 ];
 
@@ -118,11 +120,26 @@ function NavLink({ item, isActive, onClick }: NavLinkProps) {
 
 export default function MobileSidebar({ onClose }: MobileSidebarProps) {
   const [location] = useLocation();
+  const { data: appConfig } = useQuery<{ deploymentMode: 'cloud' | 'local'; isProduction: boolean }>({
+    queryKey: ['/api/config'],
+    queryFn: async () => {
+      const res = await fetch('/api/config');
+      if (!res.ok) throw new Error('Failed to load app config');
+      return res.json();
+    },
+    staleTime: 60_000,
+    retry: false,
+  });
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return location === "/dashboard" || location === "/";
     return location.startsWith(href.split("?")[0]);
   };
+
+  const isLocalMode = appConfig?.deploymentMode === 'local';
+  const visibleSettingsNavItems = isLocalMode
+    ? settingsNavItems
+    : settingsNavItems.filter((item) => item.href !== '/api-keys' && item.href !== '/local-settings');
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900">
@@ -178,7 +195,7 @@ export default function MobileSidebar({ onClose }: MobileSidebarProps) {
 
         <div>
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Settings</h2>
-          {settingsNavItems.map((item) => (
+          {visibleSettingsNavItems.map((item) => (
             <NavLink key={item.href} item={item} isActive={isActive(item.href)} onClick={onClose} />
           ))}
         </div>

@@ -78,6 +78,12 @@ The generated NSIS uninstaller includes:
 - Prompt to keep or remove `%APPDATA%\CyberDocGen` and `%LOCALAPPDATA%\CyberDocGen`
 - Explicit completion notification when uninstall finishes
 
+## Local Security Guardrails
+
+- Local backup/restore endpoints now validate `.db` paths and restrict operations to the application data directory or the current user's profile directory.
+- API key test/save endpoints validate provider IDs and key formats before storage.
+- OpenAI key validation calls use request timeouts to prevent long-hanging local API requests.
+
 ## Troubleshooting & Diagnostics
 
 If the packaged application fails to start:

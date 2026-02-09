@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -112,11 +113,26 @@ function NavLink({ item, isActive }: NavLinkProps) {
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { data: appConfig } = useQuery<{ deploymentMode: 'cloud' | 'local'; isProduction: boolean }>({
+    queryKey: ['/api/config'],
+    queryFn: async () => {
+      const res = await fetch('/api/config');
+      if (!res.ok) throw new Error('Failed to load app config');
+      return res.json();
+    },
+    staleTime: 60_000,
+    retry: false,
+  });
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return location === "/dashboard" || location === "/";
     return location.startsWith(href.split("?")[0]);
   };
+
+  const isLocalMode = appConfig?.deploymentMode === 'local';
+  const visibleSettingsNavItems = isLocalMode
+    ? settingsNavItems
+    : settingsNavItems.filter((item) => item.href !== '/api-keys' && item.href !== '/local-settings');
 
   return (
     <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 overflow-y-auto transition-colors">
@@ -158,7 +174,7 @@ export default function Sidebar() {
 
         <div>
           <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Settings</h2>
-          {settingsNavItems.map((item) => (
+          {visibleSettingsNavItems.map((item) => (
             <NavLink key={item.href} item={item} isActive={isActive(item.href)} />
           ))}
         </div>
