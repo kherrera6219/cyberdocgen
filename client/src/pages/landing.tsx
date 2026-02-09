@@ -6,81 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Shield, FileText, CheckCircle, Users, ArrowRight, Zap, Globe, Lock, 
   BarChart3, Clock, Award, Building2, ChevronRight, Sparkles,
-  Brain, Cpu, Mail, MapPin
+  Brain, Cpu
 } from "lucide-react";
 import { TemporaryLoginDialog } from "@/components/TemporaryLoginDialog";
-import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 import { useAuth } from "@/hooks/useAuth";
-
-function Footer() {
-  return (
-    <footer className="bg-gray-900 dark:bg-gray-950 text-white py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <Shield className="h-8 w-8 text-blue-400" />
-              <span className="text-xl font-bold">CyberDocGen</span>
-            </div>
-            <p className="text-gray-400 text-sm mb-4">
-              Enterprise-grade compliance automation powered by AI. A product of Lucentry.AI.
-            </p>
-            <div className="space-y-2 text-sm text-gray-400">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                <a href="mailto:CEO@lucentry.ai" className="hover:text-white transition-colors">CEO@lucentry.ai</a>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span>Sacramento, CA</span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-4">Product</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/features"><span className="hover:text-white cursor-pointer transition-colors">Features</span></Link></li>
-              <li><Link href="/pricing"><span className="hover:text-white cursor-pointer transition-colors">Pricing</span></Link></li>
-              <li><span className="hover:text-white cursor-pointer transition-colors">Integrations</span></li>
-              <li><span className="hover:text-white cursor-pointer transition-colors">API</span></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-4">Company</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/about"><span className="hover:text-white cursor-pointer transition-colors">About</span></Link></li>
-              <li><Link href="/contact"><span className="hover:text-white cursor-pointer transition-colors">Contact</span></Link></li>
-              <li><span className="hover:text-white cursor-pointer transition-colors">Careers</span></li>
-              <li><span className="hover:text-white cursor-pointer transition-colors">Blog</span></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-4">Legal</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/privacy"><span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span></Link></li>
-              <li><Link href="/terms"><span className="hover:text-white cursor-pointer transition-colors">Terms of Service</span></Link></li>
-              <li><span className="hover:text-white cursor-pointer transition-colors">Security</span></li>
-              <li><span className="hover:text-white cursor-pointer transition-colors">Compliance</span></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-400 text-sm">
-            2025 Lucentry.AI. All rights reserved.
-          </p>
-          <div className="flex items-center gap-4 text-gray-400">
-            <Badge variant="outline" className="border-gray-600 text-gray-400">Beta</Badge>
-            <span className="text-sm">Building the future of compliance</span>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 export function Landing() {
   const { isLocalMode } = useAuth();
@@ -116,14 +46,14 @@ export function Landing() {
               <span>Now in Beta - Powered by GPT-5.1, Claude Opus 4.5 & Gemini 3.0</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight px-2">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight px-2">
               Compliance Documentation
               <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
                 Powered by AI
               </span>
             </h1>
 
-            <p className="text-base sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed px-4">
+            <p className="text-base sm:text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed px-4">
               Generate audit-ready documentation for ISO 27001, SOC 2, FedRAMP, and NIST frameworks in minutes, not months. Multi-model AI for superior results.
             </p>
 
@@ -184,13 +114,13 @@ export function Landing() {
       </div>
 
       {/* AI Models Section */}
-      <div className="py-16 bg-white dark:bg-gray-800/50">
+      <div className="py-16 bg-card/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
               Powered by Leading AI Models
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Intelligent model selection routes your requests to the best AI for each task
             </p>
           </div>
@@ -201,7 +131,7 @@ export function Landing() {
                   <div className="mx-auto mb-4 p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full w-fit">
                     <model.icon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{model.name}</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-1">{model.name}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{model.provider}</p>
                 </CardContent>
               </Card>
@@ -214,10 +144,10 @@ export function Landing() {
       <div className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Everything You Need for Compliance Success
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Transform complex regulatory requirements into actionable documentation with our AI-powered platform
             </p>
           </div>
@@ -231,15 +161,15 @@ export function Landing() {
               { icon: Clock, title: "Audit Preparation", description: "Dedicated auditor workspace with evidence packages and read-only access for seamless audits.", color: "red" },
               { icon: Award, title: "Continuous Monitoring", description: "Stay compliant with automated control monitoring and real-time compliance dashboards.", color: "indigo" },
             ].map((feature, index) => (
-              <Card key={index} className="group border-0 bg-white dark:bg-gray-800/80 shadow-sm hover:shadow-lg transition-all duration-300">
+              <Card key={index} className="group border-0 bg-card/80 shadow-sm hover:shadow-lg transition-all duration-300">
                 <CardHeader className="pb-4">
                   <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg w-fit">
                     <feature.icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <CardTitle className="text-xl text-gray-900 dark:text-white">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl text-foreground">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">
+                  <CardDescription className="text-muted-foreground">
                     {feature.description}
                   </CardDescription>
                 </CardContent>
@@ -262,10 +192,10 @@ export function Landing() {
       <div className="py-20 bg-gray-50 dark:bg-gray-800/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Supported Compliance Frameworks
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Generate comprehensive documentation for the industry's most important security and compliance standards
             </p>
           </div>
@@ -277,13 +207,13 @@ export function Landing() {
               { name: "FedRAMP", description: "Federal Risk Authorization", documents: "50+ templates", icon: Building2 },
               { name: "NIST CSF", description: "Cybersecurity Framework", documents: "40+ templates", icon: Globe }
             ].map((framework) => (
-              <Card key={framework.name} className="text-center border-0 bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg transition-all duration-300">
+              <Card key={framework.name} className="text-center border-0 bg-card shadow-sm hover:shadow-lg transition-all duration-300">
                 <CardHeader>
                   <div className="mx-auto mb-4 p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full">
                     <framework.icon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <CardTitle className="text-xl text-gray-900 dark:text-white">{framework.name}</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">{framework.description}</CardDescription>
+                  <CardTitle className="text-xl text-foreground">{framework.name}</CardTitle>
+                  <CardDescription className="text-muted-foreground">{framework.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm font-medium text-blue-600 dark:text-blue-400">{framework.documents}</div>
@@ -298,10 +228,10 @@ export function Landing() {
       <div className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Built with Security First
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Your compliance data deserves enterprise-grade protection
             </p>
           </div>
@@ -312,11 +242,11 @@ export function Landing() {
               { title: "Multi-Factor Auth", description: "TOTP and passkey support with comprehensive audit logging" },
               { title: "Role-Based Access", description: "Granular permissions with multi-tenant isolation" },
             ].map((item, index) => (
-              <Card key={index} className="border-0 bg-white dark:bg-gray-800 shadow-sm text-center">
+              <Card key={index} className="border-0 bg-card shadow-sm text-center">
                 <CardContent className="pt-8">
                   <Lock className="h-12 w-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{item.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">{item.description}</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm">{item.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -363,7 +293,8 @@ export function Landing() {
         </div>
       </div>
 
-      <Footer />
+      <PublicFooter />
     </div>
   );
 }
+

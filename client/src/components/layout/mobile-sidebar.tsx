@@ -93,27 +93,28 @@ interface NavLinkProps {
 
 function NavLink({ item, isActive, onClick }: NavLinkProps) {
   return (
-    <Link href={item.href} data-testid={`mobile-nav-${item.href.replace(/\//g, '-').slice(1) || 'home'}`}>
-      <a 
-        className={cn(
-          "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
-          isActive
-            ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
-            : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-        )}
-        onClick={onClick}
-      >
-        <item.icon className="w-5 h-5 mr-3" />
-        <span className="flex-1">{item.label}</span>
-        {item.badge && (
-          <span className={cn(
-            "text-xs text-white px-2 py-1 rounded-full shadow-sm",
-            item.badgeColor
-          )}>
-            {item.badge}
-          </span>
-        )}
-      </a>
+    <Link
+      href={item.href}
+      data-testid={`mobile-nav-${item.href.replace(/\//g, '-').slice(1) || 'home'}`}
+      className={cn(
+        "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer hover:shadow-sm",
+        isActive
+          ? "text-primary bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+          : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+      )}
+      onClick={onClick}
+      aria-current={isActive ? "page" : undefined}
+    >
+      <item.icon className="w-5 h-5 mr-3" />
+      <span className="flex-1">{item.label}</span>
+      {item.badge && (
+        <span className={cn(
+          "text-xs text-white px-2 py-1 rounded-full shadow-sm",
+          item.badgeColor
+        )}>
+          {item.badge}
+        </span>
+      )}
     </Link>
   );
 }

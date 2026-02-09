@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SkipNavigation } from "@/components/SkipNavigation";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { Switch, Route, useParams } from "wouter";
 import Layout from "./components/layout";
@@ -184,7 +185,10 @@ function AppContent() {
     return (
       <>
         <NetworkBanner />
-        <PublicRouter />
+        <SkipNavigation />
+        <main id="main-content" tabIndex={-1}>
+          <PublicRouter />
+        </main>
       </>
     );
   }

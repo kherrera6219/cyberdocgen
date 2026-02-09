@@ -2,38 +2,9 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, CheckCircle, ArrowRight, Zap, HelpCircle, Mail, MapPin, Sparkles } from "lucide-react";
+import { CheckCircle, ArrowRight, Zap, HelpCircle, Sparkles } from "lucide-react";
 import { useEffect } from "react";
-import { PublicHeader } from "@/components/layout/PublicHeader";
-
-function Footer() {
-  return (
-    <footer className="bg-gray-900 text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">CyberDocGen</span>
-            <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
-          </div>
-          <div className="text-center md:text-left">
-            <p className="text-gray-400 text-sm">A product of Lucentry.AI</p>
-            <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
-              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
-              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
-            </div>
-          </div>
-          <div className="flex gap-6 text-sm text-gray-400">
-            <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
-            <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
-            <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
-          </div>
-          <p className="text-gray-400 text-sm">2025 Lucentry.AI</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
+import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
 export default function Pricing() {
   useEffect(() => {
@@ -132,10 +103,10 @@ export default function Pricing() {
             <Sparkles className="h-3 w-3 mr-1" />
             Free During Beta
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             Pricing Coming Soon
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
             CyberDocGen is currently in beta. All features are available free during the beta period. 
             Join now to lock in early-adopter pricing when we launch.
           </p>
@@ -156,7 +127,7 @@ export default function Pricing() {
             {plans.map((plan, index) => (
               <Card 
                 key={index} 
-                className={`relative border-0 shadow-lg ${plan.popular ? 'ring-2 ring-blue-600 dark:ring-blue-400' : ''} bg-white dark:bg-gray-800`}
+                className={`relative border-0 shadow-lg ${plan.popular ? 'ring-2 ring-blue-600 dark:ring-blue-400' : ''} bg-card`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -167,8 +138,8 @@ export default function Pricing() {
                   </div>
                 )}
                 <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-2xl text-gray-900 dark:text-white">{plan.name}</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">{plan.description}</CardDescription>
+                  <CardTitle className="text-2xl text-foreground">{plan.name}</CardTitle>
+                  <CardDescription className="text-muted-foreground">{plan.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center mb-6">
@@ -184,7 +155,7 @@ export default function Pricing() {
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-3">
                         <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-600 dark:text-gray-300 text-sm">{feature}</span>
+                        <span className="text-muted-foreground text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -207,17 +178,17 @@ export default function Pricing() {
       </div>
 
       {/* Feature Comparison */}
-      <div className="py-16 bg-white dark:bg-gray-800/50">
+      <div className="py-16 bg-card/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Compare Plans</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-8 text-center">Compare Plans</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left py-4 px-4 text-gray-900 dark:text-white font-semibold">Feature</th>
-                  <th className="text-center py-4 px-4 text-gray-900 dark:text-white font-semibold">Starter</th>
-                  <th className="text-center py-4 px-4 text-gray-900 dark:text-white font-semibold">Professional</th>
-                  <th className="text-center py-4 px-4 text-gray-900 dark:text-white font-semibold">Enterprise</th>
+                <tr className="border-b border-border">
+                  <th className="text-left py-4 px-4 text-foreground font-semibold">Feature</th>
+                  <th className="text-center py-4 px-4 text-foreground font-semibold">Starter</th>
+                  <th className="text-center py-4 px-4 text-foreground font-semibold">Professional</th>
+                  <th className="text-center py-4 px-4 text-foreground font-semibold">Enterprise</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
@@ -236,10 +207,10 @@ export default function Pricing() {
                   { feature: "Support", starter: "Email", pro: "Priority", enterprise: "24/7 Dedicated" },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-gray-100 dark:border-gray-800">
-                    <td className="py-4 px-4 text-gray-600 dark:text-gray-300">{row.feature}</td>
-                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-300">{row.starter === "-" ? <span className="text-gray-400">-</span> : row.starter}</td>
-                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-300">{row.pro === "-" ? <span className="text-gray-400">-</span> : row.pro}</td>
-                    <td className="py-4 px-4 text-center text-gray-600 dark:text-gray-300">{row.enterprise}</td>
+                    <td className="py-4 px-4 text-muted-foreground">{row.feature}</td>
+                    <td className="py-4 px-4 text-center text-muted-foreground">{row.starter === "-" ? <span className="text-gray-400">-</span> : row.starter}</td>
+                    <td className="py-4 px-4 text-center text-muted-foreground">{row.pro === "-" ? <span className="text-gray-400">-</span> : row.pro}</td>
+                    <td className="py-4 px-4 text-center text-muted-foreground">{row.enterprise}</td>
                   </tr>
                 ))}
               </tbody>
@@ -251,16 +222,16 @@ export default function Pricing() {
       {/* FAQ Section */}
       <div className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-8 text-center">Frequently Asked Questions</h2>
           <div className="grid md:grid-cols-2 gap-6">
             {faqs.map((faq, index) => (
-              <Card key={index} className="border-0 bg-white dark:bg-gray-800 shadow-sm">
+              <Card key={index} className="border-0 bg-card shadow-sm">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
                     <HelpCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{faq.question}</h3>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm">{faq.answer}</p>
+                      <h3 className="font-semibold text-foreground mb-2">{faq.question}</h3>
+                      <p className="text-muted-foreground text-sm">{faq.answer}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -294,7 +265,8 @@ export default function Pricing() {
         </div>
       </div>
 
-      <Footer />
+      <PublicFooter />
     </div>
   );
 }
+

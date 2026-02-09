@@ -5,46 +5,17 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Shield, FileText, Users, BarChart3, Clock, Award, ArrowRight,
   Zap, Lock, Bot, CheckCircle, Upload, Eye, RefreshCw, Bell, Workflow,
-  Database, Cloud, Settings, GitBranch, Brain, Sparkles, Cpu, Mail, MapPin
+  Database, Cloud, Settings, GitBranch, Brain, Sparkles, Cpu
 } from "lucide-react";
 import { useEffect } from "react";
-import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
-import aiDocGenImage from "@assets/generated_images/ai_document_generation_interface.png";
-import multiFrameworkImage from "@assets/generated_images/multi-framework_compliance_support.png";
-import gapAnalysisImage from "@assets/generated_images/gap_analysis_dashboard_interface.png";
-import teamCollabImage from "@assets/generated_images/team_collaboration_workspace.png";
-import auditorWorkspaceImage from "@assets/generated_images/auditor_workspace_interface.png";
-import continuousMonitoringImage from "@assets/generated_images/continuous_monitoring_dashboard.png";
-
-function Footer() {
-  return (
-    <footer className="bg-gray-900 text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">CyberDocGen</span>
-            <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
-          </div>
-          <div className="text-center md:text-left">
-            <p className="text-gray-400 text-sm">A product of Lucentry.AI</p>
-            <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
-              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
-              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
-            </div>
-          </div>
-          <div className="flex gap-6 text-sm text-gray-400">
-            <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
-            <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
-            <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
-          </div>
-          <p className="text-gray-400 text-sm">2025 Lucentry.AI</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
+import aiDocGenImage from "@assets/generated_images/ai_document_generation_interface.webp";
+import multiFrameworkImage from "@assets/generated_images/multi-framework_compliance_support.webp";
+import gapAnalysisImage from "@assets/generated_images/gap_analysis_dashboard_interface.webp";
+import teamCollabImage from "@assets/generated_images/team_collaboration_workspace.webp";
+import auditorWorkspaceImage from "@assets/generated_images/auditor_workspace_interface.webp";
+import continuousMonitoringImage from "@assets/generated_images/continuous_monitoring_dashboard.webp";
 
 export default function Features() {
   useEffect(() => {
@@ -123,13 +94,13 @@ export default function Features() {
             <Zap className="h-4 w-4" />
             <span>Powerful Features for Modern Compliance</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             Everything You Need for
             <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Compliance Success
             </span>
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
             From AI-powered document generation to continuous monitoring, CyberDocGen provides a complete platform for managing your compliance journey.
           </p>
           <Link href="/login">
@@ -167,9 +138,9 @@ export default function Features() {
       </div>
 
       {/* Main Features */}
-      <div className="py-16 bg-white dark:bg-gray-800/50">
+      <div className="py-16 bg-card/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-12 text-center">Core Features</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Core Features</h2>
           <div className="space-y-16">
             {mainFeatures.map((feature, index) => (
               <div key={index} className={`flex flex-col ${index % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12`}>
@@ -177,13 +148,13 @@ export default function Features() {
                   <div className="mb-4 p-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg w-fit">
                     <feature.icon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{feature.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">{feature.description}</p>
+                  <h3 className="text-2xl font-bold text-foreground mb-4">{feature.title}</h3>
+                  <p className="text-muted-foreground mb-6">{feature.description}</p>
                   <div className="grid grid-cols-2 gap-3">
                     {feature.highlights.map((highlight, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-600 dark:text-gray-300">{highlight}</span>
+                        <span className="text-sm text-muted-foreground">{highlight}</span>
                       </div>
                     ))}
                   </div>
@@ -194,6 +165,8 @@ export default function Features() {
                       <img 
                         src={feature.image} 
                         alt={feature.title}
+                        loading={index === 0 ? "eager" : "lazy"}
+                        decoding="async"
                         className="w-full h-auto object-cover rounded-md"
                         data-testid={`img-feature-${index}`}
                       />
@@ -209,13 +182,13 @@ export default function Features() {
       {/* Additional Features Grid */}
       <div className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">More Powerful Features</h2>
-          <p className="text-gray-600 dark:text-gray-300 text-center mb-12 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-foreground mb-4 text-center">More Powerful Features</h2>
+          <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
             Beyond the core functionality, CyberDocGen includes everything you need to manage compliance at scale.
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {additionalFeatures.map((feature, index) => (
-              <Card key={index} className="border-0 bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg transition-shadow">
+              <Card key={index} className="border-0 bg-card shadow-sm hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-2">
                   <div className="mb-2 p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg w-fit">
                     <feature.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -223,7 +196,7 @@ export default function Features() {
                   <CardTitle className="text-lg">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">{feature.description}</CardDescription>
+                  <CardDescription className="text-muted-foreground">{feature.description}</CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -234,16 +207,16 @@ export default function Features() {
       {/* Frameworks Section */}
       <div className="py-16 bg-gray-50 dark:bg-gray-800/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">Supported Frameworks</h2>
-          <p className="text-gray-600 dark:text-gray-300 text-center mb-12 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-foreground mb-4 text-center">Supported Frameworks</h2>
+          <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
             Generate documentation for all major compliance frameworks with built-in control mapping.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {["ISO 27001", "SOC 2", "FedRAMP", "NIST CSF", "HIPAA", "PCI DSS"].map((framework) => (
-              <Card key={framework} className="border-0 bg-white dark:bg-gray-800 shadow-sm text-center">
+              <Card key={framework} className="border-0 bg-card shadow-sm text-center">
                 <CardContent className="pt-6">
                   <Shield className="h-10 w-10 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
-                  <p className="font-semibold text-gray-900 dark:text-white">{framework}</p>
+                  <p className="font-semibold text-foreground">{framework}</p>
                 </CardContent>
               </Card>
             ))}
@@ -275,7 +248,8 @@ export default function Features() {
         </div>
       </div>
 
-      <Footer />
+      <PublicFooter />
     </div>
   );
 }
+

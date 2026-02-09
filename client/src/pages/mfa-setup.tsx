@@ -409,6 +409,8 @@ export default function MFASetupPage() {
               <img 
                 src={totpSetup.qrCode} 
                 alt="TOTP QR Code" 
+                loading="lazy"
+                decoding="async"
                 className="mx-auto border rounded-lg p-4 bg-white"
               />
             </div>

@@ -9,36 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Mail, MapPin, MessageSquare, Send, Clock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { PublicHeader } from "@/components/layout/PublicHeader";
-
-function Footer() {
-  return (
-    <footer className="bg-gray-900 text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">CyberDocGen</span>
-            <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
-          </div>
-          <div className="text-center md:text-left">
-            <p className="text-gray-400 text-sm">A product of Lucentry.AI</p>
-            <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
-              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
-              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
-            </div>
-          </div>
-          <div className="flex gap-6 text-sm text-gray-400">
-            <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
-            <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
-            <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
-          </div>
-          <p className="text-gray-400 text-sm">2025 Lucentry.AI</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
+import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
 export default function Contact() {
   const { toast } = useToast();
@@ -110,10 +81,10 @@ export default function Contact() {
       <div className="pt-32 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Badge variant="secondary" className="mb-6">Contact</Badge>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             Get in Touch
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Have questions about CyberDocGen? Our team is here to help you find the right solution for your compliance needs.
           </p>
         </div>
@@ -125,7 +96,7 @@ export default function Contact() {
           <div className="grid lg:grid-cols-3 gap-12">
             {/* Contact Info */}
             <div className="lg:col-span-1">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Contact Information</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-6">Contact Information</h2>
               
               {/* Company Card */}
               <Card className="border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 shadow-sm mb-6">
@@ -133,8 +104,8 @@ export default function Contact() {
                   <div className="flex items-center gap-3 mb-4">
                     <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                     <div>
-                      <p className="font-bold text-gray-900 dark:text-white">Lucentry.AI</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">CyberDocGen</p>
+                      <p className="font-bold text-foreground">Lucentry.AI</p>
+                      <p className="text-sm text-muted-foreground">CyberDocGen</p>
                     </div>
                   </div>
                 </CardContent>
@@ -147,13 +118,13 @@ export default function Contact() {
                       <item.icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{item.title}</p>
+                      <p className="font-medium text-foreground">{item.title}</p>
                       {item.link ? (
                         <a href={item.link} className="text-blue-600 dark:text-blue-400 hover:underline">
                           {item.value}
                         </a>
                       ) : (
-                        <p className="text-gray-600 dark:text-gray-300">{item.value}</p>
+                        <p className="text-muted-foreground">{item.value}</p>
                       )}
                     </div>
                   </div>
@@ -161,19 +132,15 @@ export default function Contact() {
               </div>
 
               <div className="mt-12">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Quick Links</h3>
                 <div className="space-y-3">
-                  <Link href="/pricing">
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
-                      <MessageSquare className="h-4 w-4" />
-                      <span>View Pricing Plans</span>
-                    </div>
+                  <Link href="/pricing" className="flex items-center gap-2 text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>View Pricing Plans</span>
                   </Link>
-                  <Link href="/features">
-                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
-                      <MessageSquare className="h-4 w-4" />
-                      <span>Explore Features</span>
-                    </div>
+                  <Link href="/features" className="flex items-center gap-2 text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Explore Features</span>
                   </Link>
                 </div>
               </div>
@@ -181,10 +148,10 @@ export default function Contact() {
 
             {/* Contact Form */}
             <div className="lg:col-span-2">
-              <Card className="border-0 bg-white dark:bg-gray-800 shadow-lg">
+              <Card className="border-0 bg-card shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 dark:text-white">Send us a message</CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-300">
+                  <CardTitle className="text-foreground">Send us a message</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     Fill out the form below and we'll get back to you within 24 hours.
                   </CardDescription>
                 </CardHeader>
@@ -194,8 +161,8 @@ export default function Contact() {
                       <div className="mx-auto mb-4 p-4 bg-green-100 dark:bg-green-900/30 rounded-full w-fit">
                         <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
                       </div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Message Sent!</h3>
-                      <p className="text-gray-600 dark:text-gray-300 mb-6">
+                      <h3 className="text-xl font-semibold text-foreground mb-2">Message Sent!</h3>
+                      <p className="text-muted-foreground mb-6">
                         Thank you for reaching out. We'll get back to you within 24 hours.
                       </p>
                       <Button onClick={() => setSubmitted(false)} variant="outline">
@@ -273,7 +240,8 @@ export default function Contact() {
         </div>
       </div>
 
-      <Footer />
+      <PublicFooter />
     </div>
   );
 }
+

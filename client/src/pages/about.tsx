@@ -4,36 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Target, Heart, Lightbulb, ArrowRight, Mail, MapPin, Building2 } from "lucide-react";
 import { useEffect } from "react";
-import { PublicHeader } from "@/components/layout/PublicHeader";
-
-function Footer() {
-  return (
-    <footer className="bg-gray-900 text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-blue-400" />
-            <span className="font-bold">CyberDocGen</span>
-            <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">Beta</Badge>
-          </div>
-          <div className="text-center md:text-left">
-            <p className="text-gray-400 text-sm">A product of Lucentry.AI</p>
-            <div className="flex items-center justify-center md:justify-start gap-4 mt-1 text-xs text-gray-500">
-              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> CEO@lucentry.ai</span>
-              <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Sacramento, CA</span>
-            </div>
-          </div>
-          <div className="flex gap-6 text-sm text-gray-400">
-            <Link href="/privacy"><span className="hover:text-white cursor-pointer">Privacy</span></Link>
-            <Link href="/terms"><span className="hover:text-white cursor-pointer">Terms</span></Link>
-            <Link href="/contact"><span className="hover:text-white cursor-pointer">Contact</span></Link>
-          </div>
-          <p className="text-gray-400 text-sm">2025 Lucentry.AI</p>
-        </div>
-      </div>
-    </footer>
-  );
-}
+import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
 export default function About() {
   useEffect(() => {
@@ -60,17 +31,17 @@ export default function About() {
       <div className="pt-32 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Badge variant="secondary" className="mb-6">About Us</Badge>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             About CyberDocGen
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             We're building the future of compliance automation, helping organizations achieve and maintain security certifications faster than ever before.
           </p>
         </div>
       </div>
 
       {/* Company Info Section */}
-      <div className="py-16 bg-white dark:bg-gray-800/50">
+      <div className="py-16 bg-card/80">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 shadow-lg">
             <CardContent className="p-8">
@@ -79,8 +50,8 @@ export default function About() {
                   <Building2 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Lucentry.AI</h2>
-                  <p className="text-gray-600 dark:text-gray-300">The company behind CyberDocGen</p>
+                  <h2 className="text-2xl font-bold text-foreground">Lucentry.AI</h2>
+                  <p className="text-muted-foreground">The company behind CyberDocGen</p>
                 </div>
               </div>
               
@@ -88,14 +59,14 @@ export default function About() {
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Location</p>
-                    <p className="text-gray-600 dark:text-gray-300">Sacramento, CA, United States</p>
+                    <p className="font-medium text-foreground">Location</p>
+                    <p className="text-muted-foreground">Sacramento, CA, United States</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">Contact</p>
+                    <p className="font-medium text-foreground">Contact</p>
                     <a href="mailto:CEO@lucentry.ai" className="text-blue-600 dark:text-blue-400 hover:underline">CEO@lucentry.ai</a>
                   </div>
                 </div>
@@ -108,8 +79,8 @@ export default function About() {
       {/* Story Section */}
       <div className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Our Story</h2>
-          <div className="prose prose-lg dark:prose-invert mx-auto text-gray-600 dark:text-gray-300">
+          <h2 className="text-3xl font-bold text-foreground mb-8 text-center">Our Story</h2>
+          <div className="prose prose-lg dark:prose-invert mx-auto text-muted-foreground">
             <p className="mb-6">
               CyberDocGen was born from a simple observation: security compliance is too complex, too time-consuming, and too expensive for most organizations. We set out to change that.
             </p>
@@ -126,16 +97,16 @@ export default function About() {
       {/* Values Section */}
       <div className="py-16 bg-gray-50 dark:bg-gray-800/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-12 text-center">Our Values</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Our Values</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
-              <Card key={index} className="border-0 bg-white dark:bg-gray-800 shadow-sm text-center">
+              <Card key={index} className="border-0 bg-card shadow-sm text-center">
                 <CardContent className="pt-6">
                   <div className="mx-auto mb-4 p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full w-fit">
                     <value.icon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{value.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">{value.description}</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{value.title}</h3>
+                  <p className="text-muted-foreground text-sm">{value.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -144,30 +115,30 @@ export default function About() {
       </div>
 
       {/* Beta Status Section */}
-      <div className="py-16 bg-white dark:bg-gray-800/50">
+      <div className="py-16 bg-card/80">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Badge variant="secondary" className="mb-6">Current Status</Badge>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Currently in Beta</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-foreground mb-6">Currently in Beta</h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             CyberDocGen is actively being developed and refined. We're working closely with our beta users to build the best compliance automation platform possible. Your feedback helps shape the future of our product.
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="border-0 bg-gray-50 dark:bg-gray-800 shadow-sm">
               <CardContent className="pt-6 text-center">
                 <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Beta</p>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Current Phase</p>
+                <p className="text-muted-foreground text-sm">Current Phase</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50 dark:bg-gray-800 shadow-sm">
               <CardContent className="pt-6 text-center">
                 <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Free</p>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">During Beta</p>
+                <p className="text-muted-foreground text-sm">During Beta</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50 dark:bg-gray-800 shadow-sm">
               <CardContent className="pt-6 text-center">
                 <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Active</p>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Development</p>
+                <p className="text-muted-foreground text-sm">Development</p>
               </CardContent>
             </Card>
           </div>
@@ -197,7 +168,8 @@ export default function About() {
         </div>
       </div>
 
-      <Footer />
+      <PublicFooter />
     </div>
   );
 }
+

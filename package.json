@@ -16,6 +16,7 @@
     "test:run": "vitest --run",
     "test:coverage": "vitest --coverage",
     "test:ui": "vitest --ui",
+    "test:ui-semantics": "tsx scripts/check-semantic-links.ts",
     "lint": "eslint .",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
