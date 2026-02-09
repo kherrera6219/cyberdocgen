@@ -96,6 +96,14 @@ describe('DatabaseStorage Comprehensive Coverage', () => {
         await storage.deleteDocument('d1');
     });
 
+    it('covers getDocuments without organization filter', async () => {
+        mockResolved([{ id: 'd2' }]);
+        const docs = await storage.getDocuments();
+
+        expect(docs).toEqual([{ id: 'd2' }]);
+        expect(db.innerJoin).not.toHaveBeenCalled();
+    });
+
     it('covers document versions', async () => {
         mockResolved([{ version: 1 }]);
         await storage.getDocumentVersions('d1');
@@ -182,6 +190,119 @@ describe('DatabaseStorage Comprehensive Coverage', () => {
         await storage.getGenerationJob('j1');
         mockResolved([{ id: 'j1' }]);
         await storage.updateGenerationJob('j1', {});
+    });
+
+    it('covers getGenerationJobs without organization filter', async () => {
+        mockResolved([{ id: 'j2' }]);
+        const jobs = await storage.getGenerationJobs();
+
+        expect(jobs).toEqual([{ id: 'j2' }]);
+        expect(db.innerJoin).not.toHaveBeenCalled();
+    });
+
+    it('covers document approvals filtered and unfiltered branches', async () => {
+        mockResolved([{ id: 'approval-pending' }]);
+        const pending = await storage.getDocumentApprovals('pending');
+        expect(pending).toEqual([{ id: 'approval-pending' }]);
+        expect(db.where).toHaveBeenCalled();
+
+        mockResolved([{ id: 'approval-all' }]);
+        const all = await storage.getDocumentApprovals('all');
+        expect(all).toEqual([{ id: 'approval-all' }]);
+    });
+
+    it('updates existing framework control status with filtered values', async () => {
+        mockResolved([{ id: 'fcs-1' }]);
+        mockResolved([{ id: 'fcs-1', notes: 'updated' }]);
+
+        const updated = await storage.updateFrameworkControlStatus(
+          'org-1',
+          'SOC2',
+          'CC6.1',
+          {
+            notes: 'updated',
+            status: undefined,
+            evidenceStatus: undefined,
+          } as any
+        );
+
+        expect(updated).toEqual({ id: 'fcs-1', notes: 'updated' });
+        expect(db.update).toHaveBeenCalled();
+        const setArgs = vi.mocked(db.set).mock.calls.at(-1)?.[0] as Record<string, unknown>;
+        expect(setArgs.notes).toBe('updated');
+        expect(setArgs).not.toHaveProperty('status');
+        expect(setArgs).not.toHaveProperty('evidenceStatus');
+    });
+
+    it('inserts framework control status when no existing row is found', async () => {
+        mockResolved([]);
+        mockResolved([{ id: 'fcs-2' }]);
+
+        const created = await storage.updateFrameworkControlStatus(
+          'org-1',
+          'SOC2',
+          'CC6.2',
+          {}
+        );
+
+        expect(created).toEqual({ id: 'fcs-2' });
+        expect(db.insert).toHaveBeenCalled();
+        const valuesArgs = vi.mocked(db.values).mock.calls.at(-1)?.[0] as Record<string, unknown>;
+        expect(valuesArgs.status).toBe('not_started');
+        expect(valuesArgs.evidenceStatus).toBe('none');
+    });
+
+    it('returns 0 when markAllNotificationsAsRead has undefined rowCount', async () => {
+        mockResolved({ rowCount: undefined });
+        const count = await storage.markAllNotificationsAsRead('user-1');
+        expect(count).toBe(0);
+    });
+
+    it('returns false when deleteNotification does not remove any row', async () => {
+        mockResolved({ rowCount: 0 });
+        const deleted = await storage.deleteNotification('note-1', 'user-1');
+        expect(deleted).toBe(false);
+    });
+
+    it('returns null when audit log does not exist', async () => {
+        mockResolved([]);
+        const log = await storage.getAuditLogById('missing-log', 'org-1');
+        expect(log).toBeNull();
+    });
+
+    it('caps audit detailed limit at 100 and applies paging', async () => {
+        mockResolved([{ total: 250 }]);
+        mockResolved([{ id: 'audit-1' }]);
+
+        const result = await storage.getAuditLogsDetailed('org-1', {
+          page: 2,
+          limit: 999,
+          entityType: 'document',
+          action: 'update',
+          dateFrom: new Date('2026-01-01'),
+          dateTo: new Date('2026-02-01'),
+        });
+
+        expect(result.total).toBe(250);
+        expect(result.data).toEqual([{ id: 'audit-1' }]);
+        expect(db.limit).toHaveBeenCalledWith(100);
+        expect(db.offset).toHaveBeenCalledWith(100);
+    });
+
+    it('counts high and critical risk audit events', async () => {
+        mockResolved([
+          { action: 'create', resourceType: 'document', riskLevel: 'low' },
+          { action: 'delete', resourceType: 'document', riskLevel: 'high' },
+          { action: null, resourceType: null, riskLevel: 'critical' },
+        ]);
+
+        const stats = await storage.getAuditStats('org-1');
+
+        expect(stats.totalEvents).toBe(3);
+        expect(stats.highRiskEvents).toBe(2);
+        expect(stats.actions.create).toBe(1);
+        expect(stats.actions.delete).toBe(1);
+        expect(stats.entities.document).toBe(2);
     });
   });
 });

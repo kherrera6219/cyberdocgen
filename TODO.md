@@ -2,7 +2,7 @@
 
 **Last Updated:** February 9, 2026  
 **Status:** Operational Readiness Hardening In Progress  
-**Coverage:** 61.22% statements/lines, 56.66% functions, 68.95% branches (Core services at 80%+ for current hotspot batch)
+**Coverage:** 63.67% statements/lines, 60.18% functions, 70.73% branches (core services hotspot batch expanded)
 
 ---
 
@@ -32,7 +32,7 @@
 - [ ] **Route coverage cleanup**: expand remaining tests around repository analysis orchestration (`server/routes.ts`), temp-auth gating, and low-covered auth/project/mfa routes (storage/admin/local-mode routes now expanded).
 - [ ] **Documentation consistency pass**: reconcile historical “0 vulnerabilities” and old production claims across status docs.
 - [ ] **Test warning cleanup**: remove residual React `act(...)` noise and migrate off deprecated Vitest `environmentMatchGlobs` (jsdom `requestSubmit()` warning already remediated in `ai-doc-generator`).
-- [ ] **Coverage threshold burn-down**: close remaining global gap (needs +13,109 statements, +507 functions, +319 branches to hit 80/75 gates).
+- [ ] **Coverage threshold burn-down**: close remaining global gap (needs +11,399 statements, +430 functions, +246 branches to hit 80/75 gates).
 
 ---
 
@@ -135,6 +135,11 @@
    - backend service hotspots: `repositoryFindingsService`, `codeSignalDetectorService`
    - object storage/local mode: `objectStorageService`, `localModeRoutes`
    - frontend high-gap pages: `api-keys`, `organization-setup`, `cloud-integrations`
+8. Additional backend hotspot sweep completed:
+   - `repoParserService` deep coverage + Windows path-normalization bug fix
+   - `cloudIntegrationService`, `dataRetentionService`, `systemConfigService` branch-focused suites
+   - `connectorAdapters` coverage for SharePoint/Jira/Notion execution paths
+   - `MemStorage` and `DatabaseStorage` edge-case expansions
 
 ### Remaining operational items
 

@@ -53,13 +53,13 @@ Our testing strategy follows these principles:
 
 Latest validated run:
 
-- `npm run test:coverage`: **PASS with threshold failures expected** (123 files, 1280 passing, 4 skipped; global gates remain 80/75)
+- `npm run test:coverage`: **PASS with threshold failures expected** (132 files, 1411 passing, 4 skipped; global gates remain 80/75)
 
 Global coverage snapshot:
 
-- Statements/Lines: **59.02%**
-- Functions: **53.70%**
-- Branches: **68.04%**
+- Statements/Lines: **63.66%**
+- Functions: **60.18%**
+- Branches: **70.72%**
 
 Coverage infrastructure and newest additions:
 
@@ -82,6 +82,13 @@ Coverage infrastructure and newest additions:
   - `tests/unit/routes/auditorRoutes.test.ts`
   - `tests/unit/versionService.test.ts`
   - `tests/unit/companyDataExtractionService.test.ts`
+  - `tests/unit/repoParserService.test.ts`
+  - `tests/unit/cloudIntegrationService.test.ts`
+  - `tests/unit/dataRetentionService.test.ts`
+  - `tests/unit/systemConfigService.test.ts`
+  - `tests/unit/connectorAdapters.test.ts`
+  - `tests/unit/storage.test.ts` (MemStorage branch expansion)
+  - `tests/unit/storage-db.test.ts` (DatabaseStorage branch expansion)
 - New high-gap page and route coverage suites:
   - `tests/components/pages/company-profile.interactions.test.tsx`
   - `tests/components/pages/account-and-auth-pages.test.tsx`

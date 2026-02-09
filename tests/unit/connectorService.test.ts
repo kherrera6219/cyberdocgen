@@ -286,6 +286,88 @@ describe("connectorService.runImport", () => {
       connectorService.runImport("user-1", "org-1", "cfg-5", "snap-5")
     ).rejects.toThrow("Adapter for unknown not found");
   });
+
+  it("uses fallback names and strips control characters during import", async () => {
+    const adapter: ConnectorAdapter = {
+      type: "notion",
+      connect: vi.fn(async () => true),
+      listItems: vi.fn(async () => [
+        {
+          id: "untitled-1",
+          name: "",
+          type: "page",
+          externalUrl: "https://notion.example.com/untitled-1",
+        } satisfies ConnectorItem,
+        {
+          id: "strange-2",
+          name: "Bad\u0001Name.md",
+          type: "page",
+          externalUrl: "https://notion.example.com/strange-2",
+        } satisfies ConnectorItem,
+      ]),
+      fetchItem: vi.fn(async (item) => `content:${item.id}`),
+    };
+
+    connectorService.registerAdapter(adapter);
+    mockedDbFns.whereMock.mockResolvedValueOnce([
+      {
+        id: "cfg-6",
+        organizationId: "org-1",
+        connectorType: "notion",
+        integrationId: "int-1",
+        scopeConfig: undefined,
+      },
+    ]);
+    mockedDbFns.updateWhereMock.mockResolvedValueOnce(undefined);
+    vi.mocked(ingestionService.ingestFile)
+      .mockResolvedValueOnce({ id: "file-a" } as any)
+      .mockResolvedValueOnce({ id: "file-b" } as any);
+    vi.mocked(auditService.logEvent).mockResolvedValue(undefined);
+
+    await connectorService.runImport("user-1", "org-1", "cfg-6", "snap-6");
+
+    expect(ingestionService.ingestFile).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ fileName: "import-untitled-1.txt" })
+    );
+    expect(ingestionService.ingestFile).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ fileName: "Bad_Name.md" })
+    );
+  });
+
+  it("records unknown adapter errors when a non-Error is thrown", async () => {
+    const adapter: ConnectorAdapter = {
+      type: "jira",
+      connect: vi.fn(async () => true),
+      listItems: vi.fn(async () => {
+        throw {};
+      }),
+      fetchItem: vi.fn(async () => "unused"),
+    };
+
+    connectorService.registerAdapter(adapter);
+    mockedDbFns.whereMock.mockResolvedValueOnce([
+      {
+        id: "cfg-7",
+        organizationId: "org-1",
+        connectorType: "jira",
+        integrationId: "int-1",
+        scopeConfig: {},
+      },
+    ]);
+    vi.mocked(auditService.logEvent).mockResolvedValue(undefined);
+
+    await expect(
+      connectorService.runImport("user-1", "org-1", "cfg-7", "snap-7")
+    ).rejects.toEqual({});
+
+    expect(auditService.logEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        details: expect.objectContaining({ error: "Unknown error" }),
+      })
+    );
+  });
 });
 
 describe("connectorService config management", () => {
@@ -355,5 +437,31 @@ describe("connectorService config management", () => {
     expect(configs[0].scopeConfig.password).toBe("********");
     expect(configs[0].scopeConfig.nested.token).toBe("********");
     expect(configs[0].scopeConfig.nested.keep).toBe("visible");
+  });
+
+  it("handles null and undefined scope config while listing configs", async () => {
+    mockedDbFns.whereMock.mockResolvedValueOnce([
+      null,
+      {
+        id: "cfg-12",
+        organizationId: "org-1",
+        scopeConfig: undefined,
+      },
+      {
+        id: "cfg-13",
+        organizationId: "org-1",
+        scopeConfig: {
+          allowedProjects: ["A", "B"],
+          credentials: [{ bearerToken: "hidden" }],
+        },
+      },
+    ]);
+
+    const configs = await connectorService.getConfigs("org-1");
+
+    expect(configs[0]).toBeNull();
+    expect(configs[1].scopeConfig).toBeUndefined();
+    expect(configs[2].scopeConfig.allowedProjects).toEqual(["A", "B"]);
+    expect(configs[2].scopeConfig.credentials[0].bearerToken).toBe("********");
   });
 });

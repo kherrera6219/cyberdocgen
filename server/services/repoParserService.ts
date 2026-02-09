@@ -511,7 +511,7 @@ export class RepoParserService {
    * Categorize file by path and name
    */
   private categorizeFile(relativePath: string, fileName: string): 'source' | 'config' | 'docs' | 'ci_cd' | 'iac' | 'test' | 'other' {
-    const lowerPath = relativePath.toLowerCase();
+    const lowerPath = relativePath.replace(/\\/g, '/').toLowerCase();
     const lowerName = fileName.toLowerCase();
 
     // CI/CD
@@ -586,7 +586,7 @@ export class RepoParserService {
    * Determine if file is security-relevant
    */
   private isSecurityRelevant(relativePath: string, fileName: string, category: string): boolean {
-    const lowerPath = relativePath.toLowerCase();
+    const lowerPath = relativePath.replace(/\\/g, '/').toLowerCase();
     const lowerName = fileName.toLowerCase();
 
     // Security-relevant paths
@@ -636,6 +636,8 @@ export class RepoParserService {
     const infraTools = new Set<string>();
 
     for (const file of files) {
+      const normalizedPath = file.relativePath.replace(/\\/g, '/');
+
       // Collect languages
       if (file.language) {
         languages.add(file.language);
@@ -665,13 +667,13 @@ export class RepoParserService {
       if (file.fileName.toLowerCase().includes('docker')) {
         infraTools.add('Docker');
       }
-      if (file.relativePath.includes('kubernetes') || file.relativePath.includes('k8s')) {
+      if (normalizedPath.includes('kubernetes') || normalizedPath.includes('k8s')) {
         infraTools.add('Kubernetes');
       }
-      if (file.relativePath.includes('.github/workflows')) {
+      if (normalizedPath.includes('.github/workflows')) {
         infraTools.add('GitHub Actions');
       }
-      if (file.relativePath.includes('.gitlab-ci')) {
+      if (normalizedPath.includes('.gitlab-ci')) {
         infraTools.add('GitLab CI');
       }
     }
