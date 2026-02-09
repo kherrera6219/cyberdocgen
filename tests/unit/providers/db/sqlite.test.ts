@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { SqliteDbProvider } from '../../../server/providers/db/sqlite';
+import { SqliteDbProvider } from '../../../../server/providers/db/sqlite';
 
 const TEST_DB_PATH = './test-data/test.db';
 const MIGRATIONS_PATH = './tests/migrations';
@@ -41,7 +41,7 @@ describe('SqliteDbProvider', () => {
     const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
     await provider.connect();
     await provider.migrate();
-    const { rows } = await provider.query('SELECT * FROM users');
+    const rows = await provider.query('SELECT * FROM users');
     expect(rows.length).toBe(1);
     expect(rows[0].name).toBe('local-admin');
     await provider.close();
@@ -51,11 +51,11 @@ describe('SqliteDbProvider', () => {
     const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
     await provider.connect();
     await provider.migrate(); // First migration
-    const { rows: firstRun } = await provider.query('SELECT * FROM _migrations');
+    const firstRun = await provider.query('SELECT * FROM _migrations');
     expect(firstRun.length).toBe(1);
 
     await provider.migrate(); // Second migration
-    const { rows: secondRun } = await provider.query('SELECT * FROM _migrations');
+    const secondRun = await provider.query('SELECT * FROM _migrations');
     expect(secondRun.length).toBe(1);
     await provider.close();
   });
@@ -64,7 +64,7 @@ describe('SqliteDbProvider', () => {
     const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
     await provider.connect();
     await provider.migrate();
-    const { rows } = await provider.query('SELECT name FROM users WHERE id = ?', [1]);
+    const rows = await provider.query('SELECT name FROM users WHERE id = ?', [1]);
     expect(rows[0].name).toBe('local-admin');
     await provider.close();
   });
@@ -78,7 +78,7 @@ describe('SqliteDbProvider', () => {
       await txProvider.query("INSERT INTO users (name) VALUES ('test-user')");
     });
 
-    const { rows } = await provider.query('SELECT * FROM users');
+    const rows = await provider.query('SELECT * FROM users');
     expect(rows.length).toBe(2);
     await provider.close();
   });
@@ -93,7 +93,7 @@ describe('SqliteDbProvider', () => {
       throw new Error('Rollback!');
     })).rejects.toThrow('Rollback!');
 
-    const { rows } = await provider.query('SELECT * FROM users');
+    const rows = await provider.query('SELECT * FROM users');
     expect(rows.length).toBe(1);
     await provider.close();
   });
@@ -102,14 +102,14 @@ describe('SqliteDbProvider', () => {
     const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
     await provider.connect();
     const health = await provider.healthCheck();
-    expect(health.healthy).toBe(true);
+    expect(health).toBe(true);
     await provider.close();
   });
 
   it('should return an unhealthy health check if not connected', async () => {
     const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
     const health = await provider.healthCheck();
-    expect(health.healthy).toBe(false);
+    expect(health).toBe(false);
   });
 
   it('should close the database connection', async () => {

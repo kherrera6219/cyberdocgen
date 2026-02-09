@@ -5,7 +5,7 @@
 **Version:** 2.4.0
 **Status:** Production Candidate (Core Gates Passing, Windows Release Sign-Off Pending)
 **Test Coverage:** ~48%+ (Critical Services & MCP: 85-100%)
-**Test Suite:** 1162 passing, 4 skipped
+**Test Suite:** 1153 passing, 4 skipped
 **Security:** 0 prod advisories (`npm audit --omit=dev`), dev-toolchain advisory risk accepted with controls (`docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`)
 **TypeScript Errors:** 0
 **ESLint Errors:** 0 (0 warnings)
@@ -18,7 +18,7 @@
 
 - `npm run check`: PASS
 - `npm run lint`: PASS (0 warnings)
-- `npm run test:run`: PASS (100 files, 1162 passing, 4 skipped)
+- `npm run test:run`: PASS (100 files, 1153 passing, 4 skipped)
 - `npm run build`: PASS
 - `npm run start`: PASS (validated `/live`, `/ready`, `/metrics` => HTTP 200 in local mode)
 - `npm run dev`: PASS in local mode with required env (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`)
@@ -46,6 +46,26 @@
 1. Cloud-mode full validation still requires production-like secrets and infrastructure.
 2. Documentation consistency cleanup is still in progress across historical status files.
 3. Windows release sign-off still needs signed installer validation evidence (clean VM install + startup log review).
+
+### Follow-up Debug/Error Sweep (Same Day)
+
+- Fixed TypeScript/provider contract regressions introduced during prior merge work:
+  - normalized SQLite provider contract + local-mode route capability guards
+  - aligned MCP AI health metadata shape with orchestrator return type
+  - cleaned script/type/lint regressions (`test_connection`, duplicate logger import, fallback model logic)
+- Stabilized test execution configuration (removed duplicate project execution and restored deterministic jsdom/node routing).
+- Revalidated full gate set:
+  - `npm run check` PASS
+  - `npm run lint` PASS
+  - `npm run test:run` PASS (100 files, 1153 passing, 4 skipped)
+  - `npm run windows:validate` PASS
+  - `npm run build:win` PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
+
+Known non-blocking warning noise still observed:
+
+- React `act(...)` warnings in selected dashboard/accessibility tests.
+- jsdom `requestSubmit()` warning in `ai-doc-generator` tests.
+- Vitest deprecation warning for `environmentMatchGlobs` (migration to project-based config still pending).
 
 ---
 
@@ -187,7 +207,7 @@
 ## 📈 Metrics
 
 - **Test Files:** 100 total
-- **Test Cases:** 1162 passing, 4 skipped
+- **Test Cases:** 1153 passing, 4 skipped
 - **Overall Coverage:** 48.2%
 - **Critical Services Coverage:** 85-100%
 - **Pre-commit Hooks:** Active (Husky + Lint-staged)

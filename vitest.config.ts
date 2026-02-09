@@ -17,10 +17,31 @@ const sharedConfig = {
 
 export default defineConfig({
   plugins: [react()],
+  esbuild: {
+    jsx: "automatic",
+    jsxImportSource: "react",
+  },
   ...sharedConfig,
   test: {
     globals: true,
     setupFiles: ["./tests/setup.ts"],
+    environment: "node",
+    environmentMatchGlobs: [
+      ["tests/components/**", "jsdom"],
+      ["tests/accessibility/**", "jsdom"],
+    ],
+    include: [
+      "tests/unit/**/*.test.ts",
+      "tests/integration/**/*.test.ts",
+      "tests/ai/**/*.test.ts",
+      "tests/components/**/*.test.tsx",
+      "tests/accessibility/**/*.test.tsx",
+    ],
+    server: {
+      deps: {
+        inline: [/html-encoding-sniffer/, /@exodus\/bytes/],
+      },
+    },
     testTimeout: 30000,
     hookTimeout: 10000,
     teardownTimeout: 10000,
@@ -43,34 +64,5 @@ export default defineConfig({
         statements: 80,
       },
     },
-    projects: [
-      {
-        ...sharedConfig,
-        name: "unit",
-        environment: "node",
-        include: [
-          "tests/unit/**/*.test.ts",
-          "tests/integration/**/*.test.ts",
-          "tests/ai/**/*.test.ts",
-        ],
-        setupFiles: ["./tests/setup.ts"],
-        globals: true,
-        deps: {
-          inline: [/html-encoding-sniffer/, /@exodus\/bytes/],
-        }
-      },
-      {
-        plugins: [react()],
-        ...sharedConfig,
-        name: "components",
-        environment: "jsdom",
-        include: [
-          "tests/components/**/*.test.tsx",
-          "tests/accessibility/**/*.test.tsx",
-        ],
-        setupFiles: ["./tests/setup.ts"],
-        globals: true,
-      },
-    ],
   },
 });

@@ -1,23 +1,37 @@
 // Polyfill requestSubmit FIRST before any imports (required by React Hook Form in jsdom).
 // jsdom may define requestSubmit but throw "Not implemented", so always override in tests.
-if (typeof global !== 'undefined' && typeof HTMLFormElement !== 'undefined') {
-  Object.defineProperty(HTMLFormElement.prototype, 'requestSubmit', {
+const installRequestSubmitPolyfill = (FormElement: typeof HTMLFormElement | undefined) => {
+  if (!FormElement) {
+    return;
+  }
+
+  Object.defineProperty(FormElement.prototype, 'requestSubmit', {
     configurable: true,
     writable: true,
     value: function() {
       this.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     },
   });
+};
+
+if (typeof global !== 'undefined' && typeof HTMLFormElement !== 'undefined') {
+  installRequestSubmitPolyfill(HTMLFormElement);
+}
+if (typeof window !== 'undefined' && typeof window.HTMLFormElement !== 'undefined') {
+  installRequestSubmitPolyfill(window.HTMLFormElement);
 }
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { toHaveNoViolations } from 'jest-axe';
+import React from 'react';
 
 expect.extend(toHaveNoViolations);
+(globalThis as any).React = React;
 
 // Set test environment variables
 process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test';
+process.env.DEPLOYMENT_MODE = process.env.DEPLOYMENT_MODE || 'cloud';
 // Force test environment - must override any shell-level NODE_ENV to ensure
 // React act() works and logger doesn't redact IPs in tests.
 process.env.NODE_ENV = 'test';
@@ -85,6 +99,27 @@ if (typeof window !== 'undefined') {
       dispatchEvent: vi.fn(),
     })),
   });
+
+  // Normalize relative fetch calls in jsdom so components using browser-style
+  // "/api/*" URLs don't throw URL parsing/runtime connection errors in tests.
+  const nativeFetch = globalThis.fetch?.bind(globalThis);
+  if (nativeFetch) {
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (typeof input === 'string' && input.startsWith('/')) {
+        const absoluteUrl = new URL(input, 'http://localhost').toString();
+        try {
+          return await nativeFetch(absoluteUrl, init);
+        } catch {
+          return new Response('{}', {
+            status: 503,
+            headers: { 'content-type': 'application/json' },
+          });
+        }
+      }
+
+      return nativeFetch(input as RequestInfo, init);
+    }) as typeof fetch;
+  }
 }
 
 // Export all vitest functions

@@ -15,14 +15,62 @@ import os from 'os';
 import path from 'path';
 import { getRuntimeConfig, isLocalMode } from '../config/runtime';
 import { getProviders } from '../providers';
+import type { IDbProvider, IStorageProvider } from '../providers/interfaces';
+import type { SqliteDbStats } from '../providers/db/sqlite';
 import { logger } from '../utils/logger';
-import type { SqliteDbProvider } from '../providers/db/sqlite';
-import type { LocalFsStorageProvider } from '../providers/storage/localFs';
 
 const router = express.Router();
 const SUPPORTED_API_KEY_PROVIDERS = new Set(['OPENAI', 'ANTHROPIC', 'GOOGLE_AI']);
 const MAX_API_KEY_LENGTH = 4096;
 const MAX_PATH_LENGTH = 1024;
+
+type DbStatsCapableProvider = IDbProvider & {
+  getStats: () => Promise<SqliteDbStats>;
+};
+
+type DbBackupCapableProvider = IDbProvider & {
+  backup: (destinationPath: string) => Promise<string>;
+};
+
+type DbRestoreCapableProvider = IDbProvider & {
+  restore: (sourcePath: string) => Promise<void>;
+};
+
+type DbMaintenanceCapableProvider = IDbProvider & {
+  maintenance: () => Promise<void>;
+};
+
+type StorageStatsCapableProvider = IStorageProvider & {
+  getStorageStats: () => Promise<{ totalSize: number; fileCount: number; path: string }>;
+};
+
+type StorageCleanupCapableProvider = IStorageProvider & {
+  cleanupEmptyDirectories: () => Promise<number>;
+};
+
+function hasDbStats(provider: IDbProvider): provider is DbStatsCapableProvider {
+  return typeof (provider as Partial<DbStatsCapableProvider>).getStats === 'function';
+}
+
+function hasDbBackup(provider: IDbProvider): provider is DbBackupCapableProvider {
+  return typeof (provider as Partial<DbBackupCapableProvider>).backup === 'function';
+}
+
+function hasDbRestore(provider: IDbProvider): provider is DbRestoreCapableProvider {
+  return typeof (provider as Partial<DbRestoreCapableProvider>).restore === 'function';
+}
+
+function hasDbMaintenance(provider: IDbProvider): provider is DbMaintenanceCapableProvider {
+  return typeof (provider as Partial<DbMaintenanceCapableProvider>).maintenance === 'function';
+}
+
+function hasStorageStats(provider: IStorageProvider): provider is StorageStatsCapableProvider {
+  return typeof (provider as Partial<StorageStatsCapableProvider>).getStorageStats === 'function';
+}
+
+function hasStorageCleanup(provider: IStorageProvider): provider is StorageCleanupCapableProvider {
+  return typeof (provider as Partial<StorageCleanupCapableProvider>).cleanupEmptyDirectories === 'function';
+}
 
 function normalizeProvider(value: unknown): string {
   if (typeof value !== 'string') {
@@ -162,10 +210,9 @@ router.get('/db-info', async (req, res) => {
     }
 
     const providers = await getProviders();
-    const dbProvider = providers.db as SqliteDbProvider;
+    const dbProvider = providers.db;
 
-    // Check if getStats method exists (SQLite provider)
-    if (typeof dbProvider.getStats !== 'function') {
+    if (!hasDbStats(dbProvider)) {
       return res.status(400).json({
         error: 'Database statistics not available for this provider',
       });
@@ -202,10 +249,9 @@ router.get('/storage-info', async (req, res) => {
     }
 
     const providers = await getProviders();
-    const storageProvider = providers.storage as LocalFsStorageProvider;
+    const storageProvider = providers.storage;
 
-    // Check if getStorageStats method exists (LocalFs provider)
-    if (typeof storageProvider.getStorageStats !== 'function') {
+    if (!hasStorageStats(storageProvider)) {
       return res.status(400).json({
         error: 'Storage statistics not available for this provider',
       });
@@ -255,10 +301,9 @@ router.post('/backup', async (req, res) => {
     }
 
     const providers = await getProviders();
-    const dbProvider = providers.db as SqliteDbProvider;
+    const dbProvider = providers.db;
 
-    // Check if backup method exists (SQLite provider)
-    if (typeof dbProvider.backup !== 'function') {
+    if (!hasDbBackup(dbProvider)) {
       return res.status(400).json({
         error: 'Backup not available for this database provider',
       });
@@ -309,10 +354,9 @@ router.post('/restore', async (req, res) => {
     }
 
     const providers = await getProviders();
-    const dbProvider = providers.db as SqliteDbProvider;
+    const dbProvider = providers.db;
 
-    // Check if restore method exists (SQLite provider)
-    if (typeof dbProvider.restore !== 'function') {
+    if (!hasDbRestore(dbProvider)) {
       return res.status(400).json({
         error: 'Restore not available for this database provider',
       });
@@ -348,10 +392,9 @@ router.post('/maintenance', async (req, res) => {
     }
 
     const providers = await getProviders();
-    const dbProvider = providers.db as SqliteDbProvider;
+    const dbProvider = providers.db;
 
-    // Check if maintenance method exists (SQLite provider)
-    if (typeof dbProvider.maintenance !== 'function') {
+    if (!hasDbMaintenance(dbProvider)) {
       return res.status(400).json({
         error: 'Maintenance not available for this database provider',
       });
@@ -387,10 +430,9 @@ router.post('/cleanup', async (req, res) => {
     }
 
     const providers = await getProviders();
-    const storageProvider = providers.storage as LocalFsStorageProvider;
+    const storageProvider = providers.storage;
 
-    // Check if cleanupEmptyDirectories method exists
-    if (typeof storageProvider.cleanupEmptyDirectories !== 'function') {
+    if (!hasStorageCleanup(storageProvider)) {
       return res.status(400).json({
         error: 'Cleanup not available for this storage provider',
       });

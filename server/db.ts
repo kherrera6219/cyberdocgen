@@ -36,7 +36,7 @@ if (isLocalMode) {
   } else {
     // Connection pool configuration with timeouts and error handling
     const poolConfig = {
-      connectionString: process.env.DATABASE_URL!,
+      connectionString: process.env.DATABASE_URL,
       max: 20, // Maximum number of clients in the pool
       idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
       connectionTimeoutMillis: 10000, // Return error after 10 seconds if connection cannot be established
@@ -56,10 +56,6 @@ if (isLocalMode) {
     pool.on("remove", () => {
       logger.debug("Database connection removed from pool");
     });
-
-    // Configure query timeout (30 seconds default)
-    neonConfig.fetchConnectionCache = true;
-
     db = drizzleNeon({ client: pool, schema });
   }
 }

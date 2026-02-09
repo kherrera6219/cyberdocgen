@@ -31,6 +31,7 @@
 - [ ] **Storybook lint strategy**: either modernize story files to current rules or keep explicit non-prod exclusions documented.
 - [ ] **Route coverage cleanup**: expand tests around repository analysis and temp-auth route gating.
 - [ ] **Documentation consistency pass**: reconcile historical “0 vulnerabilities” and old production claims across status docs.
+- [ ] **Test warning cleanup**: remove residual React `act(...)` + jsdom `requestSubmit()` noise and migrate off deprecated Vitest `environmentMatchGlobs`.
 
 ---
 
@@ -112,7 +113,7 @@
 
 ### Quality Tracks
 
-- [x] **Coverage Expansion**: Achieved 85%+ for critical services and 1162+ total passing tests.
+- [x] **Coverage Expansion**: Achieved 85%+ for critical services and 1153+ total passing tests.
 - [x] **Diagnostic Tools**: Created `scripts/diagnostic.js` for environment health checks.
 - [x] **Storybook Stories**: 53 component stories for UI documentation.
 - [x] **OpenTelemetry**: Full observability infrastructure installed.
@@ -126,7 +127,7 @@
 1. Connector adapters moved from stubs to API-backed implementations for SharePoint/Jira/Notion.
 2. Deep bug sweep fixed unhandled async teardown updates in temporary login/logout flows.
 3. Release evidence bundle captured with command logs and exit codes (`docs/project-analysis/evidence/20260208-130320/SUMMARY.md`).
-4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`.
+4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build` (`1153` passing, `4` skipped).
 5. Lint/security warning burn-down complete: `npm run lint` now passes with 0 warnings; evidence in `docs/project-analysis/evidence/20260208-203122/SUMMARY.md`.
 
 ### Remaining operational items

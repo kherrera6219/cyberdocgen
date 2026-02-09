@@ -673,13 +673,15 @@ export const aiHealthCheckTool: Tool = {
   handler: async (params, context: ToolContext): Promise<ToolResult> => {
     try {
       const health = await aiOrchestrator.healthCheck();
+      const allHealthy = Object.values(health.models).every(Boolean);
 
       return {
         success: true,
         data: health,
         metadata: {
           timestamp: new Date().toISOString(),
-          allHealthy: health.overall
+          allHealthy,
+          status: health.status
         }
       };
     } catch (error: unknown) {

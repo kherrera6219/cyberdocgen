@@ -82,9 +82,16 @@ Results:
 
 - TypeScript check: pass
 - ESLint: pass
-- Test suite: pass (`1162` passed, `4` skipped)
+- Test suite: pass (`1153` passed, `4` skipped)
 - Windows validation gate: pass
 - Windows NSIS packaging: pass (`CyberDocGen-Setup-2.4.0.exe`)
+
+Follow-up same-day rerun after debug/error sweep:
+
+- `npm run check`: pass
+- `npm run lint`: pass
+- `npm run test:run`: pass (`100` files, `1153` passed, `4` skipped)
+- `npm run build:win`: pass
 
 ## Residual Risk / Follow-up
 

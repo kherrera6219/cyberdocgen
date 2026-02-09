@@ -1,54 +1,94 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
-import { IDbProvider, HealthCheck, QueryResult, DbStats } from '../types';
+import type { IDbConnection, IDbProvider, IDbTransaction } from '../interfaces';
 import { logger } from '../../utils/logger';
+
+export interface SqliteDbStats {
+  path: string;
+  size: number;
+  fileSize: number;
+  pageCount: number;
+  pageSize: number;
+  walMode: boolean;
+  walSize: number;
+  journalMode: string;
+  connections: number;
+}
 
 export class SqliteDbProvider implements IDbProvider {
   private db: Database.Database | null = null;
-  private dbPath: string;
-  private migrationsPath: string;
+  private readonly dbPath: string;
+  private readonly migrationsPath: string;
 
   constructor(dbPath: string, migrationsPath: string) {
-    this.dbPath = dbPath;
-    this.migrationsPath = migrationsPath;
+    this.dbPath = path.resolve(dbPath);
+    this.migrationsPath = path.resolve(migrationsPath);
     logger.info(`[SqliteDbProvider] Initialized with path: ${this.dbPath}`);
   }
 
-  async connect(): Promise<void> {
+  private ensureConnected(): Database.Database {
+    if (!this.db) {
+      throw new Error('Database not connected.');
+    }
+
+    return this.db;
+  }
+
+  private configureConnection(db: Database.Database): void {
+    db.pragma('journal_mode = WAL');
+    db.pragma('synchronous = NORMAL');
+    db.pragma('cache_size = -64000');
+    db.pragma('temp_store = MEMORY');
+    db.pragma('foreign_keys = ON');
+    logger.info('[SqliteDbProvider] Connection configured with WAL mode and performance settings');
+  }
+
+  private createConnectionHandle(): IDbConnection {
+    return {
+      query: async <T = any>(sql: string, params: any[] = []) => this.query<T>(sql, params),
+      execute: async (sql: string, params: any[] = []) => {
+        await this.query(sql, params);
+      },
+      close: async () => this.close(),
+    };
+  }
+
+  async connect(): Promise<IDbConnection> {
+    if (this.db) {
+      return this.createConnectionHandle();
+    }
+
     try {
       const dir = path.dirname(this.dbPath);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
-        logger.info(`[SqliteDbProvider] Created directory: ${dir}`)
+        logger.info(`[SqliteDbProvider] Created directory: ${dir}`);
       }
 
-      this.db = new Database(this.dbPath, { verbose: (message: any) => logger.debug(`[SQLite] ${message}`) });
-      this.configureConnection();
+      this.db = new Database(this.dbPath, {
+        verbose: (message: unknown) => logger.debug(`[SQLite] ${String(message)}`),
+      });
+      this.configureConnection(this.db);
       logger.info(`[SqliteDbProvider] Connected to ${this.dbPath}`);
-    } catch (error: any) {
-      logger.error('[SqliteDbProvider] Connection error', { error: error.message });
+      return this.createConnectionHandle();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error('[SqliteDbProvider] Connection error', { error: message });
       throw error;
     }
   }
 
-  private configureConnection(): void {
-    if (!this.db) return;
-    this.db.pragma('journal_mode = WAL');
-    this.db.pragma('synchronous = NORMAL');
-    this.db.pragma('cache_size = -64000'); // 64MB cache
-    this.db.pragma('temp_store = MEMORY');
-    this.db.pragma('foreign_keys = ON');
-    logger.info('[SqliteDbProvider] Connection configured with WAL mode and performance settings');
-  }
-
   async migrate(): Promise<void> {
-    if (!this.db) {
-      throw new Error('Database not connected. Call connect() before migrating.');
+    const db = this.ensureConnected();
+
+    if (!fs.existsSync(this.migrationsPath)) {
+      logger.warn(`[SqliteDbProvider] Migrations path not found, skipping: ${this.migrationsPath}`);
+      return;
     }
 
     logger.info('[SqliteDbProvider] Starting migration...');
-    this.db.exec(`
+    db.exec(`
       CREATE TABLE IF NOT EXISTS _migrations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
@@ -56,8 +96,15 @@ export class SqliteDbProvider implements IDbProvider {
       );
     `);
 
-    const appliedMigrations = this.db.prepare('SELECT name FROM _migrations').all().map((row: any) => row.name);
-    const migrationFiles = fs.readdirSync(this.migrationsPath).sort();
+    const appliedMigrations = db
+      .prepare('SELECT name FROM _migrations')
+      .all()
+      .map((row) => (row as { name: string }).name);
+
+    const migrationFiles = fs
+      .readdirSync(this.migrationsPath)
+      .filter((file) => file.toLowerCase().endsWith('.sql'))
+      .sort();
 
     for (const file of migrationFiles) {
       if (appliedMigrations.includes(file)) {
@@ -66,61 +113,101 @@ export class SqliteDbProvider implements IDbProvider {
 
       try {
         const migration = fs.readFileSync(path.join(this.migrationsPath, file), 'utf-8');
-        this.db.exec('BEGIN');
-        this.db.exec(migration);
-        this.db.prepare('INSERT INTO _migrations (name) VALUES (?)').run(file);
-        this.db.exec('COMMIT');
+        db.exec('BEGIN');
+        db.exec(migration);
+        db.prepare('INSERT INTO _migrations (name) VALUES (?)').run(file);
+        db.exec('COMMIT');
         logger.info(`[SqliteDbProvider] Applied migration: ${file}`);
-      } catch (error: any) {
-        this.db.exec('ROLLBACK');
-        logger.error(`[SqliteDbProvider] Migration failed on ${file}`, { error: error.message });
+      } catch (error) {
+        try {
+          db.exec('ROLLBACK');
+        } catch {
+          // Ignore rollback failures if transaction already closed.
+        }
+
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error(`[SqliteDbProvider] Migration failed on ${file}`, { error: message });
         throw error;
       }
     }
+
     logger.info('[SqliteDbProvider] Migration completed');
   }
 
-  async query<T>(sql: string, params: any[] = []): Promise<QueryResult<T>> {
-    if (!this.db) {
-      throw new Error('Database not connected.');
-    }
+  async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+    const db = this.ensureConnected();
 
     try {
-      const stmt = this.db.prepare(sql);
-      const result = stmt.all(params);
-      return { rows: result as T[] };
-    } catch (error: any) {
-      logger.error('[SqliteDbProvider] Query failed', { sql, error: error.message });
+      const statement = db.prepare(sql);
+      if (statement.reader) {
+        return (params.length > 0 ? statement.all(...params) : statement.all()) as T[];
+      }
+
+      if (params.length > 0) {
+        statement.run(...params);
+      } else {
+        statement.run();
+      }
+      return [];
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error('[SqliteDbProvider] Query failed', { sql, error: message });
       throw error;
     }
   }
 
-  async transaction<T>(callback: (provider: IDbProvider) => Promise<T>): Promise<T> {
-    if (!this.db) {
-      throw new Error('Database not connected.');
-    }
-    
-    this.db.exec('BEGIN');
+  async transaction<T>(callback: (tx: IDbTransaction) => Promise<T>): Promise<T> {
+    const db = this.ensureConnected();
+
+    db.exec('BEGIN');
+    let completed = false;
+
+    const tx: IDbTransaction = {
+      query: async <R = any>(sql: string, params: any[] = []) => this.query<R>(sql, params),
+      commit: async () => {
+        if (!completed) {
+          db.exec('COMMIT');
+          completed = true;
+        }
+      },
+      rollback: async () => {
+        if (!completed) {
+          db.exec('ROLLBACK');
+          completed = true;
+        }
+      },
+    };
+
     try {
-      const result = await callback(this);
-      this.db.exec('COMMIT');
+      const result = await callback(tx);
+      if (!completed) {
+        db.exec('COMMIT');
+        completed = true;
+      }
       return result;
     } catch (error) {
-      this.db.exec('ROLLBACK');
+      if (!completed) {
+        try {
+          db.exec('ROLLBACK');
+        } catch {
+          // Ignore rollback failures if transaction already closed.
+        }
+      }
       logger.error('[SqliteDbProvider] Transaction rolled back', { error });
       throw error;
     }
   }
 
-  async healthCheck(): Promise<HealthCheck> {
+  async healthCheck(): Promise<boolean> {
     if (!this.db) {
-      return { healthy: false, message: 'Database not connected' };
+      return false;
     }
+
     try {
       this.db.prepare('SELECT 1').get();
-      return { healthy: true, message: 'Connection successful' };
-    } catch (error: any) {
-      return { healthy: false, message: error.message };
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -133,55 +220,87 @@ export class SqliteDbProvider implements IDbProvider {
   }
 
   async backup(destinationPath: string): Promise<string> {
-    if (!this.db) {
-      throw new Error('Database not connected.');
-    }
+    const db = this.ensureConnected();
+    const resolvedDestination = path.resolve(destinationPath);
 
     try {
-      const backupDir = path.dirname(destinationPath);
+      const backupDir = path.dirname(resolvedDestination);
       if (!fs.existsSync(backupDir)) {
         fs.mkdirSync(backupDir, { recursive: true });
       }
 
-      await this.db.backup(destinationPath);
-      logger.info(`[SqliteDbProvider] Database backup successful to ${destinationPath}`);
-      return destinationPath;
-    } catch (error: any) {
-      logger.error('[SqliteDbProvider] Backup failed', { error: error.message });
+      await db.backup(resolvedDestination);
+      logger.info(`[SqliteDbProvider] Database backup successful to ${resolvedDestination}`);
+      return resolvedDestination;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error('[SqliteDbProvider] Backup failed', { error: message });
       throw error;
     }
   }
-  
-  async getStats(): Promise<DbStats> {
-      if (!this.db) {
-        throw new Error('Database not connected.');
+
+  async restore(sourcePath: string): Promise<void> {
+    const resolvedSourcePath = path.resolve(sourcePath);
+    if (!fs.existsSync(resolvedSourcePath)) {
+      throw new Error(`Backup file does not exist: ${resolvedSourcePath}`);
+    }
+
+    const wasConnected = !!this.db;
+    await this.close();
+
+    try {
+      const dbDir = path.dirname(this.dbPath);
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
       }
 
-      const stats: any = {};
-      const sizeResult = this.db.pragma('page_count * page_size', { simple: true });
-      stats.fileSize = sizeResult;
+      fs.copyFileSync(resolvedSourcePath, this.dbPath);
 
-      try {
-        const walPath = `${this.dbPath}-wal`;
-        if (fs.existsSync(walPath)) {
-          stats.walSize = fs.statSync(walPath).size;
-        }
-      } catch (e) { 
-        // ignore if wal file not accessible
+      const walPath = `${this.dbPath}-wal`;
+      const shmPath = `${this.dbPath}-shm`;
+      if (fs.existsSync(walPath)) fs.unlinkSync(walPath);
+      if (fs.existsSync(shmPath)) fs.unlinkSync(shmPath);
+
+      if (wasConnected) {
+        await this.connect();
       }
 
-      stats.journalMode = this.db.pragma('journal_mode', { simple: true });
-      stats.connections = this.db.pragma('integrity_check', { simple: true });
-
-      return stats;
+      logger.info(`[SqliteDbProvider] Database restored from ${resolvedSourcePath}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error('[SqliteDbProvider] Restore failed', { error: message });
+      throw error;
+    }
   }
-  
+
+  async getStats(): Promise<SqliteDbStats> {
+    const db = this.ensureConnected();
+    const pageCount = Number(db.pragma('page_count', { simple: true }) || 0);
+    const pageSize = Number(db.pragma('page_size', { simple: true }) || 0);
+    const journalMode = String(db.pragma('journal_mode', { simple: true }) || 'unknown').toLowerCase();
+    const walMode = journalMode === 'wal';
+    const size = fs.existsSync(this.dbPath) ? fs.statSync(this.dbPath).size : 0;
+
+    const walPath = `${this.dbPath}-wal`;
+    const walSize = fs.existsSync(walPath) ? fs.statSync(walPath).size : 0;
+
+    return {
+      path: this.dbPath,
+      size,
+      fileSize: size,
+      pageCount,
+      pageSize,
+      walMode,
+      walSize,
+      journalMode,
+      connections: 1,
+    };
+  }
+
   async maintenance(): Promise<void> {
-      if (!this.db) {
-          throw new Error('Database not connected.');
-      }
-      this.query('VACUUM;');
-      this.query('ANALYZE;');
-      logger.info('[SqliteDbProvider] Maintenance (VACUUM, ANALYZE) complete.');
+    this.ensureConnected();
+    await this.query('VACUUM;');
+    await this.query('ANALYZE;');
+    logger.info('[SqliteDbProvider] Maintenance (VACUUM, ANALYZE) complete.');
   }
 }

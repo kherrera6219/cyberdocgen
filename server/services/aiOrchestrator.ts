@@ -500,10 +500,15 @@ export class AIOrchestrator {
   }
 
   private getFallbackModel(failedModel: Exclude<AIModel, 'auto'>): Exclude<AIModel, 'auto'> {
-    const modelCycle: Exclude<AIModel, 'auto'>[] = ['gpt-5.1', 'gemini-3-pro', 'claude-sonnet-4'];
-    const currentIndex = modelCycle.indexOf(failedModel);
-    const nextIndex = (currentIndex + 1) % modelCycle.length;
-    return modelCycle[nextIndex];
+    switch (failedModel) {
+      case 'gpt-5.1':
+        return 'gemini-3-pro';
+      case 'gemini-3-pro':
+        return 'claude-sonnet-4';
+      case 'claude-sonnet-4':
+      default:
+        return 'gpt-5.1';
+    }
   }
 
   private getModelProvider(model: Exclude<AIModel, 'auto'>): string {

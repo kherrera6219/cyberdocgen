@@ -147,7 +147,14 @@ describe('MCP Core Unit Tests', () => {
     });
 
     it('checkAIServiceHealth should wrap aiOrchestrator', async () => {
-      (aiOrchestrator.healthCheck as any).mockResolvedValue({ overall: true });
+      (aiOrchestrator.healthCheck as any).mockResolvedValue({
+        status: 'healthy',
+        models: {
+          'gpt-5.1': true,
+          'claude-sonnet-4': true,
+          'gemini-3-pro': true,
+        },
+      });
       const result = await checkAIServiceHealth();
       expect(result.success).toBe(true);
       expect(result.metadata!.allHealthy).toBe(true);

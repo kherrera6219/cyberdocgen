@@ -1,5 +1,3 @@
-import { logger } from "./logger";
-
 /**
  * Circuit Breaker Pattern Implementation
  * 

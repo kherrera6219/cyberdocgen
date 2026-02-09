@@ -76,13 +76,13 @@ Results:
 - `check`: pass
 - `lint`: pass (0 warnings)
 - `build:win`: pass, produced `dist/packaging/CyberDocGen-Setup-2.4.0.exe`
-- `test:run`: pass (`100` test files, `1162` tests passed, `4` skipped)
+- `test:run`: pass (`100` test files, `1153` tests passed, `4` skipped)
 
-Known non-blocking runtime warnings observed in test output:
+Known non-blocking runtime warnings still observed in test output:
 
 - React `act(...)` warning in specific test contexts
 - jsdom `requestSubmit()` not implemented warnings
-- expected auth/URL parsing noise in isolated test scenarios
+- Vitest deprecation warning for `environmentMatchGlobs`
 
 ## Operational TODO (Remaining)
 

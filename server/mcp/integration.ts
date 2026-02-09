@@ -180,12 +180,14 @@ export async function analyzeQualityWithExistingService(
 export async function checkAIServiceHealth(): Promise<ToolResult> {
   try {
     const health = await aiOrchestrator.healthCheck();
+    const allHealthy = Object.values(health.models).every(Boolean);
 
     return {
       success: true,
       data: health,
       metadata: {
-        allHealthy: health.overall,
+        allHealthy,
+        status: health.status,
         timestamp: new Date().toISOString()
       }
     };

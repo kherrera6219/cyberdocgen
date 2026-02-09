@@ -27,10 +27,12 @@ async function testConnection() {
     process.exit(0);
     
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
     console.log('Caught an error:', error);
-    console.log('Error message:', error.message);
-    console.log('Error stack:', error.stack);
-    logger.error('Database connection failed:', error);
+    console.log('Error message:', errorMessage);
+    console.log('Error stack:', errorStack);
+    logger.error('Database connection failed:', { error: errorMessage, stack: errorStack });
     process.exit(1);
   }
 }
