@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { AnalysisContext } from "../../server/services/repoAnalysisService";
+import { repoAnalysisService, type AnalysisContext } from "../../server/services/repoAnalysisService";
 import { AppError } from "../../server/utils/errorHandling";
 
 const dbMocks = vi.hoisted(() => {
@@ -97,8 +97,6 @@ vi.mock("../../server/utils/logger", () => ({
     error: vi.fn(),
   },
 }));
-
-import { repoAnalysisService } from "../../server/services/repoAnalysisService";
 
 function createContext(overrides: Partial<AnalysisContext> = {}): AnalysisContext {
   return {

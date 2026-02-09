@@ -4,8 +4,8 @@
 
 **Version:** 2.4.0
 **Status:** Production Candidate (Core Gates Passing, Windows Release Sign-Off Pending)
-**Test Coverage:** 55.9% statements/lines, 50.97% functions, 67.13% branches
-**Test Suite:** 1230 passing, 4 skipped
+**Test Coverage:** 61.22% statements/lines, 56.66% functions, 68.95% branches
+**Test Suite:** 1323 passing, 4 skipped
 **Security:** 0 prod advisories (`npm audit --omit=dev`), dev-toolchain advisory risk accepted with controls (`docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`)
 **TypeScript Errors:** 0
 **ESLint Errors:** 0 (0 warnings)
@@ -18,8 +18,8 @@
 
 - `npm run check`: PASS
 - `npm run lint`: PASS (0 warnings)
-- `npm run test:run`: PASS (112 files, 1230 passing, 4 skipped)
-- `npm run test:coverage`: PASS with expected threshold failure (global now 55.9/67.13/50.97 vs 80/75/80 gates)
+- `npm run test:run`: PASS (129 files, 1323 passing, 4 skipped)
+- `npm run test:coverage`: PASS with expected threshold failure (global now 61.22/68.95/56.66 vs 80/75/80 gates)
 - `npm run test:coverage:hotspots`: PASS (delta-to-threshold and uncovered file/folder ranking generated)
 - `npm run build`: PASS
 - `npm run start`: PASS (validated `/live`, `/ready`, `/metrics` => HTTP 200 in local mode)
@@ -42,6 +42,14 @@
 - Reworked build verification script to provide deterministic pass/fail startup checks.
 - Aligned ops assets (Kubernetes probe paths, Prometheus metrics path, CI smoke workflow).
 - Completed lint/security warning burn-down to zero warnings, with server-side remediation and client-side lint scoping.
+- Expanded backend and frontend hotspot coverage:
+  - `server/services/repositoryFindingsService.ts`: 88.28% statements
+  - `server/services/codeSignalDetectorService.ts`: 94.53% statements
+  - `server/services/objectStorageService.ts`: 80.82% statements
+  - `server/routes/localMode.ts`: 72.76% statements with added edge-case route coverage
+  - `client/src/pages/api-keys.tsx`: 88.00% statements
+  - `client/src/pages/organization-setup.tsx`: 100.00% statements
+  - `client/src/pages/cloud-integrations.tsx`: 88.60% statements
 
 ### Current Blockers to Full “Production Ready” Declaration
 
@@ -59,7 +67,7 @@
 - Revalidated full gate set:
   - `npm run check` PASS
   - `npm run lint` PASS
-  - `npm run test:run` PASS (112 files, 1230 passing, 4 skipped)
+  - `npm run test:run` PASS (129 files, 1323 passing, 4 skipped)
   - `npm run test:coverage` PASS with threshold failure (known gap; tracked via hotspots)
   - `npm run windows:validate` PASS
   - `npm run build:win` PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
@@ -212,9 +220,9 @@ Resolved in follow-up sweep:
 
 ## 📈 Metrics
 
-- **Test Files:** 112 total
-- **Test Cases:** 1230 passing, 4 skipped
-- **Overall Coverage:** 55.9% statements/lines, 50.97% functions, 67.13% branches
+- **Test Files:** 129 total
+- **Test Cases:** 1323 passing, 4 skipped
+- **Overall Coverage:** 61.22% statements/lines, 56.66% functions, 68.95% branches
 - **Critical Services Coverage:** 85-100%
 - **Pre-commit Hooks:** Active (Husky + Lint-staged)
 - **CI/CD:** 7 security jobs, SLSA Level 3

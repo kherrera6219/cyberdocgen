@@ -2,7 +2,7 @@
 
 ## Enterprise Compliance Management System
 
-**Version 2.4.0** | February 8, 2026
+**Version 2.4.0** | February 9, 2026
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-2.4.0-green.svg)](CHANGELOG.md)
@@ -46,6 +46,8 @@
 - ✅ **Desktop First-Run Clarity** - local mode docs and navigation now surface AI API key setup as the primary post-install step
 - ✅ **Sectioned Production Review Complete** - Electron path-safety hardening, local API route validation/timeouts, cloud/local UI gating, and mobile navigation parity fixes applied
 - ✅ **Connector Runtime Hardening** - SharePoint/Jira/Notion connector adapter flows implemented and tested
+- ✅ **Coverage Expansion (All 3 ROI Tracks)** - Added backend hotspot suites (`repositoryFindingsService`, `codeSignalDetectorService`), storage/local-mode hardening suites (`objectStorageService`, expanded `localMode` routes), and high-gap frontend interaction suites (`api-keys`, `organization-setup`, `cloud-integrations`)
+- ✅ **Current Validation Baseline** - `1323` tests passing (`4` skipped), coverage at `61.22%` statements/lines, `68.95%` branches, `56.66%` functions
 - ⚠️ **Dev Toolchain Advisory Accepted with Controls** - see `docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`
 
 **Version 2.4.0 - January 27, 2026** - Local Mode & Windows Persistence:

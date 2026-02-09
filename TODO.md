@@ -2,7 +2,7 @@
 
 **Last Updated:** February 9, 2026  
 **Status:** Operational Readiness Hardening In Progress  
-**Coverage:** 55.9% statements/lines, 50.97% functions, 67.13% branches (Core Services @ 85%+)
+**Coverage:** 61.22% statements/lines, 56.66% functions, 68.95% branches (Core services at 80%+ for current hotspot batch)
 
 ---
 
@@ -29,10 +29,10 @@
 ### P2 - Maintainability and Technical Debt
 
 - [ ] **Storybook lint strategy**: either modernize story files to current rules or keep explicit non-prod exclusions documented.
-- [ ] **Route coverage cleanup**: expand remaining tests around repository analysis, temp-auth gating, and low-covered auth/project/mfa routes (storage/admin routes are now covered).
+- [ ] **Route coverage cleanup**: expand remaining tests around repository analysis orchestration (`server/routes.ts`), temp-auth gating, and low-covered auth/project/mfa routes (storage/admin/local-mode routes now expanded).
 - [ ] **Documentation consistency pass**: reconcile historical “0 vulnerabilities” and old production claims across status docs.
 - [ ] **Test warning cleanup**: remove residual React `act(...)` noise and migrate off deprecated Vitest `environmentMatchGlobs` (jsdom `requestSubmit()` warning already remediated in `ai-doc-generator`).
-- [ ] **Coverage threshold burn-down**: close remaining global gap (needs +16,817 statements, +627 functions, +365 branches to hit 80/75 gates).
+- [ ] **Coverage threshold burn-down**: close remaining global gap (needs +13,109 statements, +507 functions, +319 branches to hit 80/75 gates).
 
 ---
 
@@ -131,6 +131,10 @@
 4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build` (`1230` passing, `4` skipped).
 5. Lint/security warning burn-down complete: `npm run lint` now passes with 0 warnings; evidence in `docs/project-analysis/evidence/20260208-203122/SUMMARY.md`.
 6. Coverage uplift infrastructure added: `test:coverage:hotspots` plus expanded suites (`public-pages`, `additional-pages`, `framework-pages`, `localModeRoutes`, `storageRoutes`, `adminRoutes`, `company-profile` interactions, account/auth pages, repository hook/page coverage).
+7. Hotspot batch completed for all three requested targets:
+   - backend service hotspots: `repositoryFindingsService`, `codeSignalDetectorService`
+   - object storage/local mode: `objectStorageService`, `localModeRoutes`
+   - frontend high-gap pages: `api-keys`, `organization-setup`, `cloud-integrations`
 
 ### Remaining operational items
 

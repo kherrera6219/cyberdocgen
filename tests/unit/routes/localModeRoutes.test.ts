@@ -208,6 +208,17 @@ describe("localMode routes", () => {
     expect(response.body.configured).toEqual(["OPENAI"]);
   });
 
+  it("returns 400 when provider capabilities are unavailable", async () => {
+    providers.db = {} as any;
+    providers.storage = {} as any;
+
+    const dbInfo = await request(app).get("/api/local/db-info").expect(400);
+    expect(dbInfo.body.error).toMatch(/statistics not available/i);
+
+    const storageInfo = await request(app).get("/api/local/storage-info").expect(400);
+    expect(storageInfo.body.error).toMatch(/statistics not available/i);
+  });
+
   it("validates API key testing payload and provider", async () => {
     await request(app).post("/api/local/api-keys/test").send({}).expect(400);
 
@@ -229,6 +240,43 @@ describe("localMode routes", () => {
     expect(response.body.error).toMatch(/format is invalid/i);
   });
 
+  it("tests OPENAI API keys against provider endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await request(app)
+      .post("/api/local/api-keys/test")
+      .send({ provider: "OPENAI", apiKey: "sk-abcdefghijklmnopqrstuvwxyz1234" })
+      .expect(200);
+
+    expect(response.body.valid).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.openai.com/v1/models",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer sk-abcdefghijklmnopqrstuvwxyz1234",
+        }),
+      }),
+    );
+
+    vi.unstubAllGlobals();
+  });
+
+  it("returns timeout error when OPENAI key test aborts", async () => {
+    const abortError = new Error("aborted");
+    Object.assign(abortError, { name: "AbortError" });
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abortError));
+
+    const response = await request(app)
+      .post("/api/local/api-keys/test")
+      .send({ provider: "OPENAI", apiKey: "sk-abcdefghijklmnopqrstuvwxyz1234" })
+      .expect(200);
+
+    expect(response.body.valid).toBe(false);
+    expect(response.body.error).toMatch(/timed out/i);
+    vi.unstubAllGlobals();
+  });
+
   it("accepts anthropic key test by format", async () => {
     const response = await request(app)
       .post("/api/local/api-keys/test")
@@ -236,6 +284,60 @@ describe("localMode routes", () => {
       .expect(200);
 
     expect(response.body.valid).toBe(true);
+  });
+
+  it("enforces API key length limits for test and save endpoints", async () => {
+    const tooLongOpenAi = `sk-${"a".repeat(5000)}`;
+
+    const testResponse = await request(app)
+      .post("/api/local/api-keys/test")
+      .send({ provider: "OPENAI", apiKey: tooLongOpenAi })
+      .expect(400);
+    expect(testResponse.body.error).toMatch(/exceeds maximum length/i);
+
+    const saveResponse = await request(app)
+      .post("/api/local/api-keys/openai")
+      .send({ apiKey: tooLongOpenAi })
+      .expect(400);
+    expect(saveResponse.body.error).toMatch(/exceeds maximum length/i);
+  });
+
+  it("validates backup and restore path rules", async () => {
+    const invalidExt = await request(app)
+      .post("/api/local/backup")
+      .send({ destinationPath: path.join(os.homedir(), "backup.txt") })
+      .expect(400);
+    expect(invalidExt.body.error).toMatch(/must end with \.db/i);
+
+    vi.spyOn(fs, "existsSync").mockReturnValue(true);
+    vi.spyOn(fs, "statSync").mockReturnValue({ isFile: () => false } as fs.Stats);
+    const restoreResponse = await request(app)
+      .post("/api/local/restore")
+      .send({ backupPath: path.join(os.homedir(), "not-a-file.db") })
+      .expect(400);
+    expect(restoreResponse.body.error).toMatch(/must be a file/i);
+  });
+
+  it("returns 400 when maintenance or cleanup is unsupported", async () => {
+    providers.db.maintenance = undefined as any;
+    providers.storage.cleanupEmptyDirectories = undefined as any;
+
+    const maintenance = await request(app).post("/api/local/maintenance").send({}).expect(400);
+    expect(maintenance.body.error).toMatch(/maintenance not available/i);
+
+    const cleanup = await request(app).post("/api/local/cleanup").send({}).expect(400);
+    expect(cleanup.body.error).toMatch(/cleanup not available/i);
+  });
+
+  it("rejects invalid providers for save and delete routes", async () => {
+    const save = await request(app)
+      .post("/api/local/api-keys/not-real")
+      .send({ apiKey: "sk-abcdefghijklmnopqrstuvwxyz1234567890" })
+      .expect(400);
+    expect(save.body.error).toMatch(/invalid provider/i);
+
+    const del = await request(app).delete("/api/local/api-keys/not-real").expect(400);
+    expect(del.body.error).toMatch(/invalid provider/i);
   });
 
   it("saves and deletes provider API keys", async () => {
