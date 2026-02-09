@@ -1,8 +1,8 @@
 # CyberDocGen - Technical Development TODOs
 
 **Last Updated:** February 9, 2026  
-**Status:** Operational Readiness Hardening In Progress  
-**Coverage:** 78.97% statements/lines, 67.45% functions, 74.58% branches (latest full-suite run)
+**Status:** Operational Readiness Hardening In Progress (80% global coverage gate reached)  
+**Coverage:** 85.40% statements/lines, 81.47% functions, 80.14% branches (latest full-suite run)
 
 ---
 
@@ -30,9 +30,9 @@
 
 - [ ] **Storybook lint strategy**: either modernize story files to current rules or keep explicit non-prod exclusions documented.
 - [ ] **Route coverage cleanup**: expand remaining tests around repository analysis orchestration (`server/routes.ts`), temp-auth gating, and low-covered auth/project/mfa routes (storage/admin/local-mode routes now expanded).
-- [ ] **Documentation consistency pass**: reconcile historical “0 vulnerabilities” and old production claims across status docs.
+- [x] **Documentation consistency pass**: reconciled current production status docs with latest validation baselines and coverage gate.
 - [x] **Test warning cleanup**: removed residual React `act(...)` noise, migrated Vitest off deprecated `environmentMatchGlobs` to `test.projects`, and resolved jsdom onboarding navigation warning.
-- [ ] **Coverage threshold burn-down**: close remaining global gap (needs +9,759 statements, +385 functions, +217 branches to hit 80/75 gates).
+- [x] **Coverage threshold burn-down**: completed global gate uplift to 80/80/80/80 with passing full-suite baseline.
 
 ---
 
@@ -128,7 +128,7 @@
 1. Connector adapters moved from stubs to API-backed implementations for SharePoint/Jira/Notion.
 2. Deep bug sweep fixed unhandled async teardown updates in temporary login/logout flows.
 3. Release evidence bundle captured with command logs and exit codes (`docs/project-analysis/evidence/20260208-130320/SUMMARY.md`).
-4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`, `test:coverage` (latest full coverage run: `1516` passing, `4` skipped; staged thresholds currently passing at 78.5/74.5/67).
+4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`, `test:coverage` (latest full coverage run: `1516` passing, `4` skipped; global thresholds now enforced and passing at 80/80/80/80 with 85.40/80.14/81.47).
 5. Lint/security warning burn-down complete: `npm run lint` now passes with 0 warnings; evidence in `docs/project-analysis/evidence/20260208-203122/SUMMARY.md`.
 6. Coverage uplift infrastructure added: `test:coverage:hotspots` plus expanded suites (`public-pages`, `additional-pages`, `framework-pages`, `localModeRoutes`, `storageRoutes`, `adminRoutes`, `company-profile` interactions, account/auth pages, repository hook/page coverage).
 7. Hotspot batch completed for all three requested targets:

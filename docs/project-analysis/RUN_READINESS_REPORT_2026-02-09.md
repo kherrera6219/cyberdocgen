@@ -8,7 +8,7 @@ Validated gates:
 
 - `npm run check` -> PASS
 - `npm run lint` -> PASS
-- `npm run test:coverage` -> PASS (`1516` passed, `4` skipped; `78.97 / 74.60 / 67.45`)
+- `npm run test:coverage` -> PASS (`1516` passed, `4` skipped; `85.40 / 80.14 / 81.47`, global gate `80 / 80 / 80 / 80` satisfied)
 - `npm run build` -> PASS
 - `npm run windows:validate` -> PASS
 - `npm run build:win` -> PASS (artifact: `dist/packaging/CyberDocGen-Setup-2.4.0.exe`)

@@ -49,17 +49,17 @@ Our testing strategy follows these principles:
 
 - **Vitest** - Fast unit test framework (Vite-native)
 
-### Current Baseline (February 9, 2026 - Post Bug/Error Sweep)
+### Current Baseline (February 9, 2026 - 80% Global Gate)
 
 Latest validated run:
 
-- `npm run test:coverage`: **PASS** (160 files, 1516 passing, 4 skipped)
+- `npm run test:coverage`: **PASS** (160 files, 1516 passing, 4 skipped; 80/80/80/80 thresholds satisfied)
 
 Global coverage snapshot:
 
-- Statements/Lines: **78.97%**
-- Functions: **67.45%**
-- Branches: **74.60%**
+- Statements/Lines: **85.40%**
+- Functions: **81.47%**
+- Branches: **80.14%**
 
 Coverage infrastructure and newest additions:
 
@@ -588,15 +588,9 @@ npm test -- --coverage
 
 ### Coverage Thresholds
 
-Current enforced staged gate:
-- **Statements**: 78.5%
-- **Branches**: 74.5%
-- **Functions**: 67%
-- **Lines**: 78.5%
-
-Long-term target:
+Current enforced global gate:
 - **Statements**: 80%
-- **Branches**: 75%
+- **Branches**: 80%
 - **Functions**: 80%
 - **Lines**: 80%
 

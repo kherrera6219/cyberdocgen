@@ -76,7 +76,7 @@ Results:
 - `check`: pass
 - `lint`: pass (0 warnings)
 - `build:win`: pass, produced `dist/packaging/CyberDocGen-Setup-2.4.0.exe`
-- `test:coverage`: pass (`160` test files, `1516` tests passed, `4` skipped; global coverage 78.97 statements/lines, 74.60 branches, 67.45 functions)
+- `test:coverage`: pass (`160` test files, `1516` tests passed, `4` skipped; global coverage 85.40 statements/lines, 80.14 branches, 81.47 functions with 80/80/80/80 gate satisfied)
 
 Known non-blocking runtime warnings still observed in test output:
 

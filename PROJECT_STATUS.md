@@ -4,7 +4,7 @@
 
 **Version:** 2.4.0
 **Status:** Production Candidate (Core Gates Passing, Windows Release Sign-Off Pending)
-**Test Coverage:** 78.97% statements/lines, 67.45% functions, 74.60% branches
+**Test Coverage:** 85.40% statements/lines, 81.47% functions, 80.14% branches
 **Test Suite:** 1516 passing, 4 skipped
 **Security:** 0 prod advisories (`npm audit --omit=dev`), dev-toolchain advisory risk accepted with controls (`docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`)
 **TypeScript Errors:** 0
@@ -33,8 +33,8 @@
 - `npm run check`: PASS
 - `npm run lint`: PASS (0 warnings)
 - `npm run test:run`: PASS
-- `npm run test:coverage`: PASS (160 files, 1516 passing, 4 skipped; 78.97/74.60/67.45)
-- `npm run test:coverage:hotspots`: PASS (current staged gates satisfied: 78.5/74.5/67)
+- `npm run test:coverage`: PASS (160 files, 1516 passing, 4 skipped; 85.40/80.14/81.47)
+- `npm run test:coverage:hotspots`: PASS (global gate satisfied at 80/80/80/80)
 - `npm run build`: PASS
 - `npm run start`: PASS (validated `/live`, `/ready`, `/metrics` => HTTP 200 in local mode)
 - `npm run dev`: PASS in local mode with required env (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`)

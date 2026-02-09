@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Migrated Vitest environment routing to `test.projects` and removed deprecated `environmentMatchGlobs`.
 - Updated onboarding tutorial action navigation to SPA routing (`wouter`) instead of hard browser redirects.
+- Raised enforced global coverage thresholds to `80/80/80/80` and aligned baseline docs to latest full-suite coverage (`85.40/80.14/81.47`).
 
 ### Fixed
 
