@@ -4,8 +4,8 @@
 
 **Version:** 2.4.0
 **Status:** Production Candidate (Core Gates Passing, Windows Release Sign-Off Pending)
-**Test Coverage:** ~48%+ (Critical Services & MCP: 85-100%)
-**Test Suite:** 1153 passing, 4 skipped
+**Test Coverage:** 50.9% statements/lines, 45.95% functions, 66.32% branches
+**Test Suite:** 1207 passing, 4 skipped
 **Security:** 0 prod advisories (`npm audit --omit=dev`), dev-toolchain advisory risk accepted with controls (`docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`)
 **TypeScript Errors:** 0
 **ESLint Errors:** 0 (0 warnings)
@@ -18,7 +18,9 @@
 
 - `npm run check`: PASS
 - `npm run lint`: PASS (0 warnings)
-- `npm run test:run`: PASS (100 files, 1153 passing, 4 skipped)
+- `npm run test:run`: PASS (105 files, 1207 passing, 4 skipped)
+- `npm run test:coverage`: PASS with expected threshold failure (global now 50.9/66.32/45.95 vs 80/75/80 gates)
+- `npm run test:coverage:hotspots`: PASS (delta-to-threshold and uncovered file/folder ranking generated)
 - `npm run build`: PASS
 - `npm run start`: PASS (validated `/live`, `/ready`, `/metrics` => HTTP 200 in local mode)
 - `npm run dev`: PASS in local mode with required env (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`)
@@ -57,7 +59,8 @@
 - Revalidated full gate set:
   - `npm run check` PASS
   - `npm run lint` PASS
-  - `npm run test:run` PASS (100 files, 1153 passing, 4 skipped)
+  - `npm run test:run` PASS (105 files, 1207 passing, 4 skipped)
+  - `npm run test:coverage` PASS with threshold failure (known gap; tracked via hotspots)
   - `npm run windows:validate` PASS
   - `npm run build:win` PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
 
@@ -209,9 +212,9 @@ Resolved in follow-up sweep:
 
 ## 📈 Metrics
 
-- **Test Files:** 100 total
-- **Test Cases:** 1153 passing, 4 skipped
-- **Overall Coverage:** 48.2%
+- **Test Files:** 105 total
+- **Test Cases:** 1207 passing, 4 skipped
+- **Overall Coverage:** 50.9% statements/lines, 45.95% functions, 66.32% branches
 - **Critical Services Coverage:** 85-100%
 - **Pre-commit Hooks:** Active (Husky + Lint-staged)
 - **CI/CD:** 7 security jobs, SLSA Level 3

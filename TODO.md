@@ -2,7 +2,7 @@
 
 **Last Updated:** February 9, 2026  
 **Status:** Operational Readiness Hardening In Progress  
-**Coverage:** 48%+ Overall (Core Services @ 85%+)
+**Coverage:** 50.9% statements/lines, 45.95% functions, 66.32% branches (Core Services @ 85%+)
 
 ---
 
@@ -29,9 +29,10 @@
 ### P2 - Maintainability and Technical Debt
 
 - [ ] **Storybook lint strategy**: either modernize story files to current rules or keep explicit non-prod exclusions documented.
-- [ ] **Route coverage cleanup**: expand tests around repository analysis and temp-auth route gating.
+- [ ] **Route coverage cleanup**: expand tests around repository analysis, storage/admin routes, and temp-auth route gating.
 - [ ] **Documentation consistency pass**: reconcile historical “0 vulnerabilities” and old production claims across status docs.
 - [ ] **Test warning cleanup**: remove residual React `act(...)` noise and migrate off deprecated Vitest `environmentMatchGlobs` (jsdom `requestSubmit()` warning already remediated in `ai-doc-generator`).
+- [ ] **Coverage threshold burn-down**: close remaining global gap (needs +20,303 statements, +683 functions, +359 branches to hit 80/75 gates).
 
 ---
 
@@ -127,8 +128,9 @@
 1. Connector adapters moved from stubs to API-backed implementations for SharePoint/Jira/Notion.
 2. Deep bug sweep fixed unhandled async teardown updates in temporary login/logout flows.
 3. Release evidence bundle captured with command logs and exit codes (`docs/project-analysis/evidence/20260208-130320/SUMMARY.md`).
-4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build` (`1153` passing, `4` skipped).
+4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build` (`1207` passing, `4` skipped).
 5. Lint/security warning burn-down complete: `npm run lint` now passes with 0 warnings; evidence in `docs/project-analysis/evidence/20260208-203122/SUMMARY.md`.
+6. Coverage uplift infrastructure added: `test:coverage:hotspots` script plus new smoke/route suites (`public-pages`, `additional-pages`, `framework-pages`, `localModeRoutes`, connector edge-cases).
 
 ### Remaining operational items
 

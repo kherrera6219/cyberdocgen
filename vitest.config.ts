@@ -11,6 +11,7 @@ const sharedConfig = {
       "@": path.resolve(dirname, "./client/src"),
       "@shared": path.resolve(dirname, "./shared"),
       "@server": path.resolve(dirname, "./server"),
+      "@assets": path.resolve(dirname, "./attached_assets"),
     },
   },
 };

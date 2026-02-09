@@ -49,34 +49,34 @@ Our testing strategy follows these principles:
 
 - **Vitest** - Fast unit test framework (Vite-native)
 
-### 🎯 Test Coverage Expansion (Phases 1-6)
+### Current Baseline (February 9, 2026)
 
-**Overall Progress:** ~42%+ coverage (up from ~30-35%)
+Latest validated run:
 
-**Phase 1-2: Critical Services** (80-100% coverage)
-- ✅ AI Models, Compliance Gap Analysis, Risk Assessment
-- ✅ Data Retention, Chatbot, Fine-tuning, Vision, Guardrails
-- ✅ Quality Scoring, Document Templates
+- `npm run test:run`: **PASS** (105 files, 1207 passing, 4 skipped)
+- `npm run test:coverage`: **PASS with threshold failures expected** (global gates remain 80/75)
+- `npm run lint`: **PASS** (0 warnings)
+- `npm run check`: **PASS**
 
-**Phase 3: Integration & Frontend**
-- ✅ Framework Spreadsheet Service, PDF Security
-- ✅ Route Integration (framework statuses, documents, AI routes)
-- ✅ Frontend Components (FrameworkSpreadsheet)
+Global coverage snapshot:
 
-**Phase 4-5: Verification & Polish**
-- ✅ Fixed all failing integration tests
-- ✅ Achieved 100% coverage for compliance gap analysis
-- ✅ 93% for risk assessment, 86% for data retention
+- Statements/Lines: **50.90%**
+- Functions: **45.95%**
+- Branches: **66.32%**
 
-**Phase 6: Quality Infrastructure** (Core Objectives Met)
-- ✅ Code Quality: ESLint, Prettier, Husky, lint-staged
-- ✅ Security Services: encryption.ts (25 tests), mfaService.ts (20+ tests)
-- 🚧 Deferred: Performance testing, extended UI component tests, full Storybook coverage
+Coverage infrastructure and newest additions:
 
-**Test Suites:**
-- `tests/unit/` - 15+ service test files
-- `tests/integration/` - 5+ route test suites
-- `tests/components/` - Frontend component tests
+- `npm run test:coverage:hotspots` -> folder/file uncovered-line ranking from `coverage-final.json`
+- Shared page/component test harness:
+  - `tests/components/utils/renderWithProviders.tsx`
+- New high-impact smoke suites:
+  - `tests/components/pages/framework-pages-smoke.test.tsx`
+  - `tests/components/pages/additional-pages-smoke.test.tsx`
+  - `tests/components/pages/public-pages-smoke.test.tsx`
+  - `tests/components/coverage/high-impact-components-smoke.test.tsx`
+- Expanded backend route/service tests:
+  - `tests/unit/routes/localModeRoutes.test.ts`
+  - `tests/unit/connectorService.test.ts`
 
 
 - **Testing Library** - React component testing

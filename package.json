@@ -15,6 +15,7 @@
     "test": "vitest",
     "test:run": "vitest --run",
     "test:coverage": "vitest --coverage",
+    "test:coverage:hotspots": "tsx scripts/coverage-hotspots.ts",
     "test:ui": "vitest --ui",
     "test:ui-semantics": "tsx scripts/check-semantic-links.ts",
     "lint": "eslint .",
