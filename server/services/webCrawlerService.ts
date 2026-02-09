@@ -67,7 +67,7 @@ export class WebCrawlerService {
 
           // 2. Discover links if depth allows
           if (current.depth < maxDepth) {
-            const links = Array.from(doc.querySelectorAll("a[href]")) as HTMLAnchorElement[];
+            const links = Array.from(doc.querySelectorAll("a[href]"));
             for (const link of links) {
                const href = link.getAttribute("href");
                if (href) {

@@ -33,7 +33,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <FormField
           control={form.control}
-          name={`keyPersonnel.${String(fieldPrefix)}.name` as Path<InsertCompanyProfile>}
+          name={`keyPersonnel.${String(fieldPrefix)}.name`}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Name</FormLabel>
@@ -50,7 +50,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
         />
         <FormField
           control={form.control}
-          name={`keyPersonnel.${String(fieldPrefix)}.email` as Path<InsertCompanyProfile>}
+          name={`keyPersonnel.${String(fieldPrefix)}.email`}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Email</FormLabel>
@@ -68,7 +68,7 @@ function PersonnelField({ title, fieldPrefix, form }: PersonnelFieldProps) {
         />
         <FormField
           control={form.control}
-          name={`keyPersonnel.${String(fieldPrefix)}.phone` as Path<InsertCompanyProfile>}
+          name={`keyPersonnel.${String(fieldPrefix)}.phone`}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Phone</FormLabel>

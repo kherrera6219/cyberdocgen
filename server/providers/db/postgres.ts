@@ -1,67 +1,129 @@
 /**
  * PostgreSQL Database Provider
- * 
+ *
  * Cloud mode database implementation using PostgreSQL.
- * Delegates to existing Drizzle ORM setup for compatibility.
  */
 
+import postgres, { type Sql } from 'postgres';
 import type { IDbProvider, IDbConnection, IDbTransaction } from '../interfaces';
+import { logger } from '../../utils/logger';
+
+class TransactionRollbackError extends Error {
+  constructor() {
+    super('Transaction rollback requested');
+    this.name = 'TransactionRollbackError';
+  }
+}
 
 export class PostgresDbProvider implements IDbProvider {
   private connectionString: string;
-  
+  private client: Sql | null = null;
+
   constructor(connectionString: string) {
     this.connectionString = connectionString;
   }
-  
+
+  private async getClient(): Promise<Sql> {
+    if (!this.client) {
+      await this.connect();
+    }
+
+    if (!this.client) {
+      throw new Error('PostgreSQL client not initialized');
+    }
+
+    return this.client;
+  }
+
   async connect(): Promise<IDbConnection> {
-    // Will delegate to existing db.ts Drizzle setup
-    logger.debug('[PostgresDbProvider] Connecting to PostgreSQL...');
-    
-    // TODO(sprint-1): Integrate with existing db.ts connection
-    // For now, return a stub that will be replaced
+    if (!this.client) {
+      logger.debug('[PostgresDbProvider] Connecting to PostgreSQL...');
+
+      this.client = postgres(this.connectionString, {
+        max: 20,
+        idle_timeout: 30,
+        connect_timeout: 10,
+        prepare: false,
+      });
+
+      await this.client`SELECT 1`;
+      logger.info('[PostgresDbProvider] PostgreSQL connection established');
+    }
+
     return {
       query: async <T>(sql: string, params?: any[]) => {
-        throw new Error('PostgresDbProvider.query() - Use existing db module');
+        return this.query<T>(sql, params);
       },
       execute: async (sql: string, params?: any[]) => {
-        throw new Error('PostgresDbProvider.execute() - Use existing db module');
+        const client = await this.getClient();
+        await client.unsafe(sql, params ?? []);
       },
       close: async () => {
-        logger.debug('[PostgresDbProvider] Connection closed');
+        await this.close();
       },
     };
   }
-  
+
   async migrate(): Promise<void> {
-    // Uses existing Drizzle migration system
-    logger.debug('[PostgresDbProvider] Migrations handled by db:push or db:migrate');
+    // Migrations are handled through dedicated migration scripts.
+    logger.debug('[PostgresDbProvider] Migrations are managed by db:push/db:migrate');
   }
-  
+
   async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
-    // Delegate to existing Drizzle/Postgres setup
-    // This is a compatibility layer - actual queries use Drizzle ORM
-    throw new Error('PostgresDbProvider.query() - Use Drizzle ORM directly');
+    const client = await this.getClient();
+    const rows = await client.unsafe(sql, params ?? []);
+    return rows as unknown as T[];
   }
-  
+
   async transaction<T>(callback: (tx: IDbTransaction) => Promise<T>): Promise<T> {
-    // Delegate to existing Drizzle transaction support
-    throw new Error('PostgresDbProvider.transaction() - Use db.transaction() from db.ts');
-  }
-  
-  async healthCheck(): Promise<boolean> {
-    // Will use existing databaseHealthService
+    const client = await this.getClient();
+
     try {
-      // TODO: Import and use databaseHealthService.checkHealth()
+      const result = await client.begin(async txClient => {
+        const tx: IDbTransaction = {
+          query: async <R>(sql: string, params?: any[]) => {
+            const rows = await txClient.unsafe(sql, params ?? []);
+            return rows as unknown as R[];
+          },
+          commit: async () => {
+            // postgres.begin commits automatically when callback resolves.
+          },
+          rollback: async () => {
+            throw new TransactionRollbackError();
+          },
+        };
+
+        return callback(tx);
+      });
+      return result as unknown as T;
+    } catch (error) {
+      if (error instanceof TransactionRollbackError) {
+        throw new Error('Transaction rolled back');
+      }
+      throw error;
+    }
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      const client = await this.getClient();
+      await client`SELECT 1`;
       return true;
     } catch (error) {
-      logger.error('[PostgresDbProvider] Health check failed:', error);
+      logger.error('[PostgresDbProvider] Health check failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       return false;
     }
   }
-  
+
   async close(): Promise<void> {
+    if (!this.client) {
+      return;
+    }
+
     logger.debug('[PostgresDbProvider] Closing PostgreSQL connections');
-    // Pool cleanup handled by existing db.ts
+    await this.client.end({ timeout: 5 });
+    this.client = null;
   }
 }

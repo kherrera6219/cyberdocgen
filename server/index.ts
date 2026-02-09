@@ -252,7 +252,7 @@ import { serveStatic } from "./static";
   
   process.on('unhandledRejection', (reason, promise) => {
     const errorMsg = reason instanceof Error ? reason.message : String(reason);
-    const errorStack = reason instanceof Error ? reason.stack : 'No stack trace';
+    const errorStack = reason instanceof Error ? (reason.stack ?? 'No stack trace') : 'No stack trace';
     logger.error('Unhandled rejection', { 
       reason: errorMsg, 
       stack: errorStack 

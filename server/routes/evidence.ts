@@ -137,15 +137,14 @@ export function registerEvidenceRoutes(app: Router) {
     const organizationId = req.organizationId!;
     const { limit = '50', offset = '0', snapshotId } = req.query;
 
-    const query = db.select().from(cloudFiles).where(eq(cloudFiles.organizationId, organizationId));
-    
-    if (snapshotId) {
-      // If snapshotId provided, filter by it
-       // Implementing basic filter in JS for simplicity or complex query construction
-       // TODO: Add proper where clause when we fix the query building
+    const filters = [eq(cloudFiles.organizationId, organizationId)];
+    if (typeof snapshotId === 'string' && snapshotId.trim().length > 0) {
+      filters.push(eq(cloudFiles.snapshotId, snapshotId));
     }
 
-    const evidenceFiles = await query
+    const evidenceFiles = await db.select()
+      .from(cloudFiles)
+      .where(and(...filters))
       .orderBy(desc(cloudFiles.createdAt))
       .limit(parseInt(limit as string, 10))
       .offset(parseInt(offset as string, 10));

@@ -1,7 +1,6 @@
 import type { ComponentType } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
@@ -25,7 +24,8 @@ import {
   History,
   Cloud,
   Settings,
-  User
+  User,
+  X
 } from "lucide-react";
 
 interface NavItem {

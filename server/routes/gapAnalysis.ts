@@ -112,7 +112,7 @@ export function registerGapAnalysisRoutes(router: Router) {
     }
 
     const findings = await storage.getGapAnalysisFindings(id);
-    const recommendations = [];
+    const recommendations: Awaited<ReturnType<typeof storage.getRemediationRecommendations>> = [];
     
     for (const finding of findings) {
       const findingRecommendations = await storage.getRemediationRecommendations(finding.id);

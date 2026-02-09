@@ -414,7 +414,7 @@ Focus on high-impact, practical improvements.`;
    * Generate trend insights
    */
   private generateTrendInsights(trend: string, changeRate: number, currentScore: number): string[] {
-    const insights = [];
+    const insights: string[] = [];
     
     if (trend === 'improving') {
       insights.push("Document quality is consistently improving");

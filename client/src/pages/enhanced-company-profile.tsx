@@ -87,7 +87,7 @@ export default function EnhancedCompanyProfile() {
             selectedControlFamilies: data.nistControlFamilies,
           } : undefined,
           soc2: data.soc2TrustServices.length > 0 ? {
-            trustServices: data.soc2TrustServices as any,
+            trustServices: data.soc2TrustServices,
             reportType: "type2" as const,
           } : undefined,
         },

@@ -1,13 +1,13 @@
 {
   "name": "rest-express",
-  "version": "2.0.1",
+  "version": "2.4.0",
   "type": "module",
   "main": "dist/electron/main.js",
   "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
     "build": "vite build && node scripts/build-server.js",
-    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "test": "vitest",
@@ -25,11 +25,12 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
-    "build:win": "npm run build && npm run electron:build && electron-builder build --win nsis"
+    "windows:validate": "tsx scripts/validate-wack.ts",
+    "build:win": "npm run windows:validate && npm run build && npm run electron:build && electron-builder build --win nsis"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
-    "@google-cloud/storage": "^7.17.3",
+    "@google-cloud/storage": "^7.19.0",
     "@google/genai": "^1.30.0",
     "@googleapis/drive": "^19.2.1",
     "@hookform/resolvers": "^5.2.2",
@@ -113,7 +114,7 @@
     "lucide-react": "^0.554.0",
     "memoizee": "^0.4.17",
     "memorystore": "^1.6.7",
-    "minimatch": "^10.1.1",
+    "minimatch": "^10.1.2",
     "multer": "^2.0.2",
     "nanoid": "^5.0.9",
     "next-themes": "^0.4.6",
@@ -184,7 +185,7 @@
     "axe-core": "^4.11.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.8",
     "electron": "^40.0.0",
     "electron-builder": "^26.4.0",
     "esbuild": "^0.27.2",

@@ -333,7 +333,10 @@ mcpRouter.post('/tools/batch', async (req: any, res) => {
       sessionId: req.sessionID
     };
 
-    const results = [];
+    const results: Array<{
+      toolName: string;
+      result: Awaited<ReturnType<typeof toolRegistry.executeTool>>;
+    }> = [];
 
     for (const execution of executions) {
       const { toolName, parameters } = execution;

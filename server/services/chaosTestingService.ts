@@ -150,7 +150,7 @@ class ChaosTestingService {
     observations.push(`Injecting ${delay}ms latency to ${experiment.target}`);
 
     // Simulate multiple requests with latency
-    const requests = [];
+    const requests: Array<Promise<number>> = [];
     const requestCount = 50;
     const startTime = Date.now();
 
@@ -214,7 +214,7 @@ class ChaosTestingService {
       `Injecting ${errorRate * 100}% error rate to ${experiment.target}`
     );
 
-    const requests = [];
+    const requests: Array<Promise<void>> = [];
     for (let i = 0; i < requestCount; i++) {
       requests.push(this.simulateRequestWithFailure(errorRate));
     }
@@ -263,7 +263,7 @@ class ChaosTestingService {
 
     observations.push(`Testing ${timeout}ms timeout on ${experiment.target}`);
 
-    const requests = [];
+    const requests: Array<Promise<void>> = [];
     for (let i = 0; i < requestCount; i++) {
       requests.push(this.simulateRequestWithTimeout(timeout));
     }
@@ -301,7 +301,7 @@ class ChaosTestingService {
 
     // Simulate network issues
     const requestCount = 40;
-    const requests = [];
+    const requests: Array<Promise<void>> = [];
 
     for (let i = 0; i < requestCount; i++) {
       requests.push(this.simulateNetworkRequest());
@@ -338,7 +338,7 @@ class ChaosTestingService {
 
     // Simulate high load
     const requestCount = 200;
-    const requests = [];
+    const requests: Array<Promise<void>> = [];
 
     for (let i = 0; i < requestCount; i++) {
       requests.push(this.simulateResourceRequest());

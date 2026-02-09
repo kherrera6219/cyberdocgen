@@ -1,8 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Shield, Menu, X } from "lucide-react";
-import { useState } from "react";
 
 function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

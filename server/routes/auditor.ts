@@ -42,7 +42,7 @@ export function registerAuditorRoutes(app: Router) {
       whereClause = and(whereClause, eq(documents.framework, framework as string)) as any;
     }
 
-    query = query.where(whereClause) as any;
+    query = query.where(whereClause);
 
     // Get documents with pagination
     const documentsList = await query

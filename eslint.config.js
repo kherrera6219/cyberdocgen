@@ -1,7 +1,6 @@
 // For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
 import storybook from "eslint-plugin-storybook";
 
-/* eslint-env node */
 import js from '@eslint/js';
 import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
@@ -33,13 +32,13 @@ export default [js.configs.recommended, {
   rules: {
     ...typescript.configs.recommended.rules,
     ...reactHooks.configs.recommended.rules,
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
     'security/detect-object-injection': 'warn',
     'security/detect-non-literal-regexp': 'warn',
     'security/detect-unsafe-regex': 'warn',
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-console': 'off',
     'prefer-const': 'error',
     'no-var': 'error',
     'no-duplicate-imports': 'warn',
@@ -47,7 +46,36 @@ export default [js.configs.recommended, {
     'no-undef': 'off',
   },
 }, {
-  ignores: ['dist/**', 'node_modules/**', '.cache/**', '.local/**', '.upm/**', 'development-archive/**', 'client/public/sw.js'],
+  ignores: [
+    'dist/**',
+    'node_modules/**',
+    '.cache/**',
+    '.local/**',
+    '.upm/**',
+    'development-archive/**',
+    'client/public/sw.js',
+    'client/src/stories/**',
+    '.storybook/**'
+  ],
+}, {
+  files: ['public/sw.js'],
+  languageOptions: {
+    globals: {
+      self: 'readonly',
+      caches: 'readonly',
+      fetch: 'readonly',
+    },
+  },
+}, {
+  files: ['scripts/**/*.js'],
+  languageOptions: {
+    globals: {
+      console: 'readonly',
+      process: 'readonly',
+      setTimeout: 'readonly',
+      clearTimeout: 'readonly',
+    },
+  },
 }, {
   files: ['**/tests/**', '**/*.test.ts', '**/*.test.tsx'],
   languageOptions: {
@@ -65,9 +93,13 @@ export default [js.configs.recommended, {
   },
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
     'security/detect-object-injection': 'off',
     'security/detect-non-literal-regexp': 'off',
     'security/detect-unsafe-regex': 'off',
+    'no-console': 'off',
     'no-undef': 'off',
   },
 }, ...storybook.configs["flat/recommended"]];

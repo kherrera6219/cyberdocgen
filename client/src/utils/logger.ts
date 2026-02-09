@@ -3,8 +3,6 @@
  * Provides structured logging with environment-aware output
  */
 
-/* eslint-env node, browser */
-
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 class ClientLogger {

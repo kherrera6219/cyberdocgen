@@ -9,7 +9,7 @@ import {
   type TemplateGenerationResult,
   type SimpleTemplateVariableConfig
 } from '../validation/templateSchemas';
-import { DocumentTemplate, TemplateVariable } from './types';
+import type { DocumentTemplate, TemplateVariable } from './types';
 
 // Import Modularized Templates
 import { ISO27001Templates, AdditionalISO27001Templates, ExtendedISO27001Templates } from './documentTemplates/iso27001';
@@ -19,7 +19,7 @@ import { NISTTemplates } from './documentTemplates/nist';
 import { OperationalTemplates, CertificationDocumentTemplates } from './documentTemplates/operational';
 
 // Re-export types for backward compatibility or external use
-export { DocumentTemplate, TemplateVariable };
+export type { DocumentTemplate, TemplateVariable };
 // Export individual template sets if needed (though usually accessed via service/AllDocumentTemplates)
 export { ISO27001Templates, AdditionalISO27001Templates, ExtendedISO27001Templates };
 export { SOC2Templates, AdditionalSOC2OperationalTemplates, ExtendedSOC2Templates };

@@ -7,12 +7,10 @@ import {
   AppError 
 } from '../utils/errorHandling';
 
-declare global {
-  namespace Express {
-    interface Request {
-      mfaRequired?: boolean;
-      mfaVerified?: boolean;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    mfaRequired?: boolean;
+    mfaVerified?: boolean;
   }
 }
 

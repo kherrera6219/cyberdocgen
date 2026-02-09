@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { storage } from '../storage';
 import { logger } from '../utils/logger';
+import { isLocalMode } from '../config/runtime';
 import { type AuditLog, type AuditActionType } from '@shared/schema';
 
 export enum RiskLevel {
@@ -78,11 +79,15 @@ export class AuditService {
       const resourceId = entry.resourceId || entry.entityId;
       const metadata = entry.metadata ?? entry.additionalContext ?? entry.details;
       const riskLevel = entry.riskLevel ?? RiskLevel.LOW;
+      const auditId = isLocalMode()
+        ? `${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
+        : crypto.randomUUID();
 
       const auditRecord = {
+        id: auditId,
         userId: entry.userId || null,
         organizationId: entry.organizationId || null,
-        action: entry.action as string,
+        action: entry.action,
         resourceType,
         resourceId: resourceId || null,
         oldValues: entry.oldValues || null,

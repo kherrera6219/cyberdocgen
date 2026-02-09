@@ -498,7 +498,7 @@ export class MemStorage implements IStorage {
   }
 
   async getDocuments(organizationId?: string): Promise<Document[]> {
-    let docs = Array.from(this.documents.values());
+    const docs = Array.from(this.documents.values());
     if (organizationId) {
       // Note: In MemStorage, documents don't have organizationId directly, 
       // but they are linked to companyProfileId which has organizationId.
@@ -2053,14 +2053,14 @@ export class DatabaseStorage implements IStorage {
       .update(notifications)
       .set({ isRead: true })
       .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
-    return (result as any).rowCount ?? 0;
+    return (result).rowCount ?? 0;
   }
 
   async deleteNotification(id: string, userId: string): Promise<boolean> {
     const result = await db
       .delete(notifications)
       .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
-    return (result as any).rowCount > 0;
+    return (result).rowCount > 0;
   }
 
   // Versioning operations

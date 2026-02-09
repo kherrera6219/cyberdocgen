@@ -15,12 +15,14 @@
  */
 
 import { db } from '../db';
-import { repositoryFindings, repositoryTasks, repositorySnapshots } from '@shared/schema';
-import type { 
-  InsertRepositoryFinding, 
-  RepositoryFinding,
-  InsertRepositoryTask,
-  RepositoryTask 
+import {
+  repositoryFindings,
+  repositoryTasks,
+  repositorySnapshots,
+  type InsertRepositoryFinding,
+  type RepositoryFinding,
+  type InsertRepositoryTask,
+  type RepositoryTask,
 } from '@shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { logger } from '../utils/logger';
@@ -162,15 +164,23 @@ export class RepositoryFindingsService {
 
       // Build where conditions
       const conditions = [eq(repositoryFindings.snapshotId, snapshotId)];
+      const validStatuses: RepositoryFinding['status'][] = ['pass', 'partial', 'fail', 'not_observed', 'needs_human'];
+      const validConfidenceLevels: RepositoryFinding['confidenceLevel'][] = ['low', 'medium', 'high'];
 
       if (filters.framework) {
         conditions.push(eq(repositoryFindings.framework, filters.framework));
       }
-      if (filters.status) {
-        conditions.push(eq(repositoryFindings.status, filters.status));
+      if (filters.status && validStatuses.includes(filters.status as RepositoryFinding['status'])) {
+        conditions.push(eq(repositoryFindings.status, filters.status as RepositoryFinding['status']));
       }
-      if (filters.confidenceLevel) {
-        conditions.push(eq(repositoryFindings.confidenceLevel, filters.confidenceLevel));
+      if (
+        filters.confidenceLevel &&
+        validConfidenceLevels.includes(filters.confidenceLevel as RepositoryFinding['confidenceLevel'])
+      ) {
+        conditions.push(eq(
+          repositoryFindings.confidenceLevel,
+          filters.confidenceLevel as RepositoryFinding['confidenceLevel']
+        ));
       }
       if (filters.signalType) {
         conditions.push(eq(repositoryFindings.signalType, filters.signalType));
@@ -415,7 +425,7 @@ ${finding.summary}
 ${finding.recommendation}
 
 **Evidence:**
-${finding.evidenceReferences.map((ref: any) => `- ${ref.filePath}`).join('\n')}
+${(finding.evidenceReferences ?? []).map((ref: any) => `- ${ref.filePath}`).join('\n')}
       `.trim();
 
       const priority = finding.status === 'fail' && finding.confidenceLevel === 'high'

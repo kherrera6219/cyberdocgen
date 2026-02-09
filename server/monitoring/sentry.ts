@@ -6,6 +6,7 @@
  */
 import * as Sentry from "@sentry/node";
 import { logger } from "../utils/logger";
+import type { ErrorRequestHandler, RequestHandler } from "express";
 
 export function initializeSentry(): void {
   const dsn = process.env.SENTRY_DSN;
@@ -92,8 +93,8 @@ export function setUserContext(userId: string, email?: string, organizationId?: 
   Sentry.setUser({
     id: userId,
     email,
-    organizationId,
-  } as Sentry.User);
+    ...(organizationId ? { segment: organizationId } : {}),
+  });
 }
 
 /**
@@ -108,11 +109,13 @@ export function clearUserContext(): void {
 /**
  * Express error handler middleware
  */
-export const sentryErrorHandler = Sentry.Handlers.errorHandler();
+export const sentryErrorHandler: ErrorRequestHandler = Sentry.expressErrorHandler();
 
 /**
  * Express request handler middleware (must be first middleware)
  */
-export const sentryRequestHandler = Sentry.Handlers.requestHandler();
+export const sentryRequestHandler: RequestHandler = (_req, _res, next) => {
+  next();
+};
 
 export { Sentry };

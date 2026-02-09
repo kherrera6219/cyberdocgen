@@ -230,8 +230,8 @@ async function validateMonitoringAndLogging(): Promise<ComplianceCheck> {
 
 async function validateWindowsClient(): Promise<ComplianceCheck> {
   const check: ComplianceCheck = {
-    name: 'Windows Client (MSIX)',
-    description: 'Electron wrapper and MSIX packaging configuration',
+    name: 'Windows Client (Electron Packaging)',
+    description: 'Electron wrapper and Windows packaging configuration (NSIS/MSIX)',
     status: 'fail',
     details: []
   };
@@ -239,15 +239,38 @@ async function validateWindowsClient(): Promise<ComplianceCheck> {
   try {
     const rootDir = process.cwd();
     const hasElectron = fs.existsSync(path.join(rootDir, 'electron/main.ts'));
-    const hasConfig = fs.existsSync(path.join(rootDir, 'electron-builder.yml'));
+    const builderConfigPath = path.join(rootDir, 'electron-builder.yml');
+    const hasConfig = fs.existsSync(builderConfigPath);
+    let hasWindowsTarget = false;
+    let hasNsisTarget = false;
+    let hasMsixTarget = false;
 
     if (hasElectron) check.details.push('✅ Electron main process entry found');
     else check.details.push('❌ Electron wrapper missing');
 
-    if (hasConfig) check.details.push('✅ electron-builder.yml configuration found');
-    else check.details.push('❌ electron-builder.yml configuration missing');
+    if (hasConfig) {
+      check.details.push('✅ electron-builder.yml configuration found');
+      const config = fs.readFileSync(builderConfigPath, 'utf8').toLowerCase();
+      hasNsisTarget = /target\s*:\s*nsis/.test(config) || /-\s*nsis\b/.test(config);
+      hasMsixTarget = /target\s*:\s*msix/.test(config) || /-\s*msix\b/.test(config);
+      hasWindowsTarget = hasNsisTarget || hasMsixTarget;
 
-    if (hasElectron && hasConfig) check.status = 'pass';
+      if (hasNsisTarget) {
+        check.details.push('✅ NSIS installer target configured');
+      }
+      if (hasMsixTarget) {
+        check.details.push('✅ MSIX package target configured');
+      }
+      if (!hasWindowsTarget) {
+        check.details.push('❌ No Windows packaging target (NSIS/MSIX) configured');
+      }
+    } else {
+      check.details.push('❌ electron-builder.yml configuration missing');
+    }
+
+    if (hasElectron && hasConfig && hasWindowsTarget) {
+      check.status = 'pass';
+    }
   } catch (error: any) {
     check.details.push(`❌ Windows client check error: ${error.message}`);
   }

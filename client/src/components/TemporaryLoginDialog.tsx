@@ -1,4 +1,4 @@
-import { useState, startTransition } from "react";
+import { useEffect, useRef, useState, startTransition } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,13 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
   const [errors, setErrors] = useState<{ name?: string; email?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setLocation] = useLocation();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: { name?: string; email?: string } = {};
@@ -56,6 +63,7 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
       return;
     }
 
+    if (!isMountedRef.current) return;
     setIsSubmitting(true);
     setErrors({});
 
@@ -71,24 +79,28 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
       if (response.success) {
         // Refetch auth data and wait for it to complete before navigating
         await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
-        
+
+        if (!isMountedRef.current) return;
         setOpen(false);
         setName("");
         setEmail("");
-        
-        // Small delay to ensure React state updates are processed
-        await new Promise(resolve => setTimeout(resolve, 50));
-        
+
         startTransition(() => {
           setLocation("/dashboard");
         });
       } else {
-        setErrors({ general: response.message || 'Login failed' });
+        if (isMountedRef.current) {
+          setErrors({ general: response.message || 'Login failed' });
+        }
       }
     } catch (error: any) {
-      setErrors({ general: error.message || 'Failed to connect to server' });
+      if (isMountedRef.current) {
+        setErrors({ general: error.message || 'Failed to connect to server' });
+      }
     } finally {
-      setIsSubmitting(false);
+      if (isMountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -186,26 +198,34 @@ export function TempUserBanner() {
   const { user, isTemporaryUser } = useAuth();
   const [, setLocation] = useLocation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   if (!isTemporaryUser || !user) return null;
 
   const handleLogout = async () => {
+    if (!isMountedRef.current) return;
     setIsLoggingOut(true);
     try {
       await apiRequest('/api/auth/temp-logout', { method: 'POST' });
       // Refetch to clear cached user data
       await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
-      
-      // Small delay to ensure React state updates are processed
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
+
+      if (!isMountedRef.current) return;
       startTransition(() => {
         setLocation("/");
       });
     } catch (error) {
       logger.error('Logout failed:', error);
     } finally {
-      setIsLoggingOut(false);
+      if (isMountedRef.current) {
+        setIsLoggingOut(false);
+      }
     }
   };
 

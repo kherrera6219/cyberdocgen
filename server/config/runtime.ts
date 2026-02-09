@@ -9,6 +9,8 @@
  * All feature code should use the exported functions instead.
  */
 
+import { logger } from '../utils/logger';
+
 export type DeploymentMode = 'cloud' | 'local';
 
 export interface RuntimeConfig {

@@ -244,7 +244,11 @@ export class AgentClient {
           });
 
           // Execute tools
-          const toolResults = [];
+          const toolResults: Array<{
+            type: 'tool_result';
+            tool_use_id: string;
+            content: string;
+          }> = [];
 
           for (const toolUse of toolUseBlocks) {
             const toolName = (toolUse as any).name;
@@ -267,7 +271,7 @@ export class AgentClient {
 
             toolResults.push({
               type: 'tool_result',
-              tool_use_id: (toolUse as any).id,
+              tool_use_id: String((toolUse as any).id),
               content: JSON.stringify(toolResult)
             });
           }

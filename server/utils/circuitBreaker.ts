@@ -5,6 +5,8 @@
  * States: CLOSED (normal) -> OPEN (failing) -> HALF_OPEN (testing recovery)
  */
 
+import { logger } from './logger';
+
 export enum CircuitState {
   CLOSED = 'CLOSED',     // Normal operation
   OPEN = 'OPEN',         // Failing - reject all requests

@@ -1,6 +1,6 @@
 # Microsoft Store Submission Guide - CyberDocGen
-**Created:** January 20, 2026
-**Version:** 2.3.0
+**Created:** February 8, 2026
+**Version:** 2.4.0
 **Target:** Windows 11 (x64)
 **Package Type:** MSIX
 
@@ -112,11 +112,11 @@ npm run build:msix
 ✔ Building MSIX package
 ✔ Packaging application
 ✔ Creating MSIX bundle
-✔ Output: dist/packaging/CyberDocGen-2.0.1.msix
+✔ Output: dist/packaging/CyberDocGen-<version>.msix
 ```
 
 **Build Artifacts:**
-- `dist/packaging/CyberDocGen-2.0.1.msix` - Microsoft Store package
+- `dist/packaging/CyberDocGen-<version>.msix` - Microsoft Store package
 
 ### Step 4: Code Signing (REQUIRED)
 
@@ -130,7 +130,7 @@ If you want to test locally before submission:
 
 ```bash
 # Requires Windows SDK and code signing certificate
-SignTool sign /fd SHA256 /a /f YourCertificate.pfx /p CertPassword dist/packaging/CyberDocGen-2.0.1.msix
+SignTool sign /fd SHA256 /a /f YourCertificate.pfx /p CertPassword dist/packaging/CyberDocGen-<version>.msix
 ```
 
 ### Step 5: Validate Package
@@ -153,7 +153,7 @@ npx tsx scripts/validate-wack.ts
 On a Windows 11 machine with Windows SDK:
 ```powershell
 # Run WACK on the MSIX package
-appcert.exe test -apptype msix -appxpackagepath "CyberDocGen-2.0.1.msix" -reportoutputpath "wack_report.xml"
+appcert.exe test -apptype msix -appxpackagepath "CyberDocGen-<version>.msix" -reportoutputpath "wack_report.xml"
 ```
 
 ---
@@ -262,10 +262,10 @@ Recommended:
 
 #### 4. Upload Package
 1. Go to "Packages" → "Upload MSIX package"
-2. Upload `dist/packaging/CyberDocGen-2.0.1.msix`
+2. Upload `dist/packaging/CyberDocGen-<version>.msix`
 3. Wait for automatic validation
 4. Review package details:
-   - Version: 2.0.1
+   - Version: 2.4.0 (or current release version)
    - Supported architectures: x64
    - Capabilities: internetClient, privateNetworkClientServer
 

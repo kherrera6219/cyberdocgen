@@ -21,9 +21,9 @@ import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
 import { db } from '../db';
-import { repositorySnapshots, repositoryTasks } from '@shared/schema';
+import { repositoryAnalysisRuns, repositorySnapshots, repositoryTasks } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { getUserId } from '../replitAuth';
+import type { MultiTenantRequest } from '../middleware/multiTenant';
 import {
   secureHandler,
   validateInput,
@@ -32,13 +32,20 @@ import {
   requireResource,
   createSuccessResponse,
   commonSchemas,
+  ForbiddenError,
 } from '../utils/errorHandling';
 import { repoParserService } from '../services/repoParserService';
 import { repoAnalysisService } from '../services/repoAnalysisService';
 import { repositoryFindingsService } from '../services/repositoryFindingsService';
-import { logger } from '../utils/logger';
 
 const router = Router();
+
+function requireOrganizationContext(req: MultiTenantRequest): string {
+  if (!req.organizationId) {
+    throw new ForbiddenError('Organization context required', 'ORG_CONTEXT_REQUIRED');
+  }
+  return req.organizationId;
+}
 
 // Configure multer for file uploads (memory storage for security)
 const upload = multer({
@@ -91,12 +98,17 @@ router.post(
   '/upload',
   upload.single('file'),
   validateInput(uploadSchema),
-  secureHandler(async (req, res) => {
+  secureHandler(async (req: MultiTenantRequest, res) => {
     const userId = requireAuth(req);
-    const { organizationId, companyProfileId, name } = req.body;
+    const organizationId = requireOrganizationContext(req);
+    const { organizationId: bodyOrganizationId, companyProfileId, name } = req.body;
     const file = req.file;
 
     requireResource(file, 'File');
+
+    if (bodyOrganizationId !== organizationId) {
+      throw new ForbiddenError('Cross-organization snapshot upload is not allowed', 'CROSS_TENANT_ACCESS');
+    }
 
     // Upload and extract
     const result = await repoParserService.uploadAndExtract(
@@ -141,12 +153,13 @@ router.post(
  */
 router.get(
   '/',
-  secureHandler(async (req, res) => {
-    const userId = requireAuth(req);
+  secureHandler(async (req: MultiTenantRequest, res) => {
+    requireAuth(req);
+    const organizationId = requireOrganizationContext(req);
     
-    // For now, get all snapshots (would add pagination/filtering in production)
     const snapshots = await db.select()
       .from(repositorySnapshots)
+      .where(eq(repositorySnapshots.organizationId, organizationId))
       .orderBy(desc(repositorySnapshots.createdAt))
       .limit(50);
 
@@ -161,13 +174,17 @@ router.get(
 router.get(
   '/:id',
   validateParams(commonSchemas.uuid),
-  secureHandler(async (req, res) => {
-    const userId = requireAuth(req);
+  secureHandler(async (req: MultiTenantRequest, res) => {
+    requireAuth(req);
+    const organizationId = requireOrganizationContext(req);
     const { id } = req.params;
 
     const [snapshot] = await db.select()
       .from(repositorySnapshots)
-      .where(eq(repositorySnapshots.id, id));
+      .where(and(
+        eq(repositorySnapshots.id, id),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
 
     requireResource(snapshot, 'Repository snapshot');
 
@@ -183,15 +200,19 @@ router.post(
   '/:id/analyze',
   validateParams(commonSchemas.uuid),
   validateInput(analyzeSchema),
-  secureHandler(async (req, res) => {
+  secureHandler(async (req: MultiTenantRequest, res) => {
     const userId = requireAuth(req);
+    const organizationId = requireOrganizationContext(req);
     const { id: snapshotId } = req.params;
     const { frameworks, depth } = req.body;
 
     // Get snapshot to verify org ID
     const [snapshot] = await db.select()
       .from(repositorySnapshots)
-      .where(eq(repositorySnapshots.id, snapshotId));
+      .where(and(
+        eq(repositorySnapshots.id, snapshotId),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
 
     requireResource(snapshot, 'Repository snapshot');
 
@@ -223,14 +244,18 @@ router.post(
 router.get(
   '/:id/analysis',
   validateParams(commonSchemas.uuid),
-  secureHandler(async (req, res) => {
-    const userId = requireAuth(req);
+  secureHandler(async (req: MultiTenantRequest, res) => {
+    requireAuth(req);
+    const organizationId = requireOrganizationContext(req);
     const { id: snapshotId } = req.params;
 
     // Get snapshot for org ID
     const [snapshot] = await db.select()
       .from(repositorySnapshots)
-      .where(eq(repositorySnapshots.id, snapshotId));
+      .where(and(
+        eq(repositorySnapshots.id, snapshotId),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
 
     requireResource(snapshot, 'Repository snapshot');
 
@@ -258,14 +283,18 @@ router.get(
 router.get(
   '/:id/findings',
   validateParams(commonSchemas.uuid),
-  secureHandler(async (req, res) => {
-    const userId = requireAuth(req);
+  secureHandler(async (req: MultiTenantRequest, res) => {
+    requireAuth(req);
+    const organizationId = requireOrganizationContext(req);
     const { id: snapshotId } = req.params;
 
     // Get snapshot for org ID
     const [snapshot] = await db.select()
       .from(repositorySnapshots)
-      .where(eq(repositorySnapshots.id, snapshotId));
+      .where(and(
+        eq(repositorySnapshots.id, snapshotId),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
 
     requireResource(snapshot, 'Repository snapshot');
 
@@ -306,14 +335,18 @@ router.patch(
     findingId: z.string().uuid(),
   })),
   validateInput(reviewFindingSchema),
-  secureHandler(async (req, res) => {
+  secureHandler(async (req: MultiTenantRequest, res) => {
     const userId = requireAuth(req);
+    const organizationId = requireOrganizationContext(req);
     const { id: snapshotId, findingId } = req.params;
 
     // Get snapshot for org ID
     const [snapshot] = await db.select()
       .from(repositorySnapshots)
-      .where(eq(repositorySnapshots.id, snapshotId));
+      .where(and(
+        eq(repositorySnapshots.id, snapshotId),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
 
     requireResource(snapshot, 'Repository snapshot');
 
@@ -341,9 +374,19 @@ router.patch(
 router.get(
   '/:id/tasks',
   validateParams(commonSchemas.uuid),
-  secureHandler(async (req, res) => {
-    const userId = requireAuth(req);
+  secureHandler(async (req: MultiTenantRequest, res) => {
+    requireAuth(req);
+    const organizationId = requireOrganizationContext(req);
     const { id: snapshotId } = req.params;
+
+    const [snapshot] = await db.select()
+      .from(repositorySnapshots)
+      .where(and(
+        eq(repositorySnapshots.id, snapshotId),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
+
+    requireResource(snapshot, 'Repository snapshot');
 
     const tasks = await db.select()
       .from(repositoryTasks)
@@ -365,9 +408,19 @@ router.patch(
     taskId: z.string().uuid(),
   })),
   validateInput(updateTaskSchema),
-  secureHandler(async (req, res) => {
+  secureHandler(async (req: MultiTenantRequest, res) => {
     const userId = requireAuth(req);
-    const { taskId } = req.params;
+    const organizationId = requireOrganizationContext(req);
+    const { id: snapshotId, taskId } = req.params;
+
+    const [snapshot] = await db.select()
+      .from(repositorySnapshots)
+      .where(and(
+        eq(repositorySnapshots.id, snapshotId),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
+
+    requireResource(snapshot, 'Repository snapshot');
 
     const updates: any = { ...req.body, updatedAt: new Date() };
 
@@ -378,8 +431,13 @@ router.patch(
 
     const [updated] = await db.update(repositoryTasks)
       .set(updates)
-      .where(eq(repositoryTasks.id, taskId))
+      .where(and(
+        eq(repositoryTasks.id, taskId),
+        eq(repositoryTasks.snapshotId, snapshotId)
+      ))
       .returning();
+
+    requireResource(updated, 'Repository task');
 
     res.json(createSuccessResponse({ task: updated }, req.requestId));
   }, {
@@ -398,13 +456,17 @@ router.patch(
 router.delete(
   '/:id',
   validateParams(commonSchemas.uuid),
-  secureHandler(async (req, res) => {
+  secureHandler(async (req: MultiTenantRequest, res) => {
     const userId = requireAuth(req);
+    const organizationId = requireOrganizationContext(req);
     const { id: snapshotId } = req.params;
 
     const [snapshot] = await db.select()
       .from(repositorySnapshots)
-      .where(eq(repositorySnapshots.id, snapshotId));
+      .where(and(
+        eq(repositorySnapshots.id, snapshotId),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
 
     requireResource(snapshot, 'Repository snapshot');
 
@@ -417,7 +479,10 @@ router.delete(
 
     // Delete snapshot (cascade will handle files, runs, docs)
     await db.delete(repositorySnapshots)
-      .where(eq(repositorySnapshots.id, snapshotId));
+      .where(and(
+        eq(repositorySnapshots.id, snapshotId),
+        eq(repositorySnapshots.organizationId, organizationId)
+      ));
 
     res.json(createSuccessResponse({
       message: 'Repository snapshot deleted',

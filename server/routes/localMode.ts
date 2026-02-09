@@ -307,7 +307,9 @@ router.get('/api-keys/configured', async (req, res) => {
     }
 
     const providers = await getProviders();
-    const configured = await providers.secrets.getConfiguredProviders();
+    const configured = typeof providers.secrets.getConfiguredProviders === 'function'
+      ? await providers.secrets.getConfiguredProviders()
+      : [];
 
     res.json({ configured });
   } catch (error) {

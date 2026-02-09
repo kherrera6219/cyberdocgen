@@ -1,12 +1,13 @@
-// Polyfill requestSubmit FIRST before any imports (required by React Hook Form in jsdom)
+// Polyfill requestSubmit FIRST before any imports (required by React Hook Form in jsdom).
+// jsdom may define requestSubmit but throw "Not implemented", so always override in tests.
 if (typeof global !== 'undefined' && typeof HTMLFormElement !== 'undefined') {
-  if (!HTMLFormElement.prototype.requestSubmit) {
-    HTMLFormElement.prototype.requestSubmit = function() {
-      if (this.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))) {
-        this.submit();
-      }
-    };
-  }
+  Object.defineProperty(HTMLFormElement.prototype, 'requestSubmit', {
+    configurable: true,
+    writable: true,
+    value: function() {
+      this.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    },
+  });
 }
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';

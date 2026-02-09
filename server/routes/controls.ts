@@ -72,8 +72,8 @@ export function registerControlsRoutes(app: Router) {
       const user = (req as any).user;
       const { comments, approved } = req.body;
 
-      const approvalId = parseInt(id, 10);
-      if (isNaN(approvalId)) {
+      const approvalId = String(id || '').trim();
+      if (!approvalId) {
         return res.status(400).json({ message: 'Invalid approval ID' });
       }
 
@@ -85,7 +85,7 @@ export function registerControlsRoutes(app: Router) {
           approvedAt: new Date(),
           comments: comments || null
         })
-        .where(eq(documentApprovals.id, approvalId.toString()))
+        .where(eq(documentApprovals.id, approvalId))
         .returning();
 
       if (!updatedApproval) {

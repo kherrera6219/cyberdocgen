@@ -96,7 +96,7 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
         .insert(frameworkControlStatuses)
         .values({
           organizationId,
-          framework: framework.toLowerCase() as any,
+          framework: framework.toLowerCase(),
           controlId,
           status,
           evidenceStatus: evidenceStatus || 'none',
@@ -127,7 +127,7 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
       throw new ValidationError('Framework and updates array are required');
     }
 
-    const results = [];
+    const results: Array<typeof frameworkControlStatuses.$inferSelect> = [];
     for (const update of updates) {
       const { controlId, status, evidenceStatus, notes } = update;
       
@@ -164,7 +164,7 @@ export function registerFrameworkControlStatusesRoutes(app: Router) {
           .insert(frameworkControlStatuses)
           .values({
             organizationId,
-            framework: framework.toLowerCase() as any,
+            framework: framework.toLowerCase(),
             controlId,
             status,
             evidenceStatus: evidenceStatus || 'none',

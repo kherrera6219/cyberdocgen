@@ -1,13 +1,49 @@
-# Project Status - January 27, 2026
+# Project Status - February 8, 2026
 
 ## 📊 Overall Project Health
 
 **Version:** 2.4.0
-**Status:** Production-Ready (Cloud & Windows Desktop Certified)
+**Status:** Production Candidate (Core Gates Passing, Final Hardening in Progress)
 **Test Coverage:** ~48%+ (Critical Services & MCP: 85-100%)
 **Test Suite:** 1162 passing, 4 skipped
-**Security:** 0 Vulnerabilities
+**Security:** 0 prod advisories (`npm audit --omit=dev`), dev-toolchain advisory risk accepted with controls (`docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`)
 **TypeScript Errors:** 0
+**ESLint Errors:** 0 (133 warnings)
+
+---
+
+## ✅ February 8, 2026 Operational Sweep
+
+### Validation Results
+
+- `npm run check`: PASS
+- `npm run lint`: PASS (warnings only)
+- `npm run test:run`: PASS (100 files, 1162 passing, 4 skipped)
+- `npm run build`: PASS
+- `npm run start`: PASS (validated `/live`, `/ready`, `/metrics` => HTTP 200 in local mode)
+- `npm run dev`: PASS in local mode with required env (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`)
+- `npm run build:win`: PASS (NSIS output `dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
+- `node scripts/verify-build.js`: PASS (`/live` + `/ready` startup probes and build artifact checks)
+- Release evidence bundle: `docs/project-analysis/evidence/20260208-130320/`
+
+### Remediation Completed
+
+- Fixed TypeScript blocker set (25 compile errors) across MCP, routes, and services.
+- Implemented production start target alignment (`dist/index.cjs`) and aligned verification script.
+- Hardened security-sensitive flows (CSRF secret requirement, temp-auth gating in non-prod).
+- Added tenant-scoped guards in repository analysis routes.
+- Replaced cloud provider stubs with concrete Postgres and cloud storage implementations.
+- Implemented SharePoint/Jira/Notion connector adapter logic and added connector import unit tests.
+- Fixed temporary login/logout async teardown state-update path (`window is not defined` unhandled rejection in tests).
+- Reworked build verification script to provide deterministic pass/fail startup checks.
+- Aligned ops assets (Kubernetes probe paths, Prometheus metrics path, CI smoke workflow).
+
+### Current Blockers to Full “Production Ready” Declaration
+
+1. Lint warning backlog (133 warnings) should be reduced for maintainability and security signal quality.
+2. Cloud-mode full validation still requires production-like secrets and infrastructure.
+3. Documentation consistency cleanup is still in progress across historical status files.
+4. Windows release sign-off still needs signed installer validation evidence (clean VM install + startup log review).
 
 ---
 
@@ -56,7 +92,7 @@
 - Fixed 10 failing tests across 3 files
 - ESLint, Prettier, Husky pre-commit hooks
 
-### Phase 7: Microsoft Store & Enterprise Compliance
+### Phase 7: Windows Enterprise Compliance
 **Status:** ✅ Complete | **Date:** January 18, 2026
 
 - Spec-001 compliance achieved
@@ -134,19 +170,21 @@
 
 ---
 
-## 🔮 Remaining Work (Low Priority)
+## 🔮 Remaining Work
 
 | Item | Details | Priority |
 |------|---------|----------|
-| Logger Migration | 130+ console.log statements | Low |
-| TypeScript Any Cleanup | 19 instances across 3 files | Low |
-| Visual Regression | Playwright visual tests | Low |
+| Dev Toolchain Advisory Follow-Up | Revisit accepted risk by 2026-03-31 or when upstream publishes a non-breaking fix path | High |
+| Windows Release Sign-Off Evidence | Execute signed NSIS installer smoke test in clean Windows VM and archive logs/screenshots | High |
+| Connector Integration Coverage | Add API-level connector ingestion tests with mocked upstream responses | High |
+| Lint Warning Burn-Down | Reduce 133 warnings with focus on security and react-hooks warnings | Medium |
+| Documentation Alignment | Remove stale “0 vulnerabilities”/historical status statements across docs | Medium |
 
 ---
 
 ## 📈 Metrics
 
-- **Test Files:** 99 total
+- **Test Files:** 100 total
 - **Test Cases:** 1162 passing, 4 skipped
 - **Overall Coverage:** 48.2%
 - **Critical Services Coverage:** 85-100%
@@ -156,5 +194,5 @@
 ---
 
 **Current Version:** 2.4.0
-**Last Updated:** January 27, 2026
-**Status:** Production-Ready (All 9 Phases + 4 Sprints Complete)
+**Last Updated:** February 8, 2026
+**Status:** Production Candidate (Core gates green; dependency/security backlog active)

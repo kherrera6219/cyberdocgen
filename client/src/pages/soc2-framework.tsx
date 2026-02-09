@@ -28,12 +28,12 @@ import {
   Link as LinkIcon,
   Unlink,
   Paperclip,
-  Plus
+  Plus,
+  Table as TableIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FrameworkSpreadsheet } from "@/components/compliance/FrameworkSpreadsheet";
-import { Table as TableIcon } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { CompanyProfile } from "@shared/schema";

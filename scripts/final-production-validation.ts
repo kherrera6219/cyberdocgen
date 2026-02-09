@@ -1,5 +1,4 @@
 #!/usr/bin/env tsx
-/* eslint-disable no-console */
 
 /**
  * Final Production Validation - Complete System Check

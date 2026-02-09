@@ -2,7 +2,7 @@ import { Request } from 'express';
 import 'express-session';
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
+   
   namespace Express {
     interface User {
       id: number;

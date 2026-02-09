@@ -22,19 +22,16 @@ import { db } from '../db';
 import { 
   repositorySnapshots, 
   repositoryAnalysisRuns,
-  repositoryFiles 
-} from '@shared/schema';
-import type { 
-  InsertRepositoryAnalysisRun,
-  RepositoryAnalysisRun 
+  repositoryFiles,
+  type InsertRepositoryAnalysisRun,
+  type RepositoryAnalysisRun,
 } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 import { AppError, NotFoundError, ConflictError } from '../utils/errorHandling';
 import { auditService } from './auditService';
 import { repoParserService } from './repoParserService';
-import { codeSignalDetectorService } from './codeSignalDetectorService';
-import type { CodeSignals } from './codeSignalDetectorService';
+import { codeSignalDetectorService, type CodeSignals } from './codeSignalDetectorService';
 import { controlMappingService } from './controlMappingService';
 import { repositoryFindingsService } from './repositoryFindingsService';
 
@@ -186,7 +183,7 @@ export class RepoAnalysisService {
       });
 
       // Execute analysis asynchronously (don't await)
-      this.executeAnalysis(run.id, snapshot.extractedPath!, organizationId, userId)
+      this.executeAnalysis(run.id, snapshot.extractedPath, organizationId, userId)
         .catch(error => {
           logger.error('Analysis execution failed', {
             runId: run.id,

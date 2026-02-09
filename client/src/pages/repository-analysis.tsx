@@ -61,7 +61,10 @@ export function RepositoryAnalysisPage() {
   const organizationId = 'org-123';
   const companyProfileId = 'profile-456';
 
-  const handleUpload = async (file: File, metadata: Record<string, unknown>) => {
+  const handleUpload = async (
+    file: File,
+    metadata: { organizationId: string; companyProfileId: string; name: string }
+  ) => {
     try {
       const result = await uploadMutation.mutateAsync({
         file,

@@ -1,6 +1,7 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-node';
+import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
+import { logger } from '../utils/logger';
 // Setup OpenTelemetry
 const sdk = new NodeSDK({
   // Service name can be set via OTEL_SERVICE_NAME env var

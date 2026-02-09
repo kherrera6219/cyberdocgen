@@ -11,7 +11,7 @@ import path from 'path';
 // When bundled as CJS, __dirname is already available.
 const actualDirname = typeof __dirname !== 'undefined' 
   ? __dirname 
-  : path.dirname(fileURLToPath(import.meta.url));
+  : path.join(process.cwd(), 'server', 'config');
 
 const options: swaggerJsdoc.Options = {
   definition: {

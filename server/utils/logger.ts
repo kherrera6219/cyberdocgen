@@ -36,7 +36,7 @@ function scrubPII(value: string): string {
 }
 
 // Recursively scrub PII from objects
-function scrubPIIFromObject(obj: any): any {
+function scrubPIIFromObject(obj: unknown): unknown {
   if (obj === null || obj === undefined) {
     return obj;
   }
@@ -47,7 +47,7 @@ function scrubPIIFromObject(obj: any): any {
     return obj.map(item => scrubPIIFromObject(item));
   }
   if (typeof obj === 'object') {
-    const scrubbed: Record<string, any> = {};
+    const scrubbed: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       // Redact sensitive keys entirely
       if (/password|secret|token|apikey|api_key|authorization|bearer/i.test(key)) {
@@ -65,7 +65,7 @@ interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
-  context?: Record<string, any>;
+  context?: unknown;
   requestId?: string;
   userId?: string;
   ip?: string;
@@ -77,7 +77,7 @@ interface AuditLogEntry {
   timestamp: string;
   level: LogLevel | 'error'; // Union type to match the 'error' string literal used in changes
   message: string;
-  meta?: any;
+  meta?: unknown;
   logId: string;
   service: string;
 }
@@ -108,7 +108,7 @@ class Logger {
 
     logString += ` ${message}`;
 
-    if (context && Object.keys(context).length > 0) {
+    if (context && typeof context === 'object' && Object.keys(context as Record<string, unknown>).length > 0) {
       logString += ` | Context: ${JSON.stringify(context)}`;
     }
 
@@ -116,7 +116,7 @@ class Logger {
   }
 
   // This method was modified to fix the recursive call
-  private log(level: LogLevel, message: string, meta?: any, req?: Request): void {
+  private log(level: LogLevel, message: string, meta?: unknown, req?: Request): void {
     const timestamp = new Date().toISOString();
     const logId = crypto.randomBytes(4).toString('hex');
 
@@ -188,7 +188,7 @@ class Logger {
   }
 
   // This method was rewritten to prevent infinite recursion
-  error(message: string, meta?: any, req?: Request): void {
+  error(message: string, meta?: unknown, req?: Request): void {
     try {
       const timestamp = new Date().toISOString();
       const logId = crypto.randomBytes(4).toString('hex');
@@ -248,19 +248,19 @@ class Logger {
     }
   }
 
-  warn(message: string, context?: Record<string, any>, req?: Request): void {
+  warn(message: string, context?: unknown, req?: Request): void {
     // The original call to this.log(LogLevel.WARN, message, context, req) has been replaced
     // with a direct call to the modified internal log method, passing context as meta.
     this.log(LogLevel.WARN, message, context, req);
   }
 
-  info(message: string, context?: Record<string, any>, req?: Request): void {
+  info(message: string, context?: unknown, req?: Request): void {
     // The original call to this.log(LogLevel.INFO, message, context, req) has been replaced
     // with a direct call to the modified internal log method, passing context as meta.
     this.log(LogLevel.INFO, message, context, req);
   }
 
-  debug(message: string, context?: Record<string, any>, req?: Request): void {
+  debug(message: string, context?: unknown, req?: Request): void {
     // The original call to this.log(LogLevel.DEBUG, message, context, req) has been replaced
     // with a direct call to the modified internal log method, passing context as meta.
     this.log(LogLevel.DEBUG, message, context, req);

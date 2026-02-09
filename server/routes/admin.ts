@@ -327,7 +327,7 @@ router.get('/stats', isAuthenticated, secureHandler(async (req: MultiTenantReque
     db.query.cloudIntegrations.findMany({ where: eq(cloudIntegrations.isActive, true) }),
     db.select().from(sql`cloud_files` as any), // Fallback if cloudFiles not in schema import
     // Get recent audit logs (simplified)
-    (db.query as any).auditLogs?.findMany({ 
+    (db.query).auditLogs?.findMany({ 
       limit: 10,
       orderBy: (table: any) => [table.timestamp],
     }) || [],

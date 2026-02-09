@@ -219,6 +219,39 @@ Error: sorry, too many clients already
 
 ## Server Issues
 
+### Environment validation fails on startup
+
+**Symptom:**
+```
+Environment validation failed
+DATABASE_URL: Required
+SESSION_SECRET must be at least 32 characters
+```
+
+**Why it happens:**
+
+- Cloud mode is default when `DEPLOYMENT_MODE` is not set.
+- Cloud mode requires `DATABASE_URL`.
+- All modes require a strong `SESSION_SECRET` (32+ characters).
+
+**Solutions:**
+
+1. **Run local mode explicitly for offline/dev:**
+   ```bash
+   DEPLOYMENT_MODE=local
+   SESSION_SECRET=replace-with-at-least-32-characters
+   ENABLE_TEMP_AUTH=true
+   npm run dev
+   ```
+
+2. **Run cloud mode with database configured:**
+   ```bash
+   DEPLOYMENT_MODE=cloud
+   DATABASE_URL=postgresql://...
+   SESSION_SECRET=replace-with-at-least-32-characters
+   npm run dev
+   ```
+
 ### Port already in use
 
 **Symptom:**

@@ -20,6 +20,8 @@ To build the installer, run:
 npm run build:win
 ```
 
+This command now runs Windows packaging validation first (`npm run windows:validate`) before compiling and packaging.
+
 ### 2. Manual Build Steps (Troubleshooting)
 
 If the standard build fails, you can run the steps individually:
@@ -64,4 +66,9 @@ If the packaged application fails to start:
 
 ## Output
 The generated installer is located at:
-`dist/packaging/CyberDocGen-Setup-2.4.0.exe`
+`dist/packaging/CyberDocGen-Setup-<version>.exe` (for example, `CyberDocGen-Setup-2.4.0.exe`)
+
+## Local Artifact Hygiene
+
+- Local/dev runs may generate SQLite and runtime artifacts in `local-data/`.
+- `local-data/` is ignored by Git and should not be committed.

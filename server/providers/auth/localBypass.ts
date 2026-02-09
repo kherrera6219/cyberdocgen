@@ -11,30 +11,31 @@
 
 import type { Request } from 'express';
 import type { IAuthProvider, AuthContext, User, Tenant } from '../interfaces';
+import { logger } from '../../utils/logger';
 
 /**
  * Synthetic user for local mode
  */
 const LOCAL_ADMIN_USER: User = {
-  id: 'local-admin',
+  id: '1',
   email: 'admin@local',
   role: 'admin',
   firstName: 'Local',
   lastName: 'Admin',
-  organizationId: 'local',
+  organizationId: '1',
 };
 
 /**
  * Synthetic tenant for local mode
  */
 const LOCAL_TENANT: Tenant = {
-  id: 'local',
+  id: '1',
   name: 'Local Workspace',
 };
 
 export class LocalAuthBypassProvider implements IAuthProvider {
   
-  async authenticate(req: Request): Promise<AuthContext> {
+  async authenticate(_req: Request): Promise<AuthContext> {
     // Always return the synthetic local admin user
     // No actual authentication is performed
     return {
@@ -49,7 +50,7 @@ export class LocalAuthBypassProvider implements IAuthProvider {
   
   async initialize(): Promise<void> {
     logger.debug('[LocalAuthBypassProvider] Auth bypass enabled for local mode');
-    logger.debug('[LocalAuthBypassProvider] Using synthetic user: local-admin');
+    logger.debug('[LocalAuthBypassProvider] Using synthetic user: 1');
   }
 }
 

@@ -4,7 +4,8 @@
  * Enforces maximum chunk size limits during production builds.
  * Fails the build if any chunk exceeds the specified limit.
  */
-import type { Plugin, OutputChunk, OutputAsset } from 'vite';
+import type { Plugin } from 'vite';
+import type { OutputChunk } from 'rollup';
 
 export interface BundleGovernanceOptions {
   /** Maximum chunk size in KB (default: 200) */
@@ -36,10 +37,9 @@ export function bundleGovernance(options: BundleGovernanceOptions = {}): Plugin 
       const violations: string[] = [];
       let totalSize = 0;
 
-      const chunks = Object.entries(bundle)
-        .filter(([, output]): output is [string, OutputChunk] => 
-          output.type === 'chunk'
-        );
+      const chunks = Object.entries(bundle).filter(
+        (entry): entry is [string, OutputChunk] => entry[1].type === 'chunk'
+      );
 
       console.log('\n📦 Bundle Governance Report');
       console.log('═'.repeat(60));

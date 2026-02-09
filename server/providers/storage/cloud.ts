@@ -1,67 +1,146 @@
 /**
  * Cloud Storage Provider
- * 
- * Cloud mode storage implementation using S3/GCS/Azure Blob.
- * Delegates to existing objectStorageService.
+ *
+ * Cloud mode storage implementation using the shared objectStorageService.
  */
 
-import type { IStorageProvider, StorageFile } from '../interfaces';
+import path from 'path';
 import crypto from 'crypto';
+import type { IStorageProvider, StorageFile } from '../interfaces';
 import { logger } from '../../utils/logger';
+import { objectStorageService } from '../../services/objectStorageService';
 
 export class CloudStorageProvider implements IStorageProvider {
   private bucket: string;
-  
+
   constructor(bucket: string) {
     this.bucket = bucket;
   }
-  
+
+  private sanitizePath(input: string): string {
+    const normalized = input.replace(/\\/g, '/').replace(/^\/+/, '');
+    const parts = normalized.split('/').filter(Boolean);
+    if (parts.includes('..')) {
+      throw new Error('Invalid path: path traversal is not allowed');
+    }
+    return parts.join('/');
+  }
+
+  private toObjectPath(uriOrPath: string): string {
+    const fromUri = uriOrPath.startsWith('gs://')
+      ? uriOrPath.slice('gs://'.length)
+      : uriOrPath;
+    const sanitized = this.sanitizePath(fromUri);
+
+    if (sanitized.startsWith(`${this.bucket}/`)) {
+      return sanitized;
+    }
+
+    return `${this.bucket}/${sanitized}`;
+  }
+
+  private toUri(objectPath: string): string {
+    return `gs://${objectPath}`;
+  }
+
+  private getContentType(filePath: string): string {
+    const ext = path.posix.extname(filePath).toLowerCase();
+    const mimeMap: Record<string, string> = {
+      '.json': 'application/json',
+      '.pdf': 'application/pdf',
+      '.txt': 'text/plain',
+      '.md': 'text/markdown',
+      '.csv': 'text/csv',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.webp': 'image/webp',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      '.zip': 'application/zip',
+    };
+
+    return mimeMap[ext] || 'application/octet-stream';
+  }
+
   async save(
     file: Buffer,
-    path: string,
+    filePath: string,
     metadata?: { contentType?: string }
   ): Promise<StorageFile> {
-    // TODO: Delegate to existing objectStorageService
+    const objectPath = this.toObjectPath(filePath);
+    const folder = path.posix.dirname(objectPath);
+    const fileName = path.posix.basename(objectPath);
+
+    const upload = await objectStorageService.uploadFileFromBytes(fileName, file, folder);
+    if (!upload.success || !upload.path) {
+      throw new Error(upload.error || 'Cloud storage upload failed');
+    }
+
+    const savedPath = this.sanitizePath(upload.path);
     const hash = crypto.createHash('sha256').update(file).digest('hex');
-    
-    logger.debug(`[CloudStorageProvider] Would upload to ${this.bucket}/${path}`);
-    
-    // Return expected shape (actual upload in Sprint 1)
+
+    logger.debug('[CloudStorageProvider] File saved', { path: savedPath, size: file.length });
+
     return {
-      path,
-      uri: `gs://${this.bucket}/${path}`,
+      path: savedPath,
+      uri: this.toUri(savedPath),
       size: file.length,
-      contentType: metadata?.contentType || 'application/octet-stream',
+      contentType: metadata?.contentType || this.getContentType(savedPath),
       hash,
     };
   }
-  
+
   async read(uri: string): Promise<Buffer> {
-    // TODO: Delegate to existing objectStorageService
-    logger.debug(`[CloudStorageProvider] Would read from ${uri}`);
-    throw new Error('CloudStorageProvider.read() - Delegate to objectStorageService');
+    const objectPath = this.toObjectPath(uri);
+    const downloaded = await objectStorageService.downloadFileAsBytes(objectPath);
+
+    if (!downloaded.success || !downloaded.data) {
+      throw new Error(downloaded.error || `Failed to read object: ${objectPath}`);
+    }
+
+    return Buffer.from(downloaded.data);
   }
-  
+
   async exists(uri: string): Promise<boolean> {
-    // TODO: Check if object exists
-    logger.debug(`[CloudStorageProvider] Checking existence of ${uri}`);
-    return false;
+    try {
+      const objectPath = this.toObjectPath(uri);
+      const downloaded = await objectStorageService.downloadFileAsBytes(objectPath);
+      return downloaded.success;
+    } catch {
+      return false;
+    }
   }
-  
+
   async delete(uri: string): Promise<void> {
-    // TODO: Delete object
-    logger.debug(`[CloudStorageProvider] Would delete ${uri}`);
+    const objectPath = this.toObjectPath(uri);
+    const result = await objectStorageService.deleteObject(objectPath);
+    if (!result.success) {
+      throw new Error(result.error || `Failed to delete object: ${objectPath}`);
+    }
   }
-  
+
   async list(prefix?: string): Promise<StorageFile[]> {
-    // TODO: List objects with prefix
-    logger.debug(`[CloudStorageProvider] Would list objects with prefix: ${prefix}`);
-    return [];
+    const objectPrefix = prefix ? this.toObjectPath(prefix) : this.bucket;
+    const result = await objectStorageService.listObjectsInFolder(objectPrefix);
+
+    if (!result.success || !result.files) {
+      throw new Error(result.error || 'Failed to list cloud storage objects');
+    }
+
+    return result.files.map(filePath => ({
+      path: filePath,
+      uri: this.toUri(filePath),
+      size: 0,
+      contentType: this.getContentType(filePath),
+    }));
   }
-  
+
   async getMetadata(uri: string): Promise<Pick<StorageFile, 'size' | 'contentType'>> {
-    // TODO: Get object metadata
-    logger.debug(`[CloudStorageProvider] Would get metadata for ${uri}`);
-    throw new Error('CloudStorageProvider.getMetadata() - To be implemented');
+    const content = await this.read(uri);
+    return {
+      size: content.length,
+      contentType: this.getContentType(this.toObjectPath(uri)),
+    };
   }
 }

@@ -63,6 +63,7 @@ import { registerClientErrorRoutes } from "./routes/clientErrors";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = process.env.NODE_ENV === 'production';
+  const enableTempAuth = process.env.ENABLE_TEMP_AUTH === 'true' && !isProduction;
 
   // 1. Fundamental defensive and observability stack (Priority 1)
   app.use(securityHeaders);
@@ -271,9 +272,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                              session.csrfUserId !== userId;
     
     if (shouldRegenerate) {
+      const sessionSecret = process.env.SESSION_SECRET;
+      if (!sessionSecret) {
+        logger.error('CSRF token generation failed: SESSION_SECRET is not configured');
+        res.status(500).json({ message: 'CSRF secret not configured' });
+        return;
+      }
+
       // Create user-bound CSRF token using HMAC for integrity
       const tokenData = `${userId}:${Date.now()}:${crypto.randomBytes(16).toString('hex')}`;
-      session.csrfToken = crypto.createHmac('sha256', process.env.SESSION_SECRET || 'fallback-secret')
+      session.csrfToken = crypto.createHmac('sha256', sessionSecret)
         .update(tokenData)
         .digest('hex');
       session.csrfUserId = String(userId);
@@ -293,123 +301,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ csrfToken: session.csrfToken });
   });
 
-  // Ensure all API routes have proper CORS and validation
-  app.use('/api', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL || 'https://your-domain.com' : '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF-Token');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end();
-    }
-    next();
-  });
+  if (enableTempAuth) {
+    logger.warn('Temporary authentication endpoints are enabled for non-production use');
 
-  // Temporary login endpoint - creates a demo session for testing
-  // This is a workaround while the main authentication system is being fixed
-  // Uses production-grade rate limiting via authLimiter middleware
-  app.post('/api/auth/temp-login', authLimiter, async (req: Request, res) => {
-    try {
-      const { name, email } = req.body;
-      
-      if (!name || !email) {
-        res.status(400).json({ message: 'Name and email are required' });
-        return;
-      }
-      
-      // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        res.status(400).json({ message: 'Invalid email format' });
-        return;
-      }
-      
-      // Sanitize inputs
-      const sanitizedName = name.trim().slice(0, 100);
-      const sanitizedEmail = email.trim().toLowerCase().slice(0, 255);
-      
-      // Check if user with this email already exists
-      const existingUser = await storage.getUserByEmail(sanitizedEmail);
-      let sessionUserId: string;
-      
-      if (existingUser) {
-        // Use the existing user's ID - don't modify the database
-        sessionUserId = existingUser.id;
-        logger.info('Temp login using existing user', { userId: sessionUserId, email: sanitizedEmail });
-      } else {
-        // Create a new temporary user for this email
-        const tempUserId = `temp-${crypto.createHash('sha256').update(sanitizedEmail).digest('hex').slice(0, 16)}`;
-        await storage.upsertUser({
-          id: tempUserId,
-          email: sanitizedEmail,
-          firstName: sanitizedName.split(' ')[0] || sanitizedName,
-          lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
-          profileImageUrl: null,
-        });
-        sessionUserId = tempUserId;
-        logger.info('Temp login created new temp user', { userId: sessionUserId, email: sanitizedEmail });
-      }
-      
-      // Regenerate session to prevent session fixation attacks
-      req.session.regenerate((regenerateErr) => {
-        if (regenerateErr) {
-          logger.error('Failed to regenerate session', { error: regenerateErr });
-          res.status(500).json({ message: 'Failed to create secure session' });
+    app.post('/api/auth/temp-login', authLimiter, async (req: Request, res) => {
+      try {
+        const { name, email } = req.body;
+
+        if (!name || !email) {
+          res.status(400).json({ message: 'Name and email are required' });
           return;
         }
-        
-        // Set the session data on the new regenerated session
-        req.session.userId = sessionUserId;
-        req.session.isTemporary = true;
-        req.session.tempUserName = sanitizedName;
-        req.session.tempUserEmail = sanitizedEmail;
-        req.session.loginTime = new Date().toISOString();
-        // Auto-verify MFA for temp sessions
-        req.session.mfaVerified = true;
-        // Use any cast to satisfy conflicting type definitions (string vs Date)
-        req.session.mfaVerifiedAt = new Date().toISOString() as any;
-        
-        // Save session explicitly
-        req.session.save((err) => {
-          if (err) {
-            logger.error('Failed to save temp session', { error: err });
-            res.status(500).json({ message: 'Failed to create session' });
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          res.status(400).json({ message: 'Invalid email format' });
+          return;
+        }
+
+        const sanitizedName = name.trim().slice(0, 100);
+        const sanitizedEmail = email.trim().toLowerCase().slice(0, 255);
+
+        const existingUser = await storage.getUserByEmail(sanitizedEmail);
+        let sessionUserId: string;
+
+        if (existingUser) {
+          sessionUserId = existingUser.id;
+          logger.info('Temp login using existing user', { userId: sessionUserId, email: sanitizedEmail });
+        } else {
+          const tempUserId = `temp-${crypto.createHash('sha256').update(sanitizedEmail).digest('hex').slice(0, 16)}`;
+          await storage.upsertUser({
+            id: tempUserId,
+            email: sanitizedEmail,
+            firstName: sanitizedName.split(' ')[0] || sanitizedName,
+            lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
+            profileImageUrl: null,
+          });
+          sessionUserId = tempUserId;
+          logger.info('Temp login created new temp user', { userId: sessionUserId, email: sanitizedEmail });
+        }
+
+        req.session.regenerate((regenerateErr) => {
+          if (regenerateErr) {
+            logger.error('Failed to regenerate session', { error: regenerateErr });
+            res.status(500).json({ message: 'Failed to create secure session' });
             return;
           }
-          
-          logger.info('Temporary login successful with session regeneration', { userId: sessionUserId, email: sanitizedEmail });
-          
-          res.json({
-            success: true,
-            user: {
-              id: sessionUserId,
-              email: sanitizedEmail,
-              displayName: sanitizedName,
-              firstName: sanitizedName.split(' ')[0] || sanitizedName,
-              lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
-              isTemporary: true,
+
+          req.session.userId = sessionUserId;
+          req.session.isTemporary = true;
+          req.session.tempUserName = sanitizedName;
+          req.session.tempUserEmail = sanitizedEmail;
+          req.session.loginTime = new Date().toISOString();
+          req.session.mfaVerified = true;
+          req.session.mfaVerifiedAt = new Date().toISOString() as any;
+
+          req.session.save((err) => {
+            if (err) {
+              logger.error('Failed to save temp session', { error: err });
+              res.status(500).json({ message: 'Failed to create session' });
+              return;
             }
+
+            logger.info('Temporary login successful with session regeneration', { userId: sessionUserId, email: sanitizedEmail });
+
+            res.json({
+              success: true,
+              user: {
+                id: sessionUserId,
+                email: sanitizedEmail,
+                displayName: sanitizedName,
+                firstName: sanitizedName.split(' ')[0] || sanitizedName,
+                lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
+                isTemporary: true,
+              }
+            });
           });
         });
-      });
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Temporary login failed', { error: errorMessage });
-      res.status(500).json({ message: 'Login failed', error: errorMessage });
-    }
-  });
-
-  // Temporary logout endpoint
-  app.post('/api/auth/temp-logout', (req: Request, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        logger.error('Failed to destroy temp session', { error: err });
-        res.status(500).json({ message: 'Logout failed' });
-        return;
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.error('Temporary login failed', { error: errorMessage });
+        res.status(500).json({ message: 'Login failed', error: errorMessage });
       }
-      res.clearCookie('connect.sid');
-      res.json({ success: true });
     });
-  });
+
+    app.post('/api/auth/temp-logout', (req: Request, res) => {
+      req.session.destroy((err) => {
+        if (err) {
+          logger.error('Failed to destroy temp session', { error: err });
+          res.status(500).json({ message: 'Logout failed' });
+          return;
+        }
+        res.clearCookie('connect.sid');
+        res.json({ success: true });
+      });
+    });
+  }
 
   /**
    * @openapi

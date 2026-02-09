@@ -39,7 +39,25 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
   const [, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+
+    try {
+      const saved = window.localStorage.getItem("recentSearches");
+      if (!saved) {
+        return [];
+      }
+
+      const parsed: unknown = JSON.parse(saved);
+      return Array.isArray(parsed)
+        ? parsed.filter((value): value is string => typeof value === "string").slice(0, 5)
+        : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Fetch data for search
   const { data: documents = [] } = useQuery<Document[]>({
@@ -49,14 +67,6 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
   const { data: profiles = [] } = useQuery<CompanyProfile[]>({
     queryKey: ["/api/company-profiles"],
   });
-
-  // Load recent searches from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('recentSearches');
-    if (saved) {
-      setRecentSearches(JSON.parse(saved));
-    }
-  }, []);
 
   // Save search to recent searches
   const saveSearch = (query: string) => {

@@ -15,8 +15,7 @@ connectorRouter.use(requireOrganization);
 connectorRouter.get("/", async (req, res) => {
   try {
     const session = req.session as any;
-    // Fallback if session structure varies (adjust based on actual auth middleware)
-    const targetOrgId = (req.query.organizationId as string) || session?.user?.organizationId || (req.user as any)?.organizationId || session?.organizationId;
+    const targetOrgId = (req as any).organizationId || session?.user?.organizationId || (req.user as any)?.organizationId || session?.organizationId;
     
     if (!targetOrgId) return res.status(400).json({ message: "Organization context required" });
 
@@ -33,9 +32,14 @@ connectorRouter.post("/", async (req, res) => {
     // Validate body
     const validatedData = insertConnectorConfigSchema.parse(req.body);
     const userId = (req.user as any)?.id || (req.session as any)?.user?.id;
-    // user/org context
-    const targetOrgId = validatedData.organizationId; 
+    const targetOrgId = (req as any).organizationId || (req.user as any)?.organizationId || (req.session as any)?.organizationId;
 
+    if (!userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    if (!targetOrgId) {
+      return res.status(400).json({ message: "Organization context required" });
+    }
     // Basic permission check (assuming standard user can create, or add admin check)
     
     const config = await connectorService.createConfig(
@@ -43,7 +47,7 @@ connectorRouter.post("/", async (req, res) => {
       targetOrgId,
       validatedData.integrationId,
       validatedData.name,
-      validatedData.connectorType as any,
+      validatedData.connectorType,
       validatedData.scopeConfig,
       req.ip || 'unknown'
     );
@@ -62,9 +66,17 @@ connectorRouter.post("/:id/import", async (req, res) => {
         const configId = req.params.id;
         const snapshotId = req.body.snapshotId; // Optional: Add to specific snapshot
         const userId = (req.user as any)?.id || (req.session as any)?.user?.id;
+        const targetOrgId = (req as any).organizationId || (req.user as any)?.organizationId || (req.session as any)?.organizationId;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Authentication required" });
+        }
+        if (!targetOrgId) {
+            return res.status(400).json({ message: "Organization context required" });
+        }
 
         // Run async
-        await connectorService.runImport(userId, configId, snapshotId, req.ip || 'unknown');
+        await connectorService.runImport(userId, targetOrgId, configId, snapshotId, req.ip || 'unknown');
 
         res.json({ message: "Import completed successfully" });
     } catch (error: any) {

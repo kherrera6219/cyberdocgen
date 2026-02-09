@@ -125,6 +125,11 @@ export interface ISecretsProvider {
    * List all secret keys (not values)
    */
   listKeys(): Promise<string[]>;
+
+  /**
+   * Optional helper for providers that can identify configured integrations
+   */
+  getConfiguredProviders?(): Promise<string[]>;
 }
 
 // ============================================================================

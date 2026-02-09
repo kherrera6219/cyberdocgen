@@ -28,7 +28,10 @@ export function registerApprovalsRoutes(router: Router) {
     // so we get all and filter by document ownership.
     const approvals = await storage.getDocumentApprovals(status);
     
-    const enrichedApprovals = [];
+    const enrichedApprovals: Array<typeof approvals[number] & {
+      documentTitle: string;
+      documentFramework: string;
+    }> = [];
     for (const approval of approvals) {
       const { document, authorized } = await getDocumentWithOrgCheck(approval.documentId, organizationId);
       if (authorized && document) {

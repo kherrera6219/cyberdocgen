@@ -19,8 +19,12 @@ import { logger } from '../utils/logger';
 import { AppError, ValidationError } from '../utils/errorHandling';
 import { auditService } from './auditService';
 import { db } from '../db';
-import { repositorySnapshots, repositoryFiles } from '@shared/schema';
-import type { InsertRepositorySnapshot, InsertRepositoryFile } from '@shared/schema';
+import {
+  repositorySnapshots,
+  repositoryFiles,
+  type InsertRepositorySnapshot,
+  type InsertRepositoryFile,
+} from '@shared/schema';
 
 // Security limits
 const MAX_UPLOAD_SIZE = 500 * 1024 * 1024; // 500MB

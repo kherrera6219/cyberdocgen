@@ -1,6 +1,6 @@
 # Windows Desktop Deployment Guide
 
-**Version 2.4.0** | January 2026
+**Version 2.4.0** | February 2026
 
 CyberDocGen includes a native Windows Desktop application powered by Electron. This build is designed for **offline-first, local-only usage** or isolated environments where a cloud PostgreSQL instance is not available.
 
@@ -44,13 +44,20 @@ npm run build:win
 ```
 
 This pipeline performs the following:
-1.  **Vite Build**: Compiles the React frontend.
-2.  **Server Bundle**: Bundles the Node.js backend to `.cjs` for ASAR compatibility.
-3.  **Electron Build**: Compiles the main process.
-4.  **Packaging**: Uses `electron-builder` with custom NSIS scripts for data retention choices.
+1.  **Windows Validation**: Verifies Electron packaging config and Windows build assets.
+2.  **Vite Build**: Compiles the React frontend.
+3.  **Server Bundle**: Bundles the Node.js backend to `.cjs` for ASAR compatibility.
+4.  **Electron Build**: Compiles the main process.
+5.  **Packaging**: Uses `electron-builder` with custom NSIS scripts for data retention choices.
+
+Optional post-build verification:
+
+```powershell
+node scripts/verify-build.js
+```
 
 **Output Location**: `./dist/packaging/`
-- `CyberDocGen Setup 2.4.0.exe` (Installer)
+- `CyberDocGen-Setup-<version>.exe` (Installer)
 - `win-unpacked/` (Portable executable for testing)
 
 ---
@@ -58,7 +65,7 @@ This pipeline performs the following:
 ## Installation & Running
 
 1.  Navigate to `dist/packaging/`.
-2.  Run `CyberDocGen Setup 2.4.0.exe`.
+2.  Run `CyberDocGen-Setup-<version>.exe`.
 3.  The application will install to `AppData\Local\Programs\cyberdocgen`.
 4.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings).
 

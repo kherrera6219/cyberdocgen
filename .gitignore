@@ -13,6 +13,7 @@ coverage_*.json
 
 # Local mode test data
 local-data-test/
+local-data/
 test-data/
 
 # Environment files (contain sensitive data)

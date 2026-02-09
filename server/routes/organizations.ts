@@ -16,7 +16,9 @@ export function registerOrganizationsRoutes(router: Router) {
   router.get("/", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const userId = getRequiredUserId(req);
     const userOrganizationsList = await storage.getUserOrganizations(userId);
-    const organizations = [];
+    const organizations: Array<
+      NonNullable<Awaited<ReturnType<typeof storage.getOrganization>>> & { role: string }
+    > = [];
     
     for (const userOrg of userOrganizationsList) {
       const org = await storage.getOrganization(userOrg.organizationId);

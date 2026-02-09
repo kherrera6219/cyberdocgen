@@ -21,6 +21,8 @@ interface DocumentPreviewProps {
   framework: string;
 }
 
+const COMPLEXITY_LEVELS = ['Basic', 'Intermediate', 'Advanced'] as const;
+
 export function DocumentPreview({ templates, framework }: DocumentPreviewProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
 
@@ -51,11 +53,16 @@ export function DocumentPreview({ templates, framework }: DocumentPreviewProps) 
     }
   };
 
-  const mockTemplateData = useMemo(() => templates.map(template => ({
-    ...template,
-    estimatedTime: `${Math.floor(Math.random() * 15) + 5} min`,
-    complexity: ['Basic', 'Intermediate', 'Advanced'][Math.floor(Math.random() * 3)] as 'Basic' | 'Intermediate' | 'Advanced',
-    preview: `# ${template.title}
+  const mockTemplateData = useMemo(() => templates.map((template, index) => {
+    const seed = template.title.length + template.priority + framework.length + index;
+    const estimatedMinutes = (seed % 15) + 5;
+    const complexity = COMPLEXITY_LEVELS[seed % COMPLEXITY_LEVELS.length];
+
+    return {
+      ...template,
+      estimatedTime: `${estimatedMinutes} min`,
+      complexity,
+      preview: `# ${template.title}
 
 ## Purpose and Scope
 This document establishes the framework for ${template.title.toLowerCase()} in accordance with ${framework} requirements. It applies to all organizational assets, personnel, and information systems.
@@ -82,7 +89,8 @@ ${template.description} This policy ensures comprehensive coverage of security c
 4. **Monitoring Phase**: Continuous compliance monitoring and improvement
 
 This is a preview of the full document that would be generated based on your company profile...`
-  })), [templates, framework]);
+    };
+  }), [templates, framework]);
 
   return (
     <div className="space-y-4">

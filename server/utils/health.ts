@@ -150,7 +150,7 @@ class HealthCheckService {
   }
 
   async checkExternalServices(): Promise<HealthCheckResult> {
-    const services = [];
+    const services: Array<{ name: string; status: 'pass' | 'fail' }> = [];
 
     // Check OpenAI API if configured (skip in test/development mode)
     if (process.env.OPENAI_API_KEY && process.env.NODE_ENV === 'production') {

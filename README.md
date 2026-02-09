@@ -2,7 +2,7 @@
 
 ## Enterprise Compliance Management System
 
-**Version 2.4.0** | January 27, 2026
+**Version 2.4.0** | February 8, 2026
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-2.4.0-green.svg)](CHANGELOG.md)
@@ -10,9 +10,9 @@
 [![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
-[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-success.svg)](docs/DEPLOYMENT.md)
-[![MS Store Ready](https://img.shields.io/badge/MS%20Store-Compliant-success.svg)](scripts/validate-wack.ts)
-[![Security](https://img.shields.io/badge/Vulnerabilities-0-success.svg)](SECURITY.md)
+[![Production Candidate](https://img.shields.io/badge/Status-Production%20Candidate-yellow.svg)](docs/project-analysis/PRODUCTION_OPERATIONAL_REVIEW_2026-02-08.md)
+[![Windows Desktop](https://img.shields.io/badge/Windows-NSIS%20Ready-success.svg)](docs/WINDOWS_DESKTOP_GUIDE.md)
+[![Security](https://img.shields.io/badge/Prod%20Audit-0%20vulns-brightgreen.svg)](docs/project-analysis/PRODUCTION_OPERATIONAL_REVIEW_2026-02-08.md)
 
 ## Quick Links
 
@@ -37,6 +37,13 @@
 - [License](#license)
 
 ## Latest Updates
+
+**February 8, 2026 - Operational Sweep (Production Candidate):**
+
+- ✅ **Core Gates Passing** - `check`, `lint` (warnings only), `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`
+- ✅ **Release Evidence Archived** - see `docs/project-analysis/evidence/20260208-130320/`
+- ✅ **Connector Runtime Hardening** - SharePoint/Jira/Notion connector adapter flows implemented and tested
+- ⚠️ **Dev Toolchain Advisory Accepted with Controls** - see `docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`
 
 **Version 2.4.0 - January 27, 2026** - Local Mode & Windows Persistence:
 
@@ -67,12 +74,12 @@
   - `server/routes/enterpriseAuth.ts`
 - ✅ **Infrastructure Cleanup** - Archived legacy documentation and standardized reporting scripts.
 
-**Version 2.1.0 - January 18, 2026** - Microsoft Store & Enterprise Compliance (Phase 7):
+**Version 2.1.0 - January 18, 2026** - Windows Enterprise Compliance (Phase 7):
 
 - ✅ **Microsoft Entra ID SSO** - Secure OIDC + PKCE authentication with tenant mapping
 - ✅ **Windows Desktop Client** - Native Electron wrapper for Spec-001 compliance
-- ✅ **MSIX Packaging** - Integrated `electron-builder` for Store distribution
-- ✅ **Compliance Script V2** - Integrated WACK (Windows App Certification Kit) heuristics
+- ✅ **NSIS Packaging** - Integrated `electron-builder` installer pipeline for desktop distribution
+- ✅ **Windows Packaging Validation** - Build-time packaging validation script for NSIS/MSIX config checks
 
 **Version 2.0.2 - January 17, 2026** - Phase 6 Quality & Testing Complete:
 
@@ -94,7 +101,7 @@
 **Version 2.0.1 - January 17, 2026** - Maintenance Release:
 
 - ✅ **Dependencies** - Updated zod-validation-error to v5.0.0
-- ✅ **Security** - Maintained 0 vulnerabilities across all dependencies
+- ⚠️ **Security** - Production dependency audit is clean; dev-tooling advisories are tracked
 - ✅ **Code Quality** - Analyzed codebase, identified optimization opportunities
 
 **Version 2.0.0 - January 17, 2026** - Infrastructure Hardening:
@@ -122,7 +129,7 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 - 🔒 **Security-First** - MFA, encryption, threat detection, and comprehensive security measures
 - ☁️ **Cloud-Integrated** - Google Drive and Microsoft OneDrive connectivity
 - 📊 **Compliance Frameworks** - ISO 27001:2022, SOC 2, FedRAMP, NIST 800-53 Rev 5
-- 🚀 **Production-Ready** - Comprehensive testing, monitoring, and deployment tools
+- 🚀 **Production Candidate** - Comprehensive testing, monitoring, and deployment tooling with final sign-off evidence in progress
 
 ## Features
 
@@ -205,7 +212,7 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 
 ## Quick Start
 
-> **✅ Production Ready:** This application is production-ready (~95-98% complete) with all core features implemented, tested, and optimized. Follow the setup steps below to run it locally.
+> **✅ Production Candidate:** Core release gates are passing with final sign-off evidence and warning burn-down in progress. Follow the setup steps below to run locally.
 
 ### Prerequisites
 
@@ -236,6 +243,17 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
    # Edit .env with your configuration
    ```
 
+   **Local mode minimum vars (for offline/dev runs):**
+
+   ```bash
+   DEPLOYMENT_MODE=local
+   SESSION_SECRET=replace-with-at-least-32-characters
+   ENABLE_TEMP_AUTH=true
+   # Optional:
+   # LOCAL_PORT=5231
+   # LOCAL_DATA_PATH=./local-data
+   ```
+
 4. **Set up the database** (optional for development)
 
    ```bash
@@ -252,7 +270,8 @@ CyberDocGen (formerly ComplianceAI) is a sophisticated compliance management pla
 6. **Access the application**
 
    ```text
-   http://localhost:5000
+   Cloud mode: http://localhost:5000
+   Local mode: http://127.0.0.1:5231
    ```
 
 For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_SETUP.md).
@@ -271,6 +290,7 @@ For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_
 - [API Documentation](docs/API.md) - Complete API reference
 - [Security](docs/SECURITY.md) - Security implementation details
 - [Testing](docs/TESTING.md) - Testing strategies and guidelines
+- [Operational Review (2026-02-08)](docs/project-analysis/PRODUCTION_OPERATIONAL_REVIEW_2026-02-08.md) - Latest production-readiness and bug sweep report
 
 ### Operations
 
@@ -315,7 +335,7 @@ cyberdocgen/
 ├── scripts/                # Utility scripts
 │   └── README.md          # Scripts documentation
 │
-├── tests/                  # Comprehensive test suite (815 tests, 100% passing)
+├── tests/                  # Comprehensive test suite (1166 tests total, 1162 passing, 4 skipped)
 │   ├── unit/              # Unit tests
 │   ├── integration/       # Integration tests
 │   ├── components/        # Component tests
@@ -394,8 +414,8 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
 - **Single Source of Truth**: All active development is consolidated on the `main` branch so downstream branches can be safely deleted after merging.
 - **Feature Branches Only for Work-In-Progress**: Create short-lived feature branches from `main` and open pull requests back to `main`.
-- **Quality Gate Visibility**: `npm run check` currently reports outstanding type errors in legacy UI flows; fixes are being staged incrementally alongside security hardening.
-- **Security Posture**: GitHub security alerts are being triaged on `main` with dependency updates prioritized for high/critical advisories.
+- **Quality Gate Visibility**: `npm run check`, `npm run test:run`, and `npm run build` are currently passing; lint has warnings only.
+- **Security Posture**: `npm audit --omit=dev` is clean; remaining `npm audit` findings are dev-toolchain moderate advisories.
 
 ## Development
 
@@ -486,11 +506,12 @@ kubectl apply -f k8s/
 
 ## 📈 Production Status
 
-✅ **PRODUCTION READY - Version 2.0.1**
+✅ **PRODUCTION CANDIDATE - Version 2.4.0**
 
-### Current Release (v2.0.1 - January 2026)
+### Current Release (v2.4.0 - February 2026)
 
-- ✅ **Dependencies** - All current and secure (0 vulnerabilities)
+- ✅ **Dependencies (production)** - `npm audit --omit=dev` reports 0 vulnerabilities as of February 8, 2026
+- ⚠️ **Dependencies (full tree)** - `npm audit` reports 4 moderate dev-toolchain vulnerabilities (`drizzle-kit`/`esbuild` chain)
 - ✅ **TypeScript** - 0 compilation errors (100% type safety)
 - ✅ **Code Quality** - Production-ready, optimization plan for future releases
 
@@ -506,7 +527,7 @@ kubectl apply -f k8s/
 
 - ✅ **Core Features** - 41 pages, 93+ components, 36 services, 26 route modules
 - ✅ **AI Orchestration** - Multi-model (GPT-5.1, Claude Opus 4.5, Gemini 3.0 Pro)
-- ✅ **Security** - MFA, threat detection, immutable audit trails, 0 vulnerabilities
+- ✅ **Security Controls** - MFA, threat detection, immutable audit trails (see current advisory status above)
 - ✅ **Multi-tenancy** - Organization isolation with RBAC
 - ✅ **Documentation** - 20+ comprehensive guides, versioned
 - ✅ **Performance** - Bundle optimized 86% (1,121 KB → 154 KB)
@@ -516,7 +537,8 @@ kubectl apply -f k8s/
 
 ### Quality Metrics
 
-- ✅ **Dependencies** - 1,033 packages, 0 vulnerabilities
+- ✅ **Dependencies (production)** - 0 vulnerabilities in runtime dependency tree
+- ⚠️ **Dependencies (development)** - 4 moderate advisories remain in dev-tooling dependency chain
 - ✅ **Test Suite** - Comprehensive coverage (Backend Services 100% covered)
 - ✅ **Code Splitting** - 40+ lazy-loaded routes for performance
 - ✅ **Accessibility** - WCAG 2.2 AA compliance
@@ -604,7 +626,7 @@ See [Phase 5 Final Summary](development-archive/phase-5-wrap-up/PHASE_5_FINAL_SU
 
 **Phase 5 Core Completion (December 18, 2025):**
 
-- ✅ **Production Ready** - All critical bugs fixed, zero compilation errors, 100% test pass rate
+- ✅ **Production Candidate** - Core critical bug sweep complete, zero compilation errors, full gate pass
 - ✅ **Performance Optimized** - Bundle size reduced by 86% (1,121 KB → 154 KB)
 - ✅ **Security Hardened** - Zero vulnerabilities, all security patches applied
 - ✅ **Code Splitting Implemented** - 40+ route-based chunks with lazy loading

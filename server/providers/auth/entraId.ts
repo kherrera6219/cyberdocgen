@@ -57,7 +57,7 @@ export class EntraIdAuthProvider implements IAuthProvider {
     }
     
     // Extract user and tenant from existing auth middleware
-    const user = req.user as User;
+    const user = req.user as unknown as User;
     const tenant = (req as any).tenant as Tenant | undefined;
     
     // Ensure tenant is set (multi-tenant mode)

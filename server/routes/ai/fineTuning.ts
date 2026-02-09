@@ -41,7 +41,7 @@ export function registerFineTuningRoutes(router: Router) {
       userId,
       action: "ai_fine_tuning_created",
       entityType: "ai_configuration",
-      entityId: result.configId as string,
+      entityId: result.configId,
       organizationId,
       ipAddress: req.ip || '0.0.0.0',
       metadata: { industryId, accuracy: result.accuracy, requirements, customInstructions, priority }

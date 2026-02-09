@@ -33,16 +33,18 @@ This guide covers both deployment configurations.
 npm run build:win
 
 # Or step-by-step:
+npm run windows:validate   # Validate Windows packaging config/assets
 npm run build              # Build frontend (Vite)
 npm run electron:build     # Build Electron main process
 npx electron-builder build --win nsis  # Package installer
+node scripts/verify-build.js # Verify build artifacts + local startup probes
 ```
 
 #### Output
 
 ```
 dist/packaging/
-├── CyberDocGen-Setup-2.0.1.exe  # NSIS installer
+├── CyberDocGen-Setup-<version>.exe  # NSIS installer
 └── win-unpacked/                # Portable/testing version
 ```
 
@@ -74,14 +76,14 @@ Desktop app automatically runs in local mode with:
 #### Option 2: Microsoft Store (Future)
 - Convert to MSIX packaging
 - Submit via Microsoft Partner Center
-- Automatic updates via Windows Store
+- Automatic updates via Windows Store (replaces direct NSIS release channel)
 - See [`MICROSOFT_STORE_SUBMISSION_GUIDE.md`](../MICROSOFT_STORE_SUBMISSION_GUIDE.md)
 
 ### Code Signing (Required for Production)
 
 ```powershell
 # Sign the installer (requires Authenticode certificate)
-SignTool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /a "dist/packaging/CyberDocGen-Setup-2.0.1.exe"
+SignTool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /a "dist/packaging/CyberDocGen-Setup-<version>.exe"
 ```
 
 **Certificate Options:**

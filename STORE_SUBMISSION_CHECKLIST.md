@@ -147,7 +147,7 @@ rm -rf dist/packaging
 npm run build:msix
 
 # Expected output:
-# dist/packaging/CyberDocGen-2.0.1.msix
+# dist/packaging/CyberDocGen-<version>.msix
 ```
 
 **Validate:**
@@ -203,7 +203,7 @@ Once all critical items complete:
 1. **Upload Package** (5 minutes)
    - Log into Partner Center
    - Navigate to your app → "Packages"
-   - Upload `dist/packaging/CyberDocGen-2.0.1.msix`
+   - Upload `dist/packaging/CyberDocGen-<version>.msix`
    - Wait for validation
 
 2. **Complete Store Listing** (15 minutes)

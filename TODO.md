@@ -1,8 +1,36 @@
 # CyberDocGen - Technical Development TODOs
 
-**Last Updated:** January 27, 2026  
-**Status:** Phase 9 (Desktop Production Readiness) - COMPLETE  
+**Last Updated:** February 8, 2026  
+**Status:** Operational Readiness Hardening In Progress  
 **Coverage:** 48%+ Overall (Core Services @ 85%+)
+
+---
+
+## 🚨 OPERATIONAL TODO - February 8, 2026
+
+### P0 - Must Complete Before Production Sign-Off
+
+- [x] **Remediate production npm advisories**: production dependency tree now reports 0 vulnerabilities.
+- [x] **Re-run security validation**: `npm audit`, smoke tests, and deployment verification executed after updates.
+- [x] **Align Windows validation tooling with actual packaging target**: `scripts/validate-wack.ts` now validates NSIS and optional MSIX paths.
+- [x] **Implement connector adapters**: SharePoint/Jira/Notion adapter list/fetch flows implemented with tenant-scoped config access and import tests.
+- [x] **Resolve/accept dev-toolchain advisories**: temporary risk acceptance documented with controls in `docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`.
+- [x] **Lock release evidence**: gate outputs archived in `docs/project-analysis/evidence/20260208-130320/`.
+
+### P1 - High Impact Reliability and Security Hygiene
+
+- [ ] **Lint warning reduction (133 warnings)**: prioritize security plugin warnings and react-hooks warnings.
+- [x] **Local-mode operational docs**: required local env documented (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`, `LOCAL_PORT` behavior).
+- [ ] **Windows installer sign-off**: run signed NSIS installer smoke test on a clean Windows VM and capture startup logs evidence.
+- [ ] **Store distribution decision**: decide if MSIX/Store channel is required; if yes, add `msix` target + identity metadata and dedicated certification runbook.
+- [x] **Release version alignment**: package and installer outputs aligned to `2.4.0` (`CyberDocGen-Setup-2.4.0.exe`).
+- [x] **Generated artifact hygiene**: `local-data/` now ignored via `.gitignore` policy.
+
+### P2 - Maintainability and Technical Debt
+
+- [ ] **Storybook lint strategy**: either modernize story files to current rules or keep explicit non-prod exclusions documented.
+- [ ] **Route coverage cleanup**: expand tests around repository analysis and temp-auth route gating.
+- [ ] **Documentation consistency pass**: reconcile historical “0 vulnerabilities” and old production claims across status docs.
 
 ---
 
@@ -93,15 +121,16 @@
 
 ## 📊 Summary
 
-| Priority   | Total | Done | Remaining |
-| ---------- | ----- | ---- | --------- |
-| 🎯 High    | 6     | 6    | 0         |
-| 🟠 Medium  | 5     | 5    | 0         |
-| 🔵 Low     | 5     | 3    | 2         |
-| **Total**  | 16    | 14   | **2**     |
+### Completed in this sweep
 
-### Remaining Items (2)
+1. Connector adapters moved from stubs to API-backed implementations for SharePoint/Jira/Notion.
+2. Deep bug sweep fixed unhandled async teardown updates in temporary login/logout flows.
+3. Release evidence bundle captured with command logs and exit codes (`docs/project-analysis/evidence/20260208-130320/SUMMARY.md`).
+4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`.
 
-1. **Logger Migration** - 130+ console.log statements in server/*
-2. **TypeScript Cleanup** - 19 `any` types across 3 files
+### Remaining operational items
+
+1. Lint warning burn-down (133 warnings).
+2. Clean-VM Windows installer sign-off evidence collection.
+3. Cloud-mode validation in production-like env/secrets.
 
