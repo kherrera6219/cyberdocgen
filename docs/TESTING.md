@@ -53,13 +53,13 @@ Our testing strategy follows these principles:
 
 Latest validated run:
 
-- `npm run test:coverage`: **PASS with threshold failures expected** (132 files, 1411 passing, 4 skipped; global gates remain 80/75)
+- `npm run test:coverage`: **PASS with threshold failures expected** (156 files, 1503 passing, 4 skipped; global gates remain 80/75)
 
 Global coverage snapshot:
 
-- Statements/Lines: **63.66%**
-- Functions: **60.18%**
-- Branches: **70.72%**
+- Statements/Lines: **72.85%**
+- Functions: **66.37%**
+- Branches: **74.24%**
 
 Coverage infrastructure and newest additions:
 
@@ -94,6 +94,12 @@ Coverage infrastructure and newest additions:
   - `tests/components/pages/account-and-auth-pages.test.tsx`
   - `tests/components/pages/admin-connectors-repository.test.tsx`
   - `tests/components/pages/mfa-setup-page.test.tsx`
+  - `tests/components/collaboration/document-comments.interactions.test.tsx`
+  - `tests/components/auth/google-authenticator-setup.interactions.test.tsx`
+  - `tests/components/pages/enhanced-company-profile.interactions.test.tsx`
+  - `tests/components/notifications/notification-dropdown.interactions.test.tsx`
+  - `tests/components/repository/repository-list.interactions.test.tsx`
+  - `tests/components/repository/task-board.interactions.test.tsx`
   - `tests/components/hooks/useRepositoryAPI.test.tsx`
   - `tests/unit/routes/storageRoutes.test.ts`
   - `tests/unit/routes/adminRoutes.test.ts`
