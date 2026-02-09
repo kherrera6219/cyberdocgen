@@ -53,16 +53,16 @@ Our testing strategy follows these principles:
 
 Latest validated run:
 
-- `npm run test:run`: **PASS** (105 files, 1207 passing, 4 skipped)
+- `npm run test:run`: **PASS** (112 files, 1230 passing, 4 skipped)
 - `npm run test:coverage`: **PASS with threshold failures expected** (global gates remain 80/75)
 - `npm run lint`: **PASS** (0 warnings)
 - `npm run check`: **PASS**
 
 Global coverage snapshot:
 
-- Statements/Lines: **50.90%**
-- Functions: **45.95%**
-- Branches: **66.32%**
+- Statements/Lines: **55.90%**
+- Functions: **50.97%**
+- Branches: **67.13%**
 
 Coverage infrastructure and newest additions:
 
@@ -77,6 +77,14 @@ Coverage infrastructure and newest additions:
 - Expanded backend route/service tests:
   - `tests/unit/routes/localModeRoutes.test.ts`
   - `tests/unit/connectorService.test.ts`
+- New high-gap page and route coverage suites:
+  - `tests/components/pages/company-profile.interactions.test.tsx`
+  - `tests/components/pages/account-and-auth-pages.test.tsx`
+  - `tests/components/pages/admin-connectors-repository.test.tsx`
+  - `tests/components/pages/mfa-setup-page.test.tsx`
+  - `tests/components/hooks/useRepositoryAPI.test.tsx`
+  - `tests/unit/routes/storageRoutes.test.ts`
+  - `tests/unit/routes/adminRoutes.test.ts`
 
 
 - **Testing Library** - React component testing
