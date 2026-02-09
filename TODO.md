@@ -2,7 +2,7 @@
 
 **Last Updated:** February 9, 2026  
 **Status:** Operational Readiness Hardening In Progress  
-**Coverage:** 63.67% statements/lines, 60.18% functions, 70.73% branches (core services hotspot batch expanded)
+**Coverage:** 66.02% statements/lines, 62.52% functions, 71.41% branches (backend + frontend hotspot wave expanded)
 
 ---
 
@@ -32,7 +32,7 @@
 - [ ] **Route coverage cleanup**: expand remaining tests around repository analysis orchestration (`server/routes.ts`), temp-auth gating, and low-covered auth/project/mfa routes (storage/admin/local-mode routes now expanded).
 - [ ] **Documentation consistency pass**: reconcile historical “0 vulnerabilities” and old production claims across status docs.
 - [ ] **Test warning cleanup**: remove residual React `act(...)` noise and migrate off deprecated Vitest `environmentMatchGlobs` (jsdom `requestSubmit()` warning already remediated in `ai-doc-generator`).
-- [ ] **Coverage threshold burn-down**: close remaining global gap (needs +11,399 statements, +430 functions, +246 branches to hit 80/75 gates).
+- [ ] **Coverage threshold burn-down**: close remaining global gap (needs +9,759 statements, +385 functions, +217 branches to hit 80/75 gates).
 
 ---
 
@@ -128,7 +128,7 @@
 1. Connector adapters moved from stubs to API-backed implementations for SharePoint/Jira/Notion.
 2. Deep bug sweep fixed unhandled async teardown updates in temporary login/logout flows.
 3. Release evidence bundle captured with command logs and exit codes (`docs/project-analysis/evidence/20260208-130320/SUMMARY.md`).
-4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build` (`1230` passing, `4` skipped).
+4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build` (latest full coverage run: `1452` passing, `4` skipped; thresholds still expected to fail until burn-down closes).
 5. Lint/security warning burn-down complete: `npm run lint` now passes with 0 warnings; evidence in `docs/project-analysis/evidence/20260208-203122/SUMMARY.md`.
 6. Coverage uplift infrastructure added: `test:coverage:hotspots` plus expanded suites (`public-pages`, `additional-pages`, `framework-pages`, `localModeRoutes`, `storageRoutes`, `adminRoutes`, `company-profile` interactions, account/auth pages, repository hook/page coverage).
 7. Hotspot batch completed for all three requested targets:
@@ -140,6 +140,10 @@
    - `cloudIntegrationService`, `dataRetentionService`, `systemConfigService` branch-focused suites
    - `connectorAdapters` coverage for SharePoint/Jira/Notion execution paths
    - `MemStorage` and `DatabaseStorage` edge-case expansions
+9. New combined hotspot sweep completed (user-requested backend + frontend pair):
+   - backend: `replitAuth`, `modelTransparencyService`, `chaosTestingService`
+   - frontend: `RiskAssessment`, `IndustrySpecialization`, `document-workspace`
+   - added 41 new targeted tests; hotspot batch now at/near 90%+ statements for these files
 
 ### Remaining operational items
 

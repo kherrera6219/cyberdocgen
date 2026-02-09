@@ -4,8 +4,8 @@
 
 **Version:** 2.4.0
 **Status:** Production Candidate (Core Gates Passing, Windows Release Sign-Off Pending)
-**Test Coverage:** 61.22% statements/lines, 56.66% functions, 68.95% branches
-**Test Suite:** 1323 passing, 4 skipped
+**Test Coverage:** 66.01% statements/lines, 62.51% functions, 71.41% branches
+**Test Suite:** 1452 passing, 4 skipped
 **Security:** 0 prod advisories (`npm audit --omit=dev`), dev-toolchain advisory risk accepted with controls (`docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`)
 **TypeScript Errors:** 0
 **ESLint Errors:** 0 (0 warnings)
@@ -18,9 +18,9 @@
 
 - `npm run check`: PASS
 - `npm run lint`: PASS (0 warnings)
-- `npm run test:run`: PASS (129 files, 1323 passing, 4 skipped)
-- `npm run test:coverage`: PASS with expected threshold failure (global now 61.22/68.95/56.66 vs 80/75/80 gates)
-- `npm run test:coverage:hotspots`: PASS (delta-to-threshold and uncovered file/folder ranking generated)
+- `npm run test:run`: PASS (latest prior non-coverage run baseline remains green)
+- `npm run test:coverage`: PASS with expected threshold failure (138 files, 1452 passing, 4 skipped; global now 66.01/71.41/62.51 vs 80/75/80 gates)
+- `npm run test:coverage:hotspots`: PASS (remaining gap: +9759 statements, +385 functions, +217 branches)
 - `npm run build`: PASS
 - `npm run start`: PASS (validated `/live`, `/ready`, `/metrics` => HTTP 200 in local mode)
 - `npm run dev`: PASS in local mode with required env (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`)
@@ -50,6 +50,13 @@
   - `client/src/pages/api-keys.tsx`: 88.00% statements
   - `client/src/pages/organization-setup.tsx`: 100.00% statements
   - `client/src/pages/cloud-integrations.tsx`: 88.60% statements
+- Completed next hotspot wave (backend + frontend):
+  - `server/replitAuth.ts`: 88.34% statements
+  - `server/services/modelTransparencyService.ts`: 95.02% statements
+  - `server/services/chaosTestingService.ts`: 95.84% statements
+  - `client/src/components/ai/RiskAssessment.tsx`: 98.57% statements
+  - `client/src/components/ai/IndustrySpecialization.tsx`: 91.54% statements
+  - `client/src/pages/document-workspace.tsx`: 95.41% statements
 
 ### Current Blockers to Full “Production Ready” Declaration
 
@@ -220,9 +227,9 @@ Resolved in follow-up sweep:
 
 ## 📈 Metrics
 
-- **Test Files:** 129 total
-- **Test Cases:** 1323 passing, 4 skipped
-- **Overall Coverage:** 61.22% statements/lines, 56.66% functions, 68.95% branches
+- **Test Files:** 138 total
+- **Test Cases:** 1452 passing, 4 skipped
+- **Overall Coverage:** 66.01% statements/lines, 62.51% functions, 71.41% branches
 - **Critical Services Coverage:** 85-100%
 - **Pre-commit Hooks:** Active (Husky + Lint-staged)
 - **CI/CD:** 7 security jobs, SLSA Level 3

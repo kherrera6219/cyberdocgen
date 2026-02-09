@@ -46,8 +46,8 @@
 - ✅ **Desktop First-Run Clarity** - local mode docs and navigation now surface AI API key setup as the primary post-install step
 - ✅ **Sectioned Production Review Complete** - Electron path-safety hardening, local API route validation/timeouts, cloud/local UI gating, and mobile navigation parity fixes applied
 - ✅ **Connector Runtime Hardening** - SharePoint/Jira/Notion connector adapter flows implemented and tested
-- ✅ **Coverage Expansion (All 3 ROI Tracks)** - Added backend hotspot suites (`repositoryFindingsService`, `codeSignalDetectorService`), storage/local-mode hardening suites (`objectStorageService`, expanded `localMode` routes), and high-gap frontend interaction suites (`api-keys`, `organization-setup`, `cloud-integrations`)
-- ✅ **Current Validation Baseline** - `1323` tests passing (`4` skipped), coverage at `61.22%` statements/lines, `68.95%` branches, `56.66%` functions
+- ✅ **Coverage Expansion (All Requested Hotspot Tracks)** - Added backend hotspot suites (`repositoryFindingsService`, `codeSignalDetectorService`, `replitAuth`, `modelTransparencyService`, `chaosTestingService`), storage/local-mode hardening suites (`objectStorageService`, expanded `localMode` routes), and high-gap frontend interaction suites (`api-keys`, `organization-setup`, `cloud-integrations`, `RiskAssessment`, `IndustrySpecialization`, `document-workspace`)
+- ✅ **Current Validation Baseline** - `1452` tests passing (`4` skipped), coverage at `66.01%` statements/lines, `71.41%` branches, `62.51%` functions
 - ⚠️ **Dev Toolchain Advisory Accepted with Controls** - see `docs/project-analysis/DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`
 
 **Version 2.4.0 - January 27, 2026** - Local Mode & Windows Persistence:
@@ -340,7 +340,7 @@ cyberdocgen/
 ├── scripts/                # Utility scripts
 │   └── README.md          # Scripts documentation
 │
-├── tests/                  # Comprehensive test suite (1166 tests total, 1162 passing, 4 skipped)
+├── tests/                  # Comprehensive test suite (1456 total, 1452 passing, 4 skipped)
 │   ├── unit/              # Unit tests
 │   ├── integration/       # Integration tests
 │   ├── components/        # Component tests
