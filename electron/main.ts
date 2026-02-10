@@ -29,6 +29,9 @@ const __dirname = path.dirname(__filename);
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let serverProcess: Electron.UtilityProcess | null = null;
+let serverProcessExited = false;
+let serverProcessExitCode: number | null = null;
+let serverStartupTimeoutHandle: NodeJS.Timeout | null = null;
 
 // Configure local mode environment variables for the backend
 // This must be done before the backend server starts
@@ -115,6 +118,8 @@ async function startServer() {
 
   // Phase 2.1: Orphaned Process Cleanup
   cleanupOrphanedProcesses();
+  serverProcessExited = false;
+  serverProcessExitCode = null;
 
   try {
     startupLogger.info('Starting server in production mode');
@@ -129,14 +134,18 @@ async function startServer() {
       return;
     }
 
-    // In production, the server file is inside app.asar
-    // utilityProcess handles ASAR paths natively
+    // In production, prefer the ASAR server bundle so dependency resolution
+    // can access the full packaged node_modules graph.
+    const unpackedServerPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', 'index.cjs');
+    const asarServerPath = path.join(app.getAppPath(), 'dist', 'index.cjs');
     const serverPath = app.isPackaged
-      ? path.join(app.getAppPath(), 'dist', 'index.cjs')
+      ? (fs.existsSync(asarServerPath) ? asarServerPath : unpackedServerPath)
       : path.join(__dirname, '../../dist/index.cjs');
     
     startupLogger.info('Server path resolution', {
       serverPath,
+      unpackedServerPath,
+      asarServerPath,
       __dirname,
       appPath: app.getAppPath(),
       nodeEnv: process.env.NODE_ENV
@@ -152,7 +161,7 @@ async function startServer() {
     startupLogger.info('Server file exists, preparing to fork via utilityProcess');
 
     // Prepare environment variables
-    const serverEnv = {
+    const serverEnv: NodeJS.ProcessEnv = {
       ...process.env,
       PORT: currentServerPort.toString(),
       HOST: '127.0.0.1',
@@ -160,6 +169,10 @@ async function startServer() {
       DEPLOYMENT_MODE: 'local',
       LOCAL_DATA_PATH: app.getPath('userData'),
     };
+    const packagedMigrationsPath = path.join(app.getAppPath(), 'dist', 'migrations', 'sqlite');
+    if (fs.existsSync(packagedMigrationsPath)) {
+      serverEnv.LOCAL_MIGRATIONS_PATH = packagedMigrationsPath;
+    }
 
     startupLogger.info('Environment variables for server', {
       PORT: serverEnv.PORT,
@@ -167,6 +180,7 @@ async function startServer() {
       NODE_ENV: serverEnv.NODE_ENV,
       DEPLOYMENT_MODE: serverEnv.DEPLOYMENT_MODE,
       LOCAL_DATA_PATH: serverEnv.LOCAL_DATA_PATH,
+      LOCAL_MIGRATIONS_PATH: serverEnv.LOCAL_MIGRATIONS_PATH || '(not configured)',
     });
 
     // Fork the server process using utilityProcess
@@ -193,6 +207,8 @@ async function startServer() {
     // utilityProcess uses standard event emitter API
     
     serverProcess.on('exit', (code: number) => {
+      serverProcessExited = true;
+      serverProcessExitCode = typeof code === 'number' ? code : null;
       startupLogger.error('Server process exited', {
         exitCode: code,
         timestamp: new Date().toISOString()
@@ -214,7 +230,7 @@ async function startServer() {
     }
 
     // Set timeout to detect if server hangs
-    const startupTimeout = setTimeout(() => {
+    serverStartupTimeoutHandle = setTimeout(() => {
       startupLogger.warn('Server startup timeout - server did not start within 30 seconds', {
         pid: serverProcess?.pid
       });
@@ -222,7 +238,10 @@ async function startServer() {
 
     // Clear timeout if server exits
     serverProcess.on('exit', () => {
-      clearTimeout(startupTimeout);
+      if (serverStartupTimeoutHandle) {
+        clearTimeout(serverStartupTimeoutHandle);
+        serverStartupTimeoutHandle = null;
+      }
     });
 
     startupLogger.info('Server startup sequence initiated successfully', {
@@ -577,6 +596,12 @@ function setupIpcHandlers() {
  * Handles automatic application updates
  */
 function setupAutoUpdater() {
+  const autoUpdatesEnabled = process.env.ENABLE_AUTO_UPDATES?.toLowerCase() === 'true';
+  if (!app.isPackaged || !autoUpdatesEnabled) {
+    startupLogger.info('Auto-updater disabled (set ENABLE_AUTO_UPDATES=true in packaged builds to enable).');
+    return;
+  }
+
   // Configure auto-updater
   autoUpdater.logger = {
     info: (m: string) => startupLogger.info(`[AutoUpdater] ${m}`),
@@ -645,8 +670,8 @@ function setupAutoUpdater() {
 /**
  * Application lifecycle
  */
-app.whenReady().then(() => {
-  startServer();
+app.whenReady().then(async () => {
+  await startServer();
   createWindow();
   createMenu();
   createTray();
@@ -758,6 +783,10 @@ async function waitForBackend(baseUrl: string, maxAttempts = 30): Promise<void> 
     try {
       const response = await fetch(`${baseUrl}/health`);
       if (response.ok) {
+        if (serverStartupTimeoutHandle) {
+          clearTimeout(serverStartupTimeoutHandle);
+          serverStartupTimeoutHandle = null;
+        }
         startupLogger.info('Backend is ready!');
         return;
       }
@@ -765,9 +794,13 @@ async function waitForBackend(baseUrl: string, maxAttempts = 30): Promise<void> 
       // Not ready yet
     }
     
-    // Check if process still alive
-    if (serverProcess && !serverProcess.pid) {
-       throw new Error('Backend server process exited unexpectedly during startup.');
+    // Check if process actually exited during startup.
+    // UtilityProcess.pid can be undefined during initialization and should not be
+    // treated as an immediate crash signal.
+    if (serverProcessExited) {
+      const exitSuffix =
+        serverProcessExitCode === null ? '' : ` (exit code ${serverProcessExitCode})`;
+      throw new Error(`Backend server process exited unexpectedly during startup${exitSuffix}.`);
     }
 
     await new Promise(r => setTimeout(r, 500));

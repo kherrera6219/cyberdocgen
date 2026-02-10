@@ -22,6 +22,8 @@ npm run build:win
 
 This command now runs Windows packaging validation first (`npm run windows:validate`) before compiling and packaging.
 
+> Note: Running the installer with `/S` performs a silent install. Silent mode does not show installer wizard pages, progress bars, or completion message dialogs.
+
 ### 2. Manual Build Steps (Troubleshooting)
 
 If the standard build fails, you can run the steps individually:
@@ -69,6 +71,12 @@ No cloud database or server configuration is required for Windows local mode. Af
 - Google AI
 
 The API key management screen is available under **Settings -> AI API Keys**.
+
+Auto-update checks are disabled by default for local desktop distributions to prevent noisy "No published versions" startup errors. To enable auto-updates in packaged builds, set:
+
+```powershell
+ENABLE_AUTO_UPDATES=true
+```
 
 ## Uninstall Behavior
 

@@ -48,6 +48,15 @@ function scrubPIIFromObject(obj: unknown): unknown {
   if (typeof obj === 'string') {
     return scrubPII(obj);
   }
+  if (obj instanceof Error) {
+    const errorWithCode = obj as Error & { code?: unknown };
+    return {
+      name: obj.name,
+      message: scrubPII(obj.message),
+      code: errorWithCode.code,
+      stack: obj.stack ? scrubPII(obj.stack) : undefined,
+    };
+  }
   if (Array.isArray(obj)) {
     return obj.map(item => scrubPIIFromObject(item));
   }

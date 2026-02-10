@@ -1,4 +1,4 @@
-# Project Status - February 9, 2026
+# Project Status - February 10, 2026
 
 ## 📊 Overall Project Health
 
@@ -10,23 +10,23 @@
 **TypeScript Errors:** 0
 **ESLint Errors:** 0 (0 warnings)
 
-### Latest Validation Refresh (February 9, 2026 - Post Bug/Error Sweep)
+### Latest Validation Refresh (February 10, 2026 - Windows Runtime Cleanup)
 
 - `npm run check`: PASS
 - `npm run lint`: PASS
-- `npm run test:coverage`: PASS (`160` files, `1516` passing, `4` skipped)
+- `npm run test:run -- tests/unit/providers/db/sqlite.test.ts tests/unit/routes/localMode.test.ts`: PASS (`23` passing)
 - `npm run build`: PASS
-- `docker build -t cyberdocgen-ci-repro .`: PASS (multi-stage build including production dependency install)
-- `docker run --rm -v C:/software/cyberdocgen:/app -w /app node:20-alpine sh -lc "npm ci && npx vitest --run tests/integration/e2e-flows.test.ts"`: PASS (CI-like Linux runtime)
+- `npm run electron:build`: PASS
 - `npm run windows:validate`: PASS
-- `npm run build:win`: PASS (`dist/packaging/CyberDocGen-Setup-2.4.0.exe`)
-- `node scripts/verify-build.js`: PASS (`/live` + `/ready` probes in local deployment mode)
-- Production bug fixes included:
-  - stable controlled defaults for enhanced profile personnel fields
-  - resilient API success parsing for `204`/empty + plain-text responses
-  - production/local-mode startup gate fix for `DEPLOYMENT_MODE=local`
-  - Docker build context correction for `scripts/build-server.js` resolution
-  - CI integration test setup timeout stabilization (`e2e-flows` before/after hooks at 30s)
+- `npx electron-builder build --win nsis --config.directories.output=dist/packaging-cleanup1`: PASS
+- Windows uninstall -> reinstall smoke cycle: PASS
+  - uninstall executed and install directory removed
+  - reinstall completed from `dist/packaging-cleanup1/CyberDocGen-Setup-2.4.0.exe`
+  - runtime health check returned HTTP `200` from `http://127.0.0.1:5232/health`
+- Production cleanup fixes included:
+  - optional local SQLite migrations path (`LOCAL_MIGRATIONS_PATH`) with clean skip behavior
+  - opt-in desktop auto-updater (`ENABLE_AUTO_UPDATES=true`) for packaged local distributions
+  - improved backend startup diagnostics and stable readiness sequencing
 
 ---
 

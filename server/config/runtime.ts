@@ -123,6 +123,7 @@ function buildLocalModeConfig(): RuntimeConfig {
   // In Electron context, get userData path
   // For now, use a placeholder that will be replaced during Electron integration
   const userDataPath = process.env.LOCAL_DATA_PATH || './local-data';
+  const migrationsPath = process.env.LOCAL_MIGRATIONS_PATH?.trim() || undefined;
   
   // Allow env overrides for host/port even in local mode
   const host = process.env.HOST || '127.0.0.1';
@@ -138,7 +139,7 @@ function buildLocalModeConfig(): RuntimeConfig {
     database: {
       type: 'sqlite',
       filePath: `${userDataPath}/cyberdocgen.db`,
-      migrationsPath: 'server/migrations/sqlite',
+      migrationsPath,
     },
     storage: {
       type: 'local',

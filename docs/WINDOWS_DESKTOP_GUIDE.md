@@ -50,6 +50,8 @@ This pipeline performs the following:
 4.  **Electron Build**: Compiles the main process.
 5.  **Packaging**: Uses `electron-builder` with custom NSIS scripts for guided install UX, completion notifications, and uninstall data retention choices.
 
+If you run the setup executable with `/S`, NSIS runs in silent mode and does not show wizard/progress/completion dialogs.
+
 Optional post-build verification:
 
 ```powershell
@@ -94,6 +96,7 @@ Local hardening updates:
 - API key management and local settings pages are local-mode only (hidden in cloud mode navigation and guarded at runtime).
 - Backup/restore operations enforce validated `.db` paths under app data or user profile roots.
 - Local API key validation includes provider format checks and upstream timeout protection.
+- Auto-updater checks are opt-in for packaged desktop builds (`ENABLE_AUTO_UPDATES=true`) to avoid false update-provider errors in offline/local deployments.
 
 ---
 

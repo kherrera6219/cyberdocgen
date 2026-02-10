@@ -19,11 +19,13 @@ export interface SqliteDbStats {
 export class SqliteDbProvider implements IDbProvider {
   private db: Database.Database | null = null;
   private readonly dbPath: string;
-  private readonly migrationsPath: string;
+  private readonly migrationsPath?: string;
 
-  constructor(dbPath: string, migrationsPath: string) {
+  constructor(dbPath: string, migrationsPath?: string) {
     this.dbPath = path.resolve(dbPath);
-    this.migrationsPath = path.resolve(migrationsPath);
+    if (migrationsPath) {
+      this.migrationsPath = path.resolve(migrationsPath);
+    }
     logger.info(`[SqliteDbProvider] Initialized with path: ${this.dbPath}`);
   }
 
@@ -82,8 +84,13 @@ export class SqliteDbProvider implements IDbProvider {
   async migrate(): Promise<void> {
     const db = this.ensureConnected();
 
+    if (!this.migrationsPath) {
+      logger.info('[SqliteDbProvider] No migrations path configured, skipping SQL migrations');
+      return;
+    }
+
     if (!fs.existsSync(this.migrationsPath)) {
-      logger.warn(`[SqliteDbProvider] Migrations path not found, skipping: ${this.migrationsPath}`);
+      logger.info(`[SqliteDbProvider] Migrations path not found, skipping: ${this.migrationsPath}`);
       return;
     }
 

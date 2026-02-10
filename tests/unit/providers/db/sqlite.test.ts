@@ -47,6 +47,13 @@ describe('SqliteDbProvider', () => {
     await provider.close();
   });
 
+  it('should skip migrations when no migrations path is configured', async () => {
+    const provider = new SqliteDbProvider(TEST_DB_PATH);
+    await provider.connect();
+    await expect(provider.migrate()).resolves.toBeUndefined();
+    await provider.close();
+  });
+
   it('should not re-apply existing migrations', async () => {
     const provider = new SqliteDbProvider(TEST_DB_PATH, MIGRATIONS_PATH);
     await provider.connect();

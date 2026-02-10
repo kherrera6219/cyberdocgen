@@ -1,6 +1,6 @@
 # CyberDocGen - Technical Development TODOs
 
-**Last Updated:** February 9, 2026  
+**Last Updated:** February 10, 2026  
 **Status:** Operational Readiness Hardening In Progress (80% global coverage gate reached)  
 **Coverage:** 85.40% statements/lines, 81.47% functions, 80.14% branches (latest full-suite run)
 
@@ -21,6 +21,7 @@
 
 - [x] **Lint warning reduction (133 -> 0 warnings)**: server-side warning remediation completed; client rule scoping + hook-compat updates applied.
 - [x] **Local-mode operational docs**: required local env documented (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`, `LOCAL_PORT` behavior).
+- [x] **Windows desktop runtime cleanup**: local-mode migrations path made optional, packaged startup race/crash checks hardened, and desktop auto-update checks gated behind `ENABLE_AUTO_UPDATES=true`.
 - [ ] **Windows installer sign-off**: run signed NSIS installer smoke test on a clean Windows VM and capture startup logs evidence.
 - [ ] **Store distribution decision**: decide if MSIX/Store channel is required; if yes, add `msix` target + identity metadata and dedicated certification runbook.
 - [x] **Release version alignment**: package and installer outputs aligned to `2.4.0` (`CyberDocGen-Setup-2.4.0.exe`).

@@ -38,6 +38,14 @@
 
 ## Latest Updates
 
+**February 10, 2026 - Windows Runtime Cleanup & Installer Validation:**
+
+- ✅ **Backend Startup Stability Confirmed** - packaged desktop startup now consistently reaches `/health` readiness without false crash detection.
+- ✅ **Local SQLite Migration Noise Removed** - local mode now treats SQL migration path as optional; packaged runs skip missing-path warnings unless explicitly configured.
+- ✅ **Auto-Update Noise Reduced** - desktop auto-updater checks are now opt-in for packaged local deployments (`ENABLE_AUTO_UPDATES=true`).
+- ✅ **Windows Install/Uninstall Validation Reconfirmed** - uninstall + reinstall + runtime health checks re-verified on Windows 11 with startup log evidence.
+- ✅ **Windows Documentation Updated** - installer silent mode behavior and update-channel configuration clarified in Windows deployment guides.
+
 **February 9, 2026 - Operational Sweep (Production Candidate):**
 
 - ✅ **Core Gates Passing** - `check`, `lint` (0 warnings), `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`
