@@ -69,23 +69,25 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
       className={`flex items-center space-x-1 text-sm text-muted-foreground ${className || ""}`}
       data-testid="nav-breadcrumbs"
     >
-      <Link href="/dashboard">
-        <a className="flex items-center hover:text-foreground transition-colors" data-testid="breadcrumb-home">
-          <Home className="h-4 w-4" />
-        </a>
+      <Link
+        href="/dashboard"
+        className="flex items-center hover:text-foreground transition-colors"
+        data-testid="breadcrumb-home"
+        aria-label="Go to dashboard"
+      >
+        <Home className="h-4 w-4" aria-hidden="true" />
       </Link>
       
       {breadcrumbItems.map((item, index) => (
         <div key={index} className="flex items-center space-x-1">
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
           {item.href && !item.current ? (
-            <Link href={item.href}>
-              <a 
-                className="hover:text-foreground transition-colors"
-                data-testid={`breadcrumb-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                {item.label}
-              </a>
+            <Link
+              href={item.href}
+              className="hover:text-foreground transition-colors"
+              data-testid={`breadcrumb-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              {item.label}
             </Link>
           ) : (
             <span 

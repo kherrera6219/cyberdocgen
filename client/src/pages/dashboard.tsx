@@ -22,6 +22,7 @@ import { FrameworkGenerationCards } from "@/components/dashboard/FrameworkGenera
 import { RecentDocuments } from "@/components/dashboard/RecentDocuments";
 import { GenerationProgressDialog } from "@/components/dashboard/GenerationProgressDialog";
 import { ActivityFeed } from "@/components/activity/ActivityFeed";
+import { useLocation } from "wouter";
 
 const AIInsightsDashboard = lazy(() => import("@/components/ai/AIInsightsDashboard").then(m => ({ default: m.AIInsightsDashboard })));
 const RiskHeatmap = lazy(() => import("@/components/ai/RiskHeatmap").then(m => ({ default: m.RiskHeatmap })));
@@ -31,6 +32,7 @@ const GENERATION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
 
 export default function Dashboard() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [currentFramework, setCurrentFramework] = useState("");
@@ -314,7 +316,7 @@ export default function Dashboard() {
             companyProfile={profile ? { industry: profile.industry, companySize: profile.companySize } : undefined}
             documentsCount={completedDocs}
             frameworksActive={activeFrameworks}
-            onViewDetails={() => window.location.href = '/gap-analysis'}
+            onViewDetails={() => setLocation("/gap-analysis")}
           />
         </Suspense>
       </ErrorBoundary>

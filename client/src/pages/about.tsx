@@ -153,17 +153,17 @@ export default function About() {
             Be part of the future of compliance automation. Get free access during our beta period and help shape the product.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" data-testid="button-get-started">
+            <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100" data-testid="button-get-started">
+              <Link href="/login">
                 Sign In
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-contact">
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-contact">
+              <Link href="/contact">
                 Request Beta Access
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

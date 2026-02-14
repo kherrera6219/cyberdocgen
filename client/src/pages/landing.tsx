@@ -59,14 +59,16 @@ export function Landing() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6 px-4">
               {isLocalMode ? (
-                <Button 
-                  size="lg" 
+                <Button
+                  asChild
+                  size="lg"
                   className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
-                  onClick={() => window.location.href = '/dashboard'}
                   data-testid="button-get-started"
                 >
-                  Enter App
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <Link href="/dashboard">
+                    Enter App
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
               ) : (
                 <TemporaryLoginDialog 
@@ -83,15 +85,17 @@ export function Landing() {
                 />
               )}
 
-              <Button 
-                variant="outline" 
+              <Button
+                asChild
+                variant="outline"
                 size="lg"
                 className="w-full sm:w-auto px-8 py-4 rounded-md transition-all duration-300"
-                onClick={() => window.location.href = '/features'}
                 data-testid="button-see-features"
               >
-                See How It Works
-                <ChevronRight className="ml-2 h-5 w-5" />
+                <Link href="/features">
+                  See How It Works
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
             </div>
 
@@ -178,12 +182,12 @@ export function Landing() {
           </div>
 
           <div className="text-center mt-12">
-            <Link href="/features">
-              <Button variant="outline" size="lg" data-testid="button-view-all-features">
+            <Button asChild variant="outline" size="lg" data-testid="button-view-all-features">
+              <Link href="/features">
                 View All Features
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -279,16 +283,17 @@ export function Landing() {
                 </Button>
               }
             />
-            <Link href="/contact">
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-white text-white hover:bg-white/10 px-8 py-4 rounded-md"
-                data-testid="button-contact-sales"
-              >
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="border-white text-white hover:bg-white/10 px-8 py-4 rounded-md"
+              data-testid="button-contact-sales"
+            >
+              <Link href="/contact">
                 Request Beta Access
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

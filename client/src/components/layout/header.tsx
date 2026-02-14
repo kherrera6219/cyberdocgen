@@ -61,6 +61,7 @@ export default function Header() {
                 variant="ghost" 
                 size="sm" 
                 className="lg:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -100,6 +101,7 @@ export default function Header() {
             size="sm" 
             onClick={toggleTheme} 
             className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
           >
             {theme === "light" ? <Moon className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5" />}
           </Button>
@@ -112,7 +114,12 @@ export default function Header() {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center space-x-1 sm:space-x-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 px-2 sm:px-3 py-2 rounded-lg transition-colors">
+              <Button
+                variant="ghost"
+                className="h-auto flex items-center space-x-1 sm:space-x-3 hover:bg-gray-50 dark:hover:bg-gray-800 px-2 sm:px-3 py-2 rounded-lg transition-colors"
+                aria-label="Open user menu"
+                data-testid="button-user-menu"
+              >
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
                   <span className="text-white text-xs sm:text-sm font-medium">
                     {getInitials((user)?.email)}
@@ -122,7 +129,7 @@ export default function Header() {
                   {getUserName((user)?.email)}
                 </span>
                 <ChevronDown className="hidden sm:block h-4 w-4 text-gray-400" />
-              </div>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 sm:w-56">
               <DropdownMenuItem className="sm:hidden">

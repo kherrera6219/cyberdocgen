@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, ArrowRight, Building, FileText, Zap } from "lucide-react";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import type { Document } from "@shared/schema";
+import { useLocation } from "wouter";
 
 interface ChecklistItem {
   id: string;
@@ -23,6 +24,7 @@ interface QuickStartChecklistProps {
 
 export function QuickStartChecklist({ className }: QuickStartChecklistProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [, setLocation] = useLocation();
 
   // Get profile from shared organization context
   const { profile } = useOrganization();
@@ -148,7 +150,7 @@ export function QuickStartChecklist({ className }: QuickStartChecklistProps) {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => window.location.href = item.actionUrl}
+                    onClick={() => setLocation(item.actionUrl)}
                     className="flex items-center space-x-1"
                   >
                     <span>{item.actionText}</span>

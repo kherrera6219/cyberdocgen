@@ -27,7 +27,7 @@ const resetPasswordSchema = z.object({
 type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const [token] = useState<string>(() => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('token') || '';
@@ -114,11 +114,11 @@ export default function ResetPassword() {
                 Continue to Login
               </Button>
               
-              <Link href="/signup">
-                <Button variant="outline" className="w-full">
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/signup">
                   Create New Account
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -141,18 +141,18 @@ export default function ResetPassword() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Link href="/forgot-password">
-              <Button className="w-full">
+            <Button asChild className="w-full">
+              <Link href="/forgot-password">
                 Request New Reset Link
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             
-            <Link href="/login">
-              <Button variant="outline" className="w-full">
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/login">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Login
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

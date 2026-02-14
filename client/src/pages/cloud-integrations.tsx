@@ -27,6 +27,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 
 interface CloudIntegration {
   id: string;
@@ -60,6 +61,7 @@ interface CloudFile {
 
 export default function CloudIntegrations() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedProvider, setSelectedProvider] = useState<string>('all');
@@ -240,7 +242,7 @@ export default function CloudIntegrations() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.location.href = '/admin'}
+                onClick={() => setLocation('/admin')}
                 className="flex items-center gap-2 self-start sm:self-auto"
               >
                 <Settings className="h-4 w-4" />
@@ -640,7 +642,7 @@ export default function CloudIntegrations() {
                 <Button
                   variant="link"
                   className="p-0 h-auto ml-2"
-                  onClick={() => window.location.href = '/admin'}
+                  onClick={() => setLocation('/admin')}
                 >
                   Configure now
                 </Button>

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { WelcomeTutorial } from "@/components/onboarding/WelcomeTutorial";
 import { QuickStartChecklist } from "@/components/onboarding/QuickStartChecklist";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Link, useLocation } from "wouter";
 import {
   User, 
   LogOut, 
@@ -31,6 +32,7 @@ import { logger } from '../utils/logger';
 
 export function Home() {
   const { user } = useAuth() as { user: UserType | undefined };
+  const [, setLocation] = useLocation();
   const [showTutorial, setShowTutorial] = useState(() => {
     try {
       return !localStorage.getItem('hasSeenTutorial');
@@ -213,7 +215,7 @@ export function Home() {
                 </div>
                 <Button 
                   className="bg-white text-blue-600 w-full sm:w-auto"
-                  onClick={() => window.location.href = '/dashboard'}
+                  onClick={() => setLocation("/dashboard")}
                   data-testid="button-view-dashboard"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
@@ -259,42 +261,33 @@ export function Home() {
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {aiFeatures.map((feature) => (
-                <Card 
-                  key={feature.title}
-                  className="group cursor-pointer border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md transition-all duration-300"
-                  onClick={() => window.location.href = feature.href}
-                  data-testid={`card-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
-                >
-                  <CardContent className="p-5 sm:p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`p-3 ${feature.bgColor} rounded-xl transition-transform duration-300 group-hover:scale-110`}>
-                        <feature.icon className={`h-6 w-6 bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`} style={{ stroke: 'url(#gradient)' }} />
-                        <svg width="0" height="0">
-                          <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                              <stop offset="0%" stopColor="#3b82f6" />
-                              <stop offset="100%" stopColor="#8b5cf6" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <feature.icon className={`h-6 w-6 text-blue-600 dark:text-blue-400`} />
+                <Link key={feature.title} href={feature.href} className="block">
+                  <Card 
+                    className="group cursor-pointer border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary"
+                    data-testid={`card-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <CardContent className="p-5 sm:p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`p-3 ${feature.bgColor} rounded-xl transition-transform duration-300 group-hover:scale-110`}>
+                          <feature.icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        {feature.badge && (
+                          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 text-xs">
+                            {feature.badge}
+                          </Badge>
+                        )}
                       </div>
-                      {feature.badge && (
-                        <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 text-xs">
-                          {feature.badge}
-                        </Badge>
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{feature.description}</p>
-                    <div className="flex items-center text-sm text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all">
-                      <span>Explore</span>
-                      <ArrowRight className="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </CardContent>
-                </Card>
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{feature.description}</p>
+                      <div className="flex items-center text-sm text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all">
+                        <span>Explore</span>
+                        <ArrowRight className="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           </div>
@@ -309,22 +302,22 @@ export function Home() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {quickActions.map((action) => (
-              <Card 
-                key={action.title}
-                className="group cursor-pointer border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm transition-all duration-300"
-                onClick={() => window.location.href = action.href}
-                data-testid={`card-${action.title.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-                  <div className={`p-2 ${action.bgColor} rounded-lg transition-colors`}>
-                    <action.icon className={`h-5 w-5 ${action.iconColor}`} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">{action.title}</CardTitle>
-                    <CardDescription className="text-sm">{action.description}</CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
+              <Link key={action.title} href={action.href} className="block">
+                <Card 
+                  className="group cursor-pointer border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm transition-all duration-300 focus-within:ring-2 focus-within:ring-primary"
+                  data-testid={`card-${action.title.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
+                    <div className={`p-2 ${action.bgColor} rounded-lg transition-colors`}>
+                      <action.icon className={`h-5 w-5 ${action.iconColor}`} />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{action.title}</CardTitle>
+                      <CardDescription className="text-sm">{action.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>

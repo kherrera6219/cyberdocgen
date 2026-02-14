@@ -111,12 +111,12 @@ export default function Pricing() {
             Join now to lock in early-adopter pricing when we launch.
           </p>
 
-          <Link href="/contact">
-            <Button size="lg" data-testid="button-request-beta">
+          <Button asChild size="lg" data-testid="button-request-beta">
+            <Link href="/contact">
               Contact Us for Beta Access
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -160,16 +160,17 @@ export default function Pricing() {
                     ))}
                   </ul>
 
-                  <Link href="/contact">
-                    <Button 
-                      className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                      variant={plan.popular ? 'default' : 'outline'}
-                      data-testid={`button-${plan.name.toLowerCase()}-cta`}
-                    >
+                  <Button 
+                    asChild
+                    className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                    variant={plan.popular ? 'default' : 'outline'}
+                    data-testid={`button-${plan.name.toLowerCase()}-cta`}
+                  >
+                    <Link href="/contact">
                       Contact for Access
                       <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -250,17 +251,17 @@ export default function Pricing() {
             Join our beta program today and get free access to all features. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" data-testid="button-start-trial-footer">
+            <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100" data-testid="button-start-trial-footer">
+              <Link href="/login">
                 Sign In
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-contact-sales-footer">
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-contact-sales-footer">
+              <Link href="/contact">
                 Request Beta Access
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

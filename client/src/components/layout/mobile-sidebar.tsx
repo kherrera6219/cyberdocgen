@@ -1,85 +1,17 @@
-import type { ComponentType } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { 
-  LayoutDashboard, 
-  Building, 
-  Tag, 
-  Shield, 
-  Flag, 
-  Lock, 
-  Folder, 
-  FolderOutput,
-  Database,
-  Brain,
-  Upload,
-  Zap,
-  Bot,
-  Sparkles,
-  Wrench,
-  Search,
-  CheckSquare,
-  Eye,
-  History,
-  Cloud,
-  Settings,
-  User,
-  KeyRound,
-  X
-} from "lucide-react";
-
-interface NavItem {
-  href: string;
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-  badge?: string;
-  badgeColor?: string;
-}
-
-const mainNavItems: NavItem[] = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/profile", icon: Building, label: "Company Profile" },
-  { href: "/storage", icon: Database, label: "Object Storage" },
-  { href: "/ai-specialization", icon: Brain, label: "AI Specialization" },
-];
-
-const frameworkNavItems: NavItem[] = [
-  { href: "/iso27001-framework", icon: Tag, label: "ISO 27001", badge: "12/14", badgeColor: "bg-accent" },
-  { href: "/soc2-framework", icon: Shield, label: "SOC 2 Type 2", badge: "8/12", badgeColor: "bg-warning" },
-  { href: "/fedramp-framework", icon: Flag, label: "FedRAMP", badge: "0/18", badgeColor: "bg-gray-400" },
-  { href: "/nist-framework", icon: Lock, label: "NIST CSF", badge: "0/23", badgeColor: "bg-gray-400" },
-];
-
-const documentNavItems: NavItem[] = [
-  { href: "/documents", icon: Folder, label: "All Documents" },
-  { href: "/evidence-ingestion", icon: Upload, label: "Evidence Upload" },
-  { href: "/connectors", icon: Cloud, label: "Connectors Hub" },
-  { href: "/export", icon: FolderOutput, label: "Export Center" },
-];
-
-const aiToolsNavItems: NavItem[] = [
-  { href: "/ai-hub", icon: Zap, label: "AI Hub" },
-  { href: "/ai-assistant", icon: Bot, label: "AI Assistant" },
-  { href: "/ai-doc-generator", icon: Sparkles, label: "AI Doc Generator" },
-  { href: "/mcp-tools", icon: Wrench, label: "MCP Tools" },
-];
-
-const complianceNavItems: NavItem[] = [
-  { href: "/gap-analysis", icon: Search, label: "Gap Analysis" },
-  { href: "/control-approvals", icon: CheckSquare, label: "Control Approvals" },
-  { href: "/auditor-workspace", icon: Eye, label: "Auditor Workspace" },
-  { href: "/audit-trail", icon: History, label: "Audit Trail" },
-];
-
-const settingsNavItems: NavItem[] = [
-  { href: "/api-keys", icon: KeyRound, label: "AI API Keys" },
-  { href: "/cloud-integrations", icon: Cloud, label: "Cloud Integrations" },
-  { href: "/local-settings", icon: Settings, label: "Local Settings" },
-  { href: "/admin", icon: Settings, label: "Admin Settings" },
-  { href: "/profile/settings", icon: User, label: "User Settings" },
-];
+import { X } from "lucide-react";
+import {
+  aiToolsNavItems,
+  complianceNavItems,
+  documentNavItems,
+  frameworkNavItems,
+  getVisibleSettingsNavItems,
+  mainNavItems,
+  type NavItem,
+} from "./nav-config";
 
 interface MobileSidebarProps {
   onClose: () => void;
@@ -137,10 +69,8 @@ export default function MobileSidebar({ onClose }: MobileSidebarProps) {
     return location.startsWith(href.split("?")[0]);
   };
 
-  const isLocalMode = appConfig?.deploymentMode === 'local';
-  const visibleSettingsNavItems = isLocalMode
-    ? settingsNavItems
-    : settingsNavItems.filter((item) => item.href !== '/api-keys' && item.href !== '/local-settings');
+  const isLocalMode = appConfig?.deploymentMode === "local";
+  const visibleSettingsNavItems = getVisibleSettingsNavItems(!!isLocalMode);
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900">
@@ -153,7 +83,13 @@ export default function MobileSidebar({ onClose }: MobileSidebarProps) {
           </div>
           <h1 className="text-lg font-bold text-gray-900 dark:text-white">CyberDocGen</h1>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} data-testid="button-close-mobile-sidebar">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          data-testid="button-close-mobile-sidebar"
+          aria-label="Close navigation menu"
+        >
           <X className="h-5 w-5" />
         </Button>
       </div>

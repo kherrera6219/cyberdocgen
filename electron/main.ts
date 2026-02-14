@@ -596,11 +596,24 @@ function setupIpcHandlers() {
   });
 }
 
+type WindowsStoreProcess = NodeJS.Process & { windowsStore?: boolean };
+
+function isWindowsStoreBuild(): boolean {
+  return (process as WindowsStoreProcess).windowsStore === true;
+}
+
 /**
  * Setup auto-updater (Sprint 3)
  * Handles automatic application updates
  */
 function setupAutoUpdater() {
+  if (isWindowsStoreBuild()) {
+    startupLogger.info(
+      'Auto-updater disabled for Microsoft Store packages (updates are delivered by Microsoft Store).',
+    );
+    return;
+  }
+
   const autoUpdatesEnabled = process.env.ENABLE_AUTO_UPDATES?.toLowerCase() === 'true';
   if (!app.isPackaged || !autoUpdatesEnabled) {
     startupLogger.info('Auto-updater disabled (set ENABLE_AUTO_UPDATES=true in packaged builds to enable).');

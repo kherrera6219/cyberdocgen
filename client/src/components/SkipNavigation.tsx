@@ -13,26 +13,7 @@ export function SkipNavigation() {
   return (
     <a
       href="#main-content"
-      className="skip-navigation"
-      style={{
-        position: 'absolute',
-        left: '-9999px',
-        zIndex: 999,
-        padding: '1rem 1.5rem',
-        backgroundColor: 'var(--primary)',
-        color: 'white',
-        textDecoration: 'none',
-        borderRadius: '0 0 0.25rem 0',
-        fontWeight: 500,
-        fontSize: '0.875rem',
-        transition: 'left 0.2s ease-in-out',
-      }}
-      onFocus={(e) => {
-        e.currentTarget.style.left = '0';
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.left = '-9999px';
-      }}
+      className="fixed left-3 top-3 z-[999] -translate-y-[200%] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg transition-transform duration-200 focus:translate-y-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
       Skip to main content
     </a>

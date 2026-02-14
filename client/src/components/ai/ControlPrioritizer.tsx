@@ -12,6 +12,7 @@ import {
   Shield,
   AlertTriangle
 } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface PrioritizedControl {
   id: string;
@@ -32,6 +33,7 @@ interface ControlPrioritizerProps {
 }
 
 export function ControlPrioritizer({ className, onImplementControl }: ControlPrioritizerProps) {
+  const [, setLocation] = useLocation();
   const prioritizedControls: PrioritizedControl[] = [
     {
       id: "1",
@@ -249,7 +251,7 @@ export function ControlPrioritizer({ className, onImplementControl }: ControlPri
           <Button 
             variant="outline" 
             className="w-full"
-            onClick={() => window.location.href = '/gap-analysis'}
+            onClick={() => setLocation("/gap-analysis")}
             data-testid="button-view-full-analysis"
           >
             View Full Gap Analysis

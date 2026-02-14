@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Brain, 
   TrendingUp, 
   AlertTriangle, 
@@ -15,6 +15,7 @@ import {
   Zap
 } from "lucide-react";
 import { useState, useEffect, useId, useMemo } from "react";
+import { useLocation } from "wouter";
 
 interface AIRecommendation {
   id: string;
@@ -41,6 +42,7 @@ export function AIInsightsDashboard({
   frameworksActive = 0,
   onViewDetails 
 }: AIInsightsDashboardProps) {
+  const [, setLocation] = useLocation();
   const { targetScore, riskLevel } = useMemo(() => {
     const baseScore = Math.min(documentsCount * 3, 45);
     const frameworkBonus = frameworksActive * 10;
@@ -251,7 +253,7 @@ export function AIInsightsDashboard({
               <Button 
                 size="sm" 
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                onClick={() => window.location.href = '/ai-doc-generator'}
+                onClick={() => setLocation("/ai-doc-generator")}
                 data-testid="button-generate-docs"
                 aria-label="Generate compliance documents using AI"
               >
@@ -262,7 +264,7 @@ export function AIInsightsDashboard({
                 size="sm" 
                 variant="outline" 
                 className="w-full"
-                onClick={() => window.location.href = '/ai-assistant'}
+                onClick={() => setLocation("/ai-assistant")}
                 data-testid="button-ask-ai"
                 aria-label="Open AI Assistant for compliance questions"
               >

@@ -382,13 +382,18 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
                 {/* Actions */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedDocument(document)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedDocument(document)}
+                      aria-label={`Preview ${document.title}`}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" aria-label={`Edit ${document.title}`}>
                       <Edit3 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" aria-label={`Download ${document.title}`}>
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>
@@ -397,6 +402,7 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
                     size="sm"
                     onClick={() => deleteDocumentMutation.mutate(document.id)}
                     disabled={deleteDocumentMutation.isPending}
+                    aria-label={`Delete ${document.title}`}
                   >
                     <Trash2 className="h-4 w-4 text-red-600" />
                   </Button>

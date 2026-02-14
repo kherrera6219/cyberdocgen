@@ -58,11 +58,11 @@ export function PublicHeader({ showBetaBadge = true }: PublicHeaderProps) {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href={isLocalMode ? "/dashboard" : "/login"}>
-              <Button variant="ghost" data-testid="header-sign-in">
+            <Button asChild variant="ghost" data-testid="header-sign-in">
+              <Link href={isLocalMode ? "/dashboard" : "/login"}>
                 Sign In
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <TemporaryLoginDialog 
               trigger={
                 <Button data-testid="header-start-free">
@@ -107,9 +107,9 @@ export function PublicHeader({ showBetaBadge = true }: PublicHeaderProps) {
                 <TemporaryLoginDialog 
                   trigger={<Button className="w-full">Start Free</Button>}
                 />
-                <Link href="/login">
-                  <Button variant="outline" className="w-full">Sign In</Button>
-                </Link>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/login">Sign In</Link>
+                </Button>
               </div>
             </nav>
           </div>

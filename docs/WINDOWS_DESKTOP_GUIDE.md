@@ -27,9 +27,12 @@ Since there is no Cloud SSO (Google/Microsoft) in an offline environment:
 
 ---
 
-## Building the Installer
+## Building Windows Packages
 
-To create the `.exe` installer (NSIS) and portable executable:
+To create distribution artifacts:
+- NSIS `.exe` installer (direct download channel)
+- APPX package (Microsoft Store channel)
+- `win-unpacked/` executable folder (test/debug channel)
 
 ### Prerequisites
 - Node.js 20+
@@ -52,6 +55,18 @@ This pipeline performs the following:
 
 If you run the setup executable with `/S`, NSIS runs in silent mode and does not show wizard/progress/completion dialogs.
 
+### Microsoft Store Build Command
+Set Partner Center identity values and run:
+
+```powershell
+$env:WINDOWS_STORE_IDENTITY_NAME="YourPartnerCenterIdentityName"
+$env:WINDOWS_STORE_PUBLISHER="CN=YourPartnerCenterPublisher"
+$env:WINDOWS_STORE_PUBLISHER_DISPLAY_NAME="Your Company Name"
+npm run build:store
+```
+
+This path runs `npm run windows:validate:store` before packaging and enforces APPX identity metadata.
+
 Optional post-build verification:
 
 ```powershell
@@ -60,6 +75,7 @@ node scripts/verify-build.js
 
 **Output Location**: `./dist/packaging/`
 - `CyberDocGen-Setup-<version>.exe` (Installer)
+- `CyberDocGen-Store-<version>.appx` (Microsoft Store package)
 - `win-unpacked/` (Portable executable for testing)
 
 ---
@@ -71,7 +87,7 @@ node scripts/verify-build.js
 3.  Choose an installation location in the installer wizard (default is `AppData\Local\Programs\cyberdocgen`).
 4.  Wait for the installer progress page to complete, then confirm the installation completion prompt.
 5.  Launch CyberDocGen and configure your AI provider API key(s) in **Settings -> AI API Keys**.
-6.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings). For silent automation, use `uninstall.exe /S /REMOVEALLDATA` to force full data removal. Uninstall progress and a completion notification are shown.
+6.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings). The uninstaller executable is created in the install root directory as `Uninstall CyberDocGen.exe`. For silent automation, use `"Uninstall CyberDocGen.exe" /S /REMOVEALLDATA` to force full data removal. Uninstall progress and a completion notification are shown.
 
 ---
 
@@ -86,6 +102,18 @@ The current desktop installer aligns to the requested baseline for direct `.exe`
 - Desktop and Start Menu shortcuts
 - Built-in uninstaller with data retention/removal prompt
 - Versioned setup artifact naming (`CyberDocGen-Setup-<version>.exe`)
+- Silent install support (`CyberDocGen-Setup-<version>.exe /S`)
+- Silent uninstall support (`"Uninstall CyberDocGen.exe" /S`)
+
+## Microsoft Store Checklist (APPX Path)
+
+For Store submission, use the APPX package path instead of the NSIS installer flow:
+
+- APPX target configured in `electron-builder.yml`
+- Partner Center identity values supplied via `WINDOWS_STORE_*` env vars
+- Store preflight passes (`npm run windows:validate:store`)
+- Store package produced (`CyberDocGen-Store-<version>.appx`)
+- Runtime update policy safe: Electron auto-updater is disabled when `process.windowsStore === true`
 
 Remaining enterprise-grade recommendations:
 - Sign installer binaries with an Authenticode certificate

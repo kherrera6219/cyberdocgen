@@ -17,7 +17,7 @@ This guide covers both deployment configurations.
 
 **Target Platform:** Windows 11 (x64)  
 **Packaging:** NSIS Installer (`.exe`) for local distribution  
-**Future Option:** MSIX for Microsoft Store submission
+**Microsoft Store Option:** APPX package for Partner Center submission
 
 ### Build Process
 
@@ -37,6 +37,7 @@ npm run windows:validate   # Validate Windows packaging config/assets
 npm run build              # Build frontend (Vite)
 npm run electron:build     # Build Electron main process
 npx electron-builder build --win nsis  # Package installer
+npm run build:store      # Build APPX package for Microsoft Store
 node scripts/verify-build.js # Verify build artifacts + local startup probes
 ```
 
@@ -45,6 +46,7 @@ node scripts/verify-build.js # Verify build artifacts + local startup probes
 ```
 dist/packaging/
 ├── CyberDocGen-Setup-<version>.exe  # NSIS installer
+├── CyberDocGen-Store-<version>.appx # Microsoft Store package
 └── win-unpacked/                # Portable/testing version
 ```
 
@@ -85,8 +87,8 @@ Desktop app automatically runs in local mode with:
 - Users download and run installer
 - Requires code signing certificate to avoid SmartScreen warnings
 
-#### Option 2: Microsoft Store (Future)
-- Convert to MSIX packaging
+#### Option 2: Microsoft Store
+- Build APPX packaging (`npm run build:store`)
 - Submit via Microsoft Partner Center
 - Automatic updates via Windows Store (replaces direct NSIS release channel)
 - See [`MICROSOFT_STORE_SUBMISSION_GUIDE.md`](../MICROSOFT_STORE_SUBMISSION_GUIDE.md)
@@ -115,7 +117,7 @@ publish:
   releaseType: release
 ```
 
-Updates are checked every 4 hours and on startup.
+Updates are opt-in for direct desktop builds (`ENABLE_AUTO_UPDATES=true`) and disabled for Microsoft Store packages (Store handles updates).
 
 ### Troubleshooting Desktop Builds
 

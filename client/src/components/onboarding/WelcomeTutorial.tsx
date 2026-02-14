@@ -125,7 +125,7 @@ export function WelcomeTutorial({ isOpen, onClose, onComplete }: WelcomeTutorial
                 Step {currentStep + 1} of {tutorialSteps.length}
               </Badge>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleSkip}>
+            <Button variant="ghost" size="sm" onClick={handleSkip} aria-label="Skip tutorial">
               <X className="h-4 w-4" />
             </Button>
           </div>

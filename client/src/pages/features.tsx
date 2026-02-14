@@ -103,12 +103,12 @@ export default function Features() {
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
             From AI-powered document generation to continuous monitoring, CyberDocGen provides a complete platform for managing your compliance journey.
           </p>
-          <Link href="/login">
-            <Button size="lg" data-testid="button-start-free-trial">
+          <Button asChild size="lg" data-testid="button-start-free-trial">
+            <Link href="/login">
               Sign In
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -233,17 +233,17 @@ export default function Features() {
             Join our beta program and experience the power of AI-driven compliance automation. Free during beta.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" data-testid="button-start-trial">
+            <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-100" data-testid="button-start-trial">
+              <Link href="/login">
                 Sign In
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-view-pricing">
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10" data-testid="button-view-pricing">
+              <Link href="/contact">
                 Request Beta Access
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

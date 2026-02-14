@@ -20,7 +20,12 @@ export const NetworkBanner: React.FC = () => {
   if (!isOffline) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[9999] bg-destructive text-destructive-foreground px-4 py-2 flex items-center justify-center gap-2 animate-in slide-in-from-top duration-300">
+    <div
+      className="fixed top-0 left-0 right-0 z-[9999] bg-destructive text-destructive-foreground px-4 py-2 flex items-center justify-center gap-2 animate-in slide-in-from-top duration-300"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <WifiOff className="w-4 h-4" />
       <span className="text-sm font-medium">
         You are currently offline. Some features may be unavailable.

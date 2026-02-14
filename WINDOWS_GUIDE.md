@@ -2,7 +2,9 @@
 
 ## Overview
 
-This guide documents how to build the local Windows installer (`.exe`) for CyberDocGen. This process generates an NSIS installer that sets up a standalone version of the application with a local SQLite database.
+This guide documents how to build Windows packages for CyberDocGen:
+- NSIS installer (`.exe`) for direct distribution
+- APPX package (`.appx`) for Microsoft Store submission
 
 ## Prerequisites
 
@@ -24,7 +26,20 @@ This command now runs Windows packaging validation first (`npm run windows:valid
 
 > Note: Running the installer with `/S` performs a silent install. Silent mode does not show installer wizard pages, progress bars, or completion message dialogs.
 
-### 2. Manual Build Steps (Troubleshooting)
+### 2. Microsoft Store Build (APPX)
+
+To build the Microsoft Store package, set your Partner Center identity values and run:
+
+```powershell
+$env:WINDOWS_STORE_IDENTITY_NAME="YourPartnerCenterIdentityName"
+$env:WINDOWS_STORE_PUBLISHER="CN=YourPartnerCenterPublisher"
+$env:WINDOWS_STORE_PUBLISHER_DISPLAY_NAME="Your Company Name"
+npm run build:store
+```
+
+This path enforces Store-specific validation first (`npm run windows:validate:store`) and then builds an APPX package.
+
+### 3. Manual Build Steps (Troubleshooting)
 
 If the standard build fails, you can run the steps individually:
 
@@ -47,18 +62,23 @@ If the standard build fails, you can run the steps individually:
    ```powershell
    npx electron-builder build --win nsis
    ```
+5. **Package for Microsoft Store**:
+   ```powershell
+   npx electron-builder build --win appx
+   ```
 
 ## Configuration Details
 
 ### `electron-builder.yml`
 The configuration has been hardened for production:
-- **Target**: `nsis` (Standard Windows Installer)
+- **Targets**: `nsis` (direct installer) and `appx` (Microsoft Store package)
 - **Guided Installer UX**: `oneClick: false` (wizard flow with install progress page)
 - **Install Location Selection**: `allowToChangeInstallationDirectory: true`
 - **Shortcuts**: Desktop + Start Menu shortcuts are created by default
 - **Post-Install Launch**: `runAfterFinish: true`
 - **Versioned Artifacts**: `CyberDocGen-Setup-<version>.exe`
 - **Data Retention**: Prompts user to keep/remove data on uninstall.
+- **Store Metadata**: APPX identity/publisher defaults are defined in config and overridden at build time by `WINDOWS_STORE_*` environment variables
 - **ASAR Unpacking**: Critical native modules (`better-sqlite3`, `keytar`) are unpacked for reliable execution.
 - **Custom NSIS Hooks**: `build/installer.nsh` provides install/uninstall completion notifications and data retention prompts.
 
@@ -103,8 +123,9 @@ If the packaged application fails to start:
    `%APPDATA%/CyberDocGen/logs/startup.log`
 
 ## Output
-The generated installer is located at:
-`dist/packaging/CyberDocGen-Setup-<version>.exe` (for example, `CyberDocGen-Setup-2.4.0.exe`)
+Generated artifacts are located in:
+- `dist/packaging/CyberDocGen-Setup-<version>.exe`
+- `dist/packaging/CyberDocGen-Store-<version>.appx`
 
 ## Local Artifact Hygiene
 

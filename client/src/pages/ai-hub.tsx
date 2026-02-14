@@ -92,12 +92,12 @@ export default function AIHub() {
           <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">AI Assistant Hub</h1>
           <p className="text-muted-foreground">AI-powered insights and recommendations for your compliance journey</p>
         </div>
-        <Link href="/ai-doc-generator">
-          <Button data-testid="button-generate-document">
+        <Button asChild data-testid="button-generate-document">
+          <Link href="/ai-doc-generator">
             <Sparkles className="w-4 h-4 mr-2" />
             Generate Document
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -184,12 +184,12 @@ export default function AIHub() {
             <CardDescription>Create compliance documents with AI</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/ai-doc-generator">
-              <Button variant="outline" className="w-full" data-testid="button-quick-generate">
+            <Button asChild variant="outline" className="w-full" data-testid="button-quick-generate">
+              <Link href="/ai-doc-generator">
                 Start Generator
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -202,12 +202,12 @@ export default function AIHub() {
             <CardDescription>Ingest and process compliance evidence</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/evidence-ingestion">
-              <Button variant="outline" className="w-full" data-testid="button-quick-evidence">
+            <Button asChild variant="outline" className="w-full" data-testid="button-quick-evidence">
+              <Link href="/evidence-ingestion">
                 Upload Evidence
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 
@@ -220,12 +220,12 @@ export default function AIHub() {
             <CardDescription>Manage pending control approvals</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/control-approvals">
-              <Button variant="outline" className="w-full" data-testid="button-quick-approvals">
+            <Button asChild variant="outline" className="w-full" data-testid="button-quick-approvals">
+              <Link href="/control-approvals">
                 View Approvals
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -272,12 +272,12 @@ export default function AIHub() {
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
                       {insight.actionUrl && (
-                        <Link href={insight.actionUrl}>
-                          <Button variant="link" className="p-0 h-auto mt-2" data-testid={`button-insight-action-${insight.id}`}>
+                        <Button asChild variant="link" className="p-0 h-auto mt-2" data-testid={`button-insight-action-${insight.id}`}>
+                          <Link href={insight.actionUrl}>
                             Take Action
                             <ArrowRight className="w-3 h-3 ml-1" />
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                       )}
                     </div>
                   </div>

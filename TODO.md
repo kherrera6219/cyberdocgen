@@ -12,7 +12,7 @@
 
 - [x] **Remediate production npm advisories**: production dependency tree now reports 0 vulnerabilities.
 - [x] **Re-run security validation**: `npm audit`, smoke tests, and deployment verification executed after updates.
-- [x] **Align Windows validation tooling with actual packaging target**: `scripts/validate-wack.ts` now validates NSIS and optional MSIX paths.
+- [x] **Align Windows validation tooling with actual packaging target**: `scripts/validate-wack.ts` now validates NSIS and APPX (Store) paths.
 - [x] **Implement connector adapters**: SharePoint/Jira/Notion adapter list/fetch flows implemented with tenant-scoped config access and import tests.
 - [x] **Resolve dev-toolchain advisories**: dependency refresh + overrides eliminated the prior `drizzle-kit`/`esbuild` advisory chain (`npm audit` now clean).
 - [x] **Lock release evidence**: gate outputs archived in `docs/project-analysis/evidence/20260208-130320/`.
@@ -23,7 +23,7 @@
 - [x] **Local-mode operational docs**: required local env documented (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`, `LOCAL_PORT` behavior).
 - [x] **Windows desktop runtime cleanup**: local-mode migrations path made optional, packaged startup race/crash checks hardened, and desktop auto-update checks gated behind `ENABLE_AUTO_UPDATES=true`.
 - [ ] **Windows installer sign-off**: run signed NSIS installer smoke test on a clean Windows VM and capture startup logs evidence.
-- [ ] **Store distribution decision**: decide if MSIX/Store channel is required; if yes, add `msix` target + identity metadata and dedicated certification runbook.
+- [x] **Store distribution decision**: Microsoft Store channel enabled with APPX target, Store metadata/env validation, and dedicated runbook/checklist.
 - [x] **Release version alignment**: package and installer outputs aligned to `2.4.0` (`CyberDocGen-Setup-2.4.0.exe`).
 - [x] **Generated artifact hygiene**: `local-data/` now ignored via `.gitignore` policy.
 

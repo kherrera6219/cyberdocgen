@@ -231,7 +231,7 @@ async function validateMonitoringAndLogging(): Promise<ComplianceCheck> {
 async function validateWindowsClient(): Promise<ComplianceCheck> {
   const check: ComplianceCheck = {
     name: 'Windows Client (Electron Packaging)',
-    description: 'Electron wrapper and Windows packaging configuration (NSIS/MSIX)',
+    description: 'Electron wrapper and Windows packaging configuration (NSIS/APPX)',
     status: 'fail',
     details: []
   };
@@ -243,7 +243,8 @@ async function validateWindowsClient(): Promise<ComplianceCheck> {
     const hasConfig = fs.existsSync(builderConfigPath);
     let hasWindowsTarget = false;
     let hasNsisTarget = false;
-    let hasMsixTarget = false;
+    let hasAppxTarget = false;
+    let hasLegacyMsixTarget = false;
 
     if (hasElectron) check.details.push('✅ Electron main process entry found');
     else check.details.push('❌ Electron wrapper missing');
@@ -252,17 +253,21 @@ async function validateWindowsClient(): Promise<ComplianceCheck> {
       check.details.push('✅ electron-builder.yml configuration found');
       const config = fs.readFileSync(builderConfigPath, 'utf8').toLowerCase();
       hasNsisTarget = /target\s*:\s*nsis/.test(config) || /-\s*nsis\b/.test(config);
-      hasMsixTarget = /target\s*:\s*msix/.test(config) || /-\s*msix\b/.test(config);
-      hasWindowsTarget = hasNsisTarget || hasMsixTarget;
+      hasAppxTarget = /target\s*:\s*appx/.test(config) || /-\s*appx\b/.test(config);
+      hasLegacyMsixTarget = /target\s*:\s*msix/.test(config) || /-\s*msix\b/.test(config);
+      hasWindowsTarget = hasNsisTarget || hasAppxTarget;
 
       if (hasNsisTarget) {
         check.details.push('✅ NSIS installer target configured');
       }
-      if (hasMsixTarget) {
-        check.details.push('✅ MSIX package target configured');
+      if (hasAppxTarget) {
+        check.details.push('✅ APPX package target configured');
+      }
+      if (hasLegacyMsixTarget) {
+        check.details.push('❌ Legacy MSIX target detected (update to APPX target)');
       }
       if (!hasWindowsTarget) {
-        check.details.push('❌ No Windows packaging target (NSIS/MSIX) configured');
+        check.details.push('❌ No Windows packaging target (NSIS/APPX) configured');
       }
     } else {
       check.details.push('❌ electron-builder.yml configuration missing');

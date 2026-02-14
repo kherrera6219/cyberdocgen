@@ -32,7 +32,11 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
     "windows:validate": "tsx scripts/validate-wack.ts",
-    "build:win": "npm run windows:validate && npm run build && npm run electron:build && electron-builder build --win nsis"
+    "windows:validate:store": "cross-env WINDOWS_STORE_SUBMISSION=true tsx scripts/validate-wack.ts",
+    "build:win": "npm run windows:validate && npm run build && npm run electron:build && electron-builder build --win nsis",
+    "build:store": "npm run windows:validate:store && npm run build && npm run electron:build && tsx scripts/build-store.ts",
+    "build:appx": "npm run build:store",
+    "build:msix": "npm run build:store"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",

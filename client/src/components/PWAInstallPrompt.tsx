@@ -9,6 +9,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Download } from 'lucide-react';
 import { setupInstallPrompt, showInstallPrompt, isStandalone, isIOS } from '../lib/serviceWorker';
 import { IconButton } from './IconButton';
+import { Button } from '@/components/ui/button';
 
 interface PWAInstallPromptProps {
   /**
@@ -33,6 +34,8 @@ interface PWAInstallPromptProps {
 }
 
 const STORAGE_KEY = 'pwa-install-dismissed';
+const promptContainerBase =
+  'fixed left-0 right-0 z-50 border border-white/20 bg-gradient-to-r from-blue-700 via-cyan-600 to-blue-700 text-white shadow-2xl';
 
 export function PWAInstallPrompt({
   title = 'Install CyberDocGen',
@@ -92,13 +95,7 @@ export function PWAInstallPrompt({
         role="dialog"
         aria-labelledby="pwa-install-title"
         aria-describedby="pwa-install-description"
-        className={`fixed left-0 right-0 z-50 ${position === 'top' ? 'top-0' : 'bottom-0'}`}
-        style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          padding: '1rem',
-          boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.15)',
-        }}
+        className={`${promptContainerBase} px-4 py-4 ${position === 'top' ? 'top-0' : 'bottom-0'}`}
       >
         <div className="max-w-4xl mx-auto">
           <div className="flex items-start justify-between gap-4">
@@ -107,11 +104,8 @@ export function PWAInstallPrompt({
                 {title}
               </h2>
               <p id="pwa-install-description" className="text-sm opacity-90 mb-3">
-                To install this app on your iOS device, tap the Share button{' '}
-                <span aria-label="share icon" role="img">
-                  📤
-                </span>{' '}
-                and then "Add to Home Screen".
+                To install this app on iOS, tap the Share button in Safari, then choose
+                {' '}Add to Home Screen.
               </p>
             </div>
 
@@ -135,15 +129,7 @@ export function PWAInstallPrompt({
       role="dialog"
       aria-labelledby="pwa-install-title"
       aria-describedby="pwa-install-description"
-      className={`fixed left-0 right-0 z-50 ${position === 'top' ? 'top-0' : 'bottom-0'}`}
-      style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        padding: '1rem',
-        boxShadow: position === 'top'
-          ? '0 4px 12px rgba(0, 0, 0, 0.15)'
-          : '0 -4px 12px rgba(0, 0, 0, 0.15)',
-      }}
+      className={`${promptContainerBase} px-4 py-4 ${position === 'top' ? 'top-0' : 'bottom-0'}`}
     >
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between gap-4">
@@ -166,14 +152,14 @@ export function PWAInstallPrompt({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={handleInstall}
               disabled={isInstalling}
-              className="px-4 py-2 bg-white text-purple-700 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-purple-600"
+              className="bg-white text-blue-700 hover:bg-slate-100 font-semibold"
               aria-label="Install application"
             >
               {isInstalling ? 'Installing...' : 'Install'}
-            </button>
+            </Button>
 
             <IconButton
               icon={X}
@@ -222,14 +208,14 @@ export function PWAInstallButton({ className = '' }: { className?: string }) {
   }
 
   return (
-    <button
+    <Button
       onClick={handleInstall}
       disabled={isInstalling}
-      className={`inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${className}`}
+      className={`inline-flex items-center gap-2 ${className}`}
       aria-label="Install CyberDocGen application"
     >
       <Download className="w-4 h-4" aria-hidden="true" />
       {isInstalling ? 'Installing...' : 'Install App'}
-    </button>
+    </Button>
   );
 }

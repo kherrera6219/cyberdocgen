@@ -114,6 +114,7 @@ export default function NotificationDropdown() {
           size="icon"
           className="relative"
           data-testid="button-notifications"
+          aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
@@ -198,6 +199,7 @@ export default function NotificationDropdown() {
                             deleteMutation.mutate(notification.id);
                           }}
                           data-testid={`button-delete-notification-${notification.id}`}
+                          aria-label={`Delete notification: ${notification.title}`}
                         >
                           <X className="h-3 w-3" />
                         </Button>

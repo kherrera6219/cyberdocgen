@@ -168,9 +168,9 @@ export default function EnterpriseSignup() {
             )}
 
             <div className="text-center">
-              <Link href="/login">
-                <Button variant="outline">Back to Login</Button>
-              </Link>
+              <Button asChild variant="outline">
+                <Link href="/login">Back to Login</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

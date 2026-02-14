@@ -93,22 +93,22 @@ export default function ForgotPassword() {
                   <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
                     Reset token: <code className="bg-amber-200 dark:bg-amber-800 px-1 rounded">{resetData.resetToken}</code>
                   </p>
-                  <Link href={`/reset-password?token=${resetData.resetToken}`}>
-                    <Button size="sm" className="mt-2">
+                  <Button asChild size="sm" className="mt-2">
+                    <Link href={`/reset-password?token=${resetData.resetToken}`}>
                       Reset Password Now (Dev)
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               )}
             </div>
 
             <div className="flex flex-col gap-2">
-              <Link href="/login">
-                <Button variant="outline" className="w-full">
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/login">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Login
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               
               <Button
                 variant="ghost"

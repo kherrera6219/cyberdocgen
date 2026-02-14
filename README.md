@@ -92,7 +92,7 @@
 - ✅ **Microsoft Entra ID SSO** - Secure OIDC + PKCE authentication with tenant mapping
 - ✅ **Windows Desktop Client** - Native Electron wrapper for Spec-001 compliance
 - ✅ **NSIS Packaging** - Integrated `electron-builder` installer pipeline for desktop distribution
-- ✅ **Windows Packaging Validation** - Build-time packaging validation script for NSIS/MSIX config checks
+- ✅ **Windows Packaging Validation** - Build-time packaging validation script for NSIS/APPX config checks
 
 **Version 2.0.2 - January 17, 2026** - Phase 6 Quality & Testing Complete:
 

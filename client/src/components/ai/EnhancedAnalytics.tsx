@@ -157,27 +157,37 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
     { month: "Oct", score: 61 },
   ];
 
+  const chartPalette = {
+    primary: "hsl(var(--chart-1))",
+    secondary: "hsl(var(--chart-2))",
+    tertiary: "hsl(var(--chart-3))",
+    quaternary: "hsl(var(--chart-4))",
+    danger: "hsl(var(--destructive))",
+    muted: "hsl(var(--muted-foreground))",
+    warningSurface: "hsl(var(--chart-4) / 0.2)",
+  };
+
   const frameworkData = Object.entries(analyticsData.frameworkProgress || {}).map(
     ([name, value]) => ({
       name,
       value,
       fill:
         name === "ISO 27001"
-          ? "#10b981"
+          ? chartPalette.secondary
           : name === "SOC 2"
-            ? "#3b82f6"
+            ? chartPalette.primary
             : name === "FedRAMP"
-              ? "#f59e0b"
-              : "#8b5cf6",
+              ? chartPalette.quaternary
+              : chartPalette.tertiary,
     })
   );
 
   const qualityDistribution = [
-    { range: "90-100", count: 8, fill: "#10b981" },
-    { range: "80-89", count: 15, fill: "#3b82f6" },
-    { range: "70-79", count: 12, fill: "#f59e0b" },
-    { range: "60-69", count: 5, fill: "#ef4444" },
-    { range: "<60", count: 2, fill: "#6b7280" },
+    { range: "90-100", count: 8, fill: chartPalette.secondary },
+    { range: "80-89", count: 15, fill: chartPalette.primary },
+    { range: "70-79", count: 12, fill: chartPalette.quaternary },
+    { range: "60-69", count: 5, fill: chartPalette.danger },
+    { range: "<60", count: 2, fill: chartPalette.muted },
   ];
 
   const aiUsageData = [
@@ -439,7 +449,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                     <Line
                       type="monotone"
                       dataKey="score"
-                      stroke="#3b82f6"
+                      stroke={chartPalette.primary}
                       strokeWidth={2}
                       name="Quality Score"
                     />
@@ -460,7 +470,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                     <XAxis dataKey="range" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="count" fill="#3b82f6" />
+                    <Bar dataKey="count" fill={chartPalette.primary} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -485,8 +495,8 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                     <Area
                       type="monotone"
                       dataKey="score"
-                      stroke="#f59e0b"
-                      fill="#fef3c7"
+                      stroke={chartPalette.quaternary}
+                      fill={chartPalette.warningSurface}
                       name="Risk Score"
                     />
                   </AreaChart>
@@ -590,7 +600,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                     <XAxis dataKey="feature" angle={-45} textAnchor="end" height={80} />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="usage" fill="#8b5cf6" />
+                    <Bar dataKey="usage" fill={chartPalette.tertiary} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
