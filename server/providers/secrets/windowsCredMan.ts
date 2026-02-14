@@ -55,6 +55,10 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
     await this.initPromise;
   }
 
+  private allowEnvironmentFallback(): boolean {
+    return process.env.ALLOW_ENV_SECRET_FALLBACK === 'true';
+  }
+
   async set(key: string, value: string): Promise<void> {
     await this.ensureInitialized();
 
@@ -79,6 +83,12 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
     await this.ensureInitialized();
 
     if (!this.isKeytarAvailable) {
+      if (!this.allowEnvironmentFallback()) {
+        logger.warn(
+          '[WindowsCredentialManagerProvider] Keytar unavailable and environment fallback disabled; secret access denied'
+        );
+        return null;
+      }
       // Fallback to environment variables for development/testing
       const envCandidates = [
         key.toUpperCase().replace(/-/g, '_'),

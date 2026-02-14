@@ -62,9 +62,16 @@ export class LocalFsStorageProvider implements IStorageProvider {
   private validatePath(requestedPath: string): boolean {
     const resolved = path.resolve(requestedPath);
     const base = path.resolve(this.basePath);
+    const normalizedResolved = process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+    const normalizedBase = process.platform === 'win32' ? base.toLowerCase() : base;
+    const relative = path.relative(normalizedBase, normalizedResolved);
 
-    // Ensure the resolved path is within basePath
-    return resolved.startsWith(base);
+    if (relative === '') {
+      return true;
+    }
+
+    // Ensure the resolved path is strictly within basePath.
+    return !relative.startsWith('..') && !path.isAbsolute(relative);
   }
 
   async save(

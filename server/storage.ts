@@ -66,6 +66,18 @@ import { db as maybeDb } from "./db";
 const db = maybeDb!;
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { computeAuditSignature } from "./utils/auditSignature";
+
+function buildAuditSignableData(log: Pick<AuditLog, "userId" | "organizationId" | "action" | "resourceType" | "resourceId" | "timestamp">): string {
+  const timestamp = log.timestamp ? new Date(log.timestamp).toISOString() : new Date(0).toISOString();
+  return JSON.stringify({
+    userId: log.userId,
+    orgId: log.organizationId,
+    action: log.action,
+    resource: `${log.resourceType}:${log.resourceId}`,
+    timestamp,
+  });
+}
 
 // Types for filtered queries
 export interface UserFilters {
@@ -239,6 +251,7 @@ export interface IStorage {
 
   // Audit operations
   createAuditEntry(entry: InsertAuditLog): Promise<AuditLog>;
+  getLatestAuditSignature(): Promise<string | null>;
   getAuditLogById(id: string, organizationId: string): Promise<AuditLog | null>;
   getAuditLogsByDateRange(startDate: Date, endDate: Date, organizationId?: string): Promise<AuditLog[]>;
   verifyAuditChain(limit: number): Promise<{ valid: boolean; failedId?: string; count: number }>;
@@ -1153,12 +1166,25 @@ export class MemStorage implements IStorage {
   // Audit operations
   async createAuditEntry(entry: InsertAuditLog): Promise<AuditLog> {
     const id = randomUUID();
+    const timestamp = entry.timestamp || new Date();
+    const previousSignature = entry.previousSignature ?? await this.getLatestAuditSignature();
+    const signature = entry.signature ?? computeAuditSignature(
+      buildAuditSignableData({
+        userId: entry.userId ?? null,
+        organizationId: entry.organizationId ?? null,
+        action: entry.action,
+        resourceType: entry.resourceType,
+        resourceId: entry.resourceId ?? null,
+        timestamp,
+      } as AuditLog),
+      previousSignature
+    );
     const newEntry: AuditLog = {
       ...entry,
       id,
-      timestamp: entry.timestamp || new Date(),
-      signature: entry.signature || null,
-      previousSignature: entry.previousSignature || null,
+      timestamp,
+      signature,
+      previousSignature,
       oldValues: entry.oldValues || null,
       newValues: entry.newValues || null,
       resourceId: entry.resourceId || null,
@@ -1178,6 +1204,13 @@ export class MemStorage implements IStorage {
     return null;
   }
 
+  async getLatestAuditSignature(): Promise<string | null> {
+    const latest = Array.from(this.auditLogsStore.values())
+      .sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0))
+      .at(0);
+    return latest?.signature ?? null;
+  }
+
   async getAuditLogsByDateRange(startDate: Date, endDate: Date, organizationId?: string): Promise<AuditLog[]> {
     return Array.from(this.auditLogsStore.values())
       .filter(l => (!organizationId || l.organizationId === organizationId))
@@ -1186,7 +1219,46 @@ export class MemStorage implements IStorage {
   }
 
   async verifyAuditChain(limit: number): Promise<{ valid: boolean; failedId?: string; count: number }> {
-    return { valid: true, count: Math.min(this.auditLogsStore.size, limit) };
+    const boundedLimit = Math.max(0, limit);
+    const logs = Array.from(this.auditLogsStore.values())
+      .sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0))
+      .slice(0, boundedLimit)
+      .sort((a, b) => (a.timestamp?.getTime() || 0) - (b.timestamp?.getTime() || 0));
+
+    if (logs.length === 0) {
+      return { valid: true, count: 0 };
+    }
+
+    let expectedPreviousSignature = logs[0].previousSignature ?? null;
+    for (const [index, log] of logs.entries()) {
+      const signature = log.signature ?? null;
+      if (!signature) {
+        const previousSignature = log.previousSignature ?? null;
+        if (previousSignature) {
+          return { valid: false, failedId: log.id, count: index + 1 };
+        }
+        // Legacy entries may not have signatures; treat as chain reset.
+        expectedPreviousSignature = null;
+        continue;
+      }
+
+      if ((log.previousSignature ?? null) !== expectedPreviousSignature) {
+        return { valid: false, failedId: log.id, count: index + 1 };
+      }
+
+      const expectedSignature = computeAuditSignature(
+        buildAuditSignableData(log),
+        expectedPreviousSignature
+      );
+
+      if (signature !== expectedSignature) {
+        return { valid: false, failedId: log.id, count: index + 1 };
+      }
+
+      expectedPreviousSignature = signature;
+    }
+
+    return { valid: true, count: logs.length };
   }
 
   async getAuditLogsDetailed(
@@ -2108,11 +2180,38 @@ export class DatabaseStorage implements IStorage {
 
   // Audit operations
   async createAuditEntry(entry: InsertAuditLog): Promise<AuditLog> {
+    const timestamp = entry.timestamp ?? new Date();
+    const previousSignature = entry.previousSignature ?? await this.getLatestAuditSignature();
+    const signature = entry.signature ?? computeAuditSignature(
+      buildAuditSignableData({
+        userId: entry.userId ?? null,
+        organizationId: entry.organizationId ?? null,
+        action: entry.action,
+        resourceType: entry.resourceType,
+        resourceId: entry.resourceId ?? null,
+        timestamp,
+      } as AuditLog),
+      previousSignature
+    );
     const [audit] = await db
       .insert(auditLogs)
-      .values(entry)
+      .values({
+        ...entry,
+        timestamp,
+        previousSignature,
+        signature,
+      })
       .returning();
     return audit;
+  }
+
+  async getLatestAuditSignature(): Promise<string | null> {
+    const [latest] = await db
+      .select({ signature: auditLogs.signature })
+      .from(auditLogs)
+      .orderBy(desc(auditLogs.timestamp))
+      .limit(1);
+    return latest?.signature ?? null;
   }
 
   async getAuditLogById(id: string, organizationId: string): Promise<AuditLog | null> {
@@ -2140,14 +2239,51 @@ export class DatabaseStorage implements IStorage {
   }
 
   async verifyAuditChain(limit: number): Promise<{ valid: boolean; failedId?: string; count: number }> {
-    // This is a placeholder for actual chaining verification logic
-    // which usually resides in a service but can be here too.
+    const boundedLimit = Math.max(0, limit);
     const logs = await db
       .select()
       .from(auditLogs)
       .orderBy(desc(auditLogs.timestamp))
-      .limit(limit);
-    return { valid: true, count: logs.length };
+      .limit(boundedLimit);
+
+    if (logs.length === 0) {
+      return { valid: true, count: 0 };
+    }
+
+    const orderedLogs = logs.slice().sort((a, b) =>
+      (a.timestamp?.getTime() || 0) - (b.timestamp?.getTime() || 0)
+    );
+
+    let expectedPreviousSignature = orderedLogs[0].previousSignature ?? null;
+    for (const [index, log] of orderedLogs.entries()) {
+      const signature = log.signature ?? null;
+      if (!signature) {
+        const previousSignature = log.previousSignature ?? null;
+        if (previousSignature) {
+          return { valid: false, failedId: log.id, count: index + 1 };
+        }
+        // Legacy entries may not have signatures; treat as chain reset.
+        expectedPreviousSignature = null;
+        continue;
+      }
+
+      if ((log.previousSignature ?? null) !== expectedPreviousSignature) {
+        return { valid: false, failedId: log.id, count: index + 1 };
+      }
+
+      const expectedSignature = computeAuditSignature(
+        buildAuditSignableData(log),
+        expectedPreviousSignature
+      );
+
+      if (signature !== expectedSignature) {
+        return { valid: false, failedId: log.id, count: index + 1 };
+      }
+
+      expectedPreviousSignature = signature;
+    }
+
+    return { valid: true, count: orderedLogs.length };
   }
 
   async getAuditLogsDetailed(

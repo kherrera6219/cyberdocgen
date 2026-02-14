@@ -7,6 +7,9 @@ import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 import { schemaMigrations } from '@shared/schema-migrations';
+import fs from 'fs';
+import path from 'path';
+import { getRuntimeConfig } from '../config/runtime';
 
 export interface DatabaseHealth {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -109,12 +112,43 @@ export class DatabaseHealthService {
 
   /**
    * Get latest migration version from code
-   * In a real implementation, this would read from migration files
    */
   private getLatestMigrationVersion(): number {
-    // TODO: Read from actual migration files directory
-    // For now, return current version
-    return 1;
+    try {
+      const runtimeConfig = getRuntimeConfig();
+      const configuredPath = runtimeConfig.database.migrationsPath;
+      const candidates = [
+        configuredPath ? path.resolve(configuredPath) : null,
+        path.resolve('server/migrations/postgres'),
+        path.resolve('server/migrations/sqlite'),
+        path.resolve('dist/migrations/postgres'),
+        path.resolve('dist/migrations/sqlite'),
+      ].filter((candidate): candidate is string => Boolean(candidate));
+
+      let latestVersion = 0;
+      for (const migrationsPath of candidates) {
+        if (!fs.existsSync(migrationsPath)) {
+          continue;
+        }
+
+        const versions = fs.readdirSync(migrationsPath)
+          .filter((file) => file.toLowerCase().endsWith('.sql'))
+          .map((file) => {
+            const match = file.match(/^(\d+)/);
+            return match ? Number(match[1]) : 0;
+          })
+          .filter((value) => Number.isFinite(value) && value > 0);
+
+        if (versions.length > 0) {
+          latestVersion = Math.max(latestVersion, ...versions);
+        }
+      }
+
+      return latestVersion;
+    } catch (error) {
+      logger.warn('Failed to resolve latest migration version from migration files', { error });
+      return 0;
+    }
   }
 
   /**

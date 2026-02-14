@@ -5,7 +5,8 @@
 
 import { Router } from 'express';
 import { databaseHealthService } from '../services/databaseHealthService';
-import { secureHandler, requireAuth } from '../utils/errorHandling';
+import { secureHandler } from '../utils/errorHandling';
+import { isAuthenticated } from '../replitAuth';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ const router = Router();
  */
 router.get(
   '/database',
-  requireAuth,
+  isAuthenticated,
   secureHandler(async (req, res) => {
     const health = await databaseHealthService.checkHealth();
     
@@ -32,7 +33,7 @@ router.get(
  */
 router.get(
   '/database/stats',
-  requireAuth,
+  isAuthenticated,
   secureHandler(async (req, res) => {
     const stats = await databaseHealthService.getDatabaseStats();
     
@@ -49,7 +50,7 @@ router.get(
  */
 router.post(
   '/database/verify',
-  requireAuth,
+  isAuthenticated,
   secureHandler(async (req, res) => {
     const result = await databaseHealthService.verifyIntegrity();
     
@@ -66,6 +67,7 @@ router.post(
  */
 router.post(
   '/metrics',
+  isAuthenticated,
   secureHandler(async (req, res) => {
     const { eventType, eventData } = req.body;
 

@@ -206,7 +206,7 @@ export class EnterpriseAuthService {
 
       return true;
     } catch (error: any) {
-      logger.error('Email verification failed', { token, error: error.message });
+      logger.error('Email verification failed', { error: error.message });
       throw new Error('Email verification failed');
     }
   }
@@ -325,7 +325,6 @@ export class EnterpriseAuthService {
       return true;
     } catch (error: any) {
       logger.error('Password reset confirmation failed', { 
-        token: request.token, 
         error: error.message 
       });
       throw new Error('Password reset confirmation failed');

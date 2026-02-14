@@ -38,10 +38,22 @@ const CSRF_EXEMPT_PATHS = [
   '/api/auth/enterprise/reset-password',
   '/api/auth/enterprise/verify-email',
   '/api/auth/enterprise/logout',
+  '/api/enterprise-auth/login',
+  '/api/enterprise-auth/signup',
+  '/api/enterprise-auth/forgot-password',
+  '/api/enterprise-auth/reset-password',
+  '/api/enterprise-auth/verify-email',
+  '/api/enterprise-auth/logout',
   '/api/auth/replit',
   '/api/auth/temp-login',
   '/api/auth/temp-logout'
 ];
+
+function isCsrfExemptPath(pathname: string): boolean {
+  return CSRF_EXEMPT_PATHS.some((exemptPath) =>
+    pathname === exemptPath || pathname.startsWith(`${exemptPath}/`)
+  );
+}
 
 // Generate cryptographically secure CSRF token
 export function generateCsrfToken(): string {
@@ -61,8 +73,19 @@ export function getOrCreateSessionCsrfToken(req: Request): string {
   return token;
 }
 export function csrfProtection(req: Request, res: Response, next: NextFunction) {
-  // Skip CSRF for test environment, static assets and Vite dev server
-  if (process.env.NODE_ENV === 'test' || req.path.startsWith('/@') || req.path.includes('.')) {
+  // Skip CSRF for test environment and non-API static asset requests.
+  const isStaticAssetRequest =
+    req.path.startsWith('/@')
+    || req.path.startsWith('/src/')
+    || req.path.startsWith('/assets/')
+    || req.path.startsWith('/node_modules/')
+    || (!req.path.startsWith('/api') && /\.[A-Za-z0-9]+$/.test(req.path));
+
+  if (process.env.NODE_ENV === 'test' || isStaticAssetRequest) {
+    return next();
+  }
+
+  if (isCsrfExemptPath(req.path)) {
     return next();
   }
 
@@ -333,6 +356,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   // Core security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
+  // Legacy header retained for compatibility with older clients/scanners.
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 

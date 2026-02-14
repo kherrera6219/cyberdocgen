@@ -14,19 +14,24 @@ export class AdobeIntegrationService {
   private accessToken?: string;
   private tokenExpiresAt?: Date;
 
+  private ensureEnabled(): void {
+    if (process.env.ADOBE_INTEGRATION_ENABLED !== 'true') {
+      throw new AppError('Adobe integration is not enabled', 503);
+    }
+  }
+
   /**
    * Get technical account token (JWT based)
    * This is a placeholder for actual Adobe IO authentication
    */
   private async getAccessToken(): Promise<string> {
+    this.ensureEnabled();
+
     if (this.accessToken && this.tokenExpiresAt && this.tokenExpiresAt > new Date()) {
       return this.accessToken;
     }
 
-    // In a real implementation, we would use adobe-jwt or similar to exchange 
-    // a private key for a token.
-    logger.info('Adobe access token requested (using placeholder)');
-    return 'adobe_placeholder_token';
+    throw new AppError('Adobe access token exchange is not configured for this deployment', 503);
   }
 
   /**
@@ -42,9 +47,11 @@ export class AdobeIntegrationService {
         recipient: request.recipientEmail 
       });
 
-      // return fake agreement ID
-      return `adobe-sign-${Math.random().toString(36).substring(7)}`;
+      throw new AppError('Adobe Sign request flow is not configured for this deployment', 503);
     } catch (error: any) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       logger.error('Adobe Sign request failed', { error: error.message });
       throw new AppError('Adobe Sign request failed', 500);
     }
@@ -58,9 +65,11 @@ export class AdobeIntegrationService {
       // In a real app, we'd send content to Adobe PDF Services
       logger.info('Adobe PDF Export initiated', { title });
       
-      // Returning empty buffer as placeholder
-      return Buffer.from('placeholder pdf content');
+      throw new AppError('Adobe PDF export is not configured for this deployment', 503);
     } catch (error: any) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       logger.error('Adobe PDF export failed', { error: error.message });
       throw new AppError('Adobe PDF export failed', 500);
     }

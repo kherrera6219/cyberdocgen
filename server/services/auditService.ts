@@ -4,6 +4,7 @@ import { storage } from '../storage';
 import { logger } from '../utils/logger';
 import { isLocalMode } from '../config/runtime';
 import { type AuditLog, type AuditActionType } from '@shared/schema';
+import { computeAuditSignature } from '../utils/auditSignature';
 
 export enum RiskLevel {
   LOW = 'low',
@@ -109,7 +110,7 @@ export class AuditService {
         timestamp: auditRecord.timestamp.toISOString()
       });
       
-      const signature = this.computeSignature(signableData, previousSignature);
+      const signature = computeAuditSignature(signableData, previousSignature);
 
       // Insert into database via storage
       await storage.createAuditEntry({
@@ -320,28 +321,11 @@ export class AuditService {
   }
 
   /**
-   * Compute HMAC signature for audit log chaining
-   */
-  private computeSignature(data: string, previousSignature: string | null): string {
-    const secret = process.env.AUDIT_LOG_SECRET || 'dev-audit-secret-key-32-chars-long';
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(data);
-    if (previousSignature) {
-      hmac.update(previousSignature);
-    }
-    return hmac.digest('hex');
-  }
-
-  /**
    * Get the most recent audit log signature
    */
   private async getLastSignature(): Promise<string | null> {
     try {
-      // This is a bit of a circular dependency if we use storage.getLastAuditSignature
-      // But we can implement a specific method in storage for this.
-      // For now, let's assume we can get it from storage.
-      const stats = await storage.getAuditLogsDetailed('any', { limit: 1 });
-      return stats.data[0]?.signature || null;
+      return await storage.getLatestAuditSignature();
     } catch {
       return null;
     }

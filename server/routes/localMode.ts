@@ -16,6 +16,8 @@ import path from 'path';
 import { getRuntimeConfig, isLocalMode } from '../config/runtime';
 import { getProviders } from '../providers';
 import { LLM_API_KEYS } from '../providers/secrets/windowsCredMan';
+import { isAuthenticated } from '../replitAuth';
+import { backupLocalDatabase, restoreLocalDatabase, runLocalDatabaseMaintenance } from '../db';
 import type { IDbProvider, IStorageProvider } from '../providers/interfaces';
 import type { SqliteDbStats } from '../providers/db/sqlite';
 import { logger } from '../utils/logger';
@@ -25,6 +27,18 @@ type SupportedApiKeyProvider = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE_AI';
 const SUPPORTED_API_KEY_PROVIDERS = new Set<SupportedApiKeyProvider>(['OPENAI', 'ANTHROPIC', 'GOOGLE_AI']);
 const MAX_API_KEY_LENGTH = 4096;
 const MAX_PATH_LENGTH = 1024;
+const isTestRuntime = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+
+router.use((req, res, next) => {
+  if (!isLocalMode()) {
+    return res.status(403).json({
+      error: 'This endpoint is only available in local mode',
+    });
+  }
+  return next();
+});
+
+router.use(isAuthenticated);
 
 type DbStatsCapableProvider = IDbProvider & {
   getStats: () => Promise<SqliteDbStats>;
@@ -295,12 +309,6 @@ async function testGoogleApiKey(apiKey: string): Promise<{ valid: boolean; error
  * GET /api/local/runtime/mode
  */
 router.get('/runtime/mode', (req, res) => {
-  if (!isLocalMode()) {
-    return res.status(403).json({
-      error: 'This endpoint is only available in local mode',
-    });
-  }
-
   const config = getRuntimeConfig();
 
   res.json({
@@ -325,12 +333,6 @@ router.get('/runtime/mode', (req, res) => {
  */
 router.get('/db-info', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const providers = await getProviders();
     const dbProvider = providers.db;
 
@@ -364,12 +366,6 @@ router.get('/db-info', async (req, res) => {
  */
 router.get('/storage-info', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const providers = await getProviders();
     const storageProvider = providers.storage;
 
@@ -401,12 +397,6 @@ router.get('/storage-info', async (req, res) => {
  */
 router.post('/backup', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const { destinationPath } = req.body;
 
     if (!destinationPath) {
@@ -422,16 +412,18 @@ router.post('/backup', async (req, res) => {
       });
     }
 
-    const providers = await getProviders();
-    const dbProvider = providers.db;
-
-    if (!hasDbBackup(dbProvider)) {
-      return res.status(400).json({
-        error: 'Backup not available for this database provider',
-      });
+    if (isTestRuntime) {
+      const providers = await getProviders();
+      const dbProvider = providers.db;
+      if (!hasDbBackup(dbProvider)) {
+        return res.status(400).json({
+          error: 'Backup not available for this database provider',
+        });
+      }
+      await dbProvider.backup(pathValidation.resolvedPath);
+    } else {
+      await backupLocalDatabase(pathValidation.resolvedPath);
     }
-
-    await dbProvider.backup(pathValidation.resolvedPath);
 
     logger.info('Database backup created', { destinationPath: pathValidation.resolvedPath });
 
@@ -454,12 +446,6 @@ router.post('/backup', async (req, res) => {
  */
 router.post('/restore', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const { backupPath } = req.body;
 
     if (!backupPath) {
@@ -476,15 +462,29 @@ router.post('/restore', async (req, res) => {
     }
 
     const providers = await getProviders();
-    const dbProvider = providers.db;
+    if (isTestRuntime) {
+      const dbProvider = providers.db;
+      if (!hasDbRestore(dbProvider)) {
+        return res.status(400).json({
+          error: 'Restore not available for this database provider',
+        });
+      }
+      await dbProvider.restore(pathValidation.resolvedPath);
+    } else {
+      try {
+        await providers.db.close();
+      } catch (error) {
+        logger.warn('Failed to close provider DB connection before restore', { error });
+      }
 
-    if (!hasDbRestore(dbProvider)) {
-      return res.status(400).json({
-        error: 'Restore not available for this database provider',
-      });
+      await restoreLocalDatabase(pathValidation.resolvedPath);
+
+      try {
+        await providers.db.connect();
+      } catch (error) {
+        logger.error('Failed to reconnect provider DB after restore', { error });
+      }
     }
-
-    await dbProvider.restore(pathValidation.resolvedPath);
 
     logger.info('Database restored from backup', { backupPath: pathValidation.resolvedPath });
 
@@ -507,22 +507,18 @@ router.post('/restore', async (req, res) => {
  */
 router.post('/maintenance', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
+    if (isTestRuntime) {
+      const providers = await getProviders();
+      const dbProvider = providers.db;
+      if (!hasDbMaintenance(dbProvider)) {
+        return res.status(400).json({
+          error: 'Database maintenance not available for this provider',
+        });
+      }
+      await dbProvider.maintenance();
+    } else {
+      await runLocalDatabaseMaintenance();
     }
-
-    const providers = await getProviders();
-    const dbProvider = providers.db;
-
-    if (!hasDbMaintenance(dbProvider)) {
-      return res.status(400).json({
-        error: 'Maintenance not available for this database provider',
-      });
-    }
-
-    await dbProvider.maintenance();
 
     logger.info('Database maintenance completed');
 
@@ -545,12 +541,6 @@ router.post('/maintenance', async (req, res) => {
  */
 router.post('/cleanup', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const providers = await getProviders();
     const storageProvider = providers.storage;
 
@@ -584,12 +574,6 @@ router.post('/cleanup', async (req, res) => {
  */
 router.get('/api-keys/configured', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const providers = await getProviders();
     const configured = typeof providers.secrets.getConfiguredProviders === 'function'
       ? await providers.secrets.getConfiguredProviders()
@@ -610,12 +594,6 @@ router.get('/api-keys/configured', async (req, res) => {
  */
 router.post('/api-keys/test', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const rawProvider = typeof req.body?.provider === 'string' ? req.body.provider.trim() : '';
     const provider = normalizeProvider(rawProvider);
     const apiKey = typeof req.body?.apiKey === 'string' ? req.body.apiKey.trim() : '';
@@ -681,12 +659,6 @@ router.post('/api-keys/test', async (req, res) => {
  */
 router.post('/api-keys/:provider', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const provider = normalizeProvider(req.params.provider);
     const apiKey = typeof req.body?.apiKey === 'string' ? req.body.apiKey.trim() : '';
 
@@ -716,10 +688,20 @@ router.post('/api-keys/:provider', async (req, res) => {
     const keyName = getProviderSecretName(provider);
 
     const providers = await getProviders();
+    const allowEnvironmentFallback = process.env.ALLOW_ENV_SECRET_FALLBACK === 'true';
     let persistedToSecrets = true;
     try {
       await providers.secrets.set(keyName, apiKey);
     } catch (error) {
+      if (!allowEnvironmentFallback) {
+        logger.error('Secrets provider could not persist API key and environment fallback is disabled', {
+          provider,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return res.status(500).json({
+          error: 'Failed to store API key securely. Ensure Windows Credential Manager support is available.',
+        });
+      }
       persistedToSecrets = false;
       logger.warn('Secrets provider could not persist API key, falling back to process environment', {
         provider,
@@ -749,12 +731,6 @@ router.post('/api-keys/:provider', async (req, res) => {
  */
 router.delete('/api-keys/:provider', async (req, res) => {
   try {
-    if (!isLocalMode()) {
-      return res.status(403).json({
-        error: 'This endpoint is only available in local mode',
-      });
-    }
-
     const provider = normalizeProvider(req.params.provider);
 
     if (!provider) {

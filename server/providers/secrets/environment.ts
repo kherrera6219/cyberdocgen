@@ -6,6 +6,7 @@
  */
 
 import type { ISecretsProvider } from '../interfaces';
+import { logger } from '../../utils/logger';
 
 export class EnvironmentSecretsProvider implements ISecretsProvider {
   // Common secret key patterns to detect
@@ -21,7 +22,7 @@ export class EnvironmentSecretsProvider implements ISecretsProvider {
   ];
   
   async set(key: string, value: string): Promise<void> {
-    console.warn(
+    logger.warn(
       `[EnvironmentSecretsProvider] Cannot set environment variables at runtime. ` +
       `Key "${key}" should be set via deployment configuration.`
     );
@@ -35,7 +36,7 @@ export class EnvironmentSecretsProvider implements ISecretsProvider {
     const value = envEntry?.[1];
     
     if (!value) {
-      console.debug(`[EnvironmentSecretsProvider] Key "${key}" not found`);
+      logger.debug(`[EnvironmentSecretsProvider] Key "${key}" not found`);
       return null;
     }
     
@@ -43,7 +44,7 @@ export class EnvironmentSecretsProvider implements ISecretsProvider {
   }
   
   async delete(key: string): Promise<void> {
-    console.warn(
+    logger.warn(
       `[EnvironmentSecretsProvider] Cannot delete environment variables at runtime. ` +
       `Key "${key}" should be removed via deployment configuration.`
     );

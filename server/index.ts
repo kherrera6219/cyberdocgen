@@ -113,7 +113,8 @@ const initializationPromise = (async () => {
   logRuntimeConfig();
 
   // Trust proxy for rate limiting, essential for cloud environments.
-  app.set('trust proxy', true);
+  const trustProxy = isLocalMode() ? false : 1;
+  app.set('trust proxy', trustProxy);
 
   app.get('/health', healthCheckHandler);
   app.get('/ready', readinessCheckHandler);

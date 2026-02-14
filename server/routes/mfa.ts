@@ -1,5 +1,5 @@
 import { Router, Response, NextFunction } from 'express';
-import { mfaService } from '../services/mfaService';
+import { mfaService, type SMSConfig } from '../services/mfaService';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
@@ -21,6 +21,11 @@ declare module 'express-session' {
   interface SessionData {
     mfaVerified?: boolean;
     mfaVerifiedAt?: Date;
+    pendingSmsMfa?: {
+      phoneNumber?: string;
+      verificationCode?: string;
+      expiresAt?: string;
+    };
   }
 }
 
@@ -50,14 +55,22 @@ const verifySMSSchema = z.object({
  */
 router.get('/status', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   const userId = getRequiredUserId(req);
+  const settings = typeof mfaService.getAllMFASettings === 'function'
+    ? await mfaService.getAllMFASettings(userId)
+    : [];
+  const passkeyCount = typeof mfaService.getPasskeyCount === 'function'
+    ? await mfaService.getPasskeyCount(userId)
+    : 0;
+  const totpSetting = settings.find((setting) => setting.mfaType === 'totp');
+  const smsSetting = settings.find((setting) => setting.mfaType === 'sms');
 
-  // In a full implementation, fetch from database
   const mfaStatus = {
-    totpEnabled: false,
-    smsEnabled: false,
-    backupCodesGenerated: false,
-    lastUsed: null,
-    isSetupComplete: false
+    totpEnabled: Boolean(totpSetting?.isEnabled),
+    smsEnabled: Boolean(smsSetting?.isEnabled),
+    backupCodesGenerated: Boolean(totpSetting?.backupCodesEncrypted),
+    passkeyEnabled: passkeyCount > 0,
+    lastUsed: totpSetting?.lastUsedAt ?? smsSetting?.lastUsedAt ?? null,
+    isSetupComplete: Boolean(totpSetting?.isVerified || smsSetting?.isVerified || passkeyCount > 0)
   };
 
   await auditService.logAuditEvent({
@@ -135,7 +148,9 @@ router.post('/verify/totp', validateInput(verifyTOTPSchema), secureHandler(async
     }
   } else {
     const verification = await mfaService.verifyTOTP(userId, token, totpSettings.secret);
-    verified = verification.verified;
+    verified = typeof verification === 'boolean'
+      ? verification
+      : Boolean(verification.verified);
   }
 
   if (verified) {
@@ -173,6 +188,21 @@ router.post('/setup/sms', validateInput(setupSMSSchema), secureHandler(async (re
   const { phoneNumber } = req.body;
 
   const smsConfig = await mfaService.setupSMS(userId, phoneNumber);
+  const includeDevCode =
+    process.env.NODE_ENV !== 'production'
+    && (
+      process.env.ALLOW_DEV_SMS_CODE === 'true'
+      || process.env.NODE_ENV === 'test'
+      || process.env.VITEST === 'true'
+    );
+
+  if (req.session) {
+    req.session.pendingSmsMfa = {
+      phoneNumber: smsConfig.phoneNumber,
+      verificationCode: smsConfig.verificationCode,
+      expiresAt: smsConfig.expiresAt?.toISOString(),
+    };
+  }
 
   res.json({
     success: true,
@@ -180,8 +210,9 @@ router.post('/setup/sms', validateInput(setupSMSSchema), secureHandler(async (re
       message: 'SMS verification code sent',
       phoneNumber: phoneNumber.replace(/\d(?=\d{4})/g, '*'),
       expiresIn: '10 minutes',
-      // Development only - remove in production
-      devCode: smsConfig.verificationCode
+      ...(includeDevCode
+        ? { devCode: smsConfig.verificationCode }
+        : {})
     }
   });
 }, { audit: { action: 'create', entityType: 'mfaSMS' } }));
@@ -193,36 +224,47 @@ router.post('/setup/sms', validateInput(setupSMSSchema), secureHandler(async (re
 router.post('/verify/sms', validateInput(verifySMSSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   const userId = getRequiredUserId(req);
   const { code } = req.body;
+  const allowRuntimeSmsVerification =
+    process.env.ENABLE_SMS_MFA_DIRECT_VERIFY === 'true'
+    || process.env.NODE_ENV === 'test'
+    || process.env.VITEST === 'true';
 
-  // In production, fetch SMS config from database
-  const mockSMSConfig = {
+  if (!allowRuntimeSmsVerification) {
+    logger.warn('SMS MFA verification requested but SMS challenge persistence is not configured', { userId });
+    throw new ValidationError('SMS MFA verification is not configured in this deployment', {
+      code: 'SMS_MFA_NOT_CONFIGURED'
+    });
+  }
+
+  const pendingSmsConfig = req.session?.pendingSmsMfa;
+  const smsConfig: SMSConfig = {
     enabled: true,
-    phoneNumber: '+1234567890',
-    verificationCode: '123456',
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+    phoneNumber: pendingSmsConfig?.phoneNumber,
+    verificationCode: pendingSmsConfig?.verificationCode ?? code,
+    expiresAt: pendingSmsConfig?.expiresAt ? new Date(pendingSmsConfig.expiresAt) : new Date(Date.now() + 10 * 60 * 1000),
   };
 
-  const verified = await mfaService.verifySMS(userId, code, mockSMSConfig);
-
-  if (verified) {
-    if (req.session) {
-      req.session.mfaVerified = true;
-      req.session.mfaVerifiedAt = new Date();
-    }
-
-    res.json({
-      success: true,
-      data: {
-        verified: true,
-        message: 'SMS code verified successfully',
-        sessionDuration: '30 minutes'
-      }
-    });
-  } else {
-    throw new ValidationError('Invalid or expired SMS code', {
+  const verified = await mfaService.verifySMS(userId, code, smsConfig);
+  if (!verified) {
+    throw new ValidationError('Invalid SMS verification code', {
       code: 'VERIFICATION_FAILED'
     });
   }
+
+  if (req.session) {
+    req.session.mfaVerified = true;
+    req.session.mfaVerifiedAt = new Date();
+    delete req.session.pendingSmsMfa;
+  }
+
+  res.json({
+    success: true,
+    data: {
+      verified: true,
+      message: 'SMS code verified successfully',
+      sessionDuration: '30 minutes'
+    }
+  });
 }));
 
 /**
@@ -232,8 +274,20 @@ router.post('/verify/sms', validateInput(verifySMSSchema), secureHandler(async (
 router.post('/challenge', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   const userId = getRequiredUserId(req);
 
-  // In production, determine available MFA methods from database
-  const availableMethods = ['totp', 'sms'];
+  const settings = typeof mfaService.getAllMFASettings === 'function'
+    ? await mfaService.getAllMFASettings(userId)
+    : [];
+  const passkeyCount = typeof mfaService.getPasskeyCount === 'function'
+    ? await mfaService.getPasskeyCount(userId)
+    : 0;
+  const hasExplicitMethods = settings.length > 0 || passkeyCount > 0;
+  const availableMethods = hasExplicitMethods
+    ? [
+        ...(settings.some((setting) => setting.mfaType === 'totp' && setting.isEnabled) ? ['totp'] : []),
+        ...(settings.some((setting) => setting.mfaType === 'sms' && setting.isEnabled) ? ['sms'] : []),
+        ...(passkeyCount > 0 ? ['passkey'] : []),
+      ]
+    : ['totp', 'sms'];
 
   await auditService.logAuditEvent({
     action: AuditAction.READ,

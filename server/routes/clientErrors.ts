@@ -16,6 +16,25 @@ const clientErrorSchema = z.object({
   url: z.string().optional().nullable(),
 });
 
+function truncate(value: string | null | undefined, maxLength: number): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+}
+
+function sanitizeUrl(rawUrl: string | null | undefined): string | undefined {
+  if (!rawUrl) {
+    return undefined;
+  }
+  try {
+    const parsed = new URL(rawUrl);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return truncate(rawUrl, 512);
+  }
+}
+
 export function registerClientErrorRoutes(router: Router) {
   /**
    * Report client-side error for logging
@@ -27,16 +46,21 @@ export function registerClientErrorRoutes(router: Router) {
     secureHandler(async (req: Request, res: Response) => {
       const userId = getUserId(req);
       const { message, stack, componentStack, errorId, timestamp, userAgent, url } = req.body;
+      const sanitizedMessage = truncate(message, 1000) || 'Unknown client error';
+      const sanitizedStack = truncate(stack, 4000);
+      const sanitizedComponentStack = truncate(componentStack, 2000);
+      const sanitizedUrl = sanitizeUrl(url);
+      const sanitizedUserAgent = truncate(userAgent, 512);
 
       logger.error('Client error report', {
         userId,
-        errorId,
-        message,
-        stack,
-        componentStack,
-        timestamp,
-        userAgent,
-        url,
+        errorId: truncate(errorId, 128),
+        message: sanitizedMessage,
+        stack: process.env.NODE_ENV === 'production' ? undefined : sanitizedStack,
+        componentStack: process.env.NODE_ENV === 'production' ? undefined : sanitizedComponentStack,
+        timestamp: truncate(timestamp, 128),
+        userAgent: sanitizedUserAgent,
+        url: sanitizedUrl,
         ip: req.ip,
       });
 

@@ -7,7 +7,7 @@
 
 import type { IDbProvider, IDbConnection, IDbTransaction } from '../interfaces';
 import { logger } from '../../utils/logger';
-import { db, testDatabaseConnection, closeDatabaseConnections } from '../../db';
+import { pool, testDatabaseConnection, closeDatabaseConnections } from '../../db';
 
 export class PostgresDbProvider implements IDbProvider {
   private connectionString: string;
@@ -15,18 +15,24 @@ export class PostgresDbProvider implements IDbProvider {
   constructor(connectionString: string) {
     this.connectionString = connectionString;
   }
+
+  private getPool() {
+    if (!pool) {
+      throw new Error('PostgreSQL pool is not initialized');
+    }
+    return pool;
+  }
   
   async connect(): Promise<IDbConnection> {
-    // Connection is managed by the singleton db instance from db.ts
-    logger.debug('[PostgresDbProvider] Connection handled by db.ts');
+    const pgPool = this.getPool();
+
     return {
       query: async <T>(sql: string, params?: any[]) => {
-        // This is a compatibility layer. Use the Drizzle ORM directly.
-        return db.query(sql, params);
+        const result = await pgPool.query(sql, params);
+        return result.rows as T[];
       },
       execute: async (sql: string, params?: any[]) => {
-        // This is a compatibility layer. Use the Drizzle ORM directly.
-        return db.execute(sql, params);
+        await pgPool.query(sql, params);
       },
       close: async () => {
         // Closing is handled globally by closeDatabaseConnections
@@ -40,13 +46,55 @@ export class PostgresDbProvider implements IDbProvider {
   }
   
   async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
-    // Delegate to existing Drizzle/Postgres setup
-    throw new Error('PostgresDbProvider.query() - Use Drizzle ORM directly');
+    const pgPool = this.getPool();
+    const result = await pgPool.query(sql, params);
+    return result.rows as T[];
   }
   
   async transaction<T>(callback: (tx: IDbTransaction) => Promise<T>): Promise<T> {
-    // Delegate to existing Drizzle transaction support
-    throw new Error('PostgresDbProvider.transaction() - Use db.transaction() from db.ts');
+    const pgPool = this.getPool();
+    const client = await pgPool.connect();
+    let completed = false;
+    try {
+      await client.query('BEGIN');
+
+      const tx: IDbTransaction = {
+        query: async <R = any>(sql: string, params?: any[]) => {
+          const result = await client.query(sql, params);
+          return result.rows as R[];
+        },
+        commit: async () => {
+          if (!completed) {
+            await client.query('COMMIT');
+            completed = true;
+          }
+        },
+        rollback: async () => {
+          if (!completed) {
+            await client.query('ROLLBACK');
+            completed = true;
+          }
+        },
+      };
+
+      const result = await callback(tx);
+      if (!completed) {
+        await client.query('COMMIT');
+        completed = true;
+      }
+      return result;
+    } catch (error) {
+      if (!completed) {
+        try {
+          await client.query('ROLLBACK');
+        } catch {
+          // Ignore rollback failures if transaction is already closed.
+        }
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
   }
   
   async healthCheck(): Promise<boolean> {

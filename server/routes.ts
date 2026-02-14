@@ -610,6 +610,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Note: Rate limiting applied at individual route level in enterpriseAuth.ts
   const { default: enterpriseAuthRoutes } = await import('./routes/enterpriseAuth');
   app.use('/api/auth/enterprise', enterpriseAuthRoutes);
+  // Backward compatibility alias for legacy clients/tests.
+  app.use('/api/enterprise-auth', enterpriseAuthRoutes);
 
   // Microsoft Entra ID (OIDC/PKCE) Routes - Enterprise requirement from Spec-001
   const { default: microsoftAuthRoutes } = await import('./routes/microsoftAuth');

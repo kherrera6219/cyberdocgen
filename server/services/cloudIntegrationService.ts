@@ -22,6 +22,7 @@ import { circuitBreakers } from '../utils/circuitBreaker';
 import { 
   AppError, 
   NotFoundError, 
+  ForbiddenError,
   BadGatewayError,
   ServiceUnavailableError 
 } from '../utils/errorHandling';
@@ -76,7 +77,7 @@ export class CloudIntegrationService {
   /**
    * Get Google Auth URL
    */
-  async getGoogleAuthUrl(redirectUri: string): Promise<string> {
+  async getGoogleAuthUrl(redirectUri: string, state?: string): Promise<string> {
     const credentials = await systemConfigService.getOAuthCredentials('google');
     if (!credentials) {
       throw new ServiceUnavailableError('Google OAuth credentials not configured');
@@ -90,6 +91,7 @@ export class CloudIntegrationService {
 
     return oauth2Client.generateAuthUrl({
       access_type: 'offline',
+      ...(state ? { state } : {}),
       scope: [
         'https://www.googleapis.com/auth/drive.readonly',
         'https://www.googleapis.com/auth/userinfo.profile',
@@ -146,7 +148,7 @@ export class CloudIntegrationService {
   /**
    * Get Microsoft Auth URL
    */
-  async getMicrosoftAuthUrl(redirectUri: string): Promise<string> {
+  async getMicrosoftAuthUrl(redirectUri: string, state?: string): Promise<string> {
     const credentials = await systemConfigService.getOAuthCredentials('microsoft');
     if (!credentials) {
       throw new ServiceUnavailableError('Microsoft OAuth credentials not configured');
@@ -154,8 +156,9 @@ export class CloudIntegrationService {
 
     const tenant = 'common'; // Use common for multi-tenant delegated access
     const scope = encodeURIComponent('offline_access Files.Read User.Read');
+    const encodedState = encodeURIComponent(state || 'onedrive');
     
-    return `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?client_id=${credentials.clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&response_mode=query&scope=${scope}&state=onedrive`;
+    return `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?client_id=${credentials.clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&response_mode=query&scope=${scope}&state=${encodedState}`;
   }
 
   /**
@@ -288,7 +291,11 @@ export class CloudIntegrationService {
   /**
    * Sync files from cloud provider
    */
-  async syncFiles(integrationId: string): Promise<{ synced: number; errors: number }> {
+  async syncFiles(
+    integrationId: string,
+    expectedUserId?: string,
+    expectedOrganizationId?: string
+  ): Promise<{ synced: number; errors: number }> {
     try {
       const integration = await db.query.cloudIntegrations.findFirst({
         where: eq(cloudIntegrations.id, integrationId),
@@ -296,6 +303,13 @@ export class CloudIntegrationService {
 
       if (!integration || !integration.isActive) {
         throw new NotFoundError('Cloud integration not found or inactive');
+      }
+
+      if (expectedUserId && integration.userId !== expectedUserId) {
+        throw new ForbiddenError('Cloud integration does not belong to the authenticated user');
+      }
+      if (expectedOrganizationId && integration.organizationId !== expectedOrganizationId) {
+        throw new ForbiddenError('Cloud integration is outside the active organization scope');
       }
 
       // Decrypt access token
@@ -519,7 +533,8 @@ export class CloudIntegrationService {
   async applyPDFSecurity(
     fileId: string,
     securityOptions: FileSecurityOptions,
-    userId: string
+    userId: string,
+    organizationId: string
   ): Promise<boolean> {
     try {
       const file = await db.query.cloudFiles.findFirst({
@@ -528,6 +543,10 @@ export class CloudIntegrationService {
 
       if (!file || file.fileType !== 'pdf') {
         throw new NotFoundError('File not found or not a PDF');
+      }
+
+      if (file.organizationId !== organizationId) {
+        throw new ForbiddenError('File is outside the active organization scope');
       }
 
       // Update file security settings

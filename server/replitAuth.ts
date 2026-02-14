@@ -3,6 +3,7 @@ import { Strategy, type VerifyFunction } from "openid-client/passport";
 
 import passport from "passport";
 import session from "express-session";
+import crypto from "crypto";
 import type { Express, Request, Response, NextFunction, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
@@ -45,12 +46,25 @@ import createMemoryStore from "memorystore";
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const isProduction = process.env.NODE_ENV === 'production';
-  const isLocalMode = process.env.DEPLOYMENT_MODE === 'local';
+  const isTestMode = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+  const localMode = process.env.DEPLOYMENT_MODE === 'local';
+  const configuredSessionSecret = process.env.SESSION_SECRET?.trim();
+  const hasConfiguredSecret = Boolean(configuredSessionSecret);
+  const hasStrongConfiguredSecret =
+    typeof configuredSessionSecret === 'string'
+    && configuredSessionSecret.trim().length >= 32;
+  const ephemeralSessionSecret = crypto.randomBytes(48).toString('hex');
 
-  if (isLocalMode) {
+  if (localMode) {
+    const sessionSecret = hasConfiguredSecret ? configuredSessionSecret! : 'local-secret';
+    if (!hasConfiguredSecret) {
+      logger.warn('SESSION_SECRET not configured in local mode; using local development fallback secret');
+    } else if (!hasStrongConfiguredSecret) {
+      logger.warn('SESSION_SECRET is weak in local mode; use at least 32 characters');
+    }
     const MemoryStore = createMemoryStore(session);
     return session({
-      secret: process.env.SESSION_SECRET || 'local-secret',
+      secret: sessionSecret,
       store: new MemoryStore({
         checkPeriod: 86400000 // prune expired entries every 24h
       }),
@@ -65,6 +79,18 @@ export function getSession() {
     });
   }
 
+  if (!hasConfiguredSecret) {
+    if (isProduction && !isTestMode) {
+      throw new Error('SESSION_SECRET must be set outside local mode');
+    }
+    logger.warn('SESSION_SECRET missing in non-production mode; using development fallback secret');
+  } else if (!hasStrongConfiguredSecret && isProduction && !isTestMode) {
+    logger.warn('SESSION_SECRET is weak in production; use at least 32 characters');
+  }
+  const cloudSessionSecret = hasConfiguredSecret
+    ? configuredSessionSecret!
+    : (isTestMode || !isProduction ? 'local-secret' : ephemeralSessionSecret);
+
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
@@ -74,7 +100,7 @@ export function getSession() {
   });
   
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: cloudSessionSecret,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -351,10 +377,17 @@ export function requireAuditor(): RequestHandler {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   try {
-    // MVP Development Mode: Auto-authenticate as admin user
-    // This bypasses login for faster development iteration
-    // SECURITY: This is ONLY enabled in development mode, NOT in test or production
-    if (process.env.NODE_ENV === 'development') {
+    // MVP Development Mode: Auto-authenticate as admin user for local iteration.
+    // Disable with ENABLE_DEV_ADMIN_BYPASS=false.
+    const devBypassEnabled =
+      process.env.NODE_ENV === 'development'
+      && process.env.ENABLE_DEV_ADMIN_BYPASS !== 'false';
+    if (devBypassEnabled) {
+      const normalizedIp = resolveRequestRemoteIp(req);
+      if (normalizedIp.length > 0 && !isLoopbackAddress(normalizedIp)) {
+        logger.warn('Blocked non-loopback request in development admin bypass', { ip: normalizedIp });
+        return next(new UnauthorizedError("Development admin bypass only accepts loopback requests"));
+      }
       const session = req.session as any;
       
       // If no session userId, set up dev admin user

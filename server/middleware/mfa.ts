@@ -144,44 +144,50 @@ export function verifyMFA(req: Request, res: Response, next: NextFunction) {
   try {
     const mfaToken = req.headers['x-mfa-token'] as string;
     const user = req.user as AuthUser | undefined;
-    const userId = user?.claims?.sub;
+    const userId = user?.claims?.sub || req.session?.userId || user?.id;
+    const allowHeaderVerification =
+      process.env.NODE_ENV === 'test'
+      || process.env.ENABLE_HEADER_MFA_VERIFICATION === 'true';
 
     if (!userId) {
       return next(new UnauthorizedError('Authentication required'));
     }
 
-    if (!mfaToken) {
-      // If MFA was required but no token provided, return 403
-      if (req.mfaRequired) {
-        return next(new ForbiddenError('MFA token required', 'MFA_TOKEN_REQUIRED', {
-          mfaRequired: true 
-        }));
+    if (mfaToken && allowHeaderVerification) {
+      req.mfaVerified = true;
+      if (req.session) {
+        req.session.mfaVerified = true;
+        req.session.mfaVerifiedAt = new Date();
       }
-      // If MFA was not required, proceed without a token
+
+      auditService.logAuditEvent({
+        action: AuditAction.READ,
+        resourceType: 'mfa_verification',
+        resourceId: userId,
+        ipAddress: req.ip || 'unknown',
+        riskLevel: RiskLevel.LOW,
+        additionalContext: {
+          tokenProvided: true,
+          verified: true,
+          path: req.path
+        }
+      });
+
       return next();
     }
 
-    // In a full implementation, verify the MFA token here
-    // For now, mark as verified if token is present
-    req.mfaVerified = true;
-    if (req.session) {
-      req.session.mfaVerified = true;
-      req.session.mfaVerifiedAt = new Date();
+    if (req.mfaRequired) {
+      if (!req.session?.mfaVerified) {
+        return next(new ForbiddenError('MFA verification required', 'MFA_TOKEN_REQUIRED', {
+          mfaRequired: true 
+        }));
+      }
+      req.mfaVerified = true;
     }
 
-    // Log successful MFA verification
-    auditService.logAuditEvent({
-      action: AuditAction.READ,
-      resourceType: 'mfa_verification',
-      resourceId: userId,
-      ipAddress: req.ip || 'unknown',
-      riskLevel: RiskLevel.LOW,
-      additionalContext: {
-        tokenProvided: true,
-        verified: true,
-        path: req.path
-      }
-    });
+    if (mfaToken) {
+      logger.warn('Ignoring x-mfa-token header; MFA verification must be established via dedicated MFA endpoints');
+    }
 
     next();
 

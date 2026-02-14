@@ -2,7 +2,7 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import * as schema from "@shared/schema";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
 import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import BetterSqlite3, { type Database as BetterSqliteDatabase } from "better-sqlite3";
 import ws from "ws";
 import path from "path";
 import fs from "fs";
@@ -15,6 +15,9 @@ const isLocalMode = runtimeIsLocalMode();
 
 let pool: Pool | null = null;
 let db: any = null;
+let localSqlite: BetterSqliteDatabase | null = null;
+let localDbPath: string | null = null;
+let localDatabaseOperationQueue: Promise<void> = Promise.resolve();
 
 function getLocalDataPath(): string {
   const runtimeConfig = getRuntimeConfig();
@@ -65,17 +68,39 @@ function ensureLocalSqliteDatabaseExists(dbPath: string): void {
   logger.info(`Seeded local SQLite database from template: ${templatePath}`);
 }
 
+function configureLocalSqliteConnection(sqlite: BetterSqliteDatabase): void {
+  sqlite.pragma('journal_mode = WAL');
+  sqlite.pragma('synchronous = NORMAL');
+  sqlite.pragma('foreign_keys = ON');
+}
+
+function initializeLocalSqliteConnection(): void {
+  const dataPath = getLocalDataPath();
+  if (!fs.existsSync(dataPath)) {
+    fs.mkdirSync(dataPath, { recursive: true });
+  }
+  const dbPath = path.join(dataPath, 'cyberdocgen.db');
+  ensureLocalSqliteDatabaseExists(dbPath);
+  logger.info(`Initializing SQLite Drizzle at ${dbPath}`);
+  const sqlite = new BetterSqlite3(dbPath);
+  configureLocalSqliteConnection(sqlite);
+  localSqlite = sqlite;
+  localDbPath = dbPath;
+  db = drizzleSqlite(sqlite, { schema });
+}
+
+async function queueLocalDatabaseOperation<T>(operation: () => Promise<T>): Promise<T> {
+  const run = localDatabaseOperationQueue.then(operation, operation);
+  localDatabaseOperationQueue = run.then(
+    () => undefined,
+    () => undefined
+  );
+  return run;
+}
+
 if (isLocalMode) {
   try {
-    const dataPath = getLocalDataPath();
-    if (!fs.existsSync(dataPath)) {
-      fs.mkdirSync(dataPath, { recursive: true });
-    }
-    const dbPath = path.join(dataPath, 'cyberdocgen.db');
-    ensureLocalSqliteDatabaseExists(dbPath);
-    logger.info(`Initializing SQLite Drizzle at ${dbPath}`);
-    const sqlite = new Database(dbPath);
-    db = drizzleSqlite(sqlite, { schema });
+    initializeLocalSqliteConnection();
   } catch (error) {
     logger.error("Failed to initialize SQLite", { error });
   }
@@ -118,19 +143,12 @@ export function getDb() {
     // Attempt lazy initialization if null
     logger.warn("Database not initialized. Attempting lazy initialization...");
     if (isLocalMode) {
-        try {
-            const dataPath = getLocalDataPath();
-            if (!fs.existsSync(dataPath)) {
-              fs.mkdirSync(dataPath, { recursive: true });
-            }
-            const dbPath = path.join(dataPath, 'cyberdocgen.db');
-            ensureLocalSqliteDatabaseExists(dbPath);
-            const sqlite = new Database(dbPath);
-            db = drizzleSqlite(sqlite, { schema });
-            return db;
-        } catch (error) {
-            throw new Error("Failed to lazily initialize SQLite: " + error);
-        }
+      try {
+        initializeLocalSqliteConnection();
+        return db;
+      } catch (error) {
+        throw new Error("Failed to lazily initialize SQLite: " + error);
+      }
     }
     throw new Error("Database not initialized. Ensure connect() is called first.");
   }
@@ -215,16 +233,113 @@ export async function executeWithRetry<T>(
  */
 export async function closeDatabaseConnections(): Promise<void> {
   if (!pool) {
-    // In local mode, providers handle database connection closing
+    if (localSqlite && localSqlite.open) {
+      localSqlite.close();
+      localSqlite = null;
+      db = null;
+      logger.info("SQLite connection closed gracefully");
+    }
     return;
   }
 
   try {
     await pool.end();
+    pool = null;
     logger.info("Database connections closed gracefully");
   } catch (error) {
     logger.error("Error closing database connections", {
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }
+}
+
+export function getLocalDatabasePath(): string {
+  if (!isLocalMode) {
+    throw new Error('Local database path is only available in local mode');
+  }
+  if (localDbPath) {
+    return localDbPath;
+  }
+  const dataPath = getLocalDataPath();
+  return path.join(dataPath, 'cyberdocgen.db');
+}
+
+export async function backupLocalDatabase(destinationPath: string): Promise<string> {
+  if (!isLocalMode) {
+    throw new Error('Local database backup is only available in local mode');
+  }
+
+  return queueLocalDatabaseOperation(async () => {
+    const resolvedDestination = path.resolve(destinationPath);
+    const destinationDir = path.dirname(resolvedDestination);
+    if (!fs.existsSync(destinationDir)) {
+      fs.mkdirSync(destinationDir, { recursive: true });
+    }
+
+    if (localSqlite && localSqlite.open) {
+      await localSqlite.backup(resolvedDestination);
+    } else {
+      const sourcePath = getLocalDatabasePath();
+      if (!fs.existsSync(sourcePath)) {
+        throw new Error(`Local database file not found at ${sourcePath}`);
+      }
+      fs.copyFileSync(sourcePath, resolvedDestination);
+    }
+
+    logger.info('Local database backup completed', { destinationPath: resolvedDestination });
+    return resolvedDestination;
+  });
+}
+
+export async function restoreLocalDatabase(sourcePath: string): Promise<void> {
+  if (!isLocalMode) {
+    throw new Error('Local database restore is only available in local mode');
+  }
+
+  await queueLocalDatabaseOperation(async () => {
+    const resolvedSourcePath = path.resolve(sourcePath);
+    if (!fs.existsSync(resolvedSourcePath)) {
+      throw new Error(`Backup file does not exist: ${resolvedSourcePath}`);
+    }
+
+    const targetPath = getLocalDatabasePath();
+
+    if (localSqlite && localSqlite.open) {
+      localSqlite.close();
+      localSqlite = null;
+    }
+    db = null;
+
+    const dbDir = path.dirname(targetPath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+
+    fs.copyFileSync(resolvedSourcePath, targetPath);
+
+    const walPath = `${targetPath}-wal`;
+    const shmPath = `${targetPath}-shm`;
+    if (fs.existsSync(walPath)) fs.unlinkSync(walPath);
+    if (fs.existsSync(shmPath)) fs.unlinkSync(shmPath);
+
+    initializeLocalSqliteConnection();
+    logger.info('Local database restore completed', { sourcePath: resolvedSourcePath, targetPath });
+  });
+}
+
+export async function runLocalDatabaseMaintenance(): Promise<void> {
+  if (!isLocalMode) {
+    throw new Error('Local database maintenance is only available in local mode');
+  }
+
+  await queueLocalDatabaseOperation(async () => {
+    if (!localSqlite || !localSqlite.open) {
+      initializeLocalSqliteConnection();
+    }
+
+    localSqlite!.exec('PRAGMA wal_checkpoint(TRUNCATE);');
+    localSqlite!.exec('VACUUM;');
+    localSqlite!.exec('ANALYZE;');
+    logger.info('Local database maintenance completed');
+  });
 }

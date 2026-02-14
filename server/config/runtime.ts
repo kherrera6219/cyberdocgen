@@ -236,15 +236,13 @@ export function _resetRuntimeConfig(): void {
  */
 export function logRuntimeConfig(): void {
   const config = getRuntimeConfig();
-  
-  console.log('='.repeat(60));
-  console.log('CyberDocGen Runtime Configuration');
-  console.log('='.repeat(60));
-  console.log(`Deployment Mode: ${config.mode.toUpperCase()}`);
-  console.log(`Server: ${config.server.host}:${config.server.port}`);
-  console.log(`Database: ${config.database.type}`);
-  console.log(`Storage: ${config.storage.type}`);
-  console.log(`Auth: ${config.auth.enabled ? config.auth.provider : 'disabled'}`);
-  console.log(`Features: ${JSON.stringify(config.features, null, 2)}`);
-  console.log('='.repeat(60));
+
+  logger.info('Runtime configuration', {
+    deploymentMode: config.mode,
+    server: `${config.server.host}:${config.server.port}`,
+    database: config.database.type,
+    storage: config.storage.type,
+    auth: config.auth.enabled ? config.auth.provider : 'disabled',
+    features: config.features,
+  });
 }
