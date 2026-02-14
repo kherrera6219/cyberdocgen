@@ -82,6 +82,12 @@ async function validateWACK() {
 
     if (hasNsisTarget) {
       logger.info('✓ NSIS target configured (desktop installer path)');
+      const forceCodeSigningEnabled = hasYamlBoolean(configLower, 'forcecodesigning', true);
+      const hasCodeSigningMaterial = Boolean(
+        process.env.CSC_LINK
+        || process.env.WIN_CSC_LINK
+        || process.env.CSC_NAME
+      );
 
       const nsisChecks: Array<{ ok: boolean; pass: string; fail: string }> = [
         {
@@ -164,7 +170,8 @@ async function validateWACK() {
           {
             ok:
               installerScript.includes('do you want to completely remove all cyberdocgen application data') &&
-              installerScript.includes('rmdir /r "$appdata\\cyberdocgen"'),
+              installerScript.includes('rmdir /r "$appdata\\cyberdocgen"') &&
+              installerScript.includes('rmdir /r "$localappdata\\cyberdocgen"'),
             pass: '✓ Uninstall data retention/removal prompt present',
             fail: '✗ Missing data retention/removal logic in uninstall flow',
           },
@@ -181,6 +188,17 @@ async function validateWACK() {
       } else {
         logger.error('✗ Missing build/installer.nsh custom NSIS script');
         errors++;
+      }
+
+      if (process.env.RELEASE_BUILD === 'true') {
+        if (forceCodeSigningEnabled || hasCodeSigningMaterial) {
+          logger.info('✓ Release validation: code-signing enforcement/material is configured');
+        } else {
+          logger.error('✗ Release validation: forceCodeSigning must be true or signing credentials must be provided when RELEASE_BUILD=true');
+          errors++;
+        }
+      } else if (!forceCodeSigningEnabled) {
+        logger.warn('! forceCodeSigning is disabled (acceptable for local/dev builds, not for signed releases)');
       }
     }
 

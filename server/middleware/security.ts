@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { logger } from "../utils/logger";
 import { performanceService } from '../services/performanceService';
 import { threatDetectionService } from '../services/threatDetectionService';
+import { isLocalMode } from '../config/runtime';
 import { 
   ForbiddenError, 
   UnauthorizedError, 
@@ -162,6 +163,15 @@ export const generalLimiter = rateLimit({
   legacyHeaders: true,
   keyGenerator: getRateLimitKey,
   validate: false,
+  // E2E and Vite dev asset loading generate high request fan-out.
+  // Skip limiter for test mode and non-API/static asset requests.
+  skip: (req) =>
+    process.env.NODE_ENV === 'test'
+    || req.path.startsWith('/@')
+    || req.path.startsWith('/src/')
+    || req.path.startsWith('/assets/')
+    || req.path.startsWith('/node_modules/')
+    || req.path.includes('.'),
   handler: (req: Request, res: Response, next: NextFunction) => {
     logger.warn('Rate limit exceeded', {
       ip: req.ip,
@@ -602,17 +612,33 @@ export function requireMFA(req: Request, res: Response, next: NextFunction) {
 // High-risk operation middleware
 export function requireMFAForHighRisk(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
+  if (isLocalMode()) {
+    return next();
+  }
+
+  const normalizedPath = req.path.startsWith('/api')
+    ? req.path.slice('/api'.length)
+    : req.path;
   const highRiskOperations = [
-    '/api/documents/generate',
-    '/api/company-profile',
-    '/api/organizations',
-    '/api/admin'
+    '/documents/generate',
+    '/company-profile',
+    '/organizations',
+    '/admin'
   ];
+  const isHighRisk = highRiskOperations.some(path => normalizedPath.startsWith(path));
 
-  const isHighRisk = highRiskOperations.some(path => req.path.startsWith(path));
+  // Let downstream auth middleware handle unauthenticated requests with 401.
+  if (!isHighRisk || !user) {
+    return next();
+  }
 
-  if (isHighRisk && (!user?.mfaVerified || 
-      (Date.now() - user.mfaVerifiedAt) > 30 * 60 * 1000)) { // 30 minutes
+  const mfaVerifiedAt = user.mfaVerifiedAt ? Date.parse(String(user.mfaVerifiedAt)) : NaN;
+  const hasRecentMfa =
+    user.mfaVerified === true
+    && Number.isFinite(mfaVerifiedAt)
+    && (Date.now() - mfaVerifiedAt) <= 30 * 60 * 1000;
+
+  if (!hasRecentMfa) {
     return res.status(403).json({
       success: false,
       error: {

@@ -60,6 +60,8 @@ export default [js.configs.recommended, {
     '.local/**',
     '.upm/**',
     'development-archive/**',
+    'test-results/**',
+    'playwright-report/**',
     'client/public/sw.js',
     'client/src/stories/**',
     '.storybook/**'

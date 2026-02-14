@@ -102,6 +102,10 @@ export function registerGenerationRoutes(router: Router) {
           );
           
           for (const result of results) {
+            if (result.model === 'blocked') {
+              throw new Error('AI safety checks blocked document generation output');
+            }
+
             const doc = await storage.createDocument({
               companyProfileId: companyProfile.id,
               createdBy: userId,

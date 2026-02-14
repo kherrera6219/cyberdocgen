@@ -12,6 +12,7 @@
 import type { Request } from 'express';
 import type { IAuthProvider, AuthContext, User, Tenant } from '../interfaces';
 import { logger } from '../../utils/logger';
+import { isLocalMode } from '../../config/runtime';
 
 /**
  * Synthetic user for local mode
@@ -32,6 +33,25 @@ const LOCAL_TENANT: Tenant = {
   id: '1',
   name: 'Local Workspace',
 };
+
+function normalizeRemoteIp(raw: string): string {
+  return raw.startsWith('::ffff:') ? raw.slice(7) : raw;
+}
+
+function isLoopbackAddress(ip: string): boolean {
+  return (
+    ip === '127.0.0.1'
+    || ip === '::1'
+    || ip === 'localhost'
+    || ip.startsWith('127.')
+  );
+}
+
+function resolveRequestRemoteIp(req: Request): string {
+  const socketIp = typeof req.socket?.remoteAddress === 'string' ? req.socket.remoteAddress : '';
+  const fallbackIp = typeof (req as any).ip === 'string' ? (req as any).ip : '';
+  return normalizeRemoteIp(String(socketIp || fallbackIp).trim());
+}
 
 export class LocalAuthBypassProvider implements IAuthProvider {
   
@@ -63,9 +83,44 @@ export function localAuthBypassMiddleware(
   res: any,
   next: () => void
 ): void {
+  if (!isLocalMode()) {
+    logger.warn('[LocalAuthBypassProvider] Blocked local bypass outside local mode');
+    res.status(403).json({ message: 'Local auth bypass is only available in local mode' });
+    return;
+  }
+
+  const normalizedIp = resolveRequestRemoteIp(req);
+  const allowMissingIp = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+  if (normalizedIp.length === 0 && !allowMissingIp) {
+    logger.warn('[LocalAuthBypassProvider] Blocked request with missing remote address');
+    res.status(403).json({ message: 'Local auth bypass requires a loopback remote address' });
+    return;
+  }
+
+  if (normalizedIp.length > 0 && !isLoopbackAddress(normalizedIp)) {
+    logger.warn('[LocalAuthBypassProvider] Blocked non-loopback local bypass request', { ip: normalizedIp });
+    res.status(403).json({ message: 'Local auth bypass only accepts loopback requests' });
+    return;
+  }
+
+  const syntheticUser = {
+    ...LOCAL_ADMIN_USER,
+    claims: {
+      sub: LOCAL_ADMIN_USER.id,
+      email: LOCAL_ADMIN_USER.email,
+    },
+  };
+
   // Inject synthetic user into request
-  (req as any).user = LOCAL_ADMIN_USER;
+  (req as any).user = syntheticUser;
   (req as any).tenant = LOCAL_TENANT;
+
+  // Populate session for middleware/utilities that rely on session-based identity.
+  const session = (req as any).session;
+  if (session) {
+    session.userId = LOCAL_ADMIN_USER.id;
+    session.organizationId = LOCAL_ADMIN_USER.organizationId;
+  }
   
   // Also set on req.isAuthenticated for Passport compatibility
   (req as any).isAuthenticated = () => true;

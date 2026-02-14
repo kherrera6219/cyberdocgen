@@ -173,6 +173,10 @@ async function startServer() {
     if (fs.existsSync(packagedMigrationsPath)) {
       serverEnv.LOCAL_MIGRATIONS_PATH = packagedMigrationsPath;
     }
+    const packagedTemplateDbPath = path.join(app.getAppPath(), 'local-data', 'cyberdocgen.db');
+    if (fs.existsSync(packagedTemplateDbPath)) {
+      serverEnv.LOCAL_TEMPLATE_DB_PATH = packagedTemplateDbPath;
+    }
 
     startupLogger.info('Environment variables for server', {
       PORT: serverEnv.PORT,
@@ -181,6 +185,7 @@ async function startServer() {
       DEPLOYMENT_MODE: serverEnv.DEPLOYMENT_MODE,
       LOCAL_DATA_PATH: serverEnv.LOCAL_DATA_PATH,
       LOCAL_MIGRATIONS_PATH: serverEnv.LOCAL_MIGRATIONS_PATH || '(not configured)',
+      LOCAL_TEMPLATE_DB_PATH: serverEnv.LOCAL_TEMPLATE_DB_PATH || '(not configured)',
     });
 
     // Fork the server process using utilityProcess
@@ -309,7 +314,7 @@ function createWindow() {
           "default-src 'self'; " +
           "script-src 'self' 'unsafe-inline'; " +
           "style-src 'self' 'unsafe-inline'; " +
-          "connect-src 'self' http://127.0.0.1:5231; " +
+          `connect-src 'self' http://127.0.0.1:${currentServerPort}; ` +
           "img-src 'self' data: file:; " +
           "font-src 'self' data:;"
         ]

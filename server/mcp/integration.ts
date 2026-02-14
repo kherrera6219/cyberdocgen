@@ -20,12 +20,20 @@ export async function processChatMessage(
     const sessionId = context.sessionId;
     const framework = context.metadata?.framework;
 
-    const response = await complianceChatbot.processMessage(
-      message,
-      userId,
-      sessionId,
-      framework
-    );
+    const response = context.organizationId
+      ? await complianceChatbot.processMessage(
+          message,
+          userId,
+          sessionId,
+          framework,
+          context.organizationId,
+        )
+      : await complianceChatbot.processMessage(
+          message,
+          userId,
+          sessionId,
+          framework,
+        );
 
     return {
       success: true,

@@ -1,14 +1,87 @@
 import express from "express";
 import crypto from "crypto";
+import fs from "fs";
+import type { Server } from "http";
 import { onRequest } from "firebase-functions/v2/https";
 import { registerRoutes } from "./routes";
 import { validateEnvironment } from "./utils/validation";
 import { logger } from "./utils/logger";
 import { healthCheckHandler, readinessCheckHandler, livenessCheckHandler } from "./utils/health";
-import { getRuntimeConfig, logRuntimeConfig } from "./config/runtime";
+import { getRuntimeConfig, isLocalMode, logRuntimeConfig } from "./config/runtime";
 import { getProviders } from "./providers";
 
 const app = express();
+
+type LocalApiKeyEnvironmentVariable =
+  | "OPENAI_API_KEY"
+  | "ANTHROPIC_API_KEY"
+  | "GOOGLE_GENERATIVE_AI_KEY"
+  | "GEMINI_API_KEY";
+
+function setKnownLocalApiKeyEnvironmentValue(envKey: LocalApiKeyEnvironmentVariable, value: string): void {
+  switch (envKey) {
+    case "OPENAI_API_KEY":
+      process.env.OPENAI_API_KEY = value;
+      return;
+    case "ANTHROPIC_API_KEY":
+      process.env.ANTHROPIC_API_KEY = value;
+      return;
+    case "GOOGLE_GENERATIVE_AI_KEY":
+      process.env.GOOGLE_GENERATIVE_AI_KEY = value;
+      return;
+    case "GEMINI_API_KEY":
+      process.env.GEMINI_API_KEY = value;
+      return;
+    default:
+      return;
+  }
+}
+
+// Start a local HTTP server for development and desktop local-mode runtime.
+const shouldRunLocalServer =
+  process.env.NODE_ENV !== "production" ||
+  process.env.LOCAL_SERVER === "true" ||
+  process.env.DEPLOYMENT_MODE?.toLowerCase() === "local";
+
+let localHttpServer: Server | null = null;
+
+async function hydrateLocalAIKeysFromSecrets(providers: Awaited<ReturnType<typeof getProviders>>): Promise<void> {
+  if (!isLocalMode()) {
+    return;
+  }
+
+  try {
+    const { LLM_API_KEYS } = await import("./providers/secrets/windowsCredMan");
+    const mappings: Array<{ secretName: string; envKeys: LocalApiKeyEnvironmentVariable[] }> = [
+      { secretName: LLM_API_KEYS.OPENAI, envKeys: ["OPENAI_API_KEY"] },
+      { secretName: LLM_API_KEYS.ANTHROPIC, envKeys: ["ANTHROPIC_API_KEY"] },
+      { secretName: LLM_API_KEYS.GOOGLE_AI, envKeys: ["GOOGLE_GENERATIVE_AI_KEY", "GEMINI_API_KEY"] },
+    ];
+
+    for (const mapping of mappings) {
+      const value = await providers.secrets.get(mapping.secretName);
+      if (!value) {
+        continue;
+      }
+      for (const envKey of mapping.envKeys) {
+        setKnownLocalApiKeyEnvironmentValue(envKey, value);
+      }
+    }
+
+    const [{ resetAIClients }, { resetGeminiClient }, { resetAgentModelClients }] = await Promise.all([
+      import("./services/aiClients"),
+      import("./services/gemini"),
+      import("./mcp/agentClient"),
+    ]);
+    resetAIClients();
+    resetGeminiClient();
+    resetAgentModelClients();
+
+    logger.info("Hydrated local AI API keys from secrets provider");
+  } catch (error) {
+    logger.warn("Failed to hydrate local AI API keys from secrets provider", { error });
+  }
+}
 
 // This promise ensures that all async initialization is complete before handling requests.
 const initializationPromise = (async () => {
@@ -45,10 +118,6 @@ const initializationPromise = (async () => {
   app.get('/health', healthCheckHandler);
   app.get('/ready', readinessCheckHandler);
   app.get('/live', livenessCheckHandler);
-  
-  app.get('/', (req, res) => {
-    res.status(200).send('Welcome to the API!');
-  });
 
   app.use((req: any, res: any, next: any) => {
     req.requestId = crypto.randomUUID();
@@ -58,6 +127,19 @@ const initializationPromise = (async () => {
   try {
     logger.info('Initializing providers...');
     const providers = await getProviders();
+    const runtimeConfig = getRuntimeConfig();
+    if (
+      runtimeConfig.mode === 'local'
+      && (
+        !runtimeConfig.database.migrationsPath
+        || !fs.existsSync(runtimeConfig.database.migrationsPath)
+      )
+    ) {
+      throw new Error(
+        `SQLite migrations path is not available: ${runtimeConfig.database.migrationsPath || 'undefined'}`
+      );
+    }
+    await hydrateLocalAIKeysFromSecrets(providers);
     await providers.db.connect();
     logger.info('Database connection established');
     await providers.db.migrate();
@@ -80,16 +162,23 @@ const initializationPromise = (async () => {
     logger.error('Failed to initialize MCP system', { error });
   }
 
-  await registerRoutes(app);
+  const httpServer = await registerRoutes(app);
+  if (shouldRunLocalServer) {
+    localHttpServer = httpServer;
+
+    if (process.env.NODE_ENV === "production") {
+      const { serveStatic } = await import("./static");
+      serveStatic(app);
+      logger.info("Static client middleware enabled");
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(app, httpServer);
+      logger.info("Vite middleware enabled");
+    }
+  }
   logger.info('API routes registered successfully');
 
 })();
-
-// Start a local HTTP server for development and desktop local-mode runtime.
-const shouldRunLocalServer =
-  process.env.NODE_ENV !== 'production' ||
-  process.env.LOCAL_SERVER === 'true' ||
-  process.env.DEPLOYMENT_MODE?.toLowerCase() === 'local';
 
 if (shouldRunLocalServer) {
   const config = getRuntimeConfig();
@@ -97,7 +186,11 @@ if (shouldRunLocalServer) {
   const HOST = config.server.host;
   
   initializationPromise.then(() => {
-    app.listen(PORT, HOST, () => {
+    if (!localHttpServer) {
+      throw new Error("Local HTTP server was not initialized");
+    }
+
+    localHttpServer.listen(PORT, HOST, () => {
       logger.info(`🚀 Local development server running at http://${HOST}:${PORT}`);
       logger.info(`Health check: http://${HOST}:${PORT}/health`);
     });

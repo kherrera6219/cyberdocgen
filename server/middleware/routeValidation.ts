@@ -163,6 +163,17 @@ export const API_ROUTES: RouteInfo[] = [
 export const validateRouteAccess = (req: Request, res: Response, next: NextFunction) => {
   const path = req.path;
   const method = req.method.toUpperCase();
+
+  const isApiOrHealthRoute =
+    path.startsWith('/api')
+    || path === '/health'
+    || path === '/ready'
+    || path === '/live'
+    || path === '/metrics';
+
+  if (!isApiOrHealthRoute) {
+    return next();
+  }
   
   const route = API_ROUTES.find(r => {
     if (r.method === 'ALL' || r.method === method) {

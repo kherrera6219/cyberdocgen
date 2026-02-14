@@ -7,22 +7,72 @@ import ws from "ws";
 import path from "path";
 import fs from "fs";
 import { logger } from "./utils/logger";
+import { getRuntimeConfig, isLocalMode as runtimeIsLocalMode } from "./config/runtime";
 
 neonConfig.webSocketConstructor = ws;
 
-// Check deployment mode from environment
-const isLocalMode = process.env.DEPLOYMENT_MODE === 'local';
+const isLocalMode = runtimeIsLocalMode();
 
 let pool: Pool | null = null;
 let db: any = null;
 
+function getLocalDataPath(): string {
+  const runtimeConfig = getRuntimeConfig();
+  if (runtimeConfig.mode === 'local' && runtimeConfig.database.filePath) {
+    return path.resolve(path.dirname(runtimeConfig.database.filePath));
+  }
+
+  const configured = process.env.LOCAL_DATA_PATH?.trim();
+  if (configured) {
+    return path.resolve(configured);
+  }
+
+  const localAppData = process.env.LOCALAPPDATA?.trim();
+  if (localAppData) {
+    return path.resolve(localAppData, 'CyberDocGen');
+  }
+
+  return path.resolve(process.cwd(), 'local-data');
+}
+
+function resolveLocalTemplateDbPath(): string | null {
+  const runtimeConfig = getRuntimeConfig();
+  const configuredDbPath =
+    runtimeConfig.mode === 'local' && runtimeConfig.database.filePath
+      ? path.resolve(runtimeConfig.database.filePath)
+      : null;
+  const candidates = [
+    process.env.LOCAL_TEMPLATE_DB_PATH,
+    configuredDbPath,
+    path.resolve('local-data', 'cyberdocgen.db'),
+    path.resolve(process.cwd(), 'local-data', 'cyberdocgen.db'),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  return candidates.find((candidate) => fs.existsSync(candidate)) || null;
+}
+
+function ensureLocalSqliteDatabaseExists(dbPath: string): void {
+  if (fs.existsSync(dbPath)) {
+    return;
+  }
+
+  const templatePath = resolveLocalTemplateDbPath();
+  if (!templatePath) {
+    return;
+  }
+
+  fs.copyFileSync(templatePath, dbPath);
+  logger.info(`Seeded local SQLite database from template: ${templatePath}`);
+}
+
 if (isLocalMode) {
   try {
-    const dataPath = process.env.LOCAL_DATA_PATH || './local-data';
+    const dataPath = getLocalDataPath();
     if (!fs.existsSync(dataPath)) {
       fs.mkdirSync(dataPath, { recursive: true });
     }
     const dbPath = path.join(dataPath, 'cyberdocgen.db');
+    ensureLocalSqliteDatabaseExists(dbPath);
     logger.info(`Initializing SQLite Drizzle at ${dbPath}`);
     const sqlite = new Database(dbPath);
     db = drizzleSqlite(sqlite, { schema });
@@ -69,11 +119,12 @@ export function getDb() {
     logger.warn("Database not initialized. Attempting lazy initialization...");
     if (isLocalMode) {
         try {
-            const dataPath = process.env.LOCAL_DATA_PATH || './local-data';
+            const dataPath = getLocalDataPath();
             if (!fs.existsSync(dataPath)) {
               fs.mkdirSync(dataPath, { recursive: true });
             }
             const dbPath = path.join(dataPath, 'cyberdocgen.db');
+            ensureLocalSqliteDatabaseExists(dbPath);
             const sqlite = new Database(dbPath);
             db = drizzleSqlite(sqlite, { schema });
             return db;

@@ -115,3 +115,18 @@ export async function generateComplianceDocuments(
 
   return documents;
 }
+
+export async function generateContentWithOpenAI(prompt: string): Promise<string> {
+  try {
+    const response = await getOpenAIClient().chat.completions.create({
+      model: "gpt-5.1",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 2000,
+    });
+
+    return response.choices[0].message.content || "";
+  } catch (error) {
+    logger.error("Error generating content with OpenAI:", error);
+    throw new Error(`Failed to generate content with OpenAI: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

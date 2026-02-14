@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -83,12 +83,17 @@ interface AgentResponse {
   error?: string;
 }
 
+const MAX_ATTACHMENTS = 10;
+const MAX_ATTACHMENT_CONTENT_CHARS = 2_000_000;
+const MAX_TOTAL_ATTACHMENT_CONTENT_CHARS = 8_000_000;
+
 export default function AIAssistant() {
   const { toast } = useToast();
-  const [selectedAgent, setSelectedAgent] = useState<string>("gemini-3-pro");
+  const [selectedAgent, setSelectedAgent] = useState<string>("compliance-chat");
   const [inputMessage, setInputMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isProcessingAttachments, setIsProcessingAttachments] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
@@ -103,12 +108,31 @@ export default function AIAssistant() {
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const attachmentsRef = useRef<Attachment[]>([]);
+
+  const revokeAttachmentPreviews = useCallback((items: Attachment[]) => {
+    items.forEach((attachment) => {
+      if (attachment.preview) {
+        URL.revokeObjectURL(attachment.preview);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       synthRef.current = window.speechSynthesis;
     }
   }, []);
+
+  useEffect(() => {
+    attachmentsRef.current = attachments;
+  }, [attachments]);
+
+  useEffect(() => {
+    return () => {
+      revokeAttachmentPreviews(attachmentsRef.current);
+    };
+  }, [revokeAttachmentPreviews]);
 
   useEffect(() => {
     if (typingMessageId) {
@@ -148,7 +172,7 @@ export default function AIAssistant() {
     queryKey: ["/api/mcp/agents"],
   });
 
-  const agents = agentsData?.agents || [];
+  const agents = useMemo(() => agentsData?.agents || [], [agentsData?.agents]);
 
   const executeAgentMutation = useMutation({
     mutationFn: async ({ agentId, prompt, attachments }: { agentId: string; prompt: string; attachments?: Attachment[] }) => {
@@ -200,7 +224,10 @@ export default function AIAssistant() {
     },
     onSuccess: () => {
       setMessages([]);
-      setAttachments([]);
+      setAttachments((prev) => {
+        revokeAttachmentPreviews(prev);
+        return [];
+      });
       setCanvasData(null);
       toast({
         title: "Conversation Cleared",
@@ -209,44 +236,129 @@ export default function AIAssistant() {
     },
   });
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    for (const file of acceptedFiles) {
-      const id = crypto.randomUUID();
-      
-      let preview: string | undefined;
-      let content: string | undefined;
-      
-      if (file.type.startsWith('image/')) {
-        preview = URL.createObjectURL(file);
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64 = reader.result as string;
-          setAttachments(prev => prev.map(a => 
-            a.id === id ? { ...a, content: base64 } : a
-          ));
-        };
-        reader.readAsDataURL(file);
-      } else if (file.type === 'text/plain' || file.type === 'application/json') {
-        content = await file.text();
-      }
-      
-      const attachment: Attachment = {
-        id,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        preview,
-        content,
-      };
-      
-      setAttachments(prev => [...prev, attachment]);
-    }
-    
-    toast({
-      title: "Files Added",
-      description: `${acceptedFiles.length} file(s) ready to send.`,
+  const readFileAsDataUrl = useCallback((file: File) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
+      reader.readAsDataURL(file);
     });
-  }, [toast]);
+  }, []);
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) {
+      return;
+    }
+
+    const availableSlots = MAX_ATTACHMENTS - attachments.length;
+    if (availableSlots <= 0) {
+      toast({
+        title: "Attachment limit reached",
+        description: `You can attach up to ${MAX_ATTACHMENTS} files per message.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const filesToProcess = acceptedFiles.slice(0, availableSlots);
+    if (acceptedFiles.length > filesToProcess.length) {
+      toast({
+        title: "Some files were skipped",
+        description: `Only ${MAX_ATTACHMENTS} attachments are allowed.`,
+      });
+    }
+
+    setIsProcessingAttachments(true);
+    try {
+      const existingContentChars = attachments.reduce(
+        (sum, attachment) => sum + (attachment.content?.length ?? 0),
+        0,
+      );
+      let runningContentChars = existingContentChars;
+      let skippedPerAttachmentLimit = 0;
+      let skippedTotalLimit = 0;
+      let skippedReadFailures = 0;
+      const processedAttachments: Attachment[] = [];
+
+      for (const file of filesToProcess) {
+        const id = crypto.randomUUID();
+        const preview = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
+
+        let content: string | undefined;
+        try {
+          if (file.type === 'text/plain' || file.type === 'application/json') {
+            content = await file.text();
+          } else {
+            // Encode binary formats (images, PDF, DOCX, DOC) as data URL for transport.
+            content = await readFileAsDataUrl(file);
+          }
+        } catch (error) {
+          logger.error("Failed to process dropped file", { fileName: file.name, error });
+          if (preview) {
+            URL.revokeObjectURL(preview);
+          }
+          skippedReadFailures += 1;
+          continue;
+        }
+
+        const contentLength = content?.length ?? 0;
+        if (contentLength > MAX_ATTACHMENT_CONTENT_CHARS) {
+          if (preview) {
+            URL.revokeObjectURL(preview);
+          }
+          skippedPerAttachmentLimit += 1;
+          continue;
+        }
+
+        if (runningContentChars + contentLength > MAX_TOTAL_ATTACHMENT_CONTENT_CHARS) {
+          if (preview) {
+            URL.revokeObjectURL(preview);
+          }
+          skippedTotalLimit += 1;
+          continue;
+        }
+
+        runningContentChars += contentLength;
+        processedAttachments.push({
+          id,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          preview,
+          content,
+        });
+      }
+
+      if (processedAttachments.length > 0) {
+        setAttachments(prev => [...prev, ...processedAttachments]);
+        toast({
+          title: "Files Added",
+          description: `${processedAttachments.length} file(s) ready to send.`,
+        });
+      }
+
+      if (skippedPerAttachmentLimit > 0 || skippedTotalLimit > 0 || skippedReadFailures > 0) {
+        const details: string[] = [];
+        if (skippedPerAttachmentLimit > 0) {
+          details.push(`${skippedPerAttachmentLimit} file(s) exceeded the per-file content limit.`);
+        }
+        if (skippedTotalLimit > 0) {
+          details.push(`${skippedTotalLimit} file(s) exceeded the total content limit.`);
+        }
+        if (skippedReadFailures > 0) {
+          details.push(`${skippedReadFailures} file(s) could not be read.`);
+        }
+
+        toast({
+          title: "Some files were skipped",
+          description: details.join(' '),
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsProcessingAttachments(false);
+    }
+  }, [attachments, readFileAsDataUrl, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -267,7 +379,7 @@ export default function AIAssistant() {
     setAttachments(prev => {
       const attachment = prev.find(a => a.id === id);
       if (attachment?.preview) {
-        URL.revokeObjectURL(attachment.preview);
+        revokeAttachmentPreviews([attachment]);
       }
       return prev.filter(a => a.id !== id);
     });
@@ -296,6 +408,14 @@ export default function AIAssistant() {
   }, [messages]);
 
   const handleSendMessage = () => {
+    if (isProcessingAttachments) {
+      toast({
+        title: "Files still processing",
+        description: "Please wait for attachments to finish loading before sending.",
+      });
+      return;
+    }
+
     if (!inputMessage.trim() && attachments.length === 0) return;
 
     const userMessage: Message = {
@@ -323,11 +443,17 @@ export default function AIAssistant() {
     });
     
     setInputMessage("");
-    setAttachments([]);
+    setAttachments((prev) => {
+      revokeAttachmentPreviews(prev);
+      return [];
+    });
     setCanvasData(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isProcessingAttachments) {
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -365,17 +491,31 @@ export default function AIAssistant() {
   };
 
   // Add Gemini Pro to the list of agents
-  const allAgents = [
-    ...agents,
-    {
-      id: 'gemini-3-pro',
-      name: 'Gemini 3 Pro',
-      description: 'Powered by Google Gemini 3.0 Pro for advanced reasoning.',
-      model: 'gemini-3-pro',
-      tools: [],
-      capabilities: ['Advanced Reasoning', 'Content Generation']
+  const allAgents = useMemo(() => (
+    agents.some((agent) => agent.id === 'gemini-3-pro')
+      ? agents
+      : [
+          ...agents,
+          {
+            id: 'gemini-3-pro',
+            name: 'Gemini 3 Pro',
+            description: 'Powered by Google Gemini 3.0 Pro for advanced reasoning.',
+            model: 'gemini-3-pro',
+            tools: [],
+            capabilities: ['Advanced Reasoning', 'Content Generation']
+          }
+        ]
+  ), [agents]);
+
+  useEffect(() => {
+    if (allAgents.length === 0) {
+      return;
     }
-  ];
+    const selectedExists = allAgents.some((agent) => agent.id === selectedAgent);
+    if (!selectedExists) {
+      setSelectedAgent(allAgents[0].id);
+    }
+  }, [allAgents, selectedAgent]);
 
   const selectedAgentData = allAgents.find((a) => a.id === selectedAgent);
 

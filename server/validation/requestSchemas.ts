@@ -44,12 +44,15 @@ export const generateComplianceDocsSchema = z.object({
 
 export const chatMessageSchema = z.object({
   message: z.string().min(1, 'Message is required').max(10000),
+  framework: z.string().optional(),
+  sessionId: z.string().optional(),
+  // Legacy alias retained for backwards compatibility.
+  conversationId: z.string().optional(),
   context: z.object({
     companyProfileId: z.string().optional(),
     framework: z.string().optional(),
     documentId: z.string().optional(),
   }).optional(),
-  conversationId: z.string().optional(),
 });
 
 export const analyzeDocumentSchema = z.object({
@@ -342,7 +345,7 @@ export const multimodalChatSchema = z.object({
   sessionId: z.string().optional(),
   attachments: z.array(z.object({
     type: z.string(),
-    content: z.string(),
+    content: z.string().optional(),
     name: z.string().optional(),
   })).optional(),
 });

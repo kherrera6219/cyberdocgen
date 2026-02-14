@@ -4,6 +4,42 @@ import { defineConfig, devices } from "@playwright/test";
  * Playwright E2E & Visual Regression Test Configuration
  * @see https://playwright.dev/docs/test-configuration
  */
+const runCrossBrowser = process.env.PLAYWRIGHT_CROSS_BROWSER === "true";
+const runVisual = process.env.PLAYWRIGHT_VISUAL === "true";
+
+const projects = [
+  {
+    name: "chromium",
+    use: { ...devices["Desktop Chrome"] },
+  },
+];
+
+if (runCrossBrowser) {
+  projects.push(
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+    },
+  );
+}
+
+if (runVisual) {
+  projects.push({
+    name: "visual-chromium",
+    testDir: "./tests/visual",
+    use: {
+      ...devices["Desktop Chrome"],
+      launchOptions: {
+        args: ["--font-render-hinting=none", "--disable-gpu"],
+      },
+    },
+  });
+}
+
 export default defineConfig({
   testDir: "./tests/e2e",
   /* Run tests in files in parallel */
@@ -38,35 +74,12 @@ export default defineConfig({
   },
 
   /* Configure projects for major browsers */
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-    // Visual regression tests - run separately with: npx playwright test --project=visual-chromium
-    {
-      name: "visual-chromium",
-      testDir: "./tests/visual",
-      use: {
-        ...devices["Desktop Chrome"],
-        launchOptions: {
-          args: ["--font-render-hinting=none", "--disable-gpu"],
-        },
-      },
-    },
-  ],
+  projects,
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "npm run dev",
+    command:
+      "cross-env DEPLOYMENT_MODE=local LOCAL_AUTH_BYPASS=false LOCAL_SERVER=true NODE_ENV=test HOST=127.0.0.1 PORT=5000 LOCAL_PORT=5000 LOCAL_DATA_PATH=./test-data/e2e-local tsx server/index.ts",
     url: "http://localhost:5000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

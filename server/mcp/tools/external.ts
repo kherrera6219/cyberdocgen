@@ -5,6 +5,7 @@
 
 import { Tool, ToolType, ToolContext, ToolResult } from '../types';
 import { logger } from '../../utils/logger';
+import { safeFetch } from '../../middleware/egressControl';
 
 /**
  * Web search tool
@@ -119,19 +120,13 @@ export const fetchUrlTool: Tool = {
       // Validate URL
       const url = new URL(params.url);
 
-      // Security check - block private IPs and localhost
-      if (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname.match(/^192\.168\./)) {
-        return {
-          success: false,
-          error: 'Cannot fetch from private or local addresses'
-        };
-      }
-
-      const response = await fetch(url.toString(), {
+      const response = await safeFetch(url.toString(), {
         headers: {
           'User-Agent': 'ComplianceAI-Bot/1.0'
         },
         signal: AbortSignal.timeout(10000) // 10 second timeout
+      }, {
+        strictMode: process.env.MCP_FETCH_STRICT_MODE?.toLowerCase() !== 'false'
       });
 
       if (!response.ok) {
@@ -166,9 +161,13 @@ export const fetchUrlTool: Tool = {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('fetch_url failed', { error: errorMessage, url: params.url });
+      const normalizedError =
+        /blocked hostname|blocked(?: resolved)? ip range|domain not in allowlist|invalid url scheme/i.test(errorMessage)
+          ? `Cannot fetch from private or local addresses (${errorMessage})`
+          : errorMessage;
       return {
         success: false,
-        error: errorMessage
+        error: normalizedError
       };
     }
   }

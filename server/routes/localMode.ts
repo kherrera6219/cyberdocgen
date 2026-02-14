@@ -15,12 +15,14 @@ import os from 'os';
 import path from 'path';
 import { getRuntimeConfig, isLocalMode } from '../config/runtime';
 import { getProviders } from '../providers';
+import { LLM_API_KEYS } from '../providers/secrets/windowsCredMan';
 import type { IDbProvider, IStorageProvider } from '../providers/interfaces';
 import type { SqliteDbStats } from '../providers/db/sqlite';
 import { logger } from '../utils/logger';
 
 const router = express.Router();
-const SUPPORTED_API_KEY_PROVIDERS = new Set(['OPENAI', 'ANTHROPIC', 'GOOGLE_AI']);
+type SupportedApiKeyProvider = 'OPENAI' | 'ANTHROPIC' | 'GOOGLE_AI';
+const SUPPORTED_API_KEY_PROVIDERS = new Set<SupportedApiKeyProvider>(['OPENAI', 'ANTHROPIC', 'GOOGLE_AI']);
 const MAX_API_KEY_LENGTH = 4096;
 const MAX_PATH_LENGTH = 1024;
 
@@ -72,12 +74,79 @@ function hasStorageCleanup(provider: IStorageProvider): provider is StorageClean
   return typeof (provider as Partial<StorageCleanupCapableProvider>).cleanupEmptyDirectories === 'function';
 }
 
-function normalizeProvider(value: unknown): string {
+function isSupportedProvider(value: string): value is SupportedApiKeyProvider {
+  return SUPPORTED_API_KEY_PROVIDERS.has(value as SupportedApiKeyProvider);
+}
+
+function normalizeProvider(value: unknown): SupportedApiKeyProvider | null {
   if (typeof value !== 'string') {
-    return '';
+    return null;
   }
 
-  return value.trim().toUpperCase();
+  const normalized = value.trim().toUpperCase();
+  return isSupportedProvider(normalized) ? normalized : null;
+}
+
+function setProviderApiKeyInEnvironment(provider: SupportedApiKeyProvider, apiKey: string): void {
+  switch (provider) {
+    case 'OPENAI':
+      process.env.OPENAI_API_KEY = apiKey;
+      return;
+    case 'ANTHROPIC':
+      process.env.ANTHROPIC_API_KEY = apiKey;
+      return;
+    case 'GOOGLE_AI':
+      process.env.GOOGLE_GENERATIVE_AI_KEY = apiKey;
+      process.env.GEMINI_API_KEY = apiKey;
+      return;
+    default:
+      return;
+  }
+}
+
+function clearProviderApiKeyFromEnvironment(provider: SupportedApiKeyProvider): void {
+  switch (provider) {
+    case 'OPENAI':
+      delete process.env.OPENAI_API_KEY;
+      return;
+    case 'ANTHROPIC':
+      delete process.env.ANTHROPIC_API_KEY;
+      return;
+    case 'GOOGLE_AI':
+      delete process.env.GOOGLE_GENERATIVE_AI_KEY;
+      delete process.env.GEMINI_API_KEY;
+      return;
+    default:
+      return;
+  }
+}
+
+function getProviderSecretName(provider: SupportedApiKeyProvider): string {
+  switch (provider) {
+    case 'OPENAI':
+      return LLM_API_KEYS.OPENAI;
+    case 'ANTHROPIC':
+      return LLM_API_KEYS.ANTHROPIC;
+    case 'GOOGLE_AI':
+      return LLM_API_KEYS.GOOGLE_AI;
+    default:
+      return '';
+  }
+}
+
+async function resetRuntimeAIClients(): Promise<void> {
+  try {
+    const [{ resetAIClients }, { resetGeminiClient }, { resetAgentModelClients }] = await Promise.all([
+      import('../services/aiClients'),
+      import('../services/gemini'),
+      import('../mcp/agentClient'),
+    ]);
+    resetAIClients();
+    resetGeminiClient();
+    resetAgentModelClients();
+  } catch (error) {
+    logger.warn('Failed to reset runtime AI clients after API key update', { error });
+  }
 }
 
 function isPathWithin(basePath: string, targetPath: string): boolean {
@@ -131,7 +200,7 @@ function validateBackupPath(inputPath: unknown, operation: 'backup' | 'restore')
   return { resolvedPath };
 }
 
-function isValidApiKeyFormat(provider: string, apiKey: string): boolean {
+function isValidApiKeyFormat(provider: SupportedApiKeyProvider, apiKey: string): boolean {
   const key = apiKey.trim();
 
   switch (provider) {
@@ -156,12 +225,65 @@ async function testOpenAiApiKey(apiKey: string): Promise<{ valid: boolean; error
       signal: controller.signal,
     });
 
-    return { valid: response.ok };
+    if (!response.ok) {
+      return { valid: false, error: `OpenAI API rejected key (HTTP ${response.status})` };
+    }
+    return { valid: true };
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
       return { valid: false, error: 'Timed out while validating API key' };
     }
 
+    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function testAnthropicApiKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/models', {
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      return { valid: false, error: `Anthropic API rejected key (HTTP ${response.status})` };
+    }
+    return { valid: true };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      return { valid: false, error: 'Timed out while validating API key' };
+    }
+    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function testGoogleApiKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`, {
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      return { valid: false, error: `Google AI API rejected key (HTTP ${response.status})` };
+    }
+    return { valid: true };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      return { valid: false, error: 'Timed out while validating API key' };
+    }
     return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
   } finally {
     clearTimeout(timeoutId);
@@ -494,16 +616,17 @@ router.post('/api-keys/test', async (req, res) => {
       });
     }
 
-    const provider = normalizeProvider(req.body?.provider);
+    const rawProvider = typeof req.body?.provider === 'string' ? req.body.provider.trim() : '';
+    const provider = normalizeProvider(rawProvider);
     const apiKey = typeof req.body?.apiKey === 'string' ? req.body.apiKey.trim() : '';
 
-    if (!provider || !apiKey) {
+    if (!rawProvider || !apiKey) {
       return res.status(400).json({
         error: 'provider and apiKey are required',
       });
     }
 
-    if (!SUPPORTED_API_KEY_PROVIDERS.has(provider)) {
+    if (!provider) {
       return res.status(400).json({
         error: 'Invalid provider',
       });
@@ -531,11 +654,13 @@ router.post('/api-keys/test', async (req, res) => {
         valid = testResult.valid;
         testError = testResult.error;
       } else if (provider === 'ANTHROPIC') {
-        // Anthropic doesn't have a simple test endpoint, so we just check format
-        valid = true;
+        const testResult = await testAnthropicApiKey(apiKey);
+        valid = testResult.valid;
+        testError = testResult.error;
       } else if (provider === 'GOOGLE_AI') {
-        // Google AI key validation
-        valid = true;
+        const testResult = await testGoogleApiKey(apiKey);
+        valid = testResult.valid;
+        testError = testResult.error;
       }
 
       res.json({ valid, error: testError });
@@ -570,8 +695,7 @@ router.post('/api-keys/:provider', async (req, res) => {
         error: 'apiKey is required',
       });
     }
-
-    if (!SUPPORTED_API_KEY_PROVIDERS.has(provider)) {
+    if (!provider) {
       return res.status(400).json({
         error: 'Invalid provider',
       });
@@ -589,22 +713,28 @@ router.post('/api-keys/:provider', async (req, res) => {
       });
     }
 
-    // Import LLM_API_KEYS from WindowsCredentialManagerProvider
-    const { LLM_API_KEYS } = await import('../providers/secrets/windowsCredMan');
-    const keyName = LLM_API_KEYS[provider as keyof typeof LLM_API_KEYS];
-
-    if (!keyName) {
-      return res.status(400).json({
-        error: 'Invalid provider',
-      });
-    }
+    const keyName = getProviderSecretName(provider);
 
     const providers = await getProviders();
-    await providers.secrets.set(keyName, apiKey);
+    let persistedToSecrets = true;
+    try {
+      await providers.secrets.set(keyName, apiKey);
+    } catch (error) {
+      persistedToSecrets = false;
+      logger.warn('Secrets provider could not persist API key, falling back to process environment', {
+        provider,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    setProviderApiKeyInEnvironment(provider, apiKey);
+    await resetRuntimeAIClients();
 
     logger.info('API key saved', { provider });
 
-    res.json({ success: true });
+    res.json({
+      success: true,
+      persistence: persistedToSecrets ? 'secrets-provider' : 'process-environment',
+    });
   } catch (error) {
     logger.error('Failed to save API key', { error });
     res.status(500).json({
@@ -627,24 +757,25 @@ router.delete('/api-keys/:provider', async (req, res) => {
 
     const provider = normalizeProvider(req.params.provider);
 
-    if (!SUPPORTED_API_KEY_PROVIDERS.has(provider)) {
+    if (!provider) {
       return res.status(400).json({
         error: 'Invalid provider',
       });
     }
 
-    // Import LLM_API_KEYS from WindowsCredentialManagerProvider
-    const { LLM_API_KEYS } = await import('../providers/secrets/windowsCredMan');
-    const keyName = LLM_API_KEYS[provider as keyof typeof LLM_API_KEYS];
-
-    if (!keyName) {
-      return res.status(400).json({
-        error: 'Invalid provider',
-      });
-    }
+    const keyName = getProviderSecretName(provider);
 
     const providers = await getProviders();
-    await providers.secrets.delete(keyName);
+    try {
+      await providers.secrets.delete(keyName);
+    } catch (error) {
+      logger.warn('Secrets provider could not delete API key, continuing with in-memory cleanup', {
+        provider,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    clearProviderApiKeyFromEnvironment(provider);
+    await resetRuntimeAIClients();
 
     logger.info('API key deleted', { provider });
 

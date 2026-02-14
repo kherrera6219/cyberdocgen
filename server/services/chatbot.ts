@@ -1,9 +1,6 @@
-import OpenAI from "openai";
-import Anthropic from '@anthropic-ai/sdk';
 import crypto from "crypto";
 import { documentAnalysisService, type RAGContext } from "./documentAnalysis";
 import { storage } from "../storage";
-import { type CompanyProfile } from "@shared/schema";
 import { logger } from "../utils/logger";
 import { aiGuardrailsService } from "./aiGuardrailsService";
 import { getOpenAIClient, getAnthropicClient } from "./aiClients";
@@ -43,6 +40,7 @@ export interface ChatResponse {
  * AI-powered compliance chatbot with RAG capabilities
  */
 export class ComplianceChatbot {
+  private readonly sessionHistory = new Map<string, ChatMessage[]>();
   
   /**
    * Process user message and generate intelligent response
@@ -52,7 +50,8 @@ export class ComplianceChatbot {
     message: string,
     userId: string,
     sessionId?: string,
-    framework?: string
+    framework?: string,
+    organizationId?: string,
   ): Promise<ChatResponse> {
     const requestId = crypto.randomUUID();
     
@@ -85,7 +84,7 @@ export class ComplianceChatbot {
       const sanitizedMessage = inputCheck.sanitizedPrompt || message;
 
       // Get user's documents for RAG context
-      const userDocs = await this.getUserDocumentContext(userId);
+      const userDocs = await this.getUserDocumentContext(userId, organizationId);
       
       // Get chat history for context
       const chatHistory = sessionId ? await this.getChatHistory(sessionId) : [];
@@ -126,6 +125,30 @@ export class ComplianceChatbot {
           suggestions: ["Ask about compliance frameworks", "Request document guidance"],
           followUpQuestions: [],
         };
+      }
+
+      if (sessionId) {
+        const now = new Date();
+        this.appendToChatHistory(sessionId, {
+          id: crypto.randomUUID(),
+          role: 'user',
+          content: sanitizedMessage,
+          timestamp: now,
+          userId,
+          metadata: { framework },
+        });
+        this.appendToChatHistory(sessionId, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: response.content,
+          timestamp: new Date(),
+          userId,
+          metadata: {
+            framework,
+            documentRefs: response.sources,
+            confidence: response.confidence,
+          },
+        });
       }
 
       return response;
@@ -264,19 +287,23 @@ Provide a helpful, actionable response.`;
   /**
    * Get user's document context for RAG
    */
-  private async getUserDocumentContext(userId: string): Promise<RAGContext[]> {
+  private async getUserDocumentContext(userId: string, organizationId?: string): Promise<RAGContext[]> {
     try {
-      // Get user's documents from storage
-      const userDocs = await storage.getDocuments();
-      const filteredDocs = userDocs.filter((doc: any) => doc.userId === userId);
+      // Scope by organization when possible, then narrow to user-owned documents.
+      const userDocs = await storage.getDocuments(organizationId);
+      const filteredDocs = userDocs.filter((doc: any) =>
+        doc.createdBy === userId || doc.userId === userId
+      );
       
       return filteredDocs.map((doc: any) => ({
         documentId: doc.id.toString(),
         content: doc.content || '',
         metadata: {
-          type: doc.type,
+          type: doc.documentType || doc.type,
           framework: doc.framework || '',
-          uploadDate: doc.createdAt?.toISOString() || new Date().toISOString(),
+          uploadDate: doc.createdAt
+            ? new Date(doc.createdAt).toISOString()
+            : new Date().toISOString(),
           filename: doc.title
         }
       }));
@@ -290,9 +317,14 @@ Provide a helpful, actionable response.`;
    * Get chat history for context
    */
   private async getChatHistory(sessionId: string): Promise<ChatMessage[]> {
-    // In a full implementation, this would retrieve from database
-    // For now, return empty array
-    return [];
+    return this.sessionHistory.get(sessionId) || [];
+  }
+
+  private appendToChatHistory(sessionId: string, message: ChatMessage): void {
+    const current = this.sessionHistory.get(sessionId) || [];
+    current.push(message);
+    // Keep latest 20 messages for context window and memory control.
+    this.sessionHistory.set(sessionId, current.slice(-20));
   }
 
   /**

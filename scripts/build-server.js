@@ -1,5 +1,6 @@
 import * as esbuild from 'esbuild';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,6 +27,17 @@ async function build() {
       ],
       outfile: path.join(root, 'dist', 'index.cjs'),
     });
+
+    const sqliteMigrationsSource = path.join(root, 'server', 'migrations', 'sqlite');
+    const sqliteMigrationsTarget = path.join(root, 'dist', 'migrations', 'sqlite');
+    if (fs.existsSync(sqliteMigrationsSource)) {
+      fs.mkdirSync(path.dirname(sqliteMigrationsTarget), { recursive: true });
+      fs.cpSync(sqliteMigrationsSource, sqliteMigrationsTarget, { recursive: true });
+      console.log('Copied SQLite migrations to dist/migrations/sqlite');
+    } else {
+      console.warn('SQLite migrations folder not found, skipping copy step');
+    }
+
     console.log('Backend server build successful: dist/index.cjs');
   } catch (error) {
     console.error('Backend server build failed:', error);

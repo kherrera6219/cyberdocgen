@@ -6,6 +6,10 @@ let openaiClient: OpenAI | null = null;
 let anthropicClient: Anthropic | null = null;
 let geminiClient: GoogleGenAI | null = null;
 
+function getGeminiApiKey(): string | null {
+  return process.env.GOOGLE_GENERATIVE_AI_KEY || process.env.GEMINI_API_KEY || null;
+}
+
 export function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     if (!process.env.OPENAI_API_KEY) {
@@ -28,10 +32,11 @@ export function getAnthropicClient(): Anthropic {
 
 export function getGeminiClient(): GoogleGenAI {
   if (!geminiClient) {
-    if (!process.env.GOOGLE_GENERATIVE_AI_KEY) {
-      throw new Error('GOOGLE_GENERATIVE_AI_KEY environment variable is not set');
+    const apiKey = getGeminiApiKey();
+    if (!apiKey) {
+      throw new Error('GOOGLE_GENERATIVE_AI_KEY or GEMINI_API_KEY environment variable is not set');
     }
-    geminiClient = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_KEY });
+    geminiClient = new GoogleGenAI({ apiKey });
   }
   return geminiClient;
 }
@@ -45,5 +50,11 @@ export function hasAnthropicKey(): boolean {
 }
 
 export function hasGeminiKey(): boolean {
-  return !!process.env.GOOGLE_GENERATIVE_AI_KEY;
+  return !!getGeminiApiKey();
+}
+
+export function resetAIClients(): void {
+  openaiClient = null;
+  anthropicClient = null;
+  geminiClient = null;
 }

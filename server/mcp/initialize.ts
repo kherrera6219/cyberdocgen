@@ -264,13 +264,40 @@ Always:
     ]
   };
 
+  // Direct Gemini Chat Agent
+  const geminiDirect: AgentConfig = {
+    id: 'gemini-3-pro',
+    name: 'Gemini 3 Pro',
+    description: 'Direct Google Gemini conversational agent for fast drafting and brainstorming',
+    model: 'gemini-3-pro',
+    tools: [],
+    systemPrompt: `You are Gemini 3 Pro operating as an enterprise compliance assistant.
+
+Your role is to:
+- Provide concise, accurate compliance guidance
+- Help draft and refine policy language
+- Ask clarifying questions when requirements are ambiguous
+- Avoid unsupported claims and clearly state uncertainty
+
+When attachments are present:
+- Use attachment content provided in the prompt context
+- Call out assumptions when attachment text appears incomplete`,
+    temperature: 0.7,
+    maxTokens: 2000,
+    capabilities: [
+      AgentCapability.CHAT_INTERACTION,
+      AgentCapability.COMPLIANCE_ANALYSIS,
+    ],
+  };
+
   // Register all agents
   [
     complianceAssistant,
     documentGenerator,
     riskAssessment,
     dataExtractor,
-    complianceChat
+    complianceChat,
+    geminiDirect,
   ].forEach(agent => {
     agentClient.registerAgent(agent);
   });

@@ -131,6 +131,8 @@ const INDUSTRY_CONFIGURATIONS: Record<string, IndustryConfig> = {
 const industryConfigurationMap = new Map(Object.entries(INDUSTRY_CONFIGURATIONS));
 
 export class AIFineTuningService {
+  private static customConfigurations = new Map<string, FineTuningResult>();
+
   private getOpenAI(): OpenAI {
     return getOpenAIClient();
   }
@@ -191,6 +193,7 @@ export class AIFineTuningService {
         configId: result.configId,
         accuracy: result.accuracy 
       });
+      AIFineTuningService.customConfigurations.set(result.configId, result);
 
       return result;
 
@@ -209,20 +212,36 @@ export class AIFineTuningService {
     context: Record<string, any>
   ): Promise<string> {
     try {
-      // This would normally load the stored configuration
-      // For now, we'll use the request context to determine the industry
-      const industryConfig = this.getIndustryConfiguration(context.industry || 'technology');
+      const storedConfig = AIFineTuningService.customConfigurations.get(configId);
+      if (!storedConfig) {
+        logger.warn('Custom configuration not found, falling back to industry defaults', { configId });
+      }
+
+      const industryConfig = this.getIndustryConfiguration(storedConfig?.industryId || context.industry || 'technology');
       
       if (!industryConfig) {
         throw new Error('Industry configuration not found');
       }
 
-      const prompt = this.buildOptimizedPrompt(industryConfig, documentType, context);
+      const mergedConfig: IndustryConfig = {
+        ...industryConfig,
+        customPrompts: {
+          ...industryConfig.customPrompts,
+          ...(storedConfig?.customPrompts || {}),
+        },
+        modelPreferences: {
+          ...industryConfig.modelPreferences,
+          ...(storedConfig?.modelSettings || {}),
+        },
+      };
+
+      const prompt = this.buildOptimizedPrompt(mergedConfig, documentType, context);
+      const preferredProvider = mergedConfig.modelPreferences.preferred === 'anthropic' ? 'anthropic' : 'openai';
       
-      if (industryConfig.modelPreferences.preferred === 'anthropic') {
-        return await this.generateWithAnthropic(prompt, industryConfig.modelPreferences);
+      if (preferredProvider === 'anthropic') {
+        return await this.generateWithAnthropic(prompt, mergedConfig.modelPreferences);
       } else {
-        return await this.generateWithOpenAI(prompt, industryConfig.modelPreferences);
+        return await this.generateWithOpenAI(prompt, mergedConfig.modelPreferences);
       }
 
     } catch (error: any) {
@@ -287,7 +306,7 @@ Respond in JSON format:
         temperature: 0.2
       });
 
-      return JSON.parse(response);
+      return this.parseRiskAssessmentResponse(response);
 
     } catch (error: any) {
       logger.error('Failed to assess industry risks', { error: error.message });
@@ -430,5 +449,64 @@ Generate a comprehensive ${documentType} that addresses the specific requirement
     });
 
     return response.choices[0].message.content || '';
+  }
+
+  private parseRiskAssessmentResponse(response: string): {
+    riskScore: number;
+    identifiedRisks: Array<{
+      category: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      description: string;
+      mitigation: string;
+    }>;
+    recommendations: string[];
+  } {
+    try {
+      const parsed = JSON.parse(response) as Record<string, unknown>;
+      const riskScoreRaw = typeof parsed.riskScore === 'number' ? parsed.riskScore : Number(parsed.riskScore);
+      const normalizedRiskScore = Number.isFinite(riskScoreRaw)
+        ? Math.min(100, Math.max(0, riskScoreRaw))
+        : 50;
+
+      const severityValues = new Set(['low', 'medium', 'high', 'critical']);
+      const identifiedRisks = Array.isArray(parsed.identifiedRisks)
+        ? parsed.identifiedRisks
+            .filter((risk): risk is Record<string, unknown> => Boolean(risk) && typeof risk === 'object')
+            .map((risk) => {
+              const severityCandidate = typeof risk.severity === 'string'
+                ? risk.severity.toLowerCase()
+                : 'medium';
+              const severity = severityValues.has(severityCandidate)
+                ? (severityCandidate as 'low' | 'medium' | 'high' | 'critical')
+                : 'medium';
+
+              return {
+                category: typeof risk.category === 'string' ? risk.category : 'General',
+                severity,
+                description: typeof risk.description === 'string' ? risk.description : 'Risk identified by AI analysis.',
+                mitigation: typeof risk.mitigation === 'string' ? risk.mitigation : 'Review and remediate this risk.',
+              };
+            })
+        : [];
+
+      const recommendations = Array.isArray(parsed.recommendations)
+        ? parsed.recommendations
+            .filter((recommendation): recommendation is string => typeof recommendation === 'string')
+            .filter((recommendation) => recommendation.trim().length > 0)
+        : [];
+
+      return {
+        riskScore: normalizedRiskScore,
+        identifiedRisks,
+        recommendations,
+      };
+    } catch (error) {
+      logger.warn('Risk assessment response was not valid JSON; returning conservative fallback', { error });
+      return {
+        riskScore: 50,
+        identifiedRisks: [],
+        recommendations: ['Review risk assessment output manually and rerun the analysis.'],
+      };
+    }
   }
 }

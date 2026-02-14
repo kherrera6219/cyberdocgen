@@ -28,7 +28,9 @@ electron-builder-debug.log
 release
 *.msix
 *.exe
-build/
+build/*
+!build/icon.ico
+!build/installer.nsh
 .cache/
 *.7z
 *_log.txt

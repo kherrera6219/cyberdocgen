@@ -6,11 +6,109 @@
 import { Router } from 'express';
 import { agentClient } from './agentClient';
 import { toolRegistry } from './toolRegistry';
-import { AgentRequest, ToolContext, MCPMessageType } from './types';
+import { AgentAttachment, AgentRequest, ToolContext, MCPMessageType } from './types';
 import { logger } from '../utils/logger';
 import { auditService, AuditAction } from '../services/auditService';
+import { getUserId } from '../replitAuth';
+import { aiLimiter } from '../middleware/security';
 
 export const mcpRouter = Router();
+
+const MAX_BATCH_EXECUTIONS = 10;
+const MAX_ATTACHMENTS = 10;
+const MAX_ATTACHMENT_CONTENT_CHARS = 2_000_000;
+const MAX_TOTAL_ATTACHMENT_CONTENT_CHARS = 8_000_000;
+const TOOL_EXECUTION_TIMEOUT_MS = 30_000;
+
+function resolveIdentityContext(req: any): Pick<ToolContext, 'userId' | 'organizationId'> {
+  const userId = getUserId(req);
+  const organizationId =
+    req.organizationId
+    || req.user?.organization?.id
+    || req.user?.organizationId
+    || req.session?.organizationId;
+
+  return {
+    userId,
+    organizationId,
+  };
+}
+
+function normalizeAttachments(raw: unknown): { attachments?: AgentAttachment[]; error?: string } {
+  if (raw === undefined || raw === null) {
+    return {};
+  }
+
+  if (!Array.isArray(raw)) {
+    return {
+      error: 'attachments must be an array when provided',
+    };
+  }
+
+  if (raw.length > MAX_ATTACHMENTS) {
+    return {
+      error: `Too many attachments. Maximum allowed is ${MAX_ATTACHMENTS}.`,
+    };
+  }
+
+  let totalContentLength = 0;
+  const normalized: AgentAttachment[] = [];
+  for (const [index, item] of raw.entries()) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) {
+      return {
+        error: `Attachment at index ${index} must be an object`,
+      };
+    }
+
+    const attachment = item as Record<string, unknown>;
+    const name = typeof attachment.name === 'string' ? attachment.name : undefined;
+    const type = typeof attachment.type === 'string' ? attachment.type : undefined;
+    const content = typeof attachment.content === 'string' ? attachment.content : undefined;
+
+    if (content) {
+      if (content.length > MAX_ATTACHMENT_CONTENT_CHARS) {
+        return {
+          error: `Attachment "${name || 'unnamed-file'}" exceeds maximum size`,
+        };
+      }
+      totalContentLength += content.length;
+    }
+
+    normalized.push({ name, type, content });
+  }
+
+  if (totalContentLength > MAX_TOTAL_ATTACHMENT_CONTENT_CHARS) {
+    return {
+      error: `Combined attachment size exceeds maximum allowed (${MAX_TOTAL_ATTACHMENT_CONTENT_CHARS} characters).`,
+    };
+  }
+
+  return { attachments: normalized.length > 0 ? normalized : undefined };
+}
+
+async function executeToolWithTimeout(
+  toolName: string,
+  parameters: Record<string, any>,
+  context: ToolContext,
+): Promise<Awaited<ReturnType<typeof toolRegistry.executeTool>>> {
+  let timeoutId: NodeJS.Timeout | undefined;
+
+  try {
+    return await Promise.race([
+      toolRegistry.executeTool(toolName, parameters, context),
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error(`Tool execution timed out after ${TOOL_EXECUTION_TIMEOUT_MS}ms`));
+        }, TOOL_EXECUTION_TIMEOUT_MS);
+        timeoutId.unref?.();
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
 
 /**
  * List all available tools
@@ -69,13 +167,34 @@ mcpRouter.get('/tools/:name', async (req, res) => {
  * Execute a tool directly
  * POST /api/mcp/tools/:name/execute
  */
-mcpRouter.post('/tools/:name/execute', async (req: any, res) => {
+mcpRouter.post('/tools/:name/execute', aiLimiter, async (req: any, res) => {
   try {
     const { name } = req.params;
     const { parameters, context: additionalContext } = req.body;
+    const { userId, organizationId } = resolveIdentityContext(req);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+    }
 
-    const userId = req.user?.claims?.sub;
-    const organizationId = req.user?.organization?.id;
+    if (!toolRegistry.getToolDocumentation(name)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tool not found',
+      });
+    }
+
+    if (
+      parameters !== undefined
+      && (typeof parameters !== 'object' || Array.isArray(parameters) || parameters === null)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid parameters payload',
+      });
+    }
 
     const context: ToolContext = {
       userId,
@@ -84,7 +203,7 @@ mcpRouter.post('/tools/:name/execute', async (req: any, res) => {
       metadata: additionalContext
     };
 
-    const result = await toolRegistry.executeTool(name, parameters, context);
+    const result = await executeToolWithTimeout(name, parameters, context);
 
     // Log tool execution
     await auditService.logAudit({
@@ -187,26 +306,60 @@ mcpRouter.get('/agents/:id', async (req, res) => {
  * Execute an agent request
  * POST /api/mcp/agents/:id/execute
  */
-mcpRouter.post('/agents/:id/execute', async (req: any, res) => {
+mcpRouter.post('/agents/:id/execute', aiLimiter, async (req: any, res) => {
   try {
     const { id } = req.params;
-    const { prompt, context: additionalContext, maxIterations } = req.body;
+    const { prompt, context: additionalContext, maxIterations, attachments } = req.body;
 
-    if (!prompt) {
+    if (!agentClient.getAgent(id)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Agent not found',
+      });
+    }
+
+    if (typeof prompt !== 'string' || prompt.trim().length === 0) {
       return res.status(400).json({
         success: false,
         error: 'Prompt is required'
       });
     }
 
-    const userId = req.user?.claims?.sub;
-    const organizationId = req.user?.organization?.id;
+    const trimmedPrompt = prompt.trim();
+    if (trimmedPrompt.length > 10000) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt exceeds maximum length (10000 characters)',
+      });
+    }
+
+    const { userId, organizationId } = resolveIdentityContext(req);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+    }
+
+    const normalized = normalizeAttachments(attachments);
+    if (normalized.error) {
+      return res.status(400).json({
+        success: false,
+        error: normalized.error,
+      });
+    }
+
+    const normalizedAttachments = normalized.attachments;
+    const iterations = Number.isInteger(maxIterations)
+      ? Math.min(Math.max(maxIterations, 1), 10)
+      : 5;
 
     const agentRequest: AgentRequest = {
       agentId: id,
-      prompt,
+      prompt: trimmedPrompt,
       context: additionalContext,
-      maxIterations: maxIterations || 5
+      maxIterations: iterations,
+      attachments: normalizedAttachments,
     };
 
     const context: ToolContext = {
@@ -230,6 +383,7 @@ mcpRouter.post('/agents/:id/execute', async (req: any, res) => {
         agentId: id,
         prompt: prompt.substring(0, 100),
         toolCallsCount: response.toolCalls?.length || 0,
+        attachmentCount: normalizedAttachments?.length || 0,
         success: true
       }
     });
@@ -252,10 +406,16 @@ mcpRouter.post('/agents/:id/execute', async (req: any, res) => {
  * Clear agent conversation history
  * POST /api/mcp/agents/:id/clear
  */
-mcpRouter.post('/agents/:id/clear', async (req: any, res) => {
+mcpRouter.post('/agents/:id/clear', aiLimiter, async (req: any, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user?.claims?.sub || 'anon';
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+    }
     const conversationId = `${userId}_${id}`;
 
     agentClient.clearConversation(conversationId);
@@ -313,7 +473,7 @@ mcpRouter.get('/health', async (req, res) => {
  * Batch tool execution
  * POST /api/mcp/tools/batch
  */
-mcpRouter.post('/tools/batch', async (req: any, res) => {
+mcpRouter.post('/tools/batch', aiLimiter, async (req: any, res) => {
   try {
     const { executions } = req.body;
 
@@ -324,8 +484,27 @@ mcpRouter.post('/tools/batch', async (req: any, res) => {
       });
     }
 
-    const userId = req.user?.claims?.sub;
-    const organizationId = req.user?.organization?.id;
+    if (executions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'executions cannot be empty',
+      });
+    }
+
+    if (executions.length > MAX_BATCH_EXECUTIONS) {
+      return res.status(400).json({
+        success: false,
+        error: `Too many executions. Maximum allowed is ${MAX_BATCH_EXECUTIONS}.`,
+      });
+    }
+
+    const { userId, organizationId } = resolveIdentityContext(req);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required',
+      });
+    }
 
     const context: ToolContext = {
       userId,
@@ -339,8 +518,39 @@ mcpRouter.post('/tools/batch', async (req: any, res) => {
     }> = [];
 
     for (const execution of executions) {
+      if (!execution || typeof execution !== 'object') {
+        return res.status(400).json({
+          success: false,
+          error: 'Each execution must be an object',
+        });
+      }
+
       const { toolName, parameters } = execution;
-      const result = await toolRegistry.executeTool(toolName, parameters, context);
+      if (typeof toolName !== 'string' || toolName.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Each execution must include a non-empty toolName',
+        });
+      }
+
+      if (!toolRegistry.getToolDocumentation(toolName)) {
+        return res.status(404).json({
+          success: false,
+          error: `Tool "${toolName}" not found`,
+        });
+      }
+
+      if (
+        parameters !== undefined
+        && (typeof parameters !== 'object' || Array.isArray(parameters) || parameters === null)
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid parameters for tool "${toolName}"`,
+        });
+      }
+
+      const result = await executeToolWithTimeout(toolName, parameters, context);
       results.push({
         toolName,
         result

@@ -29,6 +29,6 @@ export const config = {
   ai: {
     openaiKey: process.env.OPENAI_API_KEY,
     anthropicKey: process.env.ANTHROPIC_API_KEY,
-    googleKey: process.env.GOOGLE_GENERATIVE_AI_KEY,
+    googleKey: process.env.GOOGLE_GENERATIVE_AI_KEY || process.env.GEMINI_API_KEY,
   }
 };

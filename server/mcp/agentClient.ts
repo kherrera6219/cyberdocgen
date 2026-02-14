@@ -5,9 +5,10 @@
 
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { AgentConfig, AgentRequest, AgentResponse, ToolCall, ToolContext } from './types';
+import { AgentAttachment, AgentConfig, AgentRequest, AgentResponse, ToolCall, ToolContext } from './types';
 import { toolRegistry } from './toolRegistry';
 import { logger } from '../utils/logger';
+import { generateContentWithGemini } from '../services/gemini';
 
 let openaiClient: OpenAI | null = null;
 let anthropicClient: Anthropic | null = null;
@@ -30,6 +31,11 @@ export function getAnthropicClient(): Anthropic {
     anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   }
   return anthropicClient;
+}
+
+export function resetAgentModelClients(): void {
+  openaiClient = null;
+  anthropicClient = null;
 }
 
 export class AgentClient {
@@ -69,6 +75,8 @@ export class AgentClient {
       return this.executeOpenAI(agent, request, context, tools);
     } else if (agent.model === 'claude-sonnet-4') {
       return this.executeAnthropic(agent, request, context, tools);
+    } else if (agent.model === 'gemini-3-pro' || agent.model === 'gemini-3.0-pro') {
+      return this.executeGemini(agent, request, context);
     } else {
       throw new Error(`Unsupported model: ${agent.model}`);
     }
@@ -86,6 +94,10 @@ export class AgentClient {
     try {
       const conversationId = `${context.userId || 'anon'}_${agent.id}`;
       const messages = this.getConversationHistory(conversationId);
+      const promptWithAttachmentContext = this.buildPromptWithAttachments(
+        request.prompt,
+        request.attachments,
+      );
 
       // Add system prompt if this is the start of conversation
       if (messages.length === 0) {
@@ -98,7 +110,7 @@ export class AgentClient {
       // Add user message
       messages.push({
         role: 'user',
-        content: request.prompt
+        content: promptWithAttachmentContext
       });
 
       const maxIterations = request.maxIterations || 5;
@@ -130,7 +142,7 @@ export class AgentClient {
             const toolFunction = 'function' in toolCall ? toolCall.function : null;
             if (!toolFunction) continue;
             const toolName = toolFunction.name;
-            const toolParams = JSON.parse(toolFunction.arguments);
+            const toolParams = this.parseToolArguments(toolFunction.arguments);
 
             logger.info('Executing tool', { toolName, agentId: agent.id });
 
@@ -164,7 +176,8 @@ export class AgentClient {
             metadata: {
               model: 'gpt-5.1',
               iterations: iteration,
-              tokensUsed: response.usage?.total_tokens
+              tokensUsed: response.usage?.total_tokens,
+              attachmentCount: request.attachments?.length || 0,
             }
           };
         }
@@ -179,7 +192,8 @@ export class AgentClient {
         metadata: {
           model: 'gpt-5.1',
           iterations: iteration,
-          maxIterationsReached: true
+          maxIterationsReached: true,
+          attachmentCount: request.attachments?.length || 0,
         }
       };
     } catch (error: unknown) {
@@ -201,11 +215,15 @@ export class AgentClient {
     try {
       const conversationId = `${context.userId || 'anon'}_${agent.id}`;
       const messages = this.getConversationHistory(conversationId);
+      const promptWithAttachmentContext = this.buildPromptWithAttachments(
+        request.prompt,
+        request.attachments,
+      );
 
       // Add user message
       messages.push({
         role: 'user',
-        content: request.prompt
+        content: promptWithAttachmentContext
       });
 
       const maxIterations = request.maxIterations || 5;
@@ -294,7 +312,8 @@ export class AgentClient {
             metadata: {
               model: 'claude-sonnet-4',
               iterations: iteration,
-              tokensUsed: response.usage.input_tokens + response.usage.output_tokens
+              tokensUsed: response.usage.input_tokens + response.usage.output_tokens,
+              attachmentCount: request.attachments?.length || 0,
             }
           };
         }
@@ -309,12 +328,72 @@ export class AgentClient {
         metadata: {
           model: 'claude-sonnet-4',
           iterations: iteration,
-          maxIterationsReached: true
+          maxIterationsReached: true,
+          attachmentCount: request.attachments?.length || 0,
         }
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Anthropic agent execution failed', { error: errorMessage, agentId: agent.id });
+      throw error;
+    }
+  }
+
+  /**
+   * Execute with Gemini for direct model usage.
+   * Gemini agent runs without tool-calling and supports attachment-aware prompts.
+   */
+  private async executeGemini(
+    agent: AgentConfig,
+    request: AgentRequest,
+    context: ToolContext,
+  ): Promise<AgentResponse> {
+    try {
+      const conversationId = `${context.userId || 'anon'}_${agent.id}`;
+      const messages = this.getConversationHistory(conversationId);
+      const promptWithAttachmentContext = this.buildPromptWithAttachments(
+        request.prompt,
+        request.attachments,
+      );
+
+      if (messages.length === 0) {
+        messages.push({
+          role: 'system',
+          content: agent.systemPrompt,
+        });
+      }
+
+      messages.push({
+        role: 'user',
+        content: promptWithAttachmentContext,
+      });
+
+      const transcript = messages
+        .slice(-10)
+        .map((message) => `${message.role}: ${message.content}`)
+        .join('\n');
+      const geminiPrompt = `${agent.systemPrompt}\n\nConversation:\n${transcript}\n\nassistant:`;
+      const content = await generateContentWithGemini(geminiPrompt);
+
+      messages.push({
+        role: 'assistant',
+        content,
+      });
+      this.saveConversationHistory(conversationId, messages);
+
+      return {
+        content,
+        toolCalls: [],
+        metadata: {
+          model: 'gemini-3-pro',
+          iterations: 1,
+          attachmentCount: request.attachments?.length || 0,
+          toolsDisabled: true,
+        },
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Gemini agent execution failed', { error: errorMessage, agentId: agent.id });
       throw error;
     }
   }
@@ -350,6 +429,102 @@ export class AgentClient {
         }
       };
     }).filter(Boolean);
+  }
+
+  private parseToolArguments(rawArguments: string): Record<string, unknown> {
+    try {
+      const parsed = JSON.parse(rawArguments);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed;
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  }
+
+  private buildPromptWithAttachments(prompt: string, attachments?: AgentAttachment[]): string {
+    if (!attachments || attachments.length === 0) {
+      return prompt;
+    }
+
+    const attachmentLines: string[] = [];
+    let remainingTextBudget = 8000;
+    const limitedAttachments = attachments.slice(0, 10);
+
+    for (const attachment of limitedAttachments) {
+      const name = attachment.name || 'unnamed-file';
+      const type = attachment.type || 'application/octet-stream';
+      const content = attachment.content || '';
+
+      const decodedText = this.decodeAttachmentText(type, content);
+      if (decodedText) {
+        const trimmed = decodedText.trim();
+        if (!trimmed) {
+          attachmentLines.push(`[Attachment "${name}" (${type}) was empty after decoding]`);
+          continue;
+        }
+
+        const maxAttachmentChars = Math.min(remainingTextBudget, 2000);
+        const snippet = trimmed.length > maxAttachmentChars
+          ? `${trimmed.slice(0, maxAttachmentChars)}...`
+          : trimmed;
+        attachmentLines.push(`[Attachment "${name}" (${type}) content]: ${snippet}`);
+        remainingTextBudget -= snippet.length;
+        if (remainingTextBudget <= 0) {
+          break;
+        }
+        continue;
+      }
+
+      attachmentLines.push(`[Attachment "${name}" (${type}) attached]`);
+    }
+
+    if (attachmentLines.length === 0) {
+      return prompt;
+    }
+
+    return `${prompt}\n\n${attachmentLines.join('\n')}`;
+  }
+
+  private decodeAttachmentText(type: string, content: string): string | null {
+    if (!content) {
+      return null;
+    }
+
+    const normalizedType = type.toLowerCase();
+    if (normalizedType === 'text/plain' || normalizedType === 'application/json') {
+      return this.decodeDataUrlIfPresent(content);
+    }
+
+    return null;
+  }
+
+  private decodeDataUrlIfPresent(content: string): string {
+    if (!content.startsWith('data:')) {
+      return content;
+    }
+
+    const parts = content.split(',', 2);
+    if (parts.length < 2) {
+      return '';
+    }
+
+    const metadata = parts[0].toLowerCase();
+    const data = parts[1];
+    if (!metadata.includes(';base64')) {
+      try {
+        return decodeURIComponent(data);
+      } catch {
+        return data;
+      }
+    }
+
+    try {
+      return Buffer.from(data, 'base64').toString('utf8');
+    } catch {
+      return '';
+    }
   }
 
   /**

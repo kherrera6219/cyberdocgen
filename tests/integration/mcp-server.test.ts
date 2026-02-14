@@ -53,6 +53,8 @@ describe('MCP Server Integration Tests', () => {
     vi.clearAllMocks();
     app = express();
     app.use(express.json());
+    (toolRegistry.getToolDocumentation as any).mockImplementation((name: string) => ({ name }));
+    (agentClient.getAgent as any).mockImplementation((id: string) => ({ id, name: `Agent ${id}` }));
     // Mock user and session
     app.use((req: any, _res, next) => {
       req.user = { claims: { sub: 'user-123' }, organization: { id: 'org-123' } };

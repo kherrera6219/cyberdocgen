@@ -10,6 +10,10 @@
  */
 
 import { logger } from '../utils/logger';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 export type DeploymentMode = 'cloud' | 'local';
 
@@ -79,6 +83,36 @@ function buildRuntimeConfig(): RuntimeConfig {
   return buildCloudModeConfig();
 }
 
+function resolveLocalDataPath(): string {
+  const configuredDataPath = process.env.LOCAL_DATA_PATH?.trim();
+  if (configuredDataPath) {
+    return path.resolve(configuredDataPath);
+  }
+
+  const localAppData = process.env.LOCALAPPDATA?.trim();
+  if (localAppData) {
+    return path.resolve(localAppData, 'CyberDocGen');
+  }
+
+  return path.resolve(os.homedir(), '.cyberdocgen');
+}
+
+function resolveLocalMigrationsPath(): string | undefined {
+  const configuredMigrationsPath = process.env.LOCAL_MIGRATIONS_PATH?.trim();
+  if (configuredMigrationsPath) {
+    return path.resolve(configuredMigrationsPath);
+  }
+
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const fallbackMigrationCandidates = [
+    path.resolve(moduleDir, '..', 'migrations', 'sqlite'),
+    path.resolve('dist/migrations/sqlite'),
+    path.resolve('server/migrations/sqlite'),
+  ];
+
+  return fallbackMigrationCandidates.find((candidate) => fs.existsSync(candidate));
+}
+
 /**
  * Cloud mode configuration (existing behavior)
  */
@@ -120,10 +154,8 @@ function buildCloudModeConfig(): RuntimeConfig {
  * Local mode configuration (Windows 11 desktop app)
  */
 function buildLocalModeConfig(): RuntimeConfig {
-  // In Electron context, get userData path
-  // For now, use a placeholder that will be replaced during Electron integration
-  const userDataPath = process.env.LOCAL_DATA_PATH || './local-data';
-  const migrationsPath = process.env.LOCAL_MIGRATIONS_PATH?.trim() || undefined;
+  const userDataPath = resolveLocalDataPath();
+  const migrationsPath = resolveLocalMigrationsPath();
   
   // Allow env overrides for host/port even in local mode
   const host = process.env.HOST || '127.0.0.1';
@@ -138,12 +170,12 @@ function buildLocalModeConfig(): RuntimeConfig {
     },
     database: {
       type: 'sqlite',
-      filePath: `${userDataPath}/cyberdocgen.db`,
+      filePath: path.join(userDataPath, 'cyberdocgen.db'),
       migrationsPath,
     },
     storage: {
       type: 'local',
-      basePath: `${userDataPath}/files`,
+      basePath: path.join(userDataPath, 'files'),
     },
     auth: {
       enabled: false, // No login in local mode

@@ -27,6 +27,8 @@
     "test:a11y": "vitest run tests/accessibility",
     "test:size": "npm run build && tsx scripts/check-bundle-size.ts",
     "test:e2e": "playwright test",
+    "test:e2e:cross-browser": "cross-env PLAYWRIGHT_CROSS_BROWSER=true playwright test",
+    "test:e2e:visual": "cross-env PLAYWRIGHT_VISUAL=true playwright test --project=visual-chromium",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
     "windows:validate": "tsx scripts/validate-wack.ts",

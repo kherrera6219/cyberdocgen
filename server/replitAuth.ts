@@ -262,6 +262,25 @@ export function getUserId(req: Request): string | undefined {
   return undefined;
 }
 
+function normalizeRemoteIp(raw: string): string {
+  return raw.startsWith('::ffff:') ? raw.slice(7) : raw;
+}
+
+function isLoopbackAddress(ip: string): boolean {
+  return (
+    ip === '127.0.0.1'
+    || ip === '::1'
+    || ip === 'localhost'
+    || ip.startsWith('127.')
+  );
+}
+
+function resolveRequestRemoteIp(req: Request): string {
+  const socketIp = typeof req.socket?.remoteAddress === 'string' ? req.socket.remoteAddress : '';
+  const fallbackIp = typeof req.ip === 'string' ? req.ip : '';
+  return normalizeRemoteIp(String(socketIp || fallbackIp).trim());
+}
+
 // Helper that throws if user is not authenticated - use after isAuthenticated middleware
 export function getRequiredUserId(req: Request): string {
   const userId = getUserId(req);
@@ -412,6 +431,19 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     // For local mode, we bypass the expires_at check since the user is synthetic
     // and doesn't have an OIDC token expiry.
     if (isLocalMode()) {
+      const normalizedIp = resolveRequestRemoteIp(req);
+      const allowMissingIp = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+
+      if (normalizedIp.length === 0 && !allowMissingIp) {
+        logger.warn('Blocked request with missing remote address in local-mode auth bypass');
+        return next(new UnauthorizedError("Local mode endpoints require a loopback remote address"));
+      }
+
+      if (normalizedIp.length > 0 && !isLoopbackAddress(normalizedIp)) {
+        logger.warn('Blocked non-loopback request in local-mode auth bypass', { ip: normalizedIp });
+        return next(new UnauthorizedError("Local mode endpoints are restricted to loopback access"));
+      }
+
       return next();
     }
 

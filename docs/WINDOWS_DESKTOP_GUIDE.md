@@ -71,7 +71,7 @@ node scripts/verify-build.js
 3.  Choose an installation location in the installer wizard (default is `AppData\Local\Programs\cyberdocgen`).
 4.  Wait for the installer progress page to complete, then confirm the installation completion prompt.
 5.  Launch CyberDocGen and configure your AI provider API key(s) in **Settings -> AI API Keys**.
-6.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings). Uninstall progress and a completion notification are shown.
+6.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings). For silent automation, use `uninstall.exe /S /REMOVEALLDATA` to force full data removal. Uninstall progress and a completion notification are shown.
 
 ---
 

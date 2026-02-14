@@ -18,8 +18,8 @@ test.describe("Document Workflows", () => {
   });
 
   test("features page showcases document capabilities", async ({ page }) => {
-    await page.click("text=Features");
-    await expect(page.locator("h1, h2")).toBeVisible();
+    await page.goto("/features");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
   test("AI document generator page is accessible", async ({ page }) => {

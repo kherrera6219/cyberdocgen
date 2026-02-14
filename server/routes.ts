@@ -120,9 +120,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
   
   // Force local auth bypass if in local mode (overrides passport)
-  if (isLocalMode()) {
+  const localAuthBypassEnabled =
+    isLocalMode() && process.env.LOCAL_AUTH_BYPASS?.toLowerCase() !== 'false';
+
+  if (localAuthBypassEnabled) {
     logger.info("Enabling Local Auth Bypass Middleware");
     app.use(localAuthBypassMiddleware);
+  } else if (isLocalMode()) {
+    logger.info("Local Auth Bypass Middleware disabled (LOCAL_AUTH_BYPASS=false)");
   }
 
   // 9. High-risk operation protection

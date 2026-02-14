@@ -23,13 +23,32 @@ import { db } from '../../db';
 import { aiSessions } from '@shared/schema';
 import { and, eq } from 'drizzle-orm';
 
+function decodeDataUrlContent(content: string): string {
+  if (!content.startsWith('data:')) {
+    return content;
+  }
+
+  const parts = content.split(',', 2);
+  if (parts.length < 2) {
+    return '';
+  }
+
+  try {
+    return Buffer.from(parts[1], 'base64').toString('utf8');
+  } catch {
+    return '';
+  }
+}
+
 export function registerChatRoutes(router: Router) {
   /**
    * POST /api/ai/chat
    * Compliance chatbot interface
    */
   router.post("/chat", isAuthenticated, requireOrganization, aiLimiter, validateAIRequestSize, validateInput(chatMessageSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-    const { message, framework, sessionId } = req.body;
+    const { message } = req.body;
+    const framework = req.body.framework || req.body.context?.framework;
+    const sessionId = req.body.sessionId || req.body.conversationId;
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
 
@@ -53,7 +72,8 @@ export function registerChatRoutes(router: Router) {
       message,
       userId,
       sessionId,
-      framework
+      framework,
+      organizationId,
     );
 
     await auditService.logAction({
@@ -121,17 +141,21 @@ export function registerChatRoutes(router: Router) {
     if (attachments && attachments.length > 0) {
       for (const attachment of attachments) {
         const { type, content, name } = attachment;
-        
-        if (!content) continue;
-        
-        // Check size (base64 is ~1.37x the original size)
-        const estimatedSize = (content.length * 0.75);
-        if (estimatedSize > MAX_ATTACHMENT_SIZE) {
-          unsupportedFiles.push(`${name} (file too large)`);
-          continue;
-        }
+        const attachmentName = name || 'unnamed-file';
         
         if (SUPPORTED_IMAGE_TYPES.includes(type)) {
+          if (!content) {
+            unsupportedFiles.push(`${attachmentName} (missing image content)`);
+            continue;
+          }
+
+          // Check size (base64 is ~1.37x the original size)
+          const estimatedSize = (content.length * 0.75);
+          if (estimatedSize > MAX_ATTACHMENT_SIZE) {
+            unsupportedFiles.push(`${attachmentName} (file too large)`);
+            continue;
+          }
+
           // Process as image
           try {
             const result = await analyzeImage(content, {
@@ -140,18 +164,33 @@ export function registerChatRoutes(router: Router) {
               prompt: `Analyze this image in the context of the user's message: "${message}"`
             });
             imageAnalysisResults.push({
-              fileName: name,
+              fileName: attachmentName,
               ...result
             });
           } catch (imgError) {
-            logger.warn('Failed to analyze image attachment', { name, error: imgError });
-            unsupportedFiles.push(`${name} (analysis failed)`);
+            logger.warn('Failed to analyze image attachment', { name: attachmentName, error: imgError });
+            unsupportedFiles.push(`${attachmentName} (analysis failed)`);
           }
-        } else if (type === 'application/pdf' || type?.includes('document')) {
-          // For documents, note them but don't process through vision API
-          documentContents.push(`[Document attached: ${name}]`);
+        } else if (type === 'text/plain' || type === 'application/json') {
+          if (!content) {
+            unsupportedFiles.push(`${attachmentName} (missing document content)`);
+            continue;
+          }
+
+          const decoded = decodeDataUrlContent(content);
+          const normalized = decoded.trim();
+          if (!normalized) {
+            unsupportedFiles.push(`${attachmentName} (empty document content)`);
+            continue;
+          }
+
+          const truncated = normalized.length > 2000 ? `${normalized.slice(0, 2000)}...` : normalized;
+          documentContents.push(`[Document "${attachmentName}" content]: ${truncated}`);
+        } else if (type === 'application/pdf' || type?.includes('document') || type?.includes('word')) {
+          // Binary document formats are acknowledged and tracked for context.
+          documentContents.push(`[Document attached: ${attachmentName}]`);
         } else {
-          unsupportedFiles.push(`${name} (unsupported type: ${type})`);
+          unsupportedFiles.push(`${attachmentName} (unsupported type: ${type})`);
         }
       }
     }
@@ -184,7 +223,8 @@ export function registerChatRoutes(router: Router) {
       enhancedMessage,
       userId,
       sessionId,
-      framework
+      framework,
+      organizationId,
     );
 
     metricsCollector.trackAIOperation('multimodal_chat', true);

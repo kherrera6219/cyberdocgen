@@ -1,5 +1,7 @@
 import { Request, Response as ExpressResponse, NextFunction } from 'express';
 import { URL } from 'url';
+import dns from 'dns';
+import net from 'net';
 
 /**
  * SSRF Egress Control Middleware
@@ -80,6 +82,40 @@ export interface EgressControlOptions {
   logBlocked?: boolean;
   /** Bypass for specific paths (e.g., webhooks) */
   bypassPaths?: string[];
+}
+
+function collectUrlCandidates(
+  value: unknown,
+  urlFields: Set<string>,
+  prefix = '',
+  depth = 0
+): Array<{ field: string; value: string }> {
+  if (depth > 5 || value == null) {
+    return [];
+  }
+
+  if (typeof value === 'string') {
+    const fieldName = prefix.split('.').at(-1)?.toLowerCase() || '';
+    if (urlFields.has(fieldName)) {
+      return [{ field: prefix, value }];
+    }
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) =>
+      collectUrlCandidates(item, urlFields, `${prefix}[${index}]`, depth + 1)
+    );
+  }
+
+  if (typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
+      const childPrefix = prefix ? `${prefix}.${key}` : key;
+      return collectUrlCandidates(child, urlFields, childPrefix, depth + 1);
+    });
+  }
+
+  return [];
 }
 
 /**
@@ -164,6 +200,52 @@ export function validateUrl(
   }
 }
 
+async function resolveAndValidateHost(hostname: string): Promise<{ valid: boolean; reason?: string }> {
+  if (isBlockedHost(hostname)) {
+    return {
+      valid: false,
+      reason: `Blocked hostname: ${hostname}`,
+    };
+  }
+
+  if (isBlockedIP(hostname)) {
+    return {
+      valid: false,
+      reason: `Blocked IP range: ${hostname}`,
+    };
+  }
+
+  // If hostname is already an IP literal, no DNS lookup is needed.
+  if (net.isIP(hostname) !== 0) {
+    return { valid: true };
+  }
+
+  try {
+    const results = await dns.promises.lookup(hostname, { all: true, verbatim: true });
+    if (results.length === 0) {
+      return {
+        valid: false,
+        reason: `Hostname did not resolve: ${hostname}`,
+      };
+    }
+
+    const blockedResolution = results.find((result) => isBlockedIP(result.address));
+    if (blockedResolution) {
+      return {
+        valid: false,
+        reason: `Blocked resolved IP range: ${blockedResolution.address}`,
+      };
+    }
+
+    return { valid: true };
+  } catch {
+    return {
+      valid: false,
+      reason: `Failed to resolve hostname: ${hostname}`,
+    };
+  }
+}
+
 /**
  * Express middleware for egress control
  * 
@@ -176,34 +258,29 @@ export function egressControlMiddleware(options: EgressControlOptions = {}) {
       return next();
     }
     
-    // Extract URLs from request body
-    const urlFields = ['url', 'targetUrl', 'callbackUrl', 'webhookUrl', 'redirectUrl'];
-    const body = req.body || {};
-    const bodyEntries = new Map<string, unknown>(Object.entries(body));
-    
-    for (const field of urlFields) {
-      const fieldValue = bodyEntries.get(field);
-      if (fieldValue && typeof fieldValue === 'string') {
-        const validation = validateUrl(fieldValue, options);
-        
-        if (!validation.valid) {
-          if (options.logBlocked) {
-            console.warn(JSON.stringify({
-              type: 'ssrf_blocked',
-              field,
-              url: fieldValue,
-              reason: validation.reason,
-              ip: req.ip,
-              path: req.path,
-              timestamp: new Date().toISOString(),
-            }));
-          }
-          
-          return res.status(400).json({
-            error: 'Invalid URL',
-            message: validation.reason,
-          });
+    // Extract and validate URL-like fields from nested request body values
+    const urlFields = new Set(['url', 'targeturl', 'callbackurl', 'webhookurl', 'redirecturl']);
+    const candidates = collectUrlCandidates(req.body || {}, urlFields);
+
+    for (const candidate of candidates) {
+      const validation = validateUrl(candidate.value, options);
+      if (!validation.valid) {
+        if (options.logBlocked) {
+          console.warn(JSON.stringify({
+            type: 'ssrf_blocked',
+            field: candidate.field,
+            url: candidate.value,
+            reason: validation.reason,
+            ip: req.ip,
+            path: req.path,
+            timestamp: new Date().toISOString(),
+          }));
         }
+
+        return res.status(400).json({
+          error: 'Invalid URL',
+          message: validation.reason,
+        });
       }
     }
     
@@ -221,10 +298,19 @@ export async function safeFetch(
   options: RequestInit = {},
   egressOptions: EgressControlOptions = {}
 ): Promise<globalThis.Response> {
-  const validation = validateUrl(url, { ...egressOptions, strictMode: true });
+  const baseValidation = validateUrl(url, {
+    ...egressOptions,
+    strictMode: egressOptions.strictMode ?? true,
+  });
   
-  if (!validation.valid) {
-    throw new SSRFError(validation.reason || 'URL validation failed', url);
+  if (!baseValidation.valid) {
+    throw new SSRFError(baseValidation.reason || 'URL validation failed', url);
+  }
+
+  const parsed = new URL(url);
+  const hostValidation = await resolveAndValidateHost(parsed.hostname);
+  if (!hostValidation.valid) {
+    throw new SSRFError(hostValidation.reason || 'Host validation failed', url);
   }
   
   return globalThis.fetch(url, {

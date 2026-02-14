@@ -81,12 +81,18 @@ export interface AgentConfig {
   id: string;
   name: string;
   description: string;
-  model: 'gpt-5.1' | 'claude-sonnet-4' | 'gemini-3.0-pro';
+  model: 'gpt-5.1' | 'claude-sonnet-4' | 'gemini-3-pro' | 'gemini-3.0-pro';
   tools: string[]; // Tool names available to this agent
   systemPrompt: string;
   temperature?: number;
   maxTokens?: number;
   capabilities: AgentCapability[];
+}
+
+export interface AgentAttachment {
+  name?: string;
+  type?: string;
+  content?: string;
 }
 
 export enum AgentCapability {
@@ -106,6 +112,7 @@ export interface AgentRequest {
   context?: Record<string, any>;
   tools?: string[];
   maxIterations?: number;
+  attachments?: AgentAttachment[];
 }
 
 export interface AgentResponse {

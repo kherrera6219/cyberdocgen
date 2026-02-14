@@ -1,5 +1,5 @@
 import { type CompanyProfile } from "@shared/schema";
-import { generateDocument as generateWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
+import { generateDocument as generateWithOpenAI, generateContentWithOpenAI, frameworkTemplates, type DocumentTemplate } from "./openai";
 import { generateDocumentWithClaude, analyzeDocumentQuality, generateComplianceInsights, generateContentWithClaude } from "./anthropic";
 import { generateContentWithGemini, getGeminiClient } from "./gemini";
 import { aiGuardrailsService, type GuardrailCheckResult } from "./aiGuardrailsService";
@@ -156,7 +156,11 @@ export class AIOrchestrator {
           };
         }
       } catch (error) {
-        logger.error('Guardrails pre-check failed for document generation', { error, requestId });
+        logger.error('Guardrails pre-check failed for document generation; blocking request', { error, requestId });
+        return {
+          content: 'Document generation unavailable while safety checks are offline.',
+          model: 'blocked',
+        };
       }
     }
     
@@ -205,7 +209,11 @@ export class AIOrchestrator {
           };
         }
       } catch (error) {
-        logger.error('Guardrails output check failed for document generation', { error, requestId });
+        logger.error('Guardrails output check failed for document generation; suppressing output', { error, requestId });
+        return {
+          content: 'Generated content withheld because safety checks could not be completed.',
+          model: 'blocked',
+        };
       }
     }
     
@@ -382,9 +390,63 @@ export class AIOrchestrator {
           sanitizedPrompt = guardrailResult.sanitizedPrompt;
         }
       } catch (error) {
-        logger.error('Guardrails pre-check failed, proceeding with caution', { error, requestId });
+        logger.error('Guardrails pre-check failed; blocking content generation', { error, requestId });
+        return {
+          result: { content: '', model },
+          guardrails: guardrailResult,
+          blocked: true,
+          blockedReason: 'Content blocked: safety checks unavailable',
+        };
       }
     }
+
+    const moderateOutput = async (
+      generatedContent: string,
+      generatedModel: Exclude<AIModel, 'auto'>
+    ): Promise<GuardrailedResult<{ content: string; model: string }>> => {
+      if (!enableGuardrails || !generatedContent) {
+        return {
+          result: { content: generatedContent, model: generatedModel },
+          guardrails: guardrailResult,
+          blocked: false,
+        };
+      }
+
+      try {
+        const outputCheck = await aiGuardrailsService.checkGuardrails(sanitizedPrompt, generatedContent, {
+          requestId,
+          modelProvider: this.getModelProvider(generatedModel),
+          modelName: generatedModel,
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          ipAddress: guardrailContext?.ipAddress,
+        });
+
+        const safeContent = outputCheck.sanitizedResponse || generatedContent;
+        if (!outputCheck.allowed && outputCheck.action === 'blocked') {
+          return {
+            result: { content: '', model: generatedModel },
+            guardrails: outputCheck,
+            blocked: true,
+            blockedReason: `Generated output blocked: ${outputCheck.action} (severity: ${outputCheck.severity})`,
+          };
+        }
+
+        return {
+          result: { content: safeContent, model: generatedModel },
+          guardrails: outputCheck,
+          blocked: false,
+        };
+      } catch (error) {
+        logger.error('Guardrails post-check failed; suppressing model output', { error, requestId });
+        return {
+          result: { content: '', model: generatedModel },
+          guardrails: guardrailResult,
+          blocked: true,
+          blockedReason: 'Generated output blocked: safety checks unavailable',
+        };
+      }
+    };
 
     try {
       let content: string;
@@ -397,20 +459,11 @@ export class AIOrchestrator {
           break;
         case 'gpt-5.1':
         default:
-          content = await circuitBreakers.openai.execute(() => generateWithOpenAI({ templateContent: sanitizedPrompt } as DocumentTemplate, {} as CompanyProfile, 'General'));
+          content = await circuitBreakers.openai.execute(() => generateContentWithOpenAI(sanitizedPrompt));
           break;
       }
-      
-      // Post-generation output moderation
-      if (enableGuardrails && content) {
-        // ... (output guardrail logic remains the same)
-      }
 
-      return {
-        result: { content, model },
-        guardrails: guardrailResult,
-        blocked: false,
-      };
+      return moderateOutput(content, model);
 
     } catch (error) {
       logger.error(`Primary content generation model ${model} failed`, { error, requestId });
@@ -427,17 +480,11 @@ export class AIOrchestrator {
             break;
           case 'gpt-5.1':
           default:
-            fallbackContent = await circuitBreakers.openai.execute(() => generateWithOpenAI({ templateContent: sanitizedPrompt } as DocumentTemplate, {} as CompanyProfile, 'General'));
+            fallbackContent = await circuitBreakers.openai.execute(() => generateContentWithOpenAI(sanitizedPrompt));
             break;
         }
-        
-        // ... (output guardrail logic for fallback)
 
-        return {
-          result: { content: fallbackContent, model: fallbackModel },
-          guardrails: guardrailResult, // This might need re-evaluation for the fallback content
-          blocked: false,
-        };
+        return moderateOutput(fallbackContent, fallbackModel);
       } catch (fallbackError) {
         logger.error('All content generation models failed', { requestId, fallbackError });
         throw new AIServiceError('All content generation models failed', { requestId });
@@ -563,7 +610,7 @@ export class AIOrchestrator {
     }
 
     // Test Gemini
-    if (process.env.GEMINI_API_KEY) {
+    if (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_KEY) {
       try {
         await generateContentWithGemini("Test");
         results.gemini = true;

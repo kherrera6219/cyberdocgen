@@ -103,10 +103,27 @@ export class SqliteDbProvider implements IDbProvider {
       );
     `);
 
+    const migrationColumns = db
+      .prepare(`PRAGMA table_info('_migrations')`)
+      .all()
+      .map((row) => (row as { name: string }).name.toLowerCase());
+    const hasVersionColumn = migrationColumns.includes('version');
+
     const appliedMigrations = db
       .prepare('SELECT name FROM _migrations')
       .all()
       .map((row) => (row as { name: string }).name);
+    const usedMigrationVersions = new Set<number>(
+      hasVersionColumn
+        ? db
+            .prepare('SELECT version FROM _migrations WHERE version IS NOT NULL')
+            .all()
+            .map((row) => Number((row as { version: number }).version))
+            .filter((value) => Number.isFinite(value))
+        : []
+    );
+    let nextMigrationVersion =
+      usedMigrationVersions.size > 0 ? Math.max(...Array.from(usedMigrationVersions)) + 1 : 1;
 
     const migrationFiles = fs
       .readdirSync(this.migrationsPath)
@@ -122,7 +139,24 @@ export class SqliteDbProvider implements IDbProvider {
         const migration = fs.readFileSync(path.join(this.migrationsPath, file), 'utf-8');
         db.exec('BEGIN');
         db.exec(migration);
-        db.prepare('INSERT INTO _migrations (name) VALUES (?)').run(file);
+        if (hasVersionColumn) {
+          const versionMatch = file.match(/^(\d+)/);
+          let version = versionMatch ? parseInt(versionMatch[1], 10) : nextMigrationVersion;
+          if (!Number.isFinite(version) || version <= 0) {
+            version = nextMigrationVersion;
+          }
+          while (usedMigrationVersions.has(version)) {
+            version = nextMigrationVersion;
+            nextMigrationVersion += 1;
+          }
+          db.prepare('INSERT INTO _migrations (version, name) VALUES (?, ?)').run(version, file);
+          usedMigrationVersions.add(version);
+          if (version >= nextMigrationVersion) {
+            nextMigrationVersion = version + 1;
+          }
+        } else {
+          db.prepare('INSERT INTO _migrations (name) VALUES (?)').run(file);
+        }
         db.exec('COMMIT');
         logger.info(`[SqliteDbProvider] Applied migration: ${file}`);
       } catch (error) {

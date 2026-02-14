@@ -277,13 +277,26 @@ describe("localMode routes", () => {
     vi.unstubAllGlobals();
   });
 
-  it("accepts anthropic key test by format", async () => {
+  it("tests ANTHROPIC API keys against provider endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+
     const response = await request(app)
       .post("/api/local/api-keys/test")
       .send({ provider: "ANTHROPIC", apiKey: "sk-ant-abcdefghijklmnopqrstuvwxyz1234" })
       .expect(200);
 
     expect(response.body.valid).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.anthropic.com/v1/models",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "x-api-key": "sk-ant-abcdefghijklmnopqrstuvwxyz1234",
+        }),
+      }),
+    );
+
+    vi.unstubAllGlobals();
   });
 
   it("enforces API key length limits for test and save endpoints", async () => {
