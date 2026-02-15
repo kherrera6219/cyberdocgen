@@ -2,7 +2,7 @@
 
 **Review Date:** 2025-12-19 (historical snapshot)
 **Application:** CyberDocGen Compliance Automation Platform
-**Status:** Historical Security Review (see `docs/project-analysis/PRODUCTION_OPERATIONAL_REVIEW_2026-02-08.md` for current status)
+**Status:** Historical Security Review (see `TODO.md` for current release status)
 
 ---
 

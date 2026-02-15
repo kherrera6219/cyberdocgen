@@ -3,6 +3,7 @@ name: CI Security Pipeline
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
 
@@ -75,7 +76,6 @@ jobs:
 
       - name: Run npm audit
         run: npm audit --audit-level=high
-        continue-on-error: true
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -103,19 +103,41 @@ jobs:
 
       - name: Run npm audit for vulnerabilities
         run: |
-          npm audit --json > npm-audit-results.json || true
-          if grep -q '"high"' npm-audit-results.json || grep -q '"critical"' npm-audit-results.json; then
-            echo "::warning::High or critical vulnerabilities found"
-            cat npm-audit-results.json | jq '.vulnerabilities | to_entries[] | select(.value.severity == "high" or .value.severity == "critical") | .key'
-          fi
-
+          npm audit --json > npm-audit-results.json
+          node -e "const fs=require('fs');const audit=JSON.parse(fs.readFileSync('npm-audit-results.json','utf8'));const vulns=audit.vulnerabilities||{};const bad=Object.entries(vulns).filter(([,v])=>v && (v.severity==='high'||v.severity==='critical'));if(bad.length){console.error('High/Critical vulnerabilities found:');for(const [name,val] of bad){console.error('- '+name+' ('+val.severity+')');}process.exit(1);}console.log('No high/critical vulnerabilities found.');"
       - name: Upload audit results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: npm-audit-results
           path: npm-audit-results.json
 
-  # Job 5: License Scanning
+  # Job 5: Release Signing Policy
+  release-policy:
+    name: Release Signing Policy
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Enforce signed release policy
+        env:
+          RELEASE_BUILD: "true"
+          RELEASE_FORCE_CODESIGN: "true"
+          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          CSC_NAME: ${{ secrets.WINDOWS_CSC_NAME }}
+        run: npm run windows:validate
+
+  # Job 6: License Scanning
   license-scan:
     name: License Scan
     runs-on: ubuntu-latest
@@ -140,7 +162,7 @@ jobs:
           # Fail on copyleft or problematic licenses
           license-checker --production --failOn 'GPL;AGPL;LGPL;SSPL' || echo "::warning::Some licenses may need review"
 
-  # Job 6: SBOM Generation
+  # Job 7: SBOM Generation
   sbom:
     name: Generate SBOM
     runs-on: ubuntu-latest
@@ -167,7 +189,7 @@ jobs:
           name: sbom
           path: sbom.cdx.json
 
-  # Job 7: Build
+  # Job 8: Build
   build:
     name: Build
     runs-on: ubuntu-latest

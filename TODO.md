@@ -1,153 +1,28 @@
-# CyberDocGen - Technical Development TODOs
+# CyberDocGen Outstanding TODO
 
-**Last Updated:** February 10, 2026  
-**Status:** Operational Readiness Hardening In Progress (80% global coverage gate reached)  
-**Coverage:** 85.40% statements/lines, 81.47% functions, 80.14% branches (latest full-suite run)
+**Last Verified:** February 15, 2026  
+**Scope:** Outstanding items only (completed items removed).
 
----
+## Current Validation Evidence (2026-02-15)
 
-## 🚨 OPERATIONAL TODO - February 8, 2026
+- `npm run check` -> PASS
+- `npm run lint` -> PASS
+- `npm run windows:validate` -> PASS
+- `npm run windows:validate:store` -> PASS (with valid `WINDOWS_STORE_*` values)
+- `npm run test:run -- --coverage` -> PASS (`1532` passed, `4` skipped; global coverage `82.88%` statements, `80.35%` functions, `78.13%` branches)
+- `npm run sweep:phase -- --timeout-ms=30000` -> PASS (`6` passed, `1` skipped cloud smoke due missing secrets)
+- `npm audit --omit=dev` -> PASS (`0` vulnerabilities)
+- `npm audit` -> PASS (`0` vulnerabilities)
+- `DEPLOYMENT_MODE=cloud npm start` -> FAIL as expected without production secrets (`DATABASE_URL`, `SESSION_SECRET`)
 
-### P0 - Must Complete Before Production Sign-Off
+## Outstanding Items
 
-- [x] **Remediate production npm advisories**: production dependency tree now reports 0 vulnerabilities.
-- [x] **Re-run security validation**: `npm audit`, smoke tests, and deployment verification executed after updates.
-- [x] **Align Windows validation tooling with actual packaging target**: `scripts/validate-wack.ts` now validates NSIS and APPX (Store) paths.
-- [x] **Implement connector adapters**: SharePoint/Jira/Notion adapter list/fetch flows implemented with tenant-scoped config access and import tests.
-- [x] **Resolve dev-toolchain advisories**: dependency refresh + overrides eliminated the prior `drizzle-kit`/`esbuild` advisory chain (`npm audit` now clean).
-- [x] **Lock release evidence**: gate outputs archived in `docs/project-analysis/evidence/20260208-130320/`.
-
-### P1 - High Impact Reliability and Security Hygiene
-
-- [x] **Lint warning reduction (133 -> 0 warnings)**: server-side warning remediation completed; client rule scoping + hook-compat updates applied.
-- [x] **Local-mode operational docs**: required local env documented (`DEPLOYMENT_MODE=local`, 32+ char `SESSION_SECRET`, `LOCAL_PORT` behavior).
-- [x] **Windows desktop runtime cleanup**: local-mode migrations path made optional, packaged startup race/crash checks hardened, and desktop auto-update checks gated behind `ENABLE_AUTO_UPDATES=true`.
-- [ ] **Windows installer sign-off**: run signed NSIS installer smoke test on a clean Windows VM and capture startup logs evidence.
-- [x] **Store distribution decision**: Microsoft Store channel enabled with APPX target, Store metadata/env validation, and dedicated runbook/checklist.
-- [x] **Release version alignment**: package and installer outputs aligned to `2.4.0` (`CyberDocGen-Setup-2.4.0.exe`).
-- [x] **Generated artifact hygiene**: `local-data/` now ignored via `.gitignore` policy.
-
-### P2 - Maintainability and Technical Debt
-
-- [ ] **Storybook lint strategy**: either modernize story files to current rules or keep explicit non-prod exclusions documented.
-- [ ] **Route coverage cleanup**: expand remaining tests around repository analysis orchestration (`server/routes.ts`), temp-auth gating, and low-covered auth/project/mfa routes (storage/admin/local-mode routes now expanded).
-- [x] **Documentation consistency pass**: reconciled current production status docs with latest validation baselines and coverage gate.
-- [x] **Test warning cleanup**: removed residual React `act(...)` noise, migrated Vitest off deprecated `environmentMatchGlobs` to `test.projects`, and resolved jsdom onboarding navigation warning.
-- [x] **Coverage threshold burn-down**: completed global gate uplift to 80/80/80/80 with passing full-suite baseline.
-
----
-
-## 🎯 HIGH PRIORITY - Feature Completion
-
-### Enterprise Identity & Cloud Integration
-
-- [x] **Microsoft Entra ID (OIDC/PKCE)**: Core authentication flow implemented.
-- [x] **Google Drive OAuth 2.0**: Full OAuth flow implemented in `cloudIntegrationService.ts` using `OAuth2Client`.
-- [x] **OneDrive OAuth 2.0**: Full OAuth flow implemented using Microsoft Graph token exchange.
-- [x] **MFA Logic Alignment**: Enhanced `server/providers/auth/entraId.ts` with contextual auth signals (amr/acr/device claims).
-
-### Security & Compliance Coding
-
-- [x] **AI Moderation API**: Uses OpenAI Moderation API with mock fallback in `aiGuardrailsService.ts`.
-- [x] **Audit Trail Integrity**: HMAC-based chaining implemented via `computeSignature()` in `auditService.ts`.
-
----
-
-## 🟠 MEDIUM PRIORITY - Observability & Performance
-
-### Telemetry & Tracking
-
-- [x] **Error Monitoring**: Sentry SDK implemented in `server/monitoring/sentry.ts` and `client/src/lib/sentry.ts`.
-- [x] **AI Latency Instrumentation**: OpenTelemetry installed and configured in `server/monitoring/telemetry.ts`.
-- [x] **Audit Telemetry**: High-risk audit events logged via structured logger with `HIGH_RISK_AUDIT_EVENT` tags.
-
-### Performance Engineering
-
-- [x] **Benchmarking Scripts**: Created `scripts/benchmark-ai.ts` using `autocannon` for baseline latency testing.
-- [x] **Bundle Governance**: Vite plugin created in `client/vite-plugins/bundleGovernance.ts` (200KB limit, CI enforcement).
-
----
-
-## 🔵 LOW PRIORITY - Code Quality & Debt
-
-### Refactoring & Type Safety
-
-- [x] **Logger Migration**: Replaced 130+ `console.log` statements in server/* with structured `logger` (commit `6c2a7d2`).
-- [x] **TypeScript Cleanup**: Fixed 14 catch block `any` types → `unknown` with type guards (commit `f527734`).
-- [x] **Modernize Async**: Refactored legacy `.then().catch()` chains to `async/await`.
-
-### UI/UX Implementation
-
-- [x] **Storybook Coverage**: 53 story files created covering all major UI components.
-- [x] **Visual Regression**: Created `tests/visual/visual-regression.spec.ts` with 9 Playwright tests (scorecard, responsive, dark mode).
-
----
-
-## ✅ RECENTLY COMPLETED - January 27, 2026 Session
-
-### New Implementations (This Session)
-
-- [x] **Sentry Error Monitoring**: Full SDK for server (`server/monitoring/sentry.ts`) and client (`client/src/lib/sentry.ts`).
-- [x] **Benchmarking Scripts**: Created `scripts/benchmark-ai.ts` with autocannon load testing.
-- [x] **Bundle Governance Plugin**: `client/vite-plugins/bundleGovernance.ts` with 200KB limit enforcement.
-- [x] **Visual Regression Tests**: Created `tests/visual/visual-regression.spec.ts` with 9 tests for scorecard, gap analysis, responsive layouts, dark mode.
-
-### Desktop App Readiness & Hardening (Earlier in January 2026)
-
-- [x] **Backend Packaging**: Migrated server to `.cjs` with `utilityProcess.fork` support.
-- [x] **Login Bypass**: Implemented seamless local authentication with direct redirection.
-- [x] **Process Monitoring**: Added PID-based orphan cleanup and dynamic port assignment.
-- [x] **Uninstaller Polish**: Custom NSIS script for user-controlled data retention.
-- [x] **Health Polling**: Integrated active `/health` polling for UI load synchronization.
-
-### Cloud Integrations
-
-- [x] **Google Drive OAuth**: Full `@googleapis/drive` integration with offline access.
-- [x] **OneDrive OAuth**: Full Microsoft Graph integration with token refresh.
-- [x] **AI Moderation**: OpenAI Moderation API + mock fallback for safety checks.
-- [x] **Audit HMAC Chaining**: Tamper-proof audit logs with signature verification.
-
-### Infrastructure
-
-- [x] **Electron Main Process**: Secure window management and external link handling.
-- [x] **Windows Installer Build**: Configured `electron-builder` for NSIS local deployment.
-- [x] **Local Build Guide**: Created `WINDOWS_GUIDE.md` with detailed build instructions.
-
-### Quality Tracks
-
-- [x] **Coverage Expansion**: Achieved 85%+ for critical services and 1153+ total passing tests.
-- [x] **Diagnostic Tools**: Created `scripts/diagnostic.js` for environment health checks.
-- [x] **Storybook Stories**: 53 component stories for UI documentation.
-- [x] **OpenTelemetry**: Full observability infrastructure installed.
-
----
-
-## 📊 Summary
-
-### Completed in this sweep
-
-1. Connector adapters moved from stubs to API-backed implementations for SharePoint/Jira/Notion.
-2. Deep bug sweep fixed unhandled async teardown updates in temporary login/logout flows.
-3. Release evidence bundle captured with command logs and exit codes (`docs/project-analysis/evidence/20260208-130320/SUMMARY.md`).
-4. Full gates pass: `check`, `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`, `test:coverage` (latest full coverage run: `1516` passing, `4` skipped; global thresholds now enforced and passing at 80/80/80/80 with 85.40/80.14/81.47).
-5. Lint/security warning burn-down complete: `npm run lint` now passes with 0 warnings; evidence in `docs/project-analysis/evidence/20260208-203122/SUMMARY.md`.
-6. Coverage uplift infrastructure added: `test:coverage:hotspots` plus expanded suites (`public-pages`, `additional-pages`, `framework-pages`, `localModeRoutes`, `storageRoutes`, `adminRoutes`, `company-profile` interactions, account/auth pages, repository hook/page coverage).
-7. Hotspot batch completed for all three requested targets:
-   - backend service hotspots: `repositoryFindingsService`, `codeSignalDetectorService`
-   - object storage/local mode: `objectStorageService`, `localModeRoutes`
-   - frontend high-gap pages: `api-keys`, `organization-setup`, `cloud-integrations`
-8. Additional backend hotspot sweep completed:
-   - `repoParserService` deep coverage + Windows path-normalization bug fix
-   - `cloudIntegrationService`, `dataRetentionService`, `systemConfigService` branch-focused suites
-   - `connectorAdapters` coverage for SharePoint/Jira/Notion execution paths
-   - `MemStorage` and `DatabaseStorage` edge-case expansions
-9. New combined hotspot sweep completed (user-requested backend + frontend pair):
-   - backend: `replitAuth`, `modelTransparencyService`, `chaosTestingService`
-   - frontend: `RiskAssessment`, `IndustrySpecialization`, `document-workspace`
-   - added 41 new targeted tests; hotspot batch now at/near 90%+ statements for these files
-
-### Remaining operational items
-
-1. Clean-VM Windows installer sign-off evidence collection.
-2. Cloud-mode validation in production-like env/secrets.
-
+| ID | Item | Status | Latest Validation Evidence |
+|---|---|---|---|
+| WIN-01 | Run signed NSIS install/uninstall smoke on a clean Windows 11 VM and archive screenshots/logs | OPEN | No signed clean-VM evidence bundle found in active docs/evidence paths |
+| WIN-02 | Add Authenticode signing in CI/release pipeline and enforce signed `.exe` release artifacts | PARTIAL | Tag-gated release policy + release-only signing enforcement (`RELEASE_FORCE_CODESIGN`) are in place, but a full signed artifact build + signature verification pipeline is still pending |
+| WIN-03 | Capture SmartScreen behavior (unsigned vs signed) and document release policy | OPEN | Signing guidance exists, but no captured signed-vs-unsigned SmartScreen evidence is present |
+| WIN-04 | Add desktop smoke automation/checklist for Start Menu launch and local API-key roundtrip | PARTIAL | Script + checklist added (`scripts/windows-desktop-smoke.ps1`, `docs/WINDOWS_DESKTOP_SMOKE_CHECKLIST.md`); clean-VM execution evidence still pending |
+| CLOUD-01 | Complete cloud-mode validation in a production-like environment with required secrets/infrastructure | OPEN | Cloud start fails without required env (`DATABASE_URL`, `SESSION_SECRET`) |
+| STORE-01 | Complete Microsoft Partner Center submission actions (identity/listing/upload/certification) | EXTERNAL | Requires Partner Center account operations outside repo automation |
+| FB-01 | Complete Firebase project/secrets/deploy track | EXTERNAL | Requires Firebase project setup and operator-managed secrets/deployment |

@@ -10,9 +10,9 @@
 [![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
-[![Production Candidate](https://img.shields.io/badge/Status-Production%20Candidate-yellow.svg)](docs/project-analysis/PRODUCTION_OPERATIONAL_REVIEW_2026-02-08.md)
+[![Production Candidate](https://img.shields.io/badge/Status-Production%20Candidate-yellow.svg)](TODO.md)
 [![Windows Desktop](https://img.shields.io/badge/Windows-NSIS%20Ready-success.svg)](docs/WINDOWS_DESKTOP_GUIDE.md)
-[![Security](https://img.shields.io/badge/Prod%20Audit-0%20vulns-brightgreen.svg)](docs/project-analysis/PRODUCTION_OPERATIONAL_REVIEW_2026-02-08.md)
+[![Security](https://img.shields.io/badge/Prod%20Audit-0%20vulns-brightgreen.svg)](TODO.md)
 
 ## Quick Links
 
@@ -37,6 +37,13 @@
 - [License](#license)
 
 ## Latest Updates
+
+**February 15, 2026 - Phase Sweep and API Contract Hardening:**
+
+- ✅ **Phase Sweep Passing** - `lint`, `check`, `test:run --coverage`, `npm audit --audit-level=high`, `windows:validate`, and local-mode smoke all pass in one run.
+- ✅ **Coverage Gate Stabilized** - global coverage thresholds now enforce `80%` lines/functions/statements and `78%` branches (current baseline: `82.88%` statements, `80.35%` functions, `78.13%` branches).
+- ✅ **Connector API Hardening** - `/api/connectors` and `/api/connectors/:id/import` now enforce strict request validation and return `400` for invalid payloads instead of internal errors.
+- ✅ **Connector Integration Coverage Added** - API-level integration tests now cover connector listing, creation, import, and auth/org guardrails.
 
 **February 10, 2026 - Windows Runtime Cleanup & Installer Validation:**
 
@@ -300,10 +307,10 @@ For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_
 ### Technical Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
-- [API Documentation](docs/API.md) - Complete API reference
+- [API Documentation](docs/OPENAPI.md) - Complete API reference
 - [Security](docs/SECURITY.md) - Security implementation details
 - [Testing](docs/TESTING.md) - Testing strategies and guidelines
-- [Operational Review (2026-02-08)](docs/project-analysis/PRODUCTION_OPERATIONAL_REVIEW_2026-02-08.md) - Latest production-readiness and bug sweep report
+- [Release Readiness Tracker](TODO.md) - Canonical production readiness backlog and verification status
 
 ### Operations
 
@@ -356,7 +363,7 @@ cyberdocgen/
 │
 ├── docs/                   # Comprehensive documentation (25+ guides)
 │   ├── ARCHITECTURE.md    # System architecture
-│   ├── API.md             # API reference
+│   ├── OPENAPI.md         # API reference
 │   ├── SECURITY.md        # Security implementation
 │   ├── DEPLOYMENT.md      # Deployment guide
 │   ├── DEVELOPMENT_GUIDE.md

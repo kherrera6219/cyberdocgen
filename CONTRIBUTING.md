@@ -271,7 +271,7 @@ Update documentation when:
 - Use clear, concise language
 - Provide examples
 - Keep README.md up to date
-- Update API documentation in `docs/API.md`
+- Update API documentation in `docs/OPENAPI.md`
 - Add inline comments for complex logic
 - Use JSDoc for functions and classes
 

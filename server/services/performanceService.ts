@@ -11,6 +11,10 @@ interface PerformanceMetrics {
   activeConnections: number;
 }
 
+interface PerformanceServiceOptions {
+  enableBackgroundTasks?: boolean;
+}
+
 export class PerformanceService {
   private metrics: PerformanceMetrics = {
     requestCount: 0,
@@ -26,17 +30,21 @@ export class PerformanceService {
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly SLOW_QUERY_THRESHOLD = 1000; // 1 second
   private startTime = Date.now();
+  private monitoringInterval: NodeJS.Timeout | null = null;
+  private cacheCleanupInterval: NodeJS.Timeout | null = null;
 
-  constructor() {
-    this.startPerformanceMonitoring();
-    this.startCacheCleanup();
+  constructor(options: PerformanceServiceOptions = {}) {
+    const enableBackgroundTasks = options.enableBackgroundTasks !== false;
+    if (enableBackgroundTasks) {
+      this.startPerformanceMonitoring();
+      this.startCacheCleanup();
+    }
   }
 
   recordRequest(responseTime: number, isError: boolean, endpoint?: string): void {
     this.metrics.requestCount++;
     this.metrics.errorCount += isError ? 1 : 0;
     this.metrics.totalResponseTime += responseTime;
-    this.metrics.requestCount++; // Assuming this is intended to increment request count, though it's duplicated from above.
 
     // Track endpoint-specific metrics
     if (endpoint) {
@@ -60,16 +68,13 @@ export class PerformanceService {
       endpointStats.maxTime = Math.max(endpointStats.maxTime, responseTime);
     }
 
-    // Update error rate
-    this.metrics.errorCount = (this.metrics.errorCount / this.metrics.requestCount) * 100; // This is likely a mistake and should be tracking total errors. Correcting to reflect intended logic of error rate calculation.
-    const errorRate = this.metrics.requestCount > 0
-      ? (this.metrics.errorCount / this.metrics.requestCount) * 100
-      : 0;
+    // Keep errorCount as an absolute counter and publish derived rates separately.
+    const errorRate = this.getErrorRate();
     alertingService.updateMetric('error_rate', errorRate);
 
 
     // Update average response time
-    const avgResponseTime = this.metrics.totalResponseTime / this.metrics.requestCount;
+    const avgResponseTime = this.getAverageResponseTime();
     alertingService.updateMetric('avg_response_time', avgResponseTime);
 
     // Track performance trends
@@ -122,8 +127,8 @@ export class PerformanceService {
   }
 
   private getHealthStatus(): string {
-    const errorRate = this.metrics.errorCount; // Assuming errorCount now holds the rate
-    const avgResponseTime = this.metrics.totalResponseTime / this.metrics.requestCount; // Assuming this is how avgResponseTime is calculated
+    const errorRate = this.getErrorRate();
+    const avgResponseTime = this.getAverageResponseTime();
 
     if (errorRate > 10 || avgResponseTime > 5000) return 'critical';
     if (errorRate > 5 || avgResponseTime > 2000) return 'warning';
@@ -164,7 +169,7 @@ export class PerformanceService {
 
   // Resource monitoring
   private startPerformanceMonitoring() {
-    setInterval(() => {
+    this.monitoringInterval = setInterval(() => {
       const memUsage = process.memoryUsage();
       this.metrics.memoryUsage = memUsage.heapUsed;
 
@@ -187,10 +192,11 @@ export class PerformanceService {
         this.resetMetrics();
       }
     }, 60000); // Every minute
+    this.monitoringInterval.unref?.();
   }
 
   private startCacheCleanup() {
-    setInterval(() => {
+    this.cacheCleanupInterval = setInterval(() => {
       const now = Date.now();
       for (const [key, item] of Array.from(this.cache.entries())) {
         if (now > item.expiry) {
@@ -198,6 +204,18 @@ export class PerformanceService {
         }
       }
     }, 300000); // Every 5 minutes
+    this.cacheCleanupInterval.unref?.();
+  }
+
+  dispose() {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = null;
+    }
+    if (this.cacheCleanupInterval) {
+      clearInterval(this.cacheCleanupInterval);
+      this.cacheCleanupInterval = null;
+    }
   }
 
   private resetMetrics() {

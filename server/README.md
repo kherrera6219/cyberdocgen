@@ -276,7 +276,7 @@ GET    /api/admin/stats               System statistics
 POST   /api/admin/settings            Update settings
 ```
 
-See [API.md](../docs/API.md) for complete API documentation.
+See [OPENAPI.md](../docs/OPENAPI.md) for complete API documentation.
 
 ## Services
 
@@ -827,4 +827,4 @@ logger.info('Request processed', {
 
 ---
 
-For more information, see the main [README.md](../README.md) and [API.md](../docs/API.md).
+For more information, see the main [README.md](../README.md) and [OPENAPI.md](../docs/OPENAPI.md).

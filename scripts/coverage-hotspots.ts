@@ -24,9 +24,9 @@ type FileStats = {
 };
 
 const thresholds = {
-  statements: 78.5,
-  functions: 67,
-  branches: 74.5,
+  statements: 80,
+  functions: 80,
+  branches: 78,
 };
 
 function parseArg(name: string, fallback: string): string {

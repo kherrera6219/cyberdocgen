@@ -182,6 +182,7 @@ async function validateWACK() {
       const hasCodeSigningMaterial = Boolean(
         process.env.CSC_LINK || process.env.WIN_CSC_LINK || process.env.CSC_NAME,
       );
+      const releaseForceCodeSigningEnabled = isEnabledFlag('RELEASE_FORCE_CODESIGN');
       const configuredIncludeValue = normalizeYamlScalar(getYamlScalarValue(config, 'include'));
       const resolvedIncludeValue = configuredIncludeValue
         ? resolveEnvReferences(configuredIncludeValue).replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase()
@@ -384,16 +385,38 @@ async function validateWACK() {
       }
 
       if (process.env.RELEASE_BUILD === 'true') {
-        if (forceCodeSigningEnabled || hasCodeSigningMaterial) {
-          logger.info('✓ Release validation: code-signing enforcement/material is configured');
+        if (!hasCodeSigningMaterial) {
+          logger.error(
+            '✗ Release validation: signing credentials are required (set CSC_LINK/WIN_CSC_LINK and CSC_NAME)',
+          );
+          errors++;
+        } else {
+          logger.info('✓ Release validation: signing credentials are configured');
+        }
+
+        if (forceCodeSigningEnabled || releaseForceCodeSigningEnabled) {
+          logger.info('✓ Release validation: forceCodeSigning enforcement is enabled');
         } else {
           logger.error(
-            '✗ Release validation: forceCodeSigning must be true or signing credentials must be provided when RELEASE_BUILD=true',
+            '✗ Release validation: enable forceCodeSigning in config or set RELEASE_FORCE_CODESIGN=true for release builds',
           );
           errors++;
         }
       } else if (!forceCodeSigningEnabled) {
         logger.warn('! forceCodeSigning is disabled (acceptable for local/dev builds, not for signed releases)');
+      } else {
+        logger.info('✓ forceCodeSigning is enabled in configuration');
+      }
+
+      if (process.env.RELEASE_BUILD !== 'true' && releaseForceCodeSigningEnabled) {
+        if (hasCodeSigningMaterial) {
+          logger.info('✓ Release signing override requested and signing credentials are present');
+        } else {
+          logger.error(
+            '✗ RELEASE_FORCE_CODESIGN=true requires signing credentials (CSC_LINK/WIN_CSC_LINK and CSC_NAME)',
+          );
+          errors++;
+        }
       }
     }
 

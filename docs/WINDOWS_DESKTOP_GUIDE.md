@@ -105,6 +105,17 @@ The current desktop installer aligns to the requested baseline for direct `.exe`
 - Silent install support (`CyberDocGen-Setup-<version>.exe /S`)
 - Silent uninstall support (`"Uninstall CyberDocGen.exe" /S`)
 
+## Desktop Smoke Automation
+
+Use the scripted smoke runner to verify Start Menu launch + local API key roundtrip:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\windows-desktop-smoke.ps1
+```
+
+Detailed checklist and report artifact expectations:
+- `docs/WINDOWS_DESKTOP_SMOKE_CHECKLIST.md`
+
 ## Microsoft Store Checklist (APPX Path)
 
 For Store submission, use the APPX package path instead of the NSIS installer flow:

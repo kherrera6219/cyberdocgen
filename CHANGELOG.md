@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Introduced AI governance subsystems for production operations:
+  - Versioned prompt template registry
+  - Model routing policy engine
+  - Output classification service
+  - Token and cost budget enforcement
+  - AI usage accounting and metadata audit trail logging
+- Added governed AI API endpoints:
+  - `GET /api/ai/models/catalog`
+  - `GET /api/ai/prompts/registry`
+  - Enhanced `GET /api/ai/stats` with token totals and budget values
+- Added retention scheduler operations endpoints:
+  - `GET /api/health/retention`
+  - `POST /api/health/retention/run`
+- Added evidence integrity endpoints:
+  - `GET /api/evidence/snapshots/:id/manifest`
+  - `POST /api/evidence/snapshots/:id/verify`
+  - `POST /api/evidence/snapshots/:id/package`
+- Added signed local backup sidecars (`.integrity.json`) and signed snapshot manifests (SHA-256 + HMAC envelope).
+- Added Postgres migration governance with `_migrations` checksum tracking.
+- Added schema parity validation command: `npm run db:validate-parity`.
+- Added phase gate orchestration command: `npm run sweep:phase` (`scripts/phase-sweep.ts`) with machine-readable reports.
+- Added Windows desktop smoke automation and checklist for Start Menu launch + local API key roundtrip:
+  - `scripts/windows-desktop-smoke.ps1`
+  - `docs/WINDOWS_DESKTOP_SMOKE_CHECKLIST.md`
+- Added connector API integration test coverage for `/api/connectors` and `/api/connectors/:id/import`.
+- Added targeted regression tests for performance metrics correctness and phase sweep argument/report behavior.
+
 ### Changed
 
 - Migrated Vitest environment routing to `test.projects` and removed deprecated `environmentMatchGlobs`.
@@ -17,6 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added centralized client input sanitization, global client error reporting, and secure typed Electron IPC bridge hardening.
 - Standardized NSIS customization to root-level installer scripts (`installer.nsh`, `uninstaller.nsh`) with backward-compatible shim support.
 - Updated Windows packaging validation to enforce root installer/uninstaller script presence and include-path correctness.
+- Hardened connector route contracts with strict payload validation and explicit `400` responses for invalid create/import requests.
+- Enforced release-mode signing policy in validation/CI using `RELEASE_BUILD` + `RELEASE_FORCE_CODESIGN`, with release build scripts:
+  - `npm run build:win:release`
+  - `npm run build:store:release`
+- Aligned coverage enforcement baseline to active gate policy (`80%` lines/functions/statements, `78%` branches) and synchronized hotspot reporting thresholds.
 
 ### Fixed
 
@@ -28,6 +62,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stabilized Linux CI execution for `tests/integration/e2e-flows.test.ts` by increasing async setup/teardown test hook timeouts to 30 seconds.
 - Removed deprecated filesystem usage in local storage cleanup by replacing `fs.rmdir(...)` with `fs.rm(...)`.
 - Eliminated backend CJS build warning risk by removing server-side `import.meta.url` dependency from runtime migration path resolution.
+- Burned down lint warnings introduced by governance/data-layer hardening work and restored clean `npm run lint`.
+- Fixed performance telemetry integrity in `performanceService` by removing duplicate request increments and deriving `errorRate` without mutating absolute error counters.
 
 ## [2.2.0] - 2026-01-19
 
