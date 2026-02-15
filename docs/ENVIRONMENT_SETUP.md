@@ -115,6 +115,8 @@ openssl rand -hex 32
 ```bash
 # 32-byte hex encryption key for data encryption
 ENCRYPTION_KEY=your-32-byte-hex-encryption-key-here
+# Integrity signing secret (minimum 32 chars)
+DATA_INTEGRITY_SECRET=your-data-integrity-secret-min-32-characters
 ```
 
 **Generate encryption key:**
@@ -123,6 +125,10 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 **⚠️ IMPORTANT:** Keep this key secure and never commit it to version control.
+
+Desktop packaging note:
+- Installed Windows desktop builds auto-provision and persist local `ENCRYPTION_KEY` + `DATA_INTEGRITY_SECRET` in `%APPDATA%\Roaming\rest-express\security\backend-secrets.json` when these values are not provided.
+- Cloud deployments and non-desktop production server runs must still provide both values explicitly.
 
 #### AI Service Keys
 
@@ -199,6 +205,7 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/cyberdocgen
 # Security
 SESSION_SECRET=your-generated-session-secret-here
 ENCRYPTION_KEY=your-generated-encryption-key-here
+DATA_INTEGRITY_SECRET=your-generated-data-integrity-secret-here
 
 # AI Services
 OPENAI_API_KEY=sk-proj-your-key-here
@@ -440,6 +447,7 @@ npm run db:push      # Apply database changes
    DATABASE_URL=your-production-db-url
    SESSION_SECRET=strong-production-secret
    ENCRYPTION_KEY=production-encryption-key
+   DATA_INTEGRITY_SECRET=production-data-integrity-secret
    OPENAI_API_KEY=production-openai-key
    ANTHROPIC_API_KEY=production-anthropic-key
    PORT=5000
@@ -551,8 +559,12 @@ sudo systemctl start postgresql     # Linux
 
 ```bash
 # Error: ENCRYPTION_KEY is not defined
-# Solution: Generate and add to .env
+# Applies to cloud/non-desktop server runs. Installed desktop mode auto-generates local secrets.
+# Solution: Generate and add required values to .env
+# ENCRYPTION_KEY
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# DATA_INTEGRITY_SECRET
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
 #### OpenAI API Error

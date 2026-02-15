@@ -88,7 +88,7 @@ graph TB
 
 ### Storage
 - **Cloud:** S3 / GCS / Azure Blob Storage
-- **Local:** Windows filesystem (`%LOCALAPPDATA%\CyberDocGen\files`)
+- **Local:** Windows filesystem (`%APPDATA%\Roaming\rest-express\files`)
 
 ### Desktop (Local Mode Only)
 - **Framework:** Electron
@@ -301,8 +301,8 @@ sequenceDiagram
 **Components:**
 - Electron app (fullscreen)
 - Embedded Node.js server (localhost only)
-- SQLite database (`%LOCALAPPDATA%\CyberDocGen\cyberdocgen.db`)
-- Local file storage (`%LOCALAPPDATA%\CyberDocGen\files\`)
+- SQLite database (`%APPDATA%\Roaming\rest-express\cyberdocgen.db`)
+- Local file storage (`%APPDATA%\Roaming\rest-express\files\`)
 - Windows Credential Manager (API keys)
 
 **Distribution:**
@@ -382,7 +382,7 @@ graph TD
 - **Alerts:** PagerDuty / Opsgenie
 
 ### Local Mode
-- **Logs:** Local file rotation (`%LOCALAPPDATA%\CyberDocGen\logs\`)
+- **Logs:** Local file rotation (`%APPDATA%\Roaming\rest-express\logs\`)
 - **Diagnostics:** Built-in diagnostics panel in UI
 - **Crash Reports:** Optional anonymous telemetry (opt-in)
 

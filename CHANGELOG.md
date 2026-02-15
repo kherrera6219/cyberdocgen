@@ -48,6 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added runbooks:
   - `docs/CLOUD_VALIDATION_RUNBOOK.md`
   - `docs/WINDOWS_RELEASE_EVIDENCE_GUIDE.md`
+- Added local desktop backend secret bootstrap for packaged runs:
+  - `electron/local-backend-secrets.ts`
+  - `tests/unit/electron/local-backend-secrets.test.ts`
+  - auto-provisions/persists `ENCRYPTION_KEY` + `DATA_INTEGRITY_SECRET` in `%APPDATA%\\Roaming\\rest-express\\security\\backend-secrets.json` when not provided.
 
 ### Changed
 
@@ -59,6 +63,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added centralized client input sanitization, global client error reporting, and secure typed Electron IPC bridge hardening.
 - Standardized NSIS customization to root-level installer scripts (`installer.nsh`, `uninstaller.nsh`) with backward-compatible shim support.
 - Updated Windows packaging validation to enforce root installer/uninstaller script presence and include-path correctness.
+- Updated Windows build scripts to force native Electron ABI alignment before packaging:
+  - `npm run electron:rebuild-native`
+  - `npm run electron:install-app-deps`
 - Hardened connector route contracts with strict payload validation and explicit `400` responses for invalid create/import requests.
 - Enforced release-mode signing policy in validation/CI using `RELEASE_BUILD` + `RELEASE_FORCE_CODESIGN`, with release build scripts:
   - `npm run build:win:release`
@@ -70,6 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed local desktop/local-mode startup in production builds by allowing server listen boot when `DEPLOYMENT_MODE=local`.
+- Fixed Windows desktop startup failures caused by `better-sqlite3` `NODE_MODULE_VERSION` mismatches in packaged output.
+- Fixed packaged local-mode startup exits caused by missing `ENCRYPTION_KEY` / `DATA_INTEGRITY_SECRET` by bootstrapping persisted local secrets.
 - Removed residual test warning sources from operational sweeps (`act(...)`/suspense timing and jsdom navigation noise).
 - Resolved dashboard accessibility heading-order violation by correcting section heading semantics in company profile summary cards.
 - Remediated dependency advisories by upgrading `axios`/`drizzle-kit` and overriding `@esbuild-kit/core-utils` transitive `esbuild`, resulting in clean `npm audit` and `npm audit --omit=dev`.

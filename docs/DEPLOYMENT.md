@@ -36,8 +36,10 @@ npm run build:win
 npm run windows:validate   # Validate Windows packaging config/assets
 npm run build              # Build frontend (Vite)
 npm run electron:build     # Build Electron main process
-npx electron-builder build --win nsis  # Package installer
-npm run build:store      # Build APPX package for Microsoft Store
+npm run electron:rebuild-native   # Rebuild better-sqlite3 for Electron ABI
+npm run electron:install-app-deps # Re-sync native dependencies for packaging
+npx electron-builder build --win nsis # Package installer
+npm run build:store        # Build APPX package for Microsoft Store
 node scripts/verify-build.js # Verify build artifacts + local startup probes
 ```
 
@@ -55,12 +57,12 @@ dist/packaging/
 - **Scope:** Per-user (no admin rights required)
 - **Installer Flow:** Assisted NSIS wizard (`oneClick: false`)
 - **Install Location:** User-selectable (default `%LOCALAPPDATA%\Programs\CyberDocGen`)
-- **Data Location:** `%APPDATA%\Roaming\CyberDocGen`
+- **Data Location:** `%APPDATA%\Roaming\rest-express`
 - **Shortcuts:** Desktop + Start Menu
 - **Progress UX:** Standard progress pages for install and uninstall
 - **Completion UX:** Explicit completion notifications for install and uninstall
 - **Uninstall:** Registered in Apps & Features
-- **Uninstall Data Choice:** User can keep or delete `%APPDATA%\CyberDocGen` and `%LOCALAPPDATA%\CyberDocGen`
+- **Uninstall Data Choice:** User can keep or delete runtime data (including `%APPDATA%\rest-express`, `%LOCALAPPDATA%\rest-express`, and legacy `%APPDATA%\CyberDocGen` / `%LOCALAPPDATA%\CyberDocGen` paths).
 
 ### First Run Requirements (Desktop Mode)
 
@@ -74,11 +76,12 @@ No cloud database setup is required for local desktop usage. End users only need
 
 Desktop app automatically runs in local mode with:
 
-- **Database:** SQLite at `%APPDATA%\Roaming\CyberDocGen\cyberdocgen.db`
-- **Storage:** Local files at `%APPDATA%\Roaming\CyberDocGen\files`
+- **Database:** SQLite at `%APPDATA%\Roaming\rest-express\cyberdocgen.db`
+- **Storage:** Local files at `%APPDATA%\Roaming\rest-express\files`
 - **Authentication:** Bypassed (auto-login as "Local Admin")
 - **Server:** Localhost-only binding (`127.0.0.1:5231`)
 - **Secrets:** Windows Credential Manager (via keytar)
+- **Local Backend Secrets:** auto-provisioned/persisted in `%APPDATA%\Roaming\rest-express\security\backend-secrets.json` when not explicitly provided
 
 ### Distribution Options
 
@@ -128,7 +131,7 @@ Updates are opt-in for direct desktop builds (`ENABLE_AUTO_UPDATES=true`) and di
 **Solution:** Sign installer with Authenticode certificate
 
 **Issue:** Server fails to start  
-**Solution:** Check logs at `%APPDATA%\Roaming\CyberDocGen\logs`
+**Solution:** Check logs at `%APPDATA%\Roaming\rest-express\logs`
 
 ---
 

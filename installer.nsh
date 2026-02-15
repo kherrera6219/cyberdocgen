@@ -1,5 +1,5 @@
 !include "FileFunc.nsh"
-!include "uninstaller.nsh"
+!include "${PROJECT_DIR}\uninstaller.nsh"
 
 !macro customInstall
   ; Installation progress is shown by default on the NSIS "Installing" page.

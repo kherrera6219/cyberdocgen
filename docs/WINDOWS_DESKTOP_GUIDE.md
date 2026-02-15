@@ -11,7 +11,8 @@ The Windows Desktop build (`npm run build:win`) differs from the Cloud Deploymen
 ### 1. Embedded Persistence (SQLite)
 Instead of connecting to an external PostgreSQL database defined by `DATABASE_URL`:
 - The application automatically initializes a local **SQLite** database.
-- Database File Location: `C:\Users\%USERNAME%\AppData\Roaming\CyberDocGen\cyberdocgen.db` (or `local-data/` in dev mode).
+- Database File Location: `C:\Users\%USERNAME%\AppData\Roaming\rest-express\cyberdocgen.db` (or `local-data/` in dev mode).
+- Local backend bootstrap secrets file: `C:\Users\%USERNAME%\AppData\Roaming\rest-express\security\backend-secrets.json`.
 - **No configuration required**: The app detects "Local Mode" and handles migrations automatically.
 
 ### 2. Authentication Bypass (Seamless Entry)
@@ -51,7 +52,9 @@ This pipeline performs the following:
 2.  **Vite Build**: Compiles the React frontend.
 3.  **Server Bundle**: Bundles the Node.js backend to `.cjs` for ASAR compatibility.
 4.  **Electron Build**: Compiles the main process.
-5.  **Packaging**: Uses `electron-builder` with root NSIS scripts (`installer.nsh`, `uninstaller.nsh`) for guided install UX, completion notifications, and uninstall data retention choices.
+5.  **Native Module Rebuild**: Forces `better-sqlite3` rebuild against the Electron runtime ABI.
+6.  **Native Dependency Sync**: Runs `electron-builder install-app-deps`.
+7.  **Packaging**: Uses `electron-builder` with root NSIS scripts (`installer.nsh`, `uninstaller.nsh`) for guided install UX, completion notifications, and uninstall data retention choices.
 
 If you run the setup executable with `/S`, NSIS runs in silent mode and does not show wizard/progress/completion dialogs.
 
@@ -87,7 +90,8 @@ node scripts/verify-build.js
 3.  Choose an installation location in the installer wizard (default is `AppData\Local\Programs\cyberdocgen`).
 4.  Wait for the installer progress page to complete, then confirm the installation completion prompt.
 5.  Launch CyberDocGen and configure your AI provider API key(s) in **Settings -> AI API Keys**.
-6.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings). The uninstaller executable is created in the install root directory as `Uninstall CyberDocGen.exe`. For silent automation, use `"Uninstall CyberDocGen.exe" /S /REMOVEALLDATA` to force full data removal. Uninstall progress and a completion notification are shown.
+6.  On first launch, desktop runtime secrets are auto-provisioned under `%APPDATA%\rest-express\security\backend-secrets.json` when no explicit environment secrets are supplied.
+7.  **Uninstall**: During uninstallation, you will be prompted to either keep or remove your application data (database, documents, settings). The uninstaller executable is created in the install root directory as `Uninstall CyberDocGen.exe`. For silent automation, use `"Uninstall CyberDocGen.exe" /S /REMOVEALLDATA` to force full data removal. Uninstall progress and a completion notification are shown.
 
 ---
 
@@ -150,7 +154,7 @@ Local hardening updates:
 
 ### "Application shows a blank white screen"
 - This usually means the backend server failed to start or initialization is taking longer than usual.
-- Check the robust startup logs: `%APPDATA%\Roaming\CyberDocGen\logs\startup.log`.
+- Check the robust startup logs: `%APPDATA%\Roaming\rest-express\logs\startup.log`.
 - Run `node scripts/diagnostic.js` to verify environment health.
 
 ### "Port Conflict"
@@ -158,4 +162,4 @@ Local hardening updates:
 
 ### "Database Error" or "Missing Table"
 - If the database schema changes significantly, the local SQLite file might be incompatible.
-- **Fix**: Delete `%APPDATA%\Roaming\CyberDocGen\cyberdocgen.db` and restart the app to recreate a fresh database.
+- **Fix**: Delete `%APPDATA%\Roaming\rest-express\cyberdocgen.db` and restart the app to recreate a fresh database.

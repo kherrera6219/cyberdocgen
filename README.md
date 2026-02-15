@@ -40,6 +40,8 @@
 
 **February 15, 2026 - Phase Sweep and API Contract Hardening:**
 
+- ✅ **Windows Startup Hardening Completed** - desktop backend now auto-provisions local `ENCRYPTION_KEY` + `DATA_INTEGRITY_SECRET` on first launch and persists them under `%APPDATA%\rest-express\security\backend-secrets.json`.
+- ✅ **Native ABI Drift Fixed for Desktop Builds** - Windows packaging now force-rebuilds `better-sqlite3` for the Electron runtime (`electron:rebuild-native` + `electron:install-app-deps`) to prevent `NODE_MODULE_VERSION` startup failures.
 - ✅ **Phase Sweep Passing** - `lint`, `check`, `test:run --coverage`, `npm audit --audit-level=high`, `windows:validate`, and local-mode smoke all pass in one run.
 - ✅ **Coverage Gate Stabilized** - global coverage thresholds now enforce `80%` lines/functions/statements and `78%` branches (current baseline: `82.88%` statements, `80.35%` functions, `78.13%` branches).
 - ✅ **Connector API Hardening** - `/api/connectors` and `/api/connectors/:id/import` now enforce strict request validation and return `400` for invalid payloads instead of internal errors.

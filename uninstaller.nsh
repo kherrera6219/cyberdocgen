@@ -17,17 +17,19 @@
   MessageBox MB_YESNO|MB_ICONQUESTION "Do you want to completely remove all CyberDocGen application data (database, documents, and settings)?$\n$\nSelect 'Yes' to remove everything, or 'No' to keep your data for future use." /SD IDNO IDYES remove_data
 
 keep_data:
-  DetailPrint "Kept application data in $APPDATA\CyberDocGen for future use"
+  DetailPrint "Kept application data in $APPDATA\rest-express (and legacy CyberDocGen paths) for future use"
   Goto uninstall_complete
 
 remove_data:
+  RMDir /r "$APPDATA\rest-express"
+  RMDir /r "$LOCALAPPDATA\rest-express"
   RMDir /r "$APPDATA\CyberDocGen"
   RMDir /r "$LOCALAPPDATA\CyberDocGen"
   ; Remove any Credential Manager target that contains CyberDocGen.
   ; This handles known keys and future provider keys without script changes.
   nsExec::ExecToLog 'powershell -NoProfile -ExecutionPolicy Bypass -Command "$$targets = cmdkey /list | Select-String ''Target:'' | ForEach-Object { ($$_ -replace ''^\s*Target:\s*'', '''').Trim() } | Where-Object { $$_ -like ''*CyberDocGen*'' }; foreach ($$target in $$targets) { cmdkey /delete:$$target | Out-Null }"'
   Pop $0
-  DetailPrint "Removed application data from $APPDATA\CyberDocGen and $LOCALAPPDATA\CyberDocGen"
+  DetailPrint "Removed application data from rest-express and CyberDocGen directories in AppData/LocalAppData"
 
 uninstall_complete:
   ; Uninstall progress is shown by default on the NSIS "Uninstalling" page.

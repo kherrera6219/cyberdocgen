@@ -22,6 +22,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { startupLogger } from './startup-logger.js';
+import { resolveLocalBackendSecrets } from './local-backend-secrets.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -172,13 +173,18 @@ async function startServer() {
     startupLogger.info('Server file exists, preparing to fork via utilityProcess');
 
     // Prepare environment variables
+    const userDataPath = app.getPath('userData');
+    const localBackendSecrets = resolveLocalBackendSecrets(userDataPath, startupLogger);
+
     const serverEnv: NodeJS.ProcessEnv = {
       ...process.env,
       PORT: currentServerPort.toString(),
       HOST: '127.0.0.1',
       NODE_ENV: 'production',
       DEPLOYMENT_MODE: 'local',
-      LOCAL_DATA_PATH: app.getPath('userData'),
+      LOCAL_DATA_PATH: userDataPath,
+      ENCRYPTION_KEY: localBackendSecrets.encryptionKey,
+      DATA_INTEGRITY_SECRET: localBackendSecrets.dataIntegritySecret,
     };
     const packagedMigrationsPath = path.join(app.getAppPath(), 'dist', 'migrations', 'sqlite');
     if (fs.existsSync(packagedMigrationsPath)) {
@@ -197,6 +203,8 @@ async function startServer() {
       LOCAL_DATA_PATH: serverEnv.LOCAL_DATA_PATH,
       LOCAL_MIGRATIONS_PATH: serverEnv.LOCAL_MIGRATIONS_PATH || '(not configured)',
       LOCAL_TEMPLATE_DB_PATH: serverEnv.LOCAL_TEMPLATE_DB_PATH || '(not configured)',
+      LOCAL_BACKEND_SECRETS_SOURCE: localBackendSecrets.source,
+      LOCAL_BACKEND_SECRETS_PATH: localBackendSecrets.path,
     });
 
     // Fork the server process using utilityProcess

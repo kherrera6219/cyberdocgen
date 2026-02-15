@@ -647,6 +647,39 @@ Error: Build failed with X errors
    npx madge --circular --extensions ts,tsx ./
    ```
 
+### Windows desktop startup error: backend exited with code 1
+
+**Symptom:**
+```text
+Startup Error: The application backend failed to start.
+Detail: Backend server process exited unexpectedly during startup (exit code 1).
+```
+
+**Common causes:**
+- Native SQLite module ABI mismatch (`better-sqlite3` built for Node ABI instead of Electron ABI).
+- Missing local runtime secrets in production desktop mode (older builds).
+
+**Solutions:**
+
+1. **Rebuild Electron native modules and repackage:**
+   ```bash
+   npm run electron:rebuild-native
+   npm run electron:install-app-deps
+   npm run build:win
+   ```
+
+2. **Ensure no running `CyberDocGen.exe` process is locking native binaries before rebuild.**
+
+3. **Inspect startup logs for root cause:**
+   ```text
+   %APPDATA%\Roaming\rest-express\logs\startup.log
+   ```
+
+4. **For installed desktop builds, verify local bootstrap secrets exist:**
+   ```text
+   %APPDATA%\Roaming\rest-express\security\backend-secrets.json
+   ```
+
 ### Docker build fails with missing `scripts/build-server.js`
 
 **Symptom:**
