@@ -9,6 +9,10 @@ import { AgentAttachment, AgentConfig, AgentRequest, AgentResponse, ToolCall, To
 import { toolRegistry } from './toolRegistry';
 import { logger } from '../utils/logger';
 import { generateContentWithGemini } from '../services/gemini';
+import { promptTemplateRegistry } from '../services/promptTemplateRegistry';
+import { aiUsageAccountingService } from '../services/aiUsageAccountingService';
+import { aiOutputClassificationService } from '../services/aiOutputClassificationService';
+import { aiMetadataAuditService } from '../services/aiMetadataAuditService';
 
 let openaiClient: OpenAI | null = null;
 let anthropicClient: Anthropic | null = null;
@@ -67,19 +71,99 @@ export class AgentClient {
       throw new Error(`Agent ${request.agentId} not found`);
     }
 
+    const promptTemplate = promptTemplateRegistry.renderTemplate('mcp_agent', {
+      agentId: request.agentId,
+      prompt: request.prompt.slice(0, 1000),
+    });
+    const governedModel = this.toGovernedModel(agent.model);
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId: context.userId,
+      organizationId: context.organizationId,
+      actionType: 'mcp_agent_execution',
+      model: governedModel,
+      prompt: request.prompt,
+      expectedResponseTokens: agent.maxTokens || 2000,
+    });
+    if (!budgetCheck.allowed) {
+      await aiMetadataAuditService.record({
+        actionType: 'mcp_agent_execution',
+        model: governedModel,
+        userId: context.userId,
+        organizationId: context.organizationId,
+        requestId: context.sessionId,
+        promptTemplateKey: promptTemplate.key,
+        promptTemplateVersion: promptTemplate.version,
+        metadata: {
+          agentId: request.agentId,
+          blockedReason: budgetCheck.reason || 'budget_exceeded',
+        },
+      });
+      return {
+        content: 'AI usage budget exceeded for this scope. Agent execution blocked.',
+        toolCalls: [],
+        metadata: {
+          blocked: true,
+          reason: budgetCheck.reason || 'budget_exceeded',
+        },
+      };
+    }
+
     // Prepare tools for this agent
     const tools = this.prepareTools(agent.tools);
 
     // Execute based on model type
+    let response: AgentResponse;
     if (agent.model === 'gpt-5.1') {
-      return this.executeOpenAI(agent, request, context, tools);
+      response = await this.executeOpenAI(agent, request, context, tools);
     } else if (agent.model === 'claude-sonnet-4') {
-      return this.executeAnthropic(agent, request, context, tools);
+      response = await this.executeAnthropic(agent, request, context, tools);
     } else if (agent.model === 'gemini-3-pro' || agent.model === 'gemini-3.0-pro') {
-      return this.executeGemini(agent, request, context);
+      response = await this.executeGemini(agent, request, context);
     } else {
       throw new Error(`Unsupported model: ${agent.model}`);
     }
+
+    const usage = await aiUsageAccountingService.recordUsage({
+      userId: context.userId,
+      organizationId: context.organizationId,
+      actionType: 'mcp_agent_execution',
+      model: governedModel,
+      prompt: request.prompt,
+      response: response.content,
+      purposeDescription: `MCP agent execution: ${agent.name}`,
+      dataUsed: ['agent_prompt', 'tool_outputs'],
+      aiContribution: 'assisted',
+      humanOversight: true,
+    });
+    const outputClassification = aiOutputClassificationService.classify(response.content || '');
+    await aiMetadataAuditService.record({
+      actionType: 'mcp_agent_execution',
+      model: governedModel,
+      userId: context.userId,
+      organizationId: context.organizationId,
+      requestId: context.sessionId,
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      usage,
+      outputClassification,
+      metadata: {
+        agentId: request.agentId,
+        toolCallCount: response.toolCalls?.length || 0,
+      },
+    });
+
+    return {
+      ...response,
+      metadata: {
+        ...(response.metadata || {}),
+        usage,
+        outputClassification,
+        promptTemplate: {
+          key: promptTemplate.key,
+          version: promptTemplate.version,
+        },
+      },
+    };
   }
 
   /**
@@ -525,6 +609,13 @@ export class AgentClient {
     } catch {
       return '';
     }
+  }
+
+  private toGovernedModel(model: AgentConfig["model"]): "gpt-5.1" | "claude-sonnet-4" | "gemini-3-pro" {
+    if (model === "gemini-3.0-pro") {
+      return "gemini-3-pro";
+    }
+    return model;
   }
 
   /**

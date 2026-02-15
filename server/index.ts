@@ -145,6 +145,8 @@ const initializationPromise = (async () => {
     logger.info('Database connection established');
     await providers.db.migrate();
     logger.info('Database migrations complete');
+    const { retentionSchedulerService } = await import('./services/retentionSchedulerService');
+    retentionSchedulerService.start();
     if (providers.auth.initialize) {
       await providers.auth.initialize();
       logger.info('Auth provider initialized');

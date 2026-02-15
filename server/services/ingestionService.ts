@@ -7,6 +7,7 @@ import { AppError } from "../utils/errorHandling";
 import { createHash } from "crypto";
 import * as path from "path";
 import { logger } from "../utils/logger";
+import { sanitizeFilename } from "../utils/validation";
 
 // Supported file types for ingestion
 const SUPPORTED_TYPES = ['.pdf', '.docx', '.xlsx', '.png', '.jpg', '.jpeg', '.txt'];
@@ -25,9 +26,10 @@ export class IngestionService {
     category: 'Company Profile' | 'Product & System' | 'Security Program' | 'Evidence';
   }) {
     const { organizationId, userId, snapshotId, file, fileName, category } = data;
+    const safeFileName = sanitizeFilename(path.basename(fileName));
     
     // 1. Validate File Type
-    const ext = path.extname(fileName).toLowerCase();
+    const ext = path.extname(safeFileName).toLowerCase();
     if (!SUPPORTED_TYPES.includes(ext)) {
       throw new AppError(`Unsupported file type: ${ext}`, 400, "INVALID_FILE_TYPE");
     }
@@ -38,21 +40,24 @@ export class IngestionService {
     // 3. Define Storage Paths (Snapshot-based)
     // Format: data/docs/<snapshotId>/source/<category>/<fileName>
     const sanitizedCategory = category.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-    const storagePath = `data/docs/${snapshotId}/source/${sanitizedCategory}/${fileName}`;
+    const storagePath = `data/docs/${snapshotId}/source/${sanitizedCategory}/${safeFileName}`;
 
     // 4. Upload to Object Storage
-    await objectStorageService.uploadFileFromBytes(
-      fileName,
+    const upload = await objectStorageService.uploadFileFromBytes(
+      safeFileName,
       file,
       path.dirname(storagePath) // objectStorageService expects folder path
     );
+    if (!upload.success) {
+      throw new AppError(upload.error || "Failed to upload evidence file", 500, "STORAGE_ERROR");
+    }
 
     // 5. Create DB Record
     const [record] = await db.insert(cloudFiles).values({
       organizationId,
       integrationId: 'manual-upload', // Default for now
       providerFileId: storagePath, // Using path as ID for local/minio
-      fileName,
+      fileName: safeFileName,
       filePath: storagePath,
       fileType: ext.replace('.', ''),
       fileSize: file.length,
@@ -62,7 +67,12 @@ export class IngestionService {
       fileHash,
       processingStatus: 'pending', // Initial status
       permissions: { canView: true, canEdit: false, canDownload: true, canShare: false },
-      metadata: { createdBy: userId, version: '1.0' }
+      metadata: {
+        createdBy: userId,
+        version: '1.0',
+        dataClassification: this.getDataClassification(category),
+        tags: [category.toLowerCase().replace(/[^a-z0-9]+/g, '_')],
+      }
     } as any).returning();
 
     // 6. Trigger Async Processing (Fire-and-forget)
@@ -140,6 +150,14 @@ export class IngestionService {
       ['.txt', 'text/plain'],
     ]);
     return mimeTypeMap.get(ext) || 'application/octet-stream';
+  }
+
+  private getDataClassification(category: string): 'public' | 'internal' | 'confidential' | 'restricted' {
+    const normalized = category.toLowerCase();
+    if (normalized.includes('security')) return 'restricted';
+    if (normalized.includes('evidence')) return 'confidential';
+    if (normalized.includes('product')) return 'internal';
+    return 'internal';
   }
 }
 

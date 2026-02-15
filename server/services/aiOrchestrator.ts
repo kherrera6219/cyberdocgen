@@ -8,6 +8,11 @@ import { logger } from "../utils/logger";
 import { circuitBreakers } from "../utils/circuitBreaker";
 import { AIServiceError } from "../utils/errorHandling";
 import crypto from "crypto";
+import { promptTemplateRegistry } from "./promptTemplateRegistry";
+import { modelRoutingPolicyService } from "./modelRoutingPolicyService";
+import { aiUsageAccountingService } from "./aiUsageAccountingService";
+import { aiOutputClassificationService } from "./aiOutputClassificationService";
+import { aiMetadataAuditService } from "./aiMetadataAuditService";
 
 // Fallback templates for test environment when mocked
 const fallbackFrameworkTemplates: Record<string, DocumentTemplate[]> = {
@@ -125,16 +130,63 @@ export class AIOrchestrator {
     let selectedModel: Exclude<AIModel, 'auto'>;
     let content: string;
     const requestId = crypto.randomUUID();
+    const promptTemplate = promptTemplateRegistry.renderTemplate("document_generation", {
+      documentTitle: template.title,
+      framework,
+      companyName: companyProfile.companyName,
+    });
     
     // Model selection logic
     if (model === 'auto') {
-      selectedModel = this.selectOptimalModel(template, framework);
+      const routingDecision = modelRoutingPolicyService.route({
+        requestedModel: model,
+        operation: "document_generation",
+        framework,
+        templateCategory: template.category,
+      });
+      modelRoutingPolicyService.logRoutingDecision(
+        {
+          requestedModel: model,
+          operation: "document_generation",
+          framework,
+          templateCategory: template.category,
+        },
+        routingDecision
+      );
+      selectedModel = routingDecision.selectedModel;
     } else {
       selectedModel = model;
     }
 
     // Build a prompt representation for guardrails check
-    const promptRepresentation = `Generate ${template.title} for ${companyProfile.companyName} following ${framework} framework. Industry: ${companyProfile.industry}`;
+    const promptRepresentation = promptTemplate.prompt;
+
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId: guardrailContext?.userId,
+      organizationId: guardrailContext?.organizationId,
+      actionType: "document_generation",
+      model: selectedModel,
+      prompt: promptRepresentation,
+      expectedResponseTokens: 4000,
+    });
+    if (!budgetCheck.allowed) {
+      await aiMetadataAuditService.record({
+        actionType: "document_generation",
+        model: selectedModel,
+        userId: guardrailContext?.userId,
+        organizationId: guardrailContext?.organizationId,
+        requestId,
+        promptTemplateKey: promptTemplate.key,
+        promptTemplateVersion: promptTemplate.version,
+        metadata: {
+          blockedReason: budgetCheck.reason || "budget_exceeded",
+        },
+      });
+      return {
+        content: "AI usage budget exceeded for this scope. Please contact your administrator.",
+        model: "blocked",
+      };
+    }
     
     // Pre-generation guardrails check
     if (enableGuardrails) {
@@ -150,6 +202,18 @@ export class AIOrchestrator {
 
         if (!inputCheck.allowed) {
           logger.warn('Guardrails blocked document generation', { requestId, action: inputCheck.action });
+          await aiMetadataAuditService.record({
+            actionType: "document_generation",
+            model: selectedModel,
+            userId: guardrailContext?.userId,
+            organizationId: guardrailContext?.organizationId,
+            requestId,
+            promptTemplateKey: promptTemplate.key,
+            promptTemplateVersion: promptTemplate.version,
+            metadata: {
+              blockedReason: inputCheck.action,
+            },
+          });
           return {
             content: `Document generation blocked: ${inputCheck.action}`,
             model: 'blocked',
@@ -157,6 +221,18 @@ export class AIOrchestrator {
         }
       } catch (error) {
         logger.error('Guardrails pre-check failed for document generation; blocking request', { error, requestId });
+        await aiMetadataAuditService.record({
+          actionType: "document_generation",
+          model: selectedModel,
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          requestId,
+          promptTemplateKey: promptTemplate.key,
+          promptTemplateVersion: promptTemplate.version,
+          metadata: {
+            blockedReason: "guardrails_unavailable",
+          },
+        });
         return {
           content: 'Document generation unavailable while safety checks are offline.',
           model: 'blocked',
@@ -203,6 +279,18 @@ export class AIOrchestrator {
         }
 
         if (!outputCheck.allowed && outputCheck.action === 'blocked') {
+          await aiMetadataAuditService.record({
+            actionType: "document_generation",
+            model: selectedModel,
+            userId: guardrailContext?.userId,
+            organizationId: guardrailContext?.organizationId,
+            requestId,
+            promptTemplateKey: promptTemplate.key,
+            promptTemplateVersion: promptTemplate.version,
+            metadata: {
+              blockedReason: outputCheck.action,
+            },
+          });
           return {
             content: 'Document content blocked by guardrails',
             model: 'blocked',
@@ -210,12 +298,53 @@ export class AIOrchestrator {
         }
       } catch (error) {
         logger.error('Guardrails output check failed for document generation; suppressing output', { error, requestId });
+        await aiMetadataAuditService.record({
+          actionType: "document_generation",
+          model: selectedModel,
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          requestId,
+          promptTemplateKey: promptTemplate.key,
+          promptTemplateVersion: promptTemplate.version,
+          metadata: {
+            blockedReason: "guardrails_output_unavailable",
+          },
+        });
         return {
           content: 'Generated content withheld because safety checks could not be completed.',
           model: 'blocked',
         };
       }
     }
+
+    const outputClassification = aiOutputClassificationService.classify(content);
+    const usage = await aiUsageAccountingService.recordUsage({
+      userId: guardrailContext?.userId,
+      organizationId: guardrailContext?.organizationId,
+      actionType: "document_generation",
+      model: selectedModel,
+      prompt: promptRepresentation,
+      response: content,
+      purposeDescription: `Generate ${template.title} for ${framework}`,
+      dataUsed: ["company_profile", "framework_template"],
+      aiContribution: "full",
+      humanOversight: true,
+    });
+    await aiMetadataAuditService.record({
+      actionType: "document_generation",
+      model: selectedModel,
+      userId: guardrailContext?.userId,
+      organizationId: guardrailContext?.organizationId,
+      requestId,
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      outputClassification,
+      usage,
+      metadata: {
+        framework,
+        templateId: template.id,
+      },
+    });
     
     const result: DocumentGenerationResult = {
       content,
@@ -354,11 +483,47 @@ export class AIOrchestrator {
       guardrailContext
     } = request;
     
-    const model = requestedModel === 'auto' ? 'gpt-5.1' : requestedModel;
+    const modelRouting = modelRoutingPolicyService.route({
+      requestedModel,
+      operation: "content_generation",
+      promptLength: prompt.length,
+    });
+    const model = requestedModel === 'auto' ? modelRouting.selectedModel : requestedModel;
 
     const requestId = crypto.randomUUID();
+    const promptTemplate = promptTemplateRegistry.renderTemplate("content_generation", {
+      taskSummary: prompt.slice(0, 500),
+    });
     let guardrailResult: GuardrailCheckResult | undefined;
     let sanitizedPrompt = prompt;
+
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId: guardrailContext?.userId,
+      organizationId: guardrailContext?.organizationId,
+      actionType: "content_generation",
+      model,
+      prompt,
+      expectedResponseTokens: request.maxTokens || 2000,
+    });
+    if (!budgetCheck.allowed) {
+      await aiMetadataAuditService.record({
+        actionType: "content_generation",
+        model,
+        userId: guardrailContext?.userId,
+        organizationId: guardrailContext?.organizationId,
+        requestId,
+        promptTemplateKey: promptTemplate.key,
+        promptTemplateVersion: promptTemplate.version,
+        metadata: {
+          blockedReason: budgetCheck.reason || "budget_exceeded",
+        },
+      });
+      return {
+        result: { content: '', model },
+        blocked: true,
+        blockedReason: 'Content blocked: AI usage budget exceeded',
+      };
+    }
 
     // Pre-generation guardrails check
     if (enableGuardrails) {
@@ -378,6 +543,18 @@ export class AIOrchestrator {
             action: guardrailResult.action,
             severity: guardrailResult.severity 
           });
+          await aiMetadataAuditService.record({
+            actionType: "content_generation",
+            model,
+            userId: guardrailContext?.userId,
+            organizationId: guardrailContext?.organizationId,
+            requestId,
+            promptTemplateKey: promptTemplate.key,
+            promptTemplateVersion: promptTemplate.version,
+            metadata: {
+              blockedReason: guardrailResult.action,
+            },
+          });
           return {
             result: { content: '', model },
             guardrails: guardrailResult,
@@ -391,6 +568,18 @@ export class AIOrchestrator {
         }
       } catch (error) {
         logger.error('Guardrails pre-check failed; blocking content generation', { error, requestId });
+        await aiMetadataAuditService.record({
+          actionType: "content_generation",
+          model,
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          requestId,
+          promptTemplateKey: promptTemplate.key,
+          promptTemplateVersion: promptTemplate.version,
+          metadata: {
+            blockedReason: "guardrails_unavailable",
+          },
+        });
         return {
           result: { content: '', model },
           guardrails: guardrailResult,
@@ -463,7 +652,35 @@ export class AIOrchestrator {
           break;
       }
 
-      return moderateOutput(content, model);
+      const moderated = await moderateOutput(content, model);
+      if (!moderated.blocked && moderated.result.content) {
+        const usage = await aiUsageAccountingService.recordUsage({
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          actionType: "content_generation",
+          model: moderated.result.model,
+          prompt: sanitizedPrompt,
+          response: moderated.result.content,
+          purposeDescription: "Generate free-form compliance content",
+          dataUsed: ["user_prompt"],
+          aiContribution: "assisted",
+          humanOversight: true,
+        });
+        const outputClassification = aiOutputClassificationService.classify(moderated.result.content);
+        await aiMetadataAuditService.record({
+          actionType: "content_generation",
+          model: moderated.result.model,
+          userId: guardrailContext?.userId,
+          organizationId: guardrailContext?.organizationId,
+          requestId,
+          promptTemplateKey: promptTemplate.key,
+          promptTemplateVersion: promptTemplate.version,
+          usage,
+          outputClassification,
+        });
+      }
+
+      return moderated;
 
     } catch (error) {
       logger.error(`Primary content generation model ${model} failed`, { error, requestId });
@@ -484,7 +701,38 @@ export class AIOrchestrator {
             break;
         }
 
-        return moderateOutput(fallbackContent, fallbackModel);
+        const moderated = await moderateOutput(fallbackContent, fallbackModel);
+        if (!moderated.blocked && moderated.result.content) {
+          const usage = await aiUsageAccountingService.recordUsage({
+            userId: guardrailContext?.userId,
+            organizationId: guardrailContext?.organizationId,
+            actionType: "content_generation",
+            model: moderated.result.model,
+            prompt: sanitizedPrompt,
+            response: moderated.result.content,
+            purposeDescription: "Generate free-form compliance content (fallback model)",
+            dataUsed: ["user_prompt"],
+            aiContribution: "assisted",
+            humanOversight: true,
+          });
+          const outputClassification = aiOutputClassificationService.classify(moderated.result.content);
+          await aiMetadataAuditService.record({
+            actionType: "content_generation",
+            model: moderated.result.model,
+            userId: guardrailContext?.userId,
+            organizationId: guardrailContext?.organizationId,
+            requestId,
+            promptTemplateKey: promptTemplate.key,
+            promptTemplateVersion: promptTemplate.version,
+            usage,
+            outputClassification,
+            metadata: {
+              fallbackModelUsed: fallbackModel,
+            },
+          });
+        }
+
+        return moderated;
       } catch (fallbackError) {
         logger.error('All content generation models failed', { requestId, fallbackError });
         throw new AIServiceError('All content generation models failed', { requestId });

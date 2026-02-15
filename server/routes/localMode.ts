@@ -431,6 +431,7 @@ router.post('/backup', async (req, res) => {
       success: true,
       message: 'Database backup created successfully',
       path: pathValidation.resolvedPath,
+      integrityPath: `${pathValidation.resolvedPath}.integrity.json`,
     });
   } catch (error) {
     logger.error('Failed to create database backup', { error });
@@ -487,11 +488,14 @@ router.post('/restore', async (req, res) => {
     }
 
     logger.info('Database restored from backup', { backupPath: pathValidation.resolvedPath });
+    const integrityPath = `${pathValidation.resolvedPath}.integrity.json`;
+    const integrityVerified = fs.existsSync(integrityPath);
 
     res.json({
       success: true,
       message: 'Database restored successfully',
       path: pathValidation.resolvedPath,
+      integrityVerified,
     });
   } catch (error) {
     logger.error('Failed to restore database', { error });

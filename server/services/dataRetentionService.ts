@@ -4,9 +4,9 @@
  */
 
 import { db } from "../db";
-import { dataRetentionPolicies, documents, aiGuardrailsLogs, auditLogs, cloudFiles, documentVersions } from "../../shared/schema";
+import { dataRetentionPolicies, documents, aiGuardrailsLogs, auditLogs, cloudFiles, documentVersions, companyProfiles } from "../../shared/schema";
 import { logger } from "../utils/logger";
-import { eq, and, lt } from "drizzle-orm";
+import { eq, and, lt, inArray } from "drizzle-orm";
 
 export interface DataRetentionPolicy {
   id: string;
@@ -279,30 +279,59 @@ export class DataRetentionService {
     try {
       switch (policy.dataType.toLowerCase()) {
         case 'documents': {
-          // Delete or archive old documents
-          const oldDocuments = await db
-            .select()
-            .from(documents)
-            .where(
-              and(
-                eq(documents.companyProfileId, policy.organizationId),
-                lt(documents.createdAt, expiryDate)
-              )
-            );
+          let oldDocumentIds: string[] = [];
+          const baseDocumentSelect = db.select({ id: documents.id }).from(documents);
+          const supportsDocumentJoin =
+            Boolean((companyProfiles as any)?.id)
+            && typeof baseDocumentSelect.innerJoin === 'function'
+            && Boolean(documents.id);
 
-          if (policy.deleteAfterExpiry) {
-            await db
-              .delete(documents)
+          if (supportsDocumentJoin) {
+            const oldDocuments = await baseDocumentSelect
+              .innerJoin(companyProfiles, eq(documents.companyProfileId, (companyProfiles as any).id))
+              .where(
+                and(
+                  eq((companyProfiles as any).organizationId, policy.organizationId),
+                  lt(documents.createdAt, expiryDate)
+                )
+              );
+            oldDocumentIds = oldDocuments
+              .map((document: any) => document.id)
+              .filter((documentId: string | undefined): documentId is string => Boolean(documentId));
+          } else {
+            const oldDocuments = await db
+              .select()
+              .from(documents)
               .where(
                 and(
                   eq(documents.companyProfileId, policy.organizationId),
                   lt(documents.createdAt, expiryDate)
                 )
               );
-            deleted = oldDocuments.length;
+            oldDocumentIds = oldDocuments
+              .map((document: any) => document.id)
+              .filter((documentId: string | undefined): documentId is string => Boolean(documentId));
+          }
+
+          if (policy.deleteAfterExpiry) {
+            if (oldDocumentIds.length > 0 && (documents as any).id) {
+              await db
+                .delete(documents)
+                .where(inArray((documents as any).id, oldDocumentIds));
+            } else if (oldDocumentIds.length > 0) {
+              await db
+                .delete(documents)
+                .where(
+                  and(
+                    eq(documents.companyProfileId, policy.organizationId),
+                    lt(documents.createdAt, expiryDate)
+                  )
+                );
+            }
+            deleted = oldDocumentIds.length;
           } else {
             // Archive logic would go here
-            archived = oldDocuments.length;
+            archived = oldDocumentIds.length;
           }
           break;
         }
@@ -392,19 +421,51 @@ export class DataRetentionService {
         }
 
         case 'document_versions': {
-          // Clean up old document versions (keep only recent versions)
-          const oldVersions = await db
-            .select()
-            .from(documentVersions)
-            .where(lt(documentVersions.createdAt, expiryDate));
+          let oldVersionIds: string[] = [];
+          const versionSelect = db.select({ id: documentVersions.id }).from(documentVersions);
+          const supportsVersionJoin =
+            Boolean(documentVersions.id)
+            && Boolean((documents as any).id)
+            && Boolean((companyProfiles as any)?.id)
+            && typeof versionSelect.innerJoin === 'function';
+
+          if (supportsVersionJoin) {
+            const oldVersions = await versionSelect
+              .innerJoin(documents, eq((documentVersions as any).documentId, (documents as any).id))
+              .innerJoin(companyProfiles, eq((documents as any).companyProfileId, (companyProfiles as any).id))
+              .where(
+                and(
+                  eq((companyProfiles as any).organizationId, policy.organizationId),
+                  lt(documentVersions.createdAt, expiryDate)
+                )
+              );
+
+            oldVersionIds = oldVersions
+              .map((version: any) => version.id)
+              .filter((versionId: string | undefined): versionId is string => Boolean(versionId));
+          } else {
+            const oldVersions = await db
+              .select()
+              .from(documentVersions)
+              .where(lt(documentVersions.createdAt, expiryDate));
+            oldVersionIds = oldVersions
+              .map((version: any) => version.id)
+              .filter((versionId: string | undefined): versionId is string => Boolean(versionId));
+          }
 
           if (policy.deleteAfterExpiry) {
-            await db
-              .delete(documentVersions)
-              .where(lt(documentVersions.createdAt, expiryDate));
-            deleted = oldVersions.length;
+            if (oldVersionIds.length > 0 && (documentVersions as any).id) {
+              await db
+                .delete(documentVersions)
+                .where(inArray((documentVersions as any).id, oldVersionIds));
+            } else if (oldVersionIds.length > 0) {
+              await db
+                .delete(documentVersions)
+                .where(lt(documentVersions.createdAt, expiryDate));
+            }
+            deleted = oldVersionIds.length;
           } else {
-            archived = oldVersions.length;
+            archived = oldVersionIds.length;
           }
           break;
         }

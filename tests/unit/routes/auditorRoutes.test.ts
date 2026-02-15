@@ -119,8 +119,9 @@ describe("auditor routes", () => {
       [{ document_approvals: { id: "approval-2", status: "pending" } }],
     );
     const csvExport = await request(app).get("/api/auditor/export?format=csv&framework=SOC2").expect(200);
-    expect(csvExport.body.data.message).toMatch(/not yet implemented/i);
-    expect(csvExport.body.data.framework).toBe("SOC2");
+    expect(csvExport.headers["content-type"]).toContain("text/csv");
+    expect(csvExport.text).toContain("# Audit Export");
+    expect(csvExport.text).toContain("framework,SOC2");
   });
 
   it("requires organization context", async () => {
@@ -129,4 +130,3 @@ describe("auditor routes", () => {
     expect(response.body.error.code).toBe("ORG_CONTEXT_REQUIRED");
   });
 });
-

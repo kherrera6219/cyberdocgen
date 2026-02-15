@@ -7,6 +7,7 @@ import {
   isAuthenticated,
   getRequiredUserId,
   secureHandler,
+  AppError,
   ValidationError,
   validateInput,
   requireOrganization,
@@ -17,6 +18,10 @@ import {
   crypto
 } from './shared';
 import { riskAssessmentSchema, threatAnalysisSchema } from '../../validation/requestSchemas';
+import { aiUsageAccountingService } from '../../services/aiUsageAccountingService';
+import { aiOutputClassificationService } from '../../services/aiOutputClassificationService';
+import { aiMetadataAuditService } from '../../services/aiMetadataAuditService';
+import { promptTemplateRegistry } from '../../services/promptTemplateRegistry';
 
 export function registerRiskRoutes(router: Router) {
   /**
@@ -36,6 +41,24 @@ export function registerRiskRoutes(router: Router) {
       throw new ValidationError("Company profile is required for risk assessment. Please create one first.");
     }
 
+    const requestId = crypto.randomUUID();
+    const promptTemplate = promptTemplateRegistry.renderTemplate('content_generation', {
+      taskSummary: 'Assess organizational compliance risk',
+    });
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId,
+      organizationId,
+      actionType: 'risk_assessment',
+      model: 'claude-sonnet-4',
+      prompt: JSON.stringify({ companyProfile, frameworks, includeDocuments }),
+      expectedResponseTokens: 1200,
+    });
+    if (!budgetCheck.allowed) {
+      throw new AppError('AI usage budget exceeded for this organization', 429, 'AI_BUDGET_EXCEEDED', {
+        reason: budgetCheck.reason,
+      });
+    }
+
     let existingDocuments: string[] = [];
     if (includeDocuments) {
       const documents = await storage.getDocuments(organizationId);
@@ -47,6 +70,29 @@ export function registerRiskRoutes(router: Router) {
       frameworks,
       existingDocuments
     );
+    const usage = await aiUsageAccountingService.recordUsage({
+      userId,
+      organizationId,
+      actionType: 'risk_assessment',
+      model: 'claude-sonnet-4',
+      prompt: JSON.stringify({ companyProfile, frameworks, existingDocuments }),
+      response: JSON.stringify(assessment),
+      purposeDescription: 'Assess organizational compliance risk',
+      dataUsed: ['company_profile', 'existing_documents', 'frameworks'],
+      aiContribution: 'assisted',
+      humanOversight: true,
+    });
+    await aiMetadataAuditService.record({
+      actionType: 'risk_assessment',
+      model: 'claude-sonnet-4',
+      userId,
+      organizationId,
+      requestId,
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      outputClassification: aiOutputClassificationService.classify(JSON.stringify(assessment)),
+      usage,
+    });
     
     await auditService.logAction({
       action: "assess",
@@ -72,12 +118,52 @@ export function registerRiskRoutes(router: Router) {
     const { industry, companySize, frameworks } = req.body;
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
+    const requestId = crypto.randomUUID();
+    const promptTemplate = promptTemplateRegistry.renderTemplate('content_generation', {
+      taskSummary: `Analyze threat landscape for ${industry}`,
+    });
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId,
+      organizationId,
+      actionType: 'threat_analysis',
+      model: 'claude-sonnet-4',
+      prompt: JSON.stringify({ industry, companySize, frameworks }),
+      expectedResponseTokens: 1200,
+    });
+    if (!budgetCheck.allowed) {
+      throw new AppError('AI usage budget exceeded for this organization', 429, 'AI_BUDGET_EXCEEDED', {
+        reason: budgetCheck.reason,
+      });
+    }
 
     const threatAnalysis = await riskAssessmentService.analyzeThreatLandscape(
       industry,
       companySize,
       frameworks
     );
+    const usage = await aiUsageAccountingService.recordUsage({
+      userId,
+      organizationId,
+      actionType: 'threat_analysis',
+      model: 'claude-sonnet-4',
+      prompt: JSON.stringify({ industry, companySize, frameworks }),
+      response: JSON.stringify(threatAnalysis),
+      purposeDescription: 'Analyze threat landscape for organization context',
+      dataUsed: ['industry', 'company_size', 'frameworks'],
+      aiContribution: 'assisted',
+      humanOversight: true,
+    });
+    await aiMetadataAuditService.record({
+      actionType: 'threat_analysis',
+      model: 'claude-sonnet-4',
+      userId,
+      organizationId,
+      requestId,
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      outputClassification: aiOutputClassificationService.classify(JSON.stringify(threatAnalysis)),
+      usage,
+    });
     
     await auditService.logAction({
       action: "analyze",

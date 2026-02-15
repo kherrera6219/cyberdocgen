@@ -69,12 +69,28 @@ export function registerStatsRoutes(router: Router) {
       gte(aiUsageDisclosures.createdAt, startDate)
     ));
 
+    const tokenStats = await db.select({
+      totalTokens: sql<number>`coalesce(sum(${aiUsageDisclosures.tokensUsed}), 0)`
+    })
+    .from(aiUsageDisclosures)
+    .where(and(
+      eq(aiUsageDisclosures.organizationId, organizationId),
+      gte(aiUsageDisclosures.createdAt, startDate)
+    ));
+
     res.json({
       success: true,
       data: {
         guardrails: guardrailsStats,
         efficiency: efficiencyStats,
         estimatedCost: costStats[0]?.estimatedCost || 0,
+        totalTokens: tokenStats[0]?.totalTokens || 0,
+        budgets: {
+          userDailyTokens: Number(process.env.AI_TOKEN_BUDGET_USER_DAILY || "200000"),
+          orgDailyTokens: Number(process.env.AI_TOKEN_BUDGET_ORG_DAILY || "2000000"),
+          userMonthlyCostUsd: Number(process.env.AI_COST_BUDGET_USER_MONTHLY_USD || "100"),
+          orgMonthlyCostUsd: Number(process.env.AI_COST_BUDGET_ORG_MONTHLY_USD || "1000"),
+        },
         timeRange
       }
     });

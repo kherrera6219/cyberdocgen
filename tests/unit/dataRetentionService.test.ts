@@ -42,17 +42,19 @@ vi.mock("../../shared/schema", () => ({
     updatedAt: "updatedAt",
     lastEnforcedAt: "lastEnforcedAt",
   },
-  documents: { companyProfileId: "companyProfileId", createdAt: "createdAt" },
+  documents: { id: "id", companyProfileId: "companyProfileId", createdAt: "createdAt" },
+  companyProfiles: { id: "id", organizationId: "organizationId" },
   aiGuardrailsLogs: { organizationId: "organizationId", createdAt: "createdAt" },
   auditLogs: { organizationId: "organizationId", timestamp: "timestamp" },
   cloudFiles: { organizationId: "organizationId", createdAt: "createdAt" },
-  documentVersions: { createdAt: "createdAt" },
+  documentVersions: { id: "id", documentId: "documentId", createdAt: "createdAt" },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn(() => "eq"),
   and: vi.fn((...parts: unknown[]) => ({ parts })),
   lt: vi.fn(() => "lt"),
+  inArray: vi.fn(() => "inArray"),
 }));
 
 describe("DataRetentionService", () => {
@@ -261,7 +263,9 @@ describe("DataRetentionService", () => {
       service.updatePolicyStatus("policy-1", "inactive")
     ).resolves.toBeUndefined();
 
-    mockDb.where.mockRejectedValueOnce(new Error("update failed"));
+    mockDb.update.mockImplementationOnce(() => {
+      throw new Error("update failed");
+    });
     await expect(service.updatePolicyStatus("policy-1", "active")).rejects.toThrow(
       "Failed to update policy status: update failed"
     );

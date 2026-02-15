@@ -79,6 +79,43 @@ export function registerEvidenceRoutes(app: Router) {
     res.json({ success: true, data: result });
   }));
 
+  // Get Snapshot Manifest
+  router.get('/snapshots/:id/manifest', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const { id } = req.params;
+
+    const manifest = await snapshotService.getManifest(id, organizationId);
+    res.json({ success: true, data: manifest });
+  }));
+
+  // Verify Snapshot Manifest + file hashes
+  router.post('/snapshots/:id/verify', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const { id } = req.params;
+
+    const verification = await snapshotService.verifyManifest(id, organizationId);
+    res.status(verification.valid ? 200 : 409).json({
+      success: verification.valid,
+      data: verification,
+    });
+  }));
+
+  // Package Snapshot Evidence
+  router.post('/snapshots/:id/package', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const { id } = req.params;
+    const includeSourceFiles = req.body?.includeSourceFiles === true;
+
+    const result = await snapshotService.packageSnapshotEvidence(id, organizationId, {
+      includeSourceFiles,
+    });
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  }));
+
   /**
    * INGESTION ROUTES
    */

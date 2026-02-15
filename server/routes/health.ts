@@ -7,6 +7,7 @@ import { Router } from 'express';
 import { databaseHealthService } from '../services/databaseHealthService';
 import { secureHandler } from '../utils/errorHandling';
 import { isAuthenticated } from '../replitAuth';
+import { retentionSchedulerService } from '../services/retentionSchedulerService';
 
 const router = Router();
 
@@ -84,6 +85,38 @@ router.post(
     res.json({
       success: true,
       message: 'Metric logged',
+    });
+  })
+);
+
+/**
+ * GET /api/health/retention
+ * Get retention scheduler status
+ */
+router.get(
+  '/retention',
+  isAuthenticated,
+  secureHandler(async (_req, res) => {
+    const status = retentionSchedulerService.getStatus();
+    res.json({
+      success: true,
+      data: status,
+    });
+  })
+);
+
+/**
+ * POST /api/health/retention/run
+ * Trigger retention policy run immediately
+ */
+router.post(
+  '/retention/run',
+  isAuthenticated,
+  secureHandler(async (_req, res) => {
+    const result = await retentionSchedulerService.runNow();
+    res.json({
+      success: true,
+      data: result,
     });
   })
 );

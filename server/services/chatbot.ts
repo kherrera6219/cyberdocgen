@@ -4,6 +4,10 @@ import { storage } from "../storage";
 import { logger } from "../utils/logger";
 import { aiGuardrailsService } from "./aiGuardrailsService";
 import { getOpenAIClient, getAnthropicClient } from "./aiClients";
+import { promptTemplateRegistry } from "./promptTemplateRegistry";
+import { aiUsageAccountingService } from "./aiUsageAccountingService";
+import { aiOutputClassificationService } from "./aiOutputClassificationService";
+import { aiMetadataAuditService } from "./aiMetadataAuditService";
 
 export interface ChatMessage {
   id: string;
@@ -34,6 +38,7 @@ export interface ChatResponse {
   sources: string[];
   suggestions: string[];
   followUpQuestions: string[];
+  model?: string;
 }
 
 /**
@@ -54,8 +59,45 @@ export class ComplianceChatbot {
     organizationId?: string,
   ): Promise<ChatResponse> {
     const requestId = crypto.randomUUID();
+    const promptTemplate = promptTemplateRegistry.renderTemplate("chat_assistant", {
+      framework: framework || "general",
+      userMessage: message.slice(0, 1000),
+    });
     
     try {
+      const budgetCheck = await aiUsageAccountingService.checkBudget({
+        userId,
+        organizationId,
+        actionType: "chat_response",
+        model: "claude-sonnet-4",
+        prompt: message,
+        expectedResponseTokens: 1500,
+      });
+      if (!budgetCheck.allowed) {
+        await aiMetadataAuditService.record({
+          actionType: "chat_response",
+          model: "claude-sonnet-4",
+          userId,
+          organizationId,
+          requestId,
+          promptTemplateKey: promptTemplate.key,
+          promptTemplateVersion: promptTemplate.version,
+          metadata: {
+            blockedReason: budgetCheck.reason || "budget_exceeded",
+            sessionId,
+            framework,
+          },
+        });
+        return {
+          content: "AI usage budget exceeded for this scope. Please contact your administrator.",
+          confidence: 0,
+          sources: [],
+          suggestions: ["Try a shorter request", "Contact your administrator for quota adjustments"],
+          followUpQuestions: [],
+          model: "blocked",
+        };
+      }
+
       // Pre-check guardrails on user input
       const inputCheck = await aiGuardrailsService.checkGuardrails(message, null, {
         requestId,
@@ -71,12 +113,27 @@ export class ComplianceChatbot {
           action: inputCheck.action,
           severity: inputCheck.severity 
         });
+        await aiMetadataAuditService.record({
+          actionType: "chat_response",
+          model: "claude-sonnet-4",
+          userId,
+          organizationId,
+          requestId,
+          promptTemplateKey: promptTemplate.key,
+          promptTemplateVersion: promptTemplate.version,
+          metadata: {
+            blockedReason: inputCheck.action,
+            sessionId,
+            framework,
+          },
+        });
         return {
           content: "I'm unable to process this request. Please rephrase your question to focus on compliance-related topics.",
           confidence: 0,
           sources: [],
           suggestions: ["Ask about compliance frameworks", "Request document guidance", "Inquire about security controls"],
           followUpQuestions: [],
+          model: "blocked",
         };
       }
 
@@ -118,12 +175,27 @@ export class ComplianceChatbot {
       }
 
       if (!outputCheck.allowed && outputCheck.action === 'blocked') {
+        await aiMetadataAuditService.record({
+          actionType: "chat_response",
+          model: response.model || "claude-sonnet-4",
+          userId,
+          organizationId,
+          requestId,
+          promptTemplateKey: promptTemplate.key,
+          promptTemplateVersion: promptTemplate.version,
+          metadata: {
+            blockedReason: outputCheck.action,
+            sessionId,
+            framework,
+          },
+        });
         return {
           content: "I apologize, but I cannot provide that specific information. Please ask a different question.",
           confidence: 0,
           sources: [],
           suggestions: ["Ask about compliance frameworks", "Request document guidance"],
           followUpQuestions: [],
+          model: "blocked",
         };
       }
 
@@ -150,6 +222,35 @@ export class ComplianceChatbot {
           },
         });
       }
+
+      const usage = await aiUsageAccountingService.recordUsage({
+        userId,
+        organizationId,
+        actionType: "chat_response",
+        model: response.model || "claude-sonnet-4",
+        prompt: sanitizedMessage,
+        response: response.content,
+        purposeDescription: "Interactive compliance chat guidance",
+        dataUsed: ["chat_prompt", "rag_context"],
+        aiContribution: "assisted",
+        humanOversight: true,
+      });
+      const outputClassification = aiOutputClassificationService.classify(response.content);
+      await aiMetadataAuditService.record({
+        actionType: "chat_response",
+        model: response.model || "claude-sonnet-4",
+        userId,
+        organizationId,
+        requestId,
+        promptTemplateKey: promptTemplate.key,
+        promptTemplateVersion: promptTemplate.version,
+        outputClassification,
+        usage,
+        metadata: {
+          sessionId,
+          framework,
+        },
+      });
 
       return response;
     } catch (error) {
@@ -228,7 +329,15 @@ Format your response as JSON with:
       
       // Try to parse JSON response
       try {
-        return JSON.parse(responseText);
+        const parsed = JSON.parse(responseText) as Partial<ChatResponse>;
+        return {
+          content: parsed.content || responseText,
+          confidence: typeof parsed.confidence === "number" ? parsed.confidence : 80,
+          sources: Array.isArray(parsed.sources) ? parsed.sources : relevantDocs.map(doc => doc.metadata.filename),
+          suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+          followUpQuestions: Array.isArray(parsed.followUpQuestions) ? parsed.followUpQuestions : [],
+          model: "claude-sonnet-4",
+        };
       } catch {
         // Fallback to structured parsing
         return this.parseResponseText(responseText, relevantDocs);
@@ -276,7 +385,8 @@ Provide a helpful, actionable response.`;
         confidence: 70,
         sources: relevantDocs.map(doc => doc.metadata.filename),
         suggestions: ["Review your current compliance documentation", "Consider updating your policies"],
-        followUpQuestions: ["What specific compliance areas need attention?", "How can I improve my security posture?"]
+        followUpQuestions: ["What specific compliance areas need attention?", "How can I improve my security posture?"],
+        model: "gpt-5.1",
       };
     } catch (error) {
       logger.error("Fallback response failed:", error);
@@ -336,7 +446,8 @@ Provide a helpful, actionable response.`;
       confidence: 80,
       sources: relevantDocs.map(doc => doc.metadata.filename),
       suggestions: ["Consider reviewing related documentation", "Implement recommended controls"],
-      followUpQuestions: ["What are the next steps?", "How can I verify compliance?"]
+      followUpQuestions: ["What are the next steps?", "How can I verify compliance?"],
+      model: "claude-sonnet-4",
     };
   }
 

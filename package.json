@@ -36,7 +36,8 @@
     "build:win": "npm run windows:validate && npm run build && npm run electron:build && electron-builder build --win nsis",
     "build:store": "npm run windows:validate:store && npm run build && npm run electron:build && tsx scripts/build-store.ts",
     "build:appx": "npm run build:store",
-    "build:msix": "npm run build:store"
+    "build:msix": "npm run build:store",
+    "db:validate-parity": "tsx scripts/validate-schema-parity.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",

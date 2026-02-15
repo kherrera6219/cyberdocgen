@@ -31,6 +31,8 @@ function createEnvSchema() {
     AZURE_AD_TENANT_ID: z.string().optional(),
     AZURE_AD_ISSUER_URL: z.string().optional(),
     AZURE_AD_REDIRECT_URI: z.string().optional(),
+    ENCRYPTION_KEY: z.string().optional(),
+    DATA_INTEGRITY_SECRET: z.string().optional(),
   });
 }
 
@@ -50,6 +52,18 @@ export function validateEnvironment(): EnvConfig {
     }
     if (!validated.ANTHROPIC_API_KEY) {
       logger.warn('ANTHROPIC_API_KEY is not set - AI features using Anthropic will not work');
+    }
+
+    if (validated.NODE_ENV === 'production') {
+      const encryptionKey = validated.ENCRYPTION_KEY || '';
+      if (!/^[a-fA-F0-9]{64}$/.test(encryptionKey)) {
+        throw new Error('ENCRYPTION_KEY must be a 64-character hex value in production');
+      }
+
+      const integritySecret = validated.DATA_INTEGRITY_SECRET || '';
+      if (integritySecret.length < 32) {
+        throw new Error('DATA_INTEGRITY_SECRET must be at least 32 characters in production');
+      }
     }
     
     return validated;

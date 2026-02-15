@@ -10,6 +10,7 @@ import {
   secureHandler,
   NotFoundError,
   ForbiddenError,
+  AppError,
   validateInput,
   requireOrganization,
   type MultiTenantRequest,
@@ -28,6 +29,10 @@ import {
 } from '../../validation/requestSchemas';
 import { logger } from '../../utils/logger';
 import { getCompanyProfileWithOrgCheck } from '../../middleware/multiTenant';
+import { aiUsageAccountingService } from '../../services/aiUsageAccountingService';
+import { aiOutputClassificationService } from '../../services/aiOutputClassificationService';
+import { aiMetadataAuditService } from '../../services/aiMetadataAuditService';
+import { promptTemplateRegistry } from '../../services/promptTemplateRegistry';
 
 export function registerAnalysisRoutes(router: Router) {
   /**
@@ -39,6 +44,22 @@ export function registerAnalysisRoutes(router: Router) {
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
     const requestId = crypto.randomUUID();
+    const promptTemplate = promptTemplateRegistry.renderTemplate('content_generation', {
+      taskSummary: `Analyze quality for ${framework}`,
+    });
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId,
+      organizationId,
+      actionType: 'analysis_quality',
+      model: 'claude-sonnet-4',
+      prompt: content,
+      expectedResponseTokens: 600,
+    });
+    if (!budgetCheck.allowed) {
+      throw new AppError('AI usage budget exceeded for this organization', 429, 'AI_BUDGET_EXCEEDED', {
+        reason: budgetCheck.reason,
+      });
+    }
 
     // Run guardrails check on user input
     const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
@@ -62,6 +83,30 @@ export function registerAnalysisRoutes(router: Router) {
     // Use sanitized content
     const sanitizedContent = guardrailResult.sanitizedPrompt || content;
     const analysis = await aiOrchestrator.analyzeQuality(sanitizedContent, framework);
+    const usage = await aiUsageAccountingService.recordUsage({
+      userId,
+      organizationId,
+      actionType: 'analysis_quality',
+      model: 'claude-sonnet-4',
+      prompt: sanitizedContent,
+      response: JSON.stringify(analysis),
+      purposeDescription: `Analyze document quality for ${framework}`,
+      dataUsed: ['document_content', 'framework'],
+      aiContribution: 'assisted',
+      humanOversight: true,
+    });
+    await aiMetadataAuditService.record({
+      actionType: 'analysis_quality',
+      model: 'claude-sonnet-4',
+      userId,
+      organizationId,
+      requestId,
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      outputClassification: aiOutputClassificationService.classify(analysis.feedback || ''),
+      usage,
+      metadata: { framework },
+    });
     metricsCollector.trackAIOperation('analysis', true);
     
     res.json({
@@ -85,7 +130,48 @@ export function registerAnalysisRoutes(router: Router) {
       throw new NotFoundError("Company profile not found");
     }
 
+    const promptTemplate = promptTemplateRegistry.renderTemplate('content_generation', {
+      taskSummary: `Generate compliance insights for ${framework}`,
+    });
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId,
+      organizationId,
+      actionType: 'analysis_insights',
+      model: 'claude-sonnet-4',
+      prompt: JSON.stringify(companyProfile).slice(0, 6000),
+      expectedResponseTokens: 800,
+    });
+    if (!budgetCheck.allowed) {
+      throw new AppError('AI usage budget exceeded for this organization', 429, 'AI_BUDGET_EXCEEDED', {
+        reason: budgetCheck.reason,
+      });
+    }
+
     const insights = await aiOrchestrator.generateInsights(companyProfile, framework);
+    const usage = await aiUsageAccountingService.recordUsage({
+      userId,
+      organizationId,
+      actionType: 'analysis_insights',
+      model: 'claude-sonnet-4',
+      prompt: JSON.stringify(companyProfile),
+      response: JSON.stringify(insights),
+      purposeDescription: `Generate compliance insights for ${framework}`,
+      dataUsed: ['company_profile', 'framework'],
+      aiContribution: 'assisted',
+      humanOversight: true,
+    });
+    await aiMetadataAuditService.record({
+      actionType: 'analysis_insights',
+      model: 'claude-sonnet-4',
+      userId,
+      organizationId,
+      requestId: crypto.randomUUID(),
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      outputClassification: aiOutputClassificationService.classify(JSON.stringify(insights)),
+      usage,
+      metadata: { framework },
+    });
     
     metricsCollector.trackAIOperation('analysis', true);
     await auditService.logAction({
@@ -113,6 +199,22 @@ export function registerAnalysisRoutes(router: Router) {
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
     const requestId = crypto.randomUUID();
+    const promptTemplate = promptTemplateRegistry.renderTemplate('content_generation', {
+      taskSummary: `Analyze document ${filename || 'uploaded-file'}`,
+    });
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId,
+      organizationId,
+      actionType: 'analysis_document',
+      model: 'gpt-5.1',
+      prompt: content,
+      expectedResponseTokens: 800,
+    });
+    if (!budgetCheck.allowed) {
+      throw new AppError('AI usage budget exceeded for this organization', 429, 'AI_BUDGET_EXCEEDED', {
+        reason: budgetCheck.reason,
+      });
+    }
 
     // Run guardrails check on document content
     const guardrailResult = await aiGuardrailsService.checkGuardrails(content, null, {
@@ -136,6 +238,30 @@ export function registerAnalysisRoutes(router: Router) {
     // Use sanitized content
     const sanitizedContent = guardrailResult.sanitizedPrompt || content;
     const analysis = await documentAnalysisService.analyzeDocument(sanitizedContent, filename, framework);
+    const usage = await aiUsageAccountingService.recordUsage({
+      userId,
+      organizationId,
+      actionType: 'analysis_document',
+      model: 'gpt-5.1',
+      prompt: sanitizedContent,
+      response: JSON.stringify(analysis),
+      purposeDescription: `Analyze document for ${framework}`,
+      dataUsed: ['document_content', 'framework'],
+      aiContribution: 'assisted',
+      humanOversight: true,
+    });
+    await aiMetadataAuditService.record({
+      actionType: 'analysis_document',
+      model: 'gpt-5.1',
+      userId,
+      organizationId,
+      requestId,
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      outputClassification: aiOutputClassificationService.classify(JSON.stringify(analysis)),
+      usage,
+      metadata: { framework, filename },
+    });
     
     await auditService.logAction({
       action: "analyze",
@@ -161,8 +287,48 @@ export function registerAnalysisRoutes(router: Router) {
     const { content } = req.body;
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
+    const requestId = crypto.randomUUID();
+    const promptTemplate = promptTemplateRegistry.renderTemplate('content_generation', {
+      taskSummary: 'Extract company profile details',
+    });
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId,
+      organizationId,
+      actionType: 'analysis_extract_profile',
+      model: 'gpt-5.1',
+      prompt: content,
+      expectedResponseTokens: 800,
+    });
+    if (!budgetCheck.allowed) {
+      throw new AppError('AI usage budget exceeded for this organization', 429, 'AI_BUDGET_EXCEEDED', {
+        reason: budgetCheck.reason,
+      });
+    }
 
     const extractedProfile = await documentAnalysisService.extractCompanyProfile(content);
+    const usage = await aiUsageAccountingService.recordUsage({
+      userId,
+      organizationId,
+      actionType: 'analysis_extract_profile',
+      model: 'gpt-5.1',
+      prompt: content,
+      response: JSON.stringify(extractedProfile),
+      purposeDescription: 'Extract company profile from uploaded content',
+      dataUsed: ['document_content'],
+      aiContribution: 'assisted',
+      humanOversight: true,
+    });
+    await aiMetadataAuditService.record({
+      actionType: 'analysis_extract_profile',
+      model: 'gpt-5.1',
+      userId,
+      organizationId,
+      requestId,
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      outputClassification: aiOutputClassificationService.classify(JSON.stringify(extractedProfile)),
+      usage,
+    });
     
     await auditService.logAction({
       action: "extract",

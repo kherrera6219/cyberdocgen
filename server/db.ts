@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import { logger } from "./utils/logger";
 import { getRuntimeConfig, isLocalMode as runtimeIsLocalMode } from "./config/runtime";
+import { createIntegrityEnvelope, verifyIntegrityEnvelope, type IntegrityEnvelope } from "./utils/dataIntegrity";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -18,6 +19,29 @@ let db: any = null;
 let localSqlite: BetterSqliteDatabase | null = null;
 let localDbPath: string | null = null;
 let localDatabaseOperationQueue: Promise<void> = Promise.resolve();
+
+interface LocalBackupIntegritySidecar {
+  version: 1;
+  backupPath: string;
+  sourcePath?: string;
+  fileSize: number;
+  generatedAt: string;
+  envelope: IntegrityEnvelope;
+}
+
+function isIntegrityEnvelope(value: unknown): value is IntegrityEnvelope {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const envelope = value as Partial<IntegrityEnvelope>;
+  return (
+    typeof envelope.algorithm === "string" &&
+    typeof envelope.hash === "string" &&
+    typeof envelope.hmac === "string" &&
+    typeof envelope.generatedAt === "string"
+  );
+}
 
 function getLocalDataPath(): string {
   const runtimeConfig = getRuntimeConfig();
@@ -66,6 +90,54 @@ function ensureLocalSqliteDatabaseExists(dbPath: string): void {
 
   fs.copyFileSync(templatePath, dbPath);
   logger.info(`Seeded local SQLite database from template: ${templatePath}`);
+}
+
+function getBackupIntegritySidecarPath(backupPath: string): string {
+  return `${backupPath}.integrity.json`;
+}
+
+function shouldRequireSignedBackups(): boolean {
+  return process.env.NODE_ENV === 'production' && process.env.ALLOW_UNSIGNED_BACKUP_RESTORE !== 'true';
+}
+
+function writeBackupIntegritySidecar(backupPath: string, sourcePath?: string): void {
+  const content = fs.readFileSync(backupPath);
+  const sidecar: LocalBackupIntegritySidecar = {
+    version: 1,
+    backupPath,
+    sourcePath,
+    fileSize: content.length,
+    generatedAt: new Date().toISOString(),
+    envelope: createIntegrityEnvelope(content),
+  };
+  fs.writeFileSync(getBackupIntegritySidecarPath(backupPath), JSON.stringify(sidecar, null, 2), "utf8");
+}
+
+function verifyBackupIntegrityIfPresent(backupPath: string): void {
+  const sidecarPath = getBackupIntegritySidecarPath(backupPath);
+  if (!fs.existsSync(sidecarPath)) {
+    if (shouldRequireSignedBackups()) {
+      throw new Error(`Backup integrity sidecar missing: ${sidecarPath}`);
+    }
+
+    logger.warn("Backup integrity sidecar missing; skipping signature verification", { backupPath, sidecarPath });
+    return;
+  }
+
+  const sidecarRaw = fs.readFileSync(sidecarPath, "utf8");
+  const sidecar = JSON.parse(sidecarRaw) as Partial<LocalBackupIntegritySidecar>;
+  if (!isIntegrityEnvelope(sidecar.envelope)) {
+    throw new Error(`Backup integrity sidecar is invalid: ${sidecarPath}`);
+  }
+
+  const content = fs.readFileSync(backupPath);
+  const verification = verifyIntegrityEnvelope(content, sidecar.envelope);
+
+  if (!verification.valid) {
+    throw new Error(
+      `Backup integrity verification failed (hashValid=${verification.hashValid}, hmacValid=${verification.hmacValid})`
+    );
+  }
 }
 
 function configureLocalSqliteConnection(sqlite: BetterSqliteDatabase): void {
@@ -286,6 +358,8 @@ export async function backupLocalDatabase(destinationPath: string): Promise<stri
       fs.copyFileSync(sourcePath, resolvedDestination);
     }
 
+    writeBackupIntegritySidecar(resolvedDestination, getLocalDatabasePath());
+
     logger.info('Local database backup completed', { destinationPath: resolvedDestination });
     return resolvedDestination;
   });
@@ -301,6 +375,8 @@ export async function restoreLocalDatabase(sourcePath: string): Promise<void> {
     if (!fs.existsSync(resolvedSourcePath)) {
       throw new Error(`Backup file does not exist: ${resolvedSourcePath}`);
     }
+
+    verifyBackupIntegrityIfPresent(resolvedSourcePath);
 
     const targetPath = getLocalDatabasePath();
 

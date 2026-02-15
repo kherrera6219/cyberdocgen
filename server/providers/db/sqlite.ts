@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import type { IDbConnection, IDbProvider, IDbTransaction } from '../interfaces';
 import { logger } from '../../utils/logger';
+import { createIntegrityEnvelope, type IntegrityEnvelope, verifyIntegrityEnvelope } from '../../utils/dataIntegrity';
 
 export interface SqliteDbStats {
   path: string;
@@ -16,6 +17,29 @@ export interface SqliteDbStats {
   connections: number;
 }
 
+interface SqliteBackupIntegritySidecar {
+  version: 1;
+  backupPath: string;
+  sourcePath: string;
+  fileSize: number;
+  generatedAt: string;
+  envelope: IntegrityEnvelope;
+}
+
+function isIntegrityEnvelope(value: unknown): value is IntegrityEnvelope {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const envelope = value as Partial<IntegrityEnvelope>;
+  return (
+    typeof envelope.algorithm === 'string'
+    && typeof envelope.hash === 'string'
+    && typeof envelope.hmac === 'string'
+    && typeof envelope.generatedAt === 'string'
+  );
+}
+
 export class SqliteDbProvider implements IDbProvider {
   private db: Database.Database | null = null;
   private readonly dbPath: string;
@@ -27,6 +51,56 @@ export class SqliteDbProvider implements IDbProvider {
       this.migrationsPath = path.resolve(migrationsPath);
     }
     logger.info(`[SqliteDbProvider] Initialized with path: ${this.dbPath}`);
+  }
+
+  private getIntegritySidecarPath(backupPath: string): string {
+    return `${backupPath}.integrity.json`;
+  }
+
+  private shouldRequireSignedBackups(): boolean {
+    return process.env.NODE_ENV === 'production' && process.env.ALLOW_UNSIGNED_BACKUP_RESTORE !== 'true';
+  }
+
+  private writeBackupIntegritySidecar(backupPath: string): void {
+    const content = fs.readFileSync(backupPath);
+    const payload: SqliteBackupIntegritySidecar = {
+      version: 1,
+      backupPath,
+      sourcePath: this.dbPath,
+      fileSize: content.length,
+      generatedAt: new Date().toISOString(),
+      envelope: createIntegrityEnvelope(content),
+    };
+    fs.writeFileSync(this.getIntegritySidecarPath(backupPath), JSON.stringify(payload, null, 2), 'utf8');
+  }
+
+  private verifyBackupIntegrityIfPresent(backupPath: string): void {
+    const sidecarPath = this.getIntegritySidecarPath(backupPath);
+    if (!fs.existsSync(sidecarPath)) {
+      if (this.shouldRequireSignedBackups()) {
+        throw new Error(`Backup integrity sidecar missing: ${sidecarPath}`);
+      }
+
+      logger.warn('[SqliteDbProvider] Backup integrity sidecar missing; skipping verification', {
+        backupPath,
+        sidecarPath,
+      });
+      return;
+    }
+
+    const sidecarRaw = fs.readFileSync(sidecarPath, 'utf8');
+    const sidecar = JSON.parse(sidecarRaw) as Partial<SqliteBackupIntegritySidecar>;
+    if (!isIntegrityEnvelope(sidecar.envelope)) {
+      throw new Error(`Backup integrity sidecar is invalid: ${sidecarPath}`);
+    }
+
+    const content = fs.readFileSync(backupPath);
+    const verification = verifyIntegrityEnvelope(content, sidecar.envelope);
+    if (!verification.valid) {
+      throw new Error(
+        `Backup integrity verification failed (hashValid=${verification.hashValid}, hmacValid=${verification.hmacValid})`
+      );
+    }
   }
 
   private ensureConnected(): Database.Database {
@@ -271,6 +345,7 @@ export class SqliteDbProvider implements IDbProvider {
       }
 
       await db.backup(resolvedDestination);
+      this.writeBackupIntegritySidecar(resolvedDestination);
       logger.info(`[SqliteDbProvider] Database backup successful to ${resolvedDestination}`);
       return resolvedDestination;
     } catch (error) {
@@ -285,6 +360,8 @@ export class SqliteDbProvider implements IDbProvider {
     if (!fs.existsSync(resolvedSourcePath)) {
       throw new Error(`Backup file does not exist: ${resolvedSourcePath}`);
     }
+
+    this.verifyBackupIntegrityIfPresent(resolvedSourcePath);
 
     const wasConnected = !!this.db;
     await this.close();

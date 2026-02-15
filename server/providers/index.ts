@@ -41,7 +41,7 @@ async function createDbProvider() {
   }
   
   const { PostgresDbProvider } = await import('./db/postgres');
-  return new PostgresDbProvider(config.database.connection!);
+  return new PostgresDbProvider(config.database.connection!, config.database.migrationsPath);
 }
 
 /**

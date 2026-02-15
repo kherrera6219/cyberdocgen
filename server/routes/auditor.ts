@@ -6,6 +6,28 @@ import { eq, desc, count, and } from 'drizzle-orm';
 import { secureHandler } from '../utils/errorHandling';
 import { type MultiTenantRequest, requireOrganization } from '../middleware/multiTenant';
 
+function escapeCsvValue(value: unknown): string {
+  const normalized = value === null || value === undefined ? '' : String(value);
+  if (normalized.includes(',') || normalized.includes('"') || normalized.includes('\n')) {
+    return `"${normalized.replace(/"/g, '""')}"`;
+  }
+  return normalized;
+}
+
+function convertRowsToCsv(rows: Array<Record<string, unknown>>): string {
+  if (rows.length === 0) {
+    return '';
+  }
+
+  const headers = Object.keys(rows[0]);
+  const lines = [headers.join(',')];
+  for (const row of rows) {
+    const rowMap = new Map<string, unknown>(Object.entries(row));
+    lines.push(headers.map((header) => escapeCsvValue(rowMap.get(header))).join(','));
+  }
+  return lines.join('\n');
+}
+
 export function registerAuditorRoutes(app: Router) {
   const router = Router();
 
@@ -209,15 +231,49 @@ export function registerAuditorRoutes(app: Router) {
         success: true,
         data: exportData
       });
+    } else if (format === 'csv') {
+      const documentRows = allDocuments.map((doc) => ({
+        id: doc.id,
+        title: doc.title,
+        framework: doc.framework,
+        category: doc.category,
+        status: doc.status,
+        aiGenerated: doc.aiGenerated,
+        updatedAt: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : '',
+      }));
+      const approvalRows = allApprovals.map((approval) => ({
+        id: approval.id,
+        documentId: approval.documentId,
+        status: approval.status,
+        requestedBy: approval.requestedBy,
+        approvedBy: approval.approvedBy || '',
+        createdAt: approval.createdAt ? new Date(approval.createdAt).toISOString() : '',
+      }));
+
+      const csvPayload = [
+        '# Audit Export',
+        `exportDate,${escapeCsvValue(exportData.exportDate)}`,
+        `framework,${escapeCsvValue(exportData.framework)}`,
+        `totalDocuments,${exportData.summary.totalDocuments}`,
+        `totalApprovals,${exportData.summary.totalApprovals}`,
+        '',
+        '# Documents',
+        convertRowsToCsv(documentRows),
+        '',
+        '# Approvals',
+        convertRowsToCsv(approvalRows),
+      ]
+        .filter((line) => line.length > 0)
+        .join('\n');
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="audit-export-${timestamp}.csv"`);
+      res.send(csvPayload);
     } else {
-      // For other formats (CSV, PDF), return JSON for now
-      // Can be extended to generate actual CSV/PDF
-      res.json({
-        success: true,
-        data: {
-          message: `Export format '${format}' not yet implemented, returning JSON`,
-          ...exportData
-        }
+      res.status(400).json({
+        success: false,
+        error: `Export format '${format}' is not supported`,
       });
     }
   }));

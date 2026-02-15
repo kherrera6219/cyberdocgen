@@ -18,6 +18,11 @@ import {
   requireOrganization,
   getCompanyProfileWithOrgCheck 
 } from '../middleware/multiTenant';
+import { promptTemplateRegistry } from '../services/promptTemplateRegistry';
+import { aiUsageAccountingService } from '../services/aiUsageAccountingService';
+import { aiOutputClassificationService } from '../services/aiOutputClassificationService';
+import { aiMetadataAuditService } from '../services/aiMetadataAuditService';
+import { modelRoutingPolicyService } from '../services/modelRoutingPolicyService';
 
 function getContentType(format: string): string {
   const contentTypes: Record<string, string> = {
@@ -132,6 +137,8 @@ export function registerExportRoutes(router: Router) {
    */
   router.post('/generate-document', isAuthenticated, requireOrganization, validateInput(generateDocumentRequestSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { framework, companyProfile, documentType, templateId, variables } = req.body;
+    const userId = getRequiredUserId(req);
+    const organizationId = req.organizationId!;
     
     const { DocumentTemplateService } = await import('../services/documentTemplates');
     
@@ -159,6 +166,30 @@ export function registerExportRoutes(router: Router) {
     
     const { getOpenAIClient } = await import('../services/aiClients');
     const openai = getOpenAIClient();
+    const routingDecision = modelRoutingPolicyService.route({
+      requestedModel: 'auto',
+      operation: 'export_generation',
+      framework,
+      templateCategory: documentType,
+    });
+    const selectedModel = routingDecision.selectedModel;
+    const promptTemplate = promptTemplateRegistry.renderTemplate('export_generation', {
+      framework,
+      documentType,
+    });
+    const budgetCheck = await aiUsageAccountingService.checkBudget({
+      userId,
+      organizationId,
+      actionType: 'export_generation',
+      model: selectedModel,
+      prompt: promptTemplate.prompt,
+      expectedResponseTokens: 3000,
+    });
+    if (!budgetCheck.allowed) {
+      throw new AppError('AI usage budget exceeded for this organization', 429, 'AI_BUDGET_EXCEEDED', {
+        reason: budgetCheck.reason,
+      });
+    }
     
     const systemPrompt = `You are a cybersecurity compliance expert. Generate a comprehensive ${documentType} document for ${framework} compliance framework for the company: ${companyProfile.name} (Industry: ${companyProfile.industry}, Size: ${companyProfile.size}).
 
@@ -184,16 +215,46 @@ Format with clear headings, numbered sections, and actionable guidance.`;
       ],
       max_completion_tokens: 3000,
     });
+    const generatedContent = response.choices[0].message.content || "";
+    const outputClassification = aiOutputClassificationService.classify(generatedContent);
+    const governanceUsage = await aiUsageAccountingService.recordUsage({
+      userId,
+      organizationId,
+      actionType: 'export_generation',
+      model: selectedModel,
+      prompt: `${systemPrompt}\n\nGenerate a detailed ${documentType} document for ${framework} compliance.`,
+      response: generatedContent,
+      purposeDescription: `Generate export-ready ${documentType} for ${framework}`,
+      dataUsed: ['company_profile', 'framework'],
+      aiContribution: 'full',
+      humanOversight: true,
+    });
+    await aiMetadataAuditService.record({
+      actionType: 'export_generation',
+      model: selectedModel,
+      userId,
+      organizationId,
+      requestId: (req as any).requestId,
+      promptTemplateKey: promptTemplate.key,
+      promptTemplateVersion: promptTemplate.version,
+      outputClassification,
+      usage: governanceUsage,
+      metadata: {
+        framework,
+        documentType,
+      },
+    });
 
     res.json({
       success: true,
       data: {
         framework,
         documentType,
-        content: response.choices[0].message.content,
+        content: generatedContent,
         templateBased: false,
-        model: "gpt-5.1",
-        usage: response.usage
+        model: selectedModel,
+        usage: response.usage,
+        governanceUsage,
       }
     });
   }, { audit: { action: 'create', entityType: 'generatedDocument' } }));
