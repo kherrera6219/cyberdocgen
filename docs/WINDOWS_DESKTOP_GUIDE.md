@@ -127,9 +127,14 @@ For Store submission, use the APPX package path instead of the NSIS installer fl
 - Runtime update policy safe: Electron auto-updater is disabled when `process.windowsStore === true`
 
 Remaining enterprise-grade recommendations:
-- Sign installer binaries with an Authenticode certificate
+- Capture signed release evidence from CI tag builds (`windows-release-artifacts` + `windows-signature-report` artifacts)
 - Build SmartScreen reputation via signed releases and consistent publisher identity
 - Add EV code signing if immediate SmartScreen trust is required
+
+Release signing scripts:
+- `npm run build:win:release` (forces release signing policy for NSIS `.exe`)
+- `npm run build:store:release` (forces release signing policy for APPX)
+- `npm run windows:verify-signatures` (Authenticode verification for generated `.exe` artifacts)
 
 Local hardening updates:
 - API key management and local settings pages are local-mode only (hidden in cloud mode navigation and guarded at runtime).

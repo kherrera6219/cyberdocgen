@@ -20,7 +20,7 @@
 | ID | Item | Status | Latest Validation Evidence |
 |---|---|---|---|
 | WIN-01 | Run signed NSIS install/uninstall smoke on a clean Windows 11 VM and archive screenshots/logs | OPEN | No signed clean-VM evidence bundle found in active docs/evidence paths |
-| WIN-02 | Add Authenticode signing in CI/release pipeline and enforce signed `.exe` release artifacts | PARTIAL | Tag-gated release policy + release-only signing enforcement (`RELEASE_FORCE_CODESIGN`) are in place, but a full signed artifact build + signature verification pipeline is still pending |
+| WIN-02 | Add Authenticode signing in CI/release pipeline and enforce signed `.exe` release artifacts | PARTIAL | Tag-gated Windows release job now performs signed build + Authenticode verification report upload, but live tag-run evidence is still pending |
 | WIN-03 | Capture SmartScreen behavior (unsigned vs signed) and document release policy | OPEN | Signing guidance exists, but no captured signed-vs-unsigned SmartScreen evidence is present |
 | WIN-04 | Add desktop smoke automation/checklist for Start Menu launch and local API-key roundtrip | PARTIAL | Script + checklist added (`scripts/windows-desktop-smoke.ps1`, `docs/WINDOWS_DESKTOP_SMOKE_CHECKLIST.md`); clean-VM execution evidence still pending |
 | CLOUD-01 | Complete cloud-mode validation in a production-like environment with required secrets/infrastructure | OPEN | Cloud start fails without required env (`DATABASE_URL`, `SESSION_SECRET`) |

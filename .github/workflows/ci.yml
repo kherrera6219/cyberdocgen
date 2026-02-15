@@ -116,7 +116,7 @@ jobs:
   release-policy:
     name: Release Signing Policy
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -135,7 +135,35 @@ jobs:
           RELEASE_FORCE_CODESIGN: "true"
           CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
           CSC_NAME: ${{ secrets.WINDOWS_CSC_NAME }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
         run: npm run windows:validate
+
+      - name: Build signed Windows installer
+        env:
+          RELEASE_BUILD: "true"
+          RELEASE_FORCE_CODESIGN: "true"
+          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          CSC_NAME: ${{ secrets.WINDOWS_CSC_NAME }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+        run: npm run build:win:release
+
+      - name: Verify Authenticode signatures
+        shell: powershell
+        run: .\scripts\verify-windows-signatures.ps1 -ArtifactsPath .\dist\packaging -RequireTimestamp
+
+      - name: Upload signed Windows artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-artifacts
+          path: dist/packaging/
+
+      - name: Upload signature verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-signature-report
+          path: artifacts/signature-reports/*.json
 
   # Job 6: License Scanning
   license-scan:

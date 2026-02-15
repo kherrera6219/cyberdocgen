@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/WINDOWS_DESKTOP_SMOKE_CHECKLIST.md`
 - Added connector API integration test coverage for `/api/connectors` and `/api/connectors/:id/import`.
 - Added targeted regression tests for performance metrics correctness and phase sweep argument/report behavior.
+- Added Authenticode verification script for Windows release executables: `scripts/verify-windows-signatures.ps1`.
 
 ### Changed
 
@@ -50,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enforced release-mode signing policy in validation/CI using `RELEASE_BUILD` + `RELEASE_FORCE_CODESIGN`, with release build scripts:
   - `npm run build:win:release`
   - `npm run build:store:release`
+- Updated tag-gated release policy workflow to run on Windows, build signed NSIS artifacts, verify Authenticode signatures, and publish signature reports.
 - Aligned coverage enforcement baseline to active gate policy (`80%` lines/functions/statements, `78%` branches) and synchronized hotspot reporting thresholds.
 
 ### Fixed

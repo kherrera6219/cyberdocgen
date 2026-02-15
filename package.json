@@ -33,6 +33,7 @@
     "test:e2e:ui": "playwright test --ui",
     "windows:validate": "tsx scripts/validate-wack.ts",
     "windows:validate:store": "cross-env WINDOWS_STORE_SUBMISSION=true tsx scripts/validate-wack.ts",
+    "windows:verify-signatures": "powershell.exe -ExecutionPolicy Bypass -File .\\scripts\\verify-windows-signatures.ps1 -ArtifactsPath .\\dist\\packaging",
     "sweep:phase": "tsx scripts/phase-sweep.ts",
     "build:win": "npm run windows:validate && npm run build && npm run electron:build && electron-builder build --win nsis",
     "build:win:release": "cross-env RELEASE_BUILD=true RELEASE_FORCE_CODESIGN=true npm run windows:validate && npm run build && npm run electron:build && electron-builder build --win nsis --config.win.forceCodeSigning=true",
