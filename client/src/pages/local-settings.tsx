@@ -9,7 +9,7 @@
  * - Maintenance operations
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface DatabaseInfo {
   path: string;
@@ -60,46 +61,27 @@ export default function LocalSettingsPage() {
   // Fetch runtime info
   const { data: runtime } = useQuery<RuntimeInfo>({
     queryKey: ['runtime-mode'],
-    queryFn: async () => {
-      const res = await fetch('/api/local/runtime/mode');
-      if (!res.ok) throw new Error('Failed to fetch runtime mode');
-      return res.json();
-    },
+    queryFn: () => apiRequest('/api/local/runtime/mode'),
   });
 
   // Fetch database info
   const { data: dbInfo, isLoading: dbLoading, error: dbError } = useQuery<DatabaseInfo>({
     queryKey: ['db-info'],
-    queryFn: async () => {
-      const res = await fetch('/api/local/db-info');
-      if (!res.ok) throw new Error('Failed to fetch database info');
-      return res.json();
-    },
+    queryFn: () => apiRequest('/api/local/db-info'),
     enabled: runtime?.mode === 'local',
   });
 
   // Fetch storage info
   const { data: storageInfo, isLoading: storageLoading } = useQuery<StorageInfo>({
     queryKey: ['storage-info'],
-    queryFn: async () => {
-      const res = await fetch('/api/local/storage-info');
-      if (!res.ok) throw new Error('Failed to fetch storage info');
-      return res.json();
-    },
+    queryFn: () => apiRequest('/api/local/storage-info'),
     enabled: runtime?.mode === 'local',
   });
 
   // Backup mutation
   const backupMutation = useMutation({
-    mutationFn: async (destinationPath: string) => {
-      const res = await fetch('/api/local/backup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destinationPath }),
-      });
-      if (!res.ok) throw new Error('Backup failed');
-      return res.json();
-    },
+    mutationFn: (destinationPath: string) =>
+      apiRequest('/api/local/backup', 'POST', { destinationPath }),
     onSuccess: () => {
       toast({
         title: 'Success',
@@ -118,13 +100,7 @@ export default function LocalSettingsPage() {
 
   // Maintenance mutation
   const maintenanceMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch('/api/local/maintenance', {
-        method: 'POST',
-      });
-      if (!res.ok) throw new Error('Maintenance failed');
-      return res.json();
-    },
+    mutationFn: () => apiRequest('/api/local/maintenance', 'POST'),
     onSuccess: () => {
       toast({
         title: 'Success',
@@ -143,13 +119,7 @@ export default function LocalSettingsPage() {
 
   // Cleanup mutation
   const cleanupMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch('/api/local/cleanup', {
-        method: 'POST',
-      });
-      if (!res.ok) throw new Error('Cleanup failed');
-      return res.json();
-    },
+    mutationFn: () => apiRequest('/api/local/cleanup', 'POST'),
     onSuccess: (data) => {
       toast({
         title: 'Success',
@@ -166,19 +136,84 @@ export default function LocalSettingsPage() {
     },
   });
 
-  const handleBackup = () => {
-    // In Electron, this would trigger a native save dialog via IPC
-    // For now, use a default path
+  const restoreMutation = useMutation({
+    mutationFn: (backupPath: string) => apiRequest('/api/local/restore', 'POST', { backupPath }),
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Database restored successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['db-info'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Restore failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (!window.electronAPI) {
+      return undefined;
+    }
+
+    const unsubscribeBackup = window.electronAPI.onMenuBackupDatabase((destinationPath) => {
+      backupMutation.mutate(destinationPath);
+    });
+    const unsubscribeRestore = window.electronAPI.onMenuRestoreDatabase((backupPath) => {
+      if (confirm(`Restore database from "${backupPath}"? This will replace current data.`)) {
+        restoreMutation.mutate(backupPath);
+      }
+    });
+    const unsubscribeDatabaseInfo = window.electronAPI.onMenuDatabaseInfo(() => {
+      setActiveTab('database');
+    });
+
+    return () => {
+      unsubscribeBackup();
+      unsubscribeRestore();
+      unsubscribeDatabaseInfo();
+    };
+  }, [backupMutation, restoreMutation]);
+
+  const handleBackup = async () => {
     const timestamp = new Date().toISOString().split('T')[0];
     const defaultPath = `${dbInfo?.path}-backup-${timestamp}.db`;
 
-    // Check if running in Electron
-    if ((window as any).electron) {
-      // Trigger backup via Electron IPC
-      (window as any).electron.send('menu-backup-database', defaultPath);
-    } else {
-      // Fallback for non-Electron environment
-      backupMutation.mutate(defaultPath);
+    if (window.electronAPI?.selectBackupDestination) {
+      const destinationPath = await window.electronAPI.selectBackupDestination(defaultPath);
+      if (!destinationPath) {
+        return;
+      }
+      backupMutation.mutate(destinationPath);
+      return;
+    }
+
+    backupMutation.mutate(defaultPath);
+  };
+
+  const handleRestore = async () => {
+    const confirmed = confirm(
+      'Restore database from backup? This will overwrite your current local database and cannot be undone.'
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    if (window.electronAPI?.selectRestoreSource) {
+      const backupPath = await window.electronAPI.selectRestoreSource();
+      if (!backupPath) {
+        return;
+      }
+      restoreMutation.mutate(backupPath);
+      return;
+    }
+
+    const backupPath = prompt('Enter backup file path (.db):');
+    if (backupPath && backupPath.trim()) {
+      restoreMutation.mutate(backupPath.trim());
     }
   };
 
@@ -412,6 +447,27 @@ export default function LocalSettingsPage() {
                     <Settings className="h-4 w-4 mr-2" />
                   )}
                   Maintenance
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded">
+                <div>
+                  <div className="font-medium">Restore Database</div>
+                  <div className="text-sm text-muted-foreground">
+                    Restore from a previous backup file
+                  </div>
+                </div>
+                <Button
+                  onClick={handleRestore}
+                  disabled={restoreMutation.isPending}
+                  variant="outline"
+                >
+                  {restoreMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  Restore
                 </Button>
               </div>
             </CardContent>

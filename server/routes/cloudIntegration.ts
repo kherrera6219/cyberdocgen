@@ -11,6 +11,20 @@ import crypto from 'crypto';
 
 const router = Router();
 
+interface OAuthStateRecord {
+  state: string;
+  createdAt: number;
+}
+
+interface CloudOAuthSessionState {
+  google?: OAuthStateRecord;
+  microsoft?: OAuthStateRecord;
+}
+
+interface CloudOAuthSession {
+  cloudOAuthState?: CloudOAuthSessionState;
+}
+
 /**
  * Get trusted redirect URI for a provider
  */
@@ -21,13 +35,63 @@ function getRedirectUri(req: MultiTenantRequest, provider: 'google' | 'microsoft
   return `${normalized}/api/cloud/auth/${provider}/callback`;
 }
 
+function getCloudOAuthState(req: MultiTenantRequest): CloudOAuthSessionState {
+  if (!req.session) {
+    throw new Error('Session unavailable for OAuth state management');
+  }
+  const session = req.session as unknown as CloudOAuthSession;
+  if (!session.cloudOAuthState) {
+    session.cloudOAuthState = {};
+  }
+  return session.cloudOAuthState;
+}
+
+function setOAuthState(
+  req: MultiTenantRequest,
+  provider: 'google' | 'microsoft',
+  state: OAuthStateRecord
+): void {
+  const cloudOAuthState = getCloudOAuthState(req);
+  if (provider === 'google') {
+    cloudOAuthState.google = state;
+    return;
+  }
+  cloudOAuthState.microsoft = state;
+}
+
+function getOAuthState(
+  req: MultiTenantRequest,
+  provider: 'google' | 'microsoft'
+): OAuthStateRecord | undefined {
+  const session = req.session as unknown as CloudOAuthSession | undefined;
+  if (!session?.cloudOAuthState) {
+    return undefined;
+  }
+  if (provider === 'google') {
+    return session.cloudOAuthState.google;
+  }
+  return session.cloudOAuthState.microsoft;
+}
+
+function clearOAuthState(req: MultiTenantRequest, provider: 'google' | 'microsoft'): void {
+  const session = req.session as unknown as CloudOAuthSession | undefined;
+  if (!session?.cloudOAuthState) {
+    return;
+  }
+  if (provider === 'google') {
+    delete session.cloudOAuthState.google;
+    return;
+  }
+  delete session.cloudOAuthState.microsoft;
+}
+
 function validateOAuthState(
   req: MultiTenantRequest,
   provider: 'google' | 'microsoft',
   stateFromQuery: unknown
 ): boolean {
   const state = typeof stateFromQuery === 'string' ? stateFromQuery.trim() : '';
-  const sessionState = (req.session as any)?.cloudOAuthState?.[provider];
+  const sessionState = getOAuthState(req, provider);
   if (!state || !sessionState?.state || typeof sessionState.createdAt !== 'number') {
     return false;
   }
@@ -51,13 +115,7 @@ function validateOAuthState(
 router.get('/auth/google', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
   const redirectUri = getRedirectUri(req, 'google');
   const state = crypto.randomBytes(24).toString('hex');
-  if (!req.session) {
-    throw new Error('Session unavailable for OAuth state management');
-  }
-  (req.session as any).cloudOAuthState = {
-    ...(req.session as any).cloudOAuthState,
-    google: { state, createdAt: Date.now() },
-  };
+  setOAuthState(req, 'google', { state, createdAt: Date.now() });
   const authUrl = await cloudIntegrationService.getGoogleAuthUrl(redirectUri, state);
   res.redirect(authUrl);
 }));
@@ -70,9 +128,7 @@ router.get('/auth/google/callback', isAuthenticated, requireOrganization, secure
   if (!code || !state || !validateOAuthState(req, 'google', state)) {
     return res.redirect('/cloud-integrations?error=invalid_oauth_state');
   }
-  if (req.session && (req.session as any).cloudOAuthState) {
-    delete (req.session as any).cloudOAuthState.google;
-  }
+  clearOAuthState(req, 'google');
 
   const redirectUri = getRedirectUri(req, 'google');
   const userId = getRequiredUserId(req);
@@ -92,13 +148,7 @@ router.get('/auth/google/callback', isAuthenticated, requireOrganization, secure
 router.get('/auth/microsoft', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
   const redirectUri = getRedirectUri(req, 'microsoft');
   const state = crypto.randomBytes(24).toString('hex');
-  if (!req.session) {
-    throw new Error('Session unavailable for OAuth state management');
-  }
-  (req.session as any).cloudOAuthState = {
-    ...(req.session as any).cloudOAuthState,
-    microsoft: { state, createdAt: Date.now() },
-  };
+  setOAuthState(req, 'microsoft', { state, createdAt: Date.now() });
   const authUrl = await cloudIntegrationService.getMicrosoftAuthUrl(redirectUri, state);
   res.redirect(authUrl);
 }));
@@ -111,9 +161,7 @@ router.get('/auth/microsoft/callback', isAuthenticated, requireOrganization, sec
   if (!code || !state || !validateOAuthState(req, 'microsoft', state)) {
     return res.redirect('/cloud-integrations?error=invalid_oauth_state');
   }
-  if (req.session && (req.session as any).cloudOAuthState) {
-    delete (req.session as any).cloudOAuthState.microsoft;
-  }
+  clearOAuthState(req, 'microsoft');
 
   const redirectUri = getRedirectUri(req, 'microsoft');
   const userId = getRequiredUserId(req);
@@ -155,7 +203,7 @@ router.post('/sync/:integrationId', isAuthenticated, requireOrganization, secure
     res.status(404).json({ success: false, message: 'Integration not found' });
     return;
   }
-  const result = await cloudIntegrationService.syncFiles(integrationId, userId, req.organizationId!);
+  const result = await cloudIntegrationService.syncFiles(integrationId, userId, req.organizationId);
   res.json({
     success: true,
     data: result

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ComponentType } from "react";
 
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -7,7 +7,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SkipNavigation } from "@/components/SkipNavigation";
+import { AppErrorHandler } from "@/components/AppErrorHandler";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ModeGate } from "@/components/routing/ModeGate";
+import type { DeploymentMode, RuntimeFeatures } from "@/lib/runtimeConfig";
 import { Switch, Route, useParams } from "wouter";
 import Layout from "./components/layout";
 
@@ -93,44 +97,77 @@ function DocumentVersionsWrapper() {
   );
 }
 
+function RouteErrorFallback() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center p-4">
+      <div className="max-w-md rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+        This page encountered an unexpected error. Please refresh or navigate to a different section.
+      </div>
+    </div>
+  );
+}
+
+interface BoundaryRouteProps {
+  path: string;
+  component: ComponentType<Record<string, unknown>>;
+  requiredMode?: DeploymentMode;
+  requiredFeature?: keyof RuntimeFeatures;
+}
+
+function BoundaryRoute({ path, component: Component, requiredMode, requiredFeature }: BoundaryRouteProps) {
+  return (
+    <Route path={path}>
+      {(params) => (
+        <ErrorBoundary fallback={<RouteErrorFallback />}>
+          <ModeGate requiredMode={requiredMode} requiredFeature={requiredFeature}>
+            <Component {...params} />
+          </ModeGate>
+        </ErrorBoundary>
+      )}
+    </Route>
+  );
+}
+
 function AuthenticatedRouter() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
       <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/profile" component={CompanyProfile} />
-        <Route path="/enhanced-profile" component={EnhancedCompanyProfile} />
-        <Route path="/workspace" component={WorkspaceWrapper} />
-        <Route path="/documents" component={Documents} />
-        <Route path="/gap-analysis" component={GapAnalysis} />
-        <Route path="/iso27001-framework" component={ISO27001Framework} />
-        <Route path="/soc2-framework" component={SOC2Framework} />
-        <Route path="/fedramp-framework" component={FedRAMPFramework} />
-        <Route path="/nist-framework" component={NISTFramework} />
-        <Route path="/audit-trail" component={AuditTrail} />
-        <Route path="/repository-analysis" component={RepositoryAnalysis} />
-        <Route path="/document-versions/:id" component={DocumentVersionsWrapper} />
-        <Route path="/user-profile" component={UserProfile} />
-        <Route path="/organizations" component={OrganizationSetup} />
-        <Route path="/storage" component={ObjectStorageManager} />
-        <Route path="/ai-specialization" component={IndustrySpecialization} />
-        <Route path="/export" component={ExportCenter} />
-        <Route path="/admin" component={AdminSettings} />
-        <Route path="/local-settings" component={LocalSettings} />
-        <Route path="/api-keys" component={ApiKeys} />
-        <Route path="/cloud-integrations" component={CloudIntegrations} />
-        <Route path="/profile/settings" component={ProfileSettings} />
-        <Route path="/ai-assistant" component={AIAssistant} />
-        <Route path="/mcp-tools" component={MCPTools} />
-        <Route path="/ai-doc-generator" component={AIDocGenerator} />
-        <Route path="/ai-hub" component={AIHub} />
-        <Route path="/connectors" component={ConnectorsHub} />
-        <Route path="/evidence-ingestion" component={EvidenceIngestion} />
-        <Route path="/control-approvals" component={ControlApprovals} />
-        <Route path="/auditor-workspace" component={AuditorWorkspace} />
+        <BoundaryRoute path="/" component={Dashboard} />
+        <BoundaryRoute path="/dashboard" component={Dashboard} />
+        <BoundaryRoute path="/profile" component={CompanyProfile} />
+        <BoundaryRoute path="/enhanced-profile" component={EnhancedCompanyProfile} />
+        <BoundaryRoute path="/workspace" component={WorkspaceWrapper} />
+        <BoundaryRoute path="/documents" component={Documents} />
+        <BoundaryRoute path="/gap-analysis" component={GapAnalysis} />
+        <BoundaryRoute path="/iso27001-framework" component={ISO27001Framework} />
+        <BoundaryRoute path="/soc2-framework" component={SOC2Framework} />
+        <BoundaryRoute path="/fedramp-framework" component={FedRAMPFramework} />
+        <BoundaryRoute path="/nist-framework" component={NISTFramework} />
+        <BoundaryRoute path="/audit-trail" component={AuditTrail} />
+        <BoundaryRoute path="/repository-analysis" component={RepositoryAnalysis} />
+        <BoundaryRoute path="/document-versions/:id" component={DocumentVersionsWrapper} />
+        <BoundaryRoute path="/user-profile" component={UserProfile} />
+        <BoundaryRoute path="/organizations" component={OrganizationSetup} requiredMode="cloud" requiredFeature="organizationManagement" />
+        <BoundaryRoute path="/storage" component={ObjectStorageManager} />
+        <BoundaryRoute path="/ai-specialization" component={IndustrySpecialization} />
+        <BoundaryRoute path="/export" component={ExportCenter} />
+        <BoundaryRoute path="/admin" component={AdminSettings} requiredMode="cloud" requiredFeature="userManagement" />
+        <BoundaryRoute path="/local-settings" component={LocalSettings} requiredMode="local" />
+        <BoundaryRoute path="/api-keys" component={ApiKeys} requiredMode="local" />
+        <BoundaryRoute path="/cloud-integrations" component={CloudIntegrations} requiredMode="cloud" />
+        <BoundaryRoute path="/profile/settings" component={ProfileSettings} />
+        <BoundaryRoute path="/ai-assistant" component={AIAssistant} />
+        <BoundaryRoute path="/mcp-tools" component={MCPTools} />
+        <BoundaryRoute path="/ai-doc-generator" component={AIDocGenerator} />
+        <BoundaryRoute path="/ai-hub" component={AIHub} />
+        <BoundaryRoute path="/connectors" component={ConnectorsHub} />
+        <BoundaryRoute path="/evidence-ingestion" component={EvidenceIngestion} />
+        <BoundaryRoute path="/control-approvals" component={ControlApprovals} />
+        <BoundaryRoute path="/auditor-workspace" component={AuditorWorkspace} />
         <Route>
-          <NotFound />
+          <ErrorBoundary fallback={<RouteErrorFallback />}>
+            <NotFound />
+          </ErrorBoundary>
         </Route>
       </Switch>
     </Suspense>
@@ -141,21 +178,23 @@ function PublicRouter() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
       <Switch>
-        <Route path="/" component={Landing} />
-        <Route path="/login" component={EnterpriseLogin} />
-        <Route path="/enterprise-login" component={EnterpriseLogin} />
-        <Route path="/enterprise-signup" component={EnterpriseSignup} />
-        <Route path="/forgot-password" component={ForgotPassword} />
-        <Route path="/reset-password" component={ResetPassword} />
-        <Route path="/mfa-setup" component={MfaSetup} />
-        <Route path="/about" component={About} />
-        <Route path="/features" component={Features} />
-        <Route path="/pricing" component={Pricing} />
-        <Route path="/contact" component={Contact} />
-        <Route path="/privacy" component={Privacy} />
-        <Route path="/terms" component={Terms} />
+        <BoundaryRoute path="/" component={Landing} />
+        <BoundaryRoute path="/login" component={EnterpriseLogin} requiredMode="cloud" requiredFeature="sso" />
+        <BoundaryRoute path="/enterprise-login" component={EnterpriseLogin} requiredMode="cloud" requiredFeature="sso" />
+        <BoundaryRoute path="/enterprise-signup" component={EnterpriseSignup} requiredMode="cloud" requiredFeature="sso" />
+        <BoundaryRoute path="/forgot-password" component={ForgotPassword} requiredMode="cloud" requiredFeature="sso" />
+        <BoundaryRoute path="/reset-password" component={ResetPassword} requiredMode="cloud" requiredFeature="sso" />
+        <BoundaryRoute path="/mfa-setup" component={MfaSetup} requiredMode="cloud" requiredFeature="mfa" />
+        <BoundaryRoute path="/about" component={About} />
+        <BoundaryRoute path="/features" component={Features} />
+        <BoundaryRoute path="/pricing" component={Pricing} />
+        <BoundaryRoute path="/contact" component={Contact} />
+        <BoundaryRoute path="/privacy" component={Privacy} />
+        <BoundaryRoute path="/terms" component={Terms} />
         <Route>
-          <NotFound fullScreen />
+          <ErrorBoundary fallback={<RouteErrorFallback />}>
+            <NotFound fullScreen />
+          </ErrorBoundary>
         </Route>
       </Switch>
     </Suspense>
@@ -164,14 +203,17 @@ function PublicRouter() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <AppContent />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AppErrorHandler />
+            <Toaster />
+            <AppContent />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 

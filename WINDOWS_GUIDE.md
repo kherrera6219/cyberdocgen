@@ -80,7 +80,7 @@ The configuration has been hardened for production:
 - **Data Retention**: Prompts user to keep/remove data on uninstall.
 - **Store Metadata**: APPX identity/publisher defaults are defined in config and overridden at build time by `WINDOWS_STORE_*` environment variables
 - **ASAR Unpacking**: Critical native modules (`better-sqlite3`, `keytar`) are unpacked for reliable execution.
-- **Custom NSIS Hooks**: `build/installer.nsh` provides install/uninstall completion notifications and data retention prompts.
+- **Custom NSIS Hooks**: Root scripts `installer.nsh` and `uninstaller.nsh` provide install/uninstall completion notifications and data retention prompts (`build/installer.nsh` remains a compatibility shim).
 
 ## First-Run Requirements
 

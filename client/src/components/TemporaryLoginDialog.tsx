@@ -16,6 +16,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { logger } from '../utils/logger';
+import { sanitizeEmailInput, sanitizeSingleLineInput } from "@/lib/inputSanitization";
 
 interface TemporaryLoginDialogProps {
   trigger?: React.ReactNode;
@@ -39,16 +40,18 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
 
   const validateForm = (): boolean => {
     const newErrors: { name?: string; email?: string } = {};
+    const sanitizedName = sanitizeSingleLineInput(name);
+    const sanitizedEmail = sanitizeEmailInput(email);
     
-    if (!name.trim()) {
+    if (!sanitizedName) {
       newErrors.name = "Name is required";
-    } else if (name.trim().length < 2) {
+    } else if (sanitizedName.length < 2) {
       newErrors.name = "Name must be at least 2 characters";
     }
 
-    if (!email.trim()) {
+    if (!sanitizedEmail) {
       newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitizedEmail)) {
       newErrors.email = "Please enter a valid email address";
     }
 
@@ -68,11 +71,13 @@ export function TemporaryLoginDialog({ trigger, className }: TemporaryLoginDialo
     setErrors({});
 
     try {
+      const sanitizedName = sanitizeSingleLineInput(name);
+      const sanitizedEmail = sanitizeEmailInput(email);
       const response = await apiRequest('/api/auth/temp-login', {
         method: 'POST',
         body: {
-          name: name.trim(),
-          email: email.trim(),
+          name: sanitizedName,
+          email: sanitizedEmail,
         },
       });
 

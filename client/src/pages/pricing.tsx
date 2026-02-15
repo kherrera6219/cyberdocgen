@@ -3,19 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, ArrowRight, Zap, HelpCircle, Sparkles } from "lucide-react";
-import { useEffect } from "react";
 import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
 export default function Pricing() {
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
   const plans = [
     {
       name: "Starter",

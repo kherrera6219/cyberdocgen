@@ -15,7 +15,7 @@
  * - Auto-update mechanism (Sprint 3)
  */
 
-import { app, BrowserWindow, shell, Menu, Tray, nativeImage, ipcMain, dialog, utilityProcess } from 'electron';
+import { app, BrowserWindow, shell, Menu, Tray, nativeImage, ipcMain, dialog, utilityProcess, type IpcMainInvokeEvent } from 'electron';
 import electronUpdater from 'electron-updater';
 const { autoUpdater } = electronUpdater;
 import path from 'path';
@@ -100,6 +100,17 @@ function isPathSafe(requestedPath: string): boolean {
     return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
   } catch {
     return false;
+  }
+}
+
+function ensureTrustedIpcSender(event: IpcMainInvokeEvent): void {
+  if (!mainWindow) {
+    throw new Error('Main window is not available');
+  }
+
+  const senderWindow = BrowserWindow.fromWebContents(event.sender);
+  if (!senderWindow || senderWindow.id !== mainWindow.id) {
+    throw new Error('Untrusted IPC sender');
   }
 }
 
@@ -305,24 +316,42 @@ function createWindow() {
     mainWindow?.show();
   });
 
+  const isDev = process.env.NODE_ENV === 'development';
+
   // Set Content Security Policy
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const cspDirectives = isDev
+      ? [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+          "style-src 'self' 'unsafe-inline'",
+          `connect-src 'self' http://127.0.0.1:${currentServerPort} http://localhost:5000 ws://localhost:5000`,
+          "img-src 'self' data: file:",
+          "font-src 'self' data:",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "frame-ancestors 'none'",
+        ]
+      : [
+          "default-src 'self'",
+          "script-src 'self'",
+          "style-src 'self' 'unsafe-inline'",
+          `connect-src 'self' http://127.0.0.1:${currentServerPort}`,
+          "img-src 'self' data: file:",
+          "font-src 'self' data:",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "frame-ancestors 'none'",
+        ];
+
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [
-          "default-src 'self'; " +
-          "script-src 'self' 'unsafe-inline'; " +
-          "style-src 'self' 'unsafe-inline'; " +
-          `connect-src 'self' http://127.0.0.1:${currentServerPort}; ` +
-          "img-src 'self' data: file:; " +
-          "font-src 'self' data:;"
-        ]
+        'Content-Security-Policy': [cspDirectives.join('; ')]
       }
     });
   });
 
-  const isDev = process.env.NODE_ENV === 'development';
   const url = isDev ? 'http://localhost:5000' : `http://127.0.0.1:${currentServerPort}`;
 
   // In production, wait for backend health check
@@ -572,6 +601,7 @@ function createTray() {
 function setupIpcHandlers() {
   // Read file with path validation
   ipcMain.handle('read-file', async (event, filePath: string) => {
+    ensureTrustedIpcSender(event);
     if (!isPathSafe(filePath)) {
       throw new Error('Invalid file path: access denied');
     }
@@ -580,6 +610,7 @@ function setupIpcHandlers() {
 
   // Write file with path validation
   ipcMain.handle('write-file', async (event, filePath: string, data: string) => {
+    ensureTrustedIpcSender(event);
     if (!isPathSafe(filePath)) {
       throw new Error('Invalid file path: access denied');
     }
@@ -587,12 +618,52 @@ function setupIpcHandlers() {
   });
 
   // Get app info
-  ipcMain.handle('get-app-info', () => {
+  ipcMain.handle('get-app-info', (event) => {
+    ensureTrustedIpcSender(event);
     return {
       version: app.getVersion(),
       userDataPath: app.getPath('userData'),
       platform: process.platform,
     };
+  });
+
+  ipcMain.handle('select-backup-destination', async (event, defaultPath?: string) => {
+    ensureTrustedIpcSender(event);
+
+    const suggestedPath =
+      typeof defaultPath === 'string' && defaultPath.trim().length > 0
+        ? defaultPath
+        : `cyberdocgen-backup-${new Date().toISOString().split('T')[0]}.db`;
+
+    const result = await dialog.showSaveDialog(mainWindow!, {
+      title: 'Save Database Backup',
+      defaultPath: suggestedPath,
+      filters: [
+        { name: 'Database Files', extensions: ['db'] },
+        { name: 'All Files', extensions: ['*'] },
+      ],
+    });
+
+    return result.canceled ? null : result.filePath ?? null;
+  });
+
+  ipcMain.handle('select-restore-source', async (event) => {
+    ensureTrustedIpcSender(event);
+
+    const result = await dialog.showOpenDialog(mainWindow!, {
+      title: 'Restore Database Backup',
+      filters: [
+        { name: 'Database Files', extensions: ['db'] },
+        { name: 'All Files', extensions: ['*'] },
+      ],
+      properties: ['openFile'],
+    });
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return null;
+    }
+
+    return result.filePaths[0];
   });
 }
 

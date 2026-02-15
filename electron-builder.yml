@@ -45,5 +45,5 @@ nsis:
   shortcutName: "CyberDocGen"
   runAfterFinish: true
   deleteAppDataOnUninstall: false
-  include: build/installer.nsh
+  include: installer.nsh
   artifactName: "${productName}-Setup-${version}.${ext}"

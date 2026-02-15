@@ -7,7 +7,6 @@ import {
   Zap, Lock, Bot, CheckCircle, Upload, Eye, RefreshCw, Bell, Workflow,
   Database, Cloud, Settings, GitBranch, Brain, Sparkles, Cpu
 } from "lucide-react";
-import { useEffect } from "react";
 import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
 import aiDocGenImage from "@assets/generated_images/ai_document_generation_interface.webp";
@@ -18,15 +17,6 @@ import auditorWorkspaceImage from "@assets/generated_images/auditor_workspace_in
 import continuousMonitoringImage from "@assets/generated_images/continuous_monitoring_dashboard.webp";
 
 export default function Features() {
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
   const mainFeatures = [
     {
       icon: Bot,

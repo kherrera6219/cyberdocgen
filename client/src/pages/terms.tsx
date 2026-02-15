@@ -1,18 +1,8 @@
-import { useEffect } from "react";
 import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
 const LAST_UPDATED = "February 9, 2026";
 
 export default function Terms() {
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <PublicHeader />

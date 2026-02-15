@@ -1,7 +1,7 @@
 # Microsoft Store Submission Guide - CyberDocGen
 
 **Version:** 2.4.0  
-**Last Updated:** February 14, 2026
+**Last Updated:** February 15, 2026
 
 ## Overview
 
@@ -27,8 +27,12 @@ For Microsoft Store submission, use the APPX path (`build:store`) unless your Pa
 `electron-builder.yml` is configured with:
 
 - `win.target`: `nsis`, `appx`
+- `nsis.include`: `installer.nsh` (root script)
 - `appx` defaults for identity/publisher metadata
 - Store identity values are injected by `scripts/build-store.ts` from `WINDOWS_STORE_*` environment variables
+- Root NSIS customization scripts:
+  - `installer.nsh` (install completion + include bridge)
+  - `uninstaller.nsh` (uninstall flow, data retention/removal prompt, completion notification)
 
 ## Build and Validate APPX
 
@@ -93,6 +97,7 @@ Notes:
 `scripts/validate-wack.ts` validates:
 
 - NSIS installer/uninstaller UX requirements
+- Root NSIS script presence (`installer.nsh`, `uninstaller.nsh`)
 - NSIS progress macros and uninstall registration semantics
 - APPX target and required identity metadata
 - Store-mode env variables and identity format checks

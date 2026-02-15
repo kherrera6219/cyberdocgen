@@ -13,6 +13,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { sanitizeSingleLineInput } from '@/lib/inputSanitization';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Email or username is required'),
@@ -34,18 +35,6 @@ export default function EnterpriseLogin() {
     }
   }, [isAuthenticated, setLocation]);
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (!savedTheme) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -56,7 +45,10 @@ export default function EnterpriseLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginForm) => {
-      return apiRequest('/api/auth/enterprise/login', 'POST', data);
+      return apiRequest('/api/auth/enterprise/login', 'POST', {
+        identifier: sanitizeSingleLineInput(data.identifier),
+        password: data.password,
+      });
     },
     onSuccess: async (data) => {
       if (data.requiresMFA) {

@@ -51,7 +51,7 @@ This pipeline performs the following:
 2.  **Vite Build**: Compiles the React frontend.
 3.  **Server Bundle**: Bundles the Node.js backend to `.cjs` for ASAR compatibility.
 4.  **Electron Build**: Compiles the main process.
-5.  **Packaging**: Uses `electron-builder` with custom NSIS scripts for guided install UX, completion notifications, and uninstall data retention choices.
+5.  **Packaging**: Uses `electron-builder` with root NSIS scripts (`installer.nsh`, `uninstaller.nsh`) for guided install UX, completion notifications, and uninstall data retention choices.
 
 If you run the setup executable with `/S`, NSIS runs in silent mode and does not show wizard/progress/completion dialogs.
 

@@ -1,7 +1,7 @@
 # Microsoft Store Submission Checklist
 
 **Version:** 2.4.0  
-**Last Updated:** February 14, 2026
+**Last Updated:** February 15, 2026
 
 ## Identity and Account
 
@@ -45,8 +45,8 @@
 ## Optional Win32 EXE Checklist (if using EXE ingestion)
 
 - [ ] Run `npm run windows:validate`
+- [ ] Verify root NSIS scripts exist: `installer.nsh`, `uninstaller.nsh`
 - [ ] Run `npm run build:win`
 - [ ] Verify `dist/packaging/CyberDocGen-Setup-<version>.exe`
 - [ ] Verify silent install command: `CyberDocGen-Setup-<version>.exe /S`
 - [ ] Verify silent uninstall command: `"Uninstall CyberDocGen.exe" /S`
-

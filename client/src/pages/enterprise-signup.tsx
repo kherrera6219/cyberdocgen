@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +13,7 @@ import { CheckCircle, AlertCircle, Lock, Mail, Phone, Shield, Zap, Smartphone } 
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeEmailInput, sanitizeSingleLineInput } from '@/lib/inputSanitization';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -37,18 +38,6 @@ export default function EnterpriseSignup() {
   const [accountData, setAccountData] = useState<any>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (!savedTheme) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -64,7 +53,15 @@ export default function EnterpriseSignup() {
   const signupMutation = useMutation({
     mutationFn: async (data: SignupForm) => {
       const { confirmPassword, ...signupData } = data;
-      return apiRequest('/api/auth/enterprise/signup', 'POST', signupData);
+      return apiRequest('/api/auth/enterprise/signup', 'POST', {
+        ...signupData,
+        email: sanitizeEmailInput(signupData.email),
+        firstName: sanitizeSingleLineInput(signupData.firstName),
+        lastName: sanitizeSingleLineInput(signupData.lastName),
+        phoneNumber: signupData.phoneNumber
+          ? sanitizeSingleLineInput(signupData.phoneNumber)
+          : undefined,
+      });
     },
     onSuccess: (data) => {
       setAccountData(data);
@@ -90,7 +87,9 @@ export default function EnterpriseSignup() {
 
   const verifyEmailMutation = useMutation({
     mutationFn: async (token: string) => {
-      return apiRequest('/api/auth/enterprise/verify-email', 'POST', { token });
+      return apiRequest('/api/auth/enterprise/verify-email', 'POST', {
+        token: sanitizeSingleLineInput(token),
+      });
     },
     onSuccess: () => {
       setLocation('/login');

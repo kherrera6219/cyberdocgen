@@ -53,16 +53,6 @@ function hasYamlBoolean(configText: string, key: string, expected: boolean): boo
   return value?.toLowerCase() === String(expected);
 }
 
-function hasYamlValue(configText: string, key: string, expectedValues: string[]): boolean {
-  const value = normalizeYamlScalar(getYamlScalarValue(configText, key));
-  if (!value) {
-    return false;
-  }
-
-  const normalizedExpected = expectedValues.map(item => item.toLowerCase());
-  return normalizedExpected.includes(value.toLowerCase());
-}
-
 function fileContainsAll(filePath: string, patterns: string[]): boolean {
   if (!fs.existsSync(filePath)) {
     return false;
@@ -192,6 +182,11 @@ async function validateWACK() {
       const hasCodeSigningMaterial = Boolean(
         process.env.CSC_LINK || process.env.WIN_CSC_LINK || process.env.CSC_NAME,
       );
+      const configuredIncludeValue = normalizeYamlScalar(getYamlScalarValue(config, 'include'));
+      const resolvedIncludeValue = configuredIncludeValue
+        ? resolveEnvReferences(configuredIncludeValue).replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase()
+        : '';
+      const acceptedIncludePaths = ['installer.nsh', 'build/installer.nsh'];
 
       const nsisChecks: ValidationCheck[] = [
         {
@@ -230,9 +225,9 @@ async function validateWACK() {
           fail: '✗ NSIS should enable runAfterFinish: true for expected installer UX',
         },
         {
-          ok: hasYamlValue(config, 'include', ['build/installer.nsh', 'build\\installer.nsh']),
-          pass: '✓ Custom NSIS script include configured (build/installer.nsh)',
-          fail: '✗ NSIS must include build/installer.nsh for custom install/uninstall messaging',
+          ok: acceptedIncludePaths.includes(resolvedIncludeValue),
+          pass: `✓ Custom NSIS script include configured (${configuredIncludeValue || 'installer.nsh'})`,
+          fail: '✗ NSIS include must reference installer.nsh (root) or build/installer.nsh',
         },
         {
           ok:
@@ -252,21 +247,49 @@ async function validateWACK() {
         }
       }
 
-      const installerScriptPath = path.join(rootDir, 'build', 'installer.nsh');
-      if (fs.existsSync(installerScriptPath)) {
-        logger.info('✓ Custom NSIS script found (build/installer.nsh)');
-        const installerScript = fs.readFileSync(installerScriptPath, 'utf8').toLowerCase();
+      const rootInstallerScriptPath = path.join(rootDir, 'installer.nsh');
+      const rootUninstallerScriptPath = path.join(rootDir, 'uninstaller.nsh');
+      const resolvedIncludePath = configuredIncludeValue
+        ? path.resolve(rootDir, resolveEnvReferences(configuredIncludeValue))
+        : rootInstallerScriptPath;
+      const hasRootInstallerScript = fs.existsSync(rootInstallerScriptPath);
+      const hasRootUninstallerScript = fs.existsSync(rootUninstallerScriptPath);
+
+      if (hasRootInstallerScript) {
+        logger.info('✓ Root installer script found (installer.nsh)');
+      } else {
+        logger.error('✗ Missing root installer script (installer.nsh)');
+        errors++;
+      }
+
+      if (hasRootUninstallerScript) {
+        logger.info('✓ Root uninstaller script found (uninstaller.nsh)');
+      } else {
+        logger.error('✗ Missing root uninstaller script (uninstaller.nsh)');
+        errors++;
+      }
+
+      if (fs.existsSync(resolvedIncludePath)) {
+        logger.info(`✓ Custom NSIS include script found (${path.relative(rootDir, resolvedIncludePath)})`);
+        const scriptSources = Array.from(
+          new Set<string>([resolvedIncludePath, rootInstallerScriptPath, rootUninstallerScriptPath]),
+        );
+        const installerScript = scriptSources
+          .filter(filePath => fs.existsSync(filePath))
+          .map(filePath => fs.readFileSync(filePath, 'utf8'))
+          .join('\n')
+          .toLowerCase();
 
         const installerChecks: ValidationCheck[] = [
           {
             ok: /!macro\s+custominstall\b/.test(installerScript),
             pass: '✓ customInstall macro defined',
-            fail: '✗ Missing !macro customInstall in build/installer.nsh',
+            fail: '✗ Missing !macro customInstall in installer scripts',
           },
           {
             ok: /!macro\s+customuninstall\b/.test(installerScript),
             pass: '✓ customUnInstall macro defined',
-            fail: '✗ Missing !macro customUnInstall in build/installer.nsh',
+            fail: '✗ Missing !macro customUnInstall in installer scripts',
           },
           {
             ok: installerScript.includes('installation is complete'),
@@ -311,7 +334,7 @@ async function validateWACK() {
           }
         }
       } else {
-        logger.error('✗ Missing build/installer.nsh custom NSIS script');
+        logger.error(`✗ Missing NSIS include script (${path.relative(rootDir, resolvedIncludePath)})`);
         errors++;
       }
 

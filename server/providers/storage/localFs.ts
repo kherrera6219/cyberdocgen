@@ -367,7 +367,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
 
         if (entries.length === 0) {
           // Directory is empty, remove it
-          await fs.rmdir(dir);
+          await fs.rm(dir, { recursive: false, force: false });
           removedCount++;
           logger.debug(`[LocalFsStorageProvider] Removed empty directory: ${dir}`);
           return true;
@@ -382,7 +382,7 @@ export class LocalFsStorageProvider implements IStorageProvider {
         // Check again if directory became empty after subdirectory cleanup
         const remainingEntries = await fs.readdir(dir);
         if (remainingEntries.length === 0 && dir !== this.basePath) {
-          await fs.rmdir(dir);
+          await fs.rm(dir, { recursive: false, force: false });
           removedCount++;
           logger.debug(`[LocalFsStorageProvider] Removed empty directory: ${dir}`);
           return true;

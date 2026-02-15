@@ -24,6 +24,7 @@ import {
   Wrench,
   Zap,
 } from "lucide-react";
+import type { RuntimeFeatures, DeploymentMode } from "@/lib/runtimeConfig";
 
 export interface NavItem {
   href: string;
@@ -76,8 +77,27 @@ export const settingsNavItems: NavItem[] = [
   { href: "/profile/settings", icon: User, label: "User Settings" },
 ];
 
-export function getVisibleSettingsNavItems(isLocalMode: boolean) {
-  return isLocalMode
-    ? settingsNavItems
-    : settingsNavItems.filter((item) => item.href !== "/api-keys" && item.href !== "/local-settings");
+interface SettingsVisibilityContext {
+  deploymentMode: DeploymentMode;
+  features: RuntimeFeatures;
+}
+
+export function getVisibleSettingsNavItems(context: SettingsVisibilityContext) {
+  const isLocalMode = context.deploymentMode === "local";
+
+  return settingsNavItems.filter((item) => {
+    if (item.href === "/api-keys" || item.href === "/local-settings") {
+      return isLocalMode;
+    }
+
+    if (item.href === "/cloud-integrations") {
+      return !isLocalMode;
+    }
+
+    if (item.href === "/admin") {
+      return context.features.userManagement || context.features.organizationManagement;
+    }
+
+    return true;
+  });
 }

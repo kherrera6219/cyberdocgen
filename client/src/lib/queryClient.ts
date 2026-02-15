@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction, QueryKey, UseQueryOptions, QueryCache } from "@tanstack/react-query";
 import { logger } from '../utils/logger';
+import { sanitizePayload } from "@/lib/inputSanitization";
 
 // Cache time constants (in milliseconds)
 export const CACHE_TIMES = {
@@ -164,7 +165,7 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-type ApiRequestOptions = { method?: string; body?: unknown };
+type ApiRequestOptions = { method?: string; body?: unknown; sanitize?: boolean };
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
 export async function apiRequest(
@@ -175,6 +176,7 @@ export async function apiRequest(
   let url = urlOrMethod;
   let method = 'GET';
   let payload: unknown;
+  let shouldSanitizePayload = true;
 
   if (typeof methodOrUrlOrOptions === 'string') {
     const isLegacyMethodFirst =
@@ -195,10 +197,13 @@ export async function apiRequest(
   } else if (methodOrUrlOrOptions) {
     method = (methodOrUrlOrOptions.method ?? 'GET').toUpperCase();
     payload = methodOrUrlOrOptions.body;
+    shouldSanitizePayload = methodOrUrlOrOptions.sanitize !== false;
   }
 
   const headers: Record<string, string> = {};
   const hasPayload = payload !== undefined;
+  const requestBody =
+    hasPayload && shouldSanitizePayload ? sanitizePayload(payload) : payload;
   if (hasPayload) {
     headers["Content-Type"] = "application/json";
   }
@@ -213,7 +218,7 @@ export async function apiRequest(
   const res = await fetch(url, {
     method,
     headers,
-    body: hasPayload ? JSON.stringify(payload) : undefined,
+    body: hasPayload ? JSON.stringify(requestBody) : undefined,
     credentials: "include",
   });
 

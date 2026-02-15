@@ -28,6 +28,8 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useRuntimeConfig } from '@/hooks/useRuntimeConfig';
+import { apiRequest } from '@/lib/queryClient';
 
 interface AIProvider {
   id: string;
@@ -74,21 +76,7 @@ export default function ApiKeysPage() {
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
-  const { data: appConfig, isLoading: configLoading } = useQuery<{
-    deploymentMode: 'cloud' | 'local';
-    isProduction: boolean;
-  }>({
-    queryKey: ['/api/config'],
-    queryFn: async () => {
-      const res = await fetch('/api/config');
-      if (!res.ok) throw new Error('Failed to load app config');
-      return res.json();
-    },
-    staleTime: 60_000,
-    retry: false,
-  });
-
-  const isLocalMode = appConfig?.deploymentMode === 'local';
+  const { isLocalMode, isLoading: configLoading } = useRuntimeConfig();
 
   // Fetch configured providers
   const {
@@ -98,29 +86,15 @@ export default function ApiKeysPage() {
     error: configuredError,
   } = useQuery<ConfiguredProviders>({
     queryKey: ['api-keys-configured'],
-    queryFn: async () => {
-      const res = await fetch('/api/local/api-keys/configured');
-      if (!res.ok) throw new Error('Failed to fetch configured providers');
-      return res.json();
-    },
+    queryFn: () => apiRequest('/api/local/api-keys/configured'),
     enabled: isLocalMode,
     retry: false,
   });
 
   // Save API key mutation
   const saveMutation = useMutation({
-    mutationFn: async ({ provider, apiKey }: { provider: string; apiKey: string }) => {
-      const res = await fetch(`/api/local/api-keys/${provider}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey }),
-      });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to save API key');
-      }
-      return res.json();
-    },
+    mutationFn: ({ provider, apiKey }: { provider: string; apiKey: string }) =>
+      apiRequest(`/api/local/api-keys/${provider}`, 'POST', { apiKey }),
     onSuccess: (_, variables) => {
       toast({
         title: 'Success',
@@ -145,13 +119,7 @@ export default function ApiKeysPage() {
 
   // Delete API key mutation
   const deleteMutation = useMutation({
-    mutationFn: async (provider: string) => {
-      const res = await fetch(`/api/local/api-keys/${provider}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) throw new Error('Failed to delete API key');
-      return res.json();
-    },
+    mutationFn: (provider: string) => apiRequest(`/api/local/api-keys/${provider}`, 'DELETE'),
     onSuccess: (_, provider) => {
       toast({
         title: 'Success',
@@ -170,15 +138,8 @@ export default function ApiKeysPage() {
 
   // Test API key mutation
   const testMutation = useMutation({
-    mutationFn: async ({ provider, apiKey }: { provider: string; apiKey: string }) => {
-      const res = await fetch('/api/local/api-keys/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, apiKey }),
-      });
-      if (!res.ok) throw new Error('Failed to test API key');
-      return res.json();
-    },
+    mutationFn: ({ provider, apiKey }: { provider: string; apiKey: string }) =>
+      apiRequest('/api/local/api-keys/test', 'POST', { provider, apiKey }),
     onSuccess: (data, variables) => {
       if (data.valid) {
         toast({

@@ -1,32 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { logger } from '../utils/logger';
 import { User } from "@shared/schema";
-
-function resolveApiUrl(path: string): string {
-  if (/^https?:\/\//i.test(path)) {
-    return path;
-  }
-
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return new URL(normalizedPath, window.location.origin).toString();
-  }
-
-  return `http://localhost${normalizedPath}`;
-}
+import { resolveApiUrl, type RuntimeFeatures } from "@/lib/runtimeConfig";
+import { useRuntimeConfig } from "@/hooks/useRuntimeConfig";
 
 export function useAuth() {
-  const { data: config } = useQuery<{ deploymentMode: 'cloud' | 'local'; isProduction: boolean }>({
-    queryKey: ["/api/config"],
-    queryFn: async () => {
-      if (process.env.NODE_ENV === 'test') {
-        return { deploymentMode: 'cloud', isProduction: false };
-      }
-      const res = await fetch(resolveApiUrl("/api/config"));
-      return res.json();
-    },
-    staleTime: Infinity,
-  });
+  const runtime = useRuntimeConfig();
+  const config = runtime.config;
 
   const { data: user, isLoading, isFetching, status } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
@@ -55,17 +35,23 @@ export function useAuth() {
     gcTime: 1000 * 60 * 10, // 10 minutes
   });
 
-  const showLoading = status === 'pending' && isFetching;
+  const showLoading = (status === 'pending' && isFetching) || runtime.isLoading;
 
   // Safe access to user properties with optional chaining in case typing is loose at runtime
   const isTemporaryUser = (user?.id && String(user.id).startsWith('temp-')) || (user as any)?.isTemporary === true;
+  const hasFeature = (feature: keyof RuntimeFeatures) => config.features[feature] === true;
 
   return {
     user,
     isLoading: showLoading,
     isAuthenticated: !!user,
     isTemporaryUser,
-    deploymentMode: config?.deploymentMode || 'cloud',
-    isLocalMode: config?.deploymentMode === 'local',
+    deploymentMode: config.deploymentMode,
+    isLocalMode: runtime.isLocalMode,
+    isCloudMode: runtime.isCloudMode,
+    isProduction: config.isProduction,
+    features: config.features,
+    hasFeature,
+    runtimeConfig: config,
   };
 }

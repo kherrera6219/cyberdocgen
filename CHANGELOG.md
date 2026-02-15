@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated onboarding tutorial action navigation to SPA routing (`wouter`) instead of hard browser redirects.
 - Raised enforced global coverage thresholds to `80/80/80/80` and aligned baseline docs to latest full-suite coverage (`85.40/80.14/81.47`).
 - Hardened npm lifecycle behavior for production-only installs by making `prepare` skip Husky setup when `husky` is not installed.
+- Centralized runtime mode/feature config and route gating for dual desktop/cloud operation.
+- Added centralized client input sanitization, global client error reporting, and secure typed Electron IPC bridge hardening.
+- Standardized NSIS customization to root-level installer scripts (`installer.nsh`, `uninstaller.nsh`) with backward-compatible shim support.
+- Updated Windows packaging validation to enforce root installer/uninstaller script presence and include-path correctness.
 
 ### Fixed
 
@@ -22,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remediated dependency advisories by upgrading `axios`/`drizzle-kit` and overriding `@esbuild-kit/core-utils` transitive `esbuild`, resulting in clean `npm audit` and `npm audit --omit=dev`.
 - Restored Docker CI build reliability by including `scripts/` in Docker build context so `node scripts/build-server.js` resolves during `npm run build`.
 - Stabilized Linux CI execution for `tests/integration/e2e-flows.test.ts` by increasing async setup/teardown test hook timeouts to 30 seconds.
+- Removed deprecated filesystem usage in local storage cleanup by replacing `fs.rmdir(...)` with `fs.rm(...)`.
+- Eliminated backend CJS build warning risk by removing server-side `import.meta.url` dependency from runtime migration path resolution.
 
 ## [2.2.0] - 2026-01-19
 

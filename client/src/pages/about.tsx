@@ -3,19 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Target, Heart, Lightbulb, ArrowRight, Mail, MapPin, Building2 } from "lucide-react";
-import { useEffect } from "react";
 import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
 export default function About() {
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
   const values = [
     { icon: Target, title: "Mission-Driven", description: "We're on a mission to make security compliance accessible to every organization, regardless of size or resources." },
     { icon: Heart, title: "Customer-Centric", description: "Every feature we build starts with understanding our customers' real compliance challenges and pain points." },

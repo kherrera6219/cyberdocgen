@@ -13,7 +13,6 @@ import { logger } from '../utils/logger';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 export type DeploymentMode = 'cloud' | 'local';
 
@@ -103,12 +102,17 @@ function resolveLocalMigrationsPath(): string | undefined {
     return path.resolve(configuredMigrationsPath);
   }
 
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const resourcesPath = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
+  const resolvedResourcesPath = resourcesPath ? path.resolve(resourcesPath) : null;
+  const executableDir = path.resolve(path.dirname(process.execPath));
+  const cwd = path.resolve(process.cwd());
   const fallbackMigrationCandidates = [
-    path.resolve(moduleDir, '..', 'migrations', 'sqlite'),
-    path.resolve('dist/migrations/sqlite'),
-    path.resolve('server/migrations/sqlite'),
-  ];
+    path.resolve(cwd, 'dist', 'migrations', 'sqlite'),
+    path.resolve(cwd, 'server', 'migrations', 'sqlite'),
+    resolvedResourcesPath ? path.resolve(resolvedResourcesPath, 'app.asar.unpacked', 'dist', 'migrations', 'sqlite') : null,
+    resolvedResourcesPath ? path.resolve(resolvedResourcesPath, 'app', 'dist', 'migrations', 'sqlite') : null,
+    path.resolve(executableDir, 'dist', 'migrations', 'sqlite'),
+  ].filter((candidate): candidate is string => Boolean(candidate));
 
   return fallbackMigrationCandidates.find((candidate) => fs.existsSync(candidate));
 }

@@ -33,7 +33,7 @@ import {
 import { tracingMiddleware } from "./middleware/tracing";
 import { validateRouteAccess, logRoutePerformance } from "./middleware/routeValidation";
 import { egressControlMiddleware } from "./middleware/egressControl";
-import { isLocalMode } from "./config/runtime";
+import { isLocalMode, getRuntimeConfig } from "./config/runtime";
 import { localAuthBypassMiddleware } from "./providers/auth/localBypass";
 
 import { insertContactMessageSchema } from "@shared/schema";
@@ -204,9 +204,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enable with ENABLE_SWAGGER=true if needed
   // Configuration endpoint to allow frontend to detect deployment mode
   app.get("/api/config", (req: Request, res: Response) => {
+    const runtime = getRuntimeConfig();
     res.json({
-      deploymentMode: isLocalMode() ? 'local' : 'cloud',
-      isProduction: process.env.NODE_ENV === 'production'
+      deploymentMode: runtime.mode,
+      isProduction: process.env.NODE_ENV === 'production',
+      features: runtime.features,
+      auth: {
+        enabled: runtime.auth.enabled,
+        provider: runtime.auth.provider,
+      },
     });
   });
 
