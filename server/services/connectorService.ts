@@ -5,6 +5,8 @@ import { connectorConfigs, cloudIntegrations } from "@shared/schema";
 import { and, eq } from "drizzle-orm";
 import { db } from "../db";
 import { encryptionService, DataClassification } from "./encryption";
+import { metricsCollector } from "../monitoring/metrics";
+import { z } from "zod";
 
 export type ConnectorType = "sharepoint" | "jira" | "notion";
 
@@ -27,34 +29,105 @@ export interface ConnectorAdapter {
   fetchItem(item: ConnectorItem, config?: any): Promise<Buffer | string>;
 }
 
-interface SharePointDriveResponse {
-  value?: Array<{
-    id: string;
-    name: string;
-    webUrl?: string;
-    lastModifiedDateTime?: string;
-    file?: { mimeType?: string };
-    folder?: { childCount?: number };
-    "@microsoft.graph.downloadUrl"?: string;
-  }>;
-}
+const sharePointDriveResponseSchema = z
+  .object({
+    value: z
+      .array(
+        z
+          .object({
+            id: z.string(),
+            name: z.string(),
+            webUrl: z.string().optional(),
+            lastModifiedDateTime: z.string().optional(),
+            file: z.object({ mimeType: z.string().optional() }).optional(),
+            folder: z.object({ childCount: z.number().optional() }).optional(),
+            "@microsoft.graph.downloadUrl": z.string().optional(),
+          })
+          .passthrough()
+      )
+      .optional(),
+  })
+  .passthrough();
 
-interface JiraSearchResponse {
-  issues?: Array<{
-    id: string;
-    key: string;
-    fields?: {
-      summary?: string;
-      updated?: string;
-      issuetype?: { name?: string };
-      project?: { key?: string; name?: string };
-      description?: any;
-    };
-  }>;
-}
+const jiraSearchResponseSchema = z
+  .object({
+    issues: z
+      .array(
+        z
+          .object({
+            id: z.string(),
+            key: z.string(),
+            fields: z
+              .object({
+                summary: z.string().optional(),
+                updated: z.string().optional(),
+                issuetype: z.object({ name: z.string().optional() }).optional(),
+                project: z
+                  .object({
+                    key: z.string().optional(),
+                    name: z.string().optional(),
+                  })
+                  .optional(),
+                description: z.unknown().optional(),
+              })
+              .optional(),
+          })
+          .passthrough()
+      )
+      .optional(),
+  })
+  .passthrough();
 
-interface NotionSearchResponse {
-  results?: Array<any>;
+const jiraIssueResponseSchema = z
+  .object({
+    fields: z
+      .object({
+        summary: z.string().optional(),
+        description: z.unknown().optional(),
+      })
+      .optional(),
+  })
+  .passthrough();
+
+const notionPageSchema = z
+  .object({
+    object: z.string(),
+    id: z.string(),
+    url: z.string().optional(),
+    last_edited_time: z.string().optional(),
+    properties: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
+
+const notionSearchResponseSchema = z
+  .object({
+    results: z.array(z.unknown()).optional(),
+  })
+  .passthrough();
+
+const notionBlocksResponseSchema = z
+  .object({
+    results: z.array(z.unknown()).optional(),
+    has_more: z.boolean().optional(),
+    next_cursor: z.string().nullable().optional(),
+  })
+  .passthrough();
+
+type SharePointDriveResponse = z.infer<typeof sharePointDriveResponseSchema>;
+type JiraSearchResponse = z.infer<typeof jiraSearchResponseSchema>;
+type JiraIssueResponse = z.infer<typeof jiraIssueResponseSchema>;
+type NotionSearchResponse = z.infer<typeof notionSearchResponseSchema>;
+type NotionPage = z.infer<typeof notionPageSchema>;
+type NotionBlocksResponse = z.infer<typeof notionBlocksResponseSchema>;
+
+function summarizeSchemaError(error: z.ZodError): string {
+  return error.issues
+    .slice(0, 3)
+    .map((issue) => {
+      const path = issue.path.length ? issue.path.join(".") : "root";
+      return `${path}: ${issue.message}`;
+    })
+    .join("; ");
 }
 
 class SharePointAdapter implements ConnectorAdapter {
@@ -101,7 +174,8 @@ class SharePointAdapter implements ConnectorAdapter {
 
       const data = await this.graphJson<SharePointDriveResponse>(
         integrationId,
-        `${endpoint}?$top=200`
+        `${endpoint}?$top=200`,
+        sharePointDriveResponseSchema
       );
 
       for (const entry of data.value || []) {
@@ -134,14 +208,30 @@ class SharePointAdapter implements ConnectorAdapter {
 
   async fetchItem(item: ConnectorItem, config?: any): Promise<Buffer> {
     if (item.downloadUrl) {
-      const downloadResponse = await fetch(item.downloadUrl);
-      if (!downloadResponse.ok) {
-        throw new Error(
-          `SharePoint download failed (${downloadResponse.status}) for ${item.id}`
+      const startedAt = Date.now();
+      let requestTracked = false;
+      try {
+        const downloadResponse = await fetch(item.downloadUrl);
+        metricsCollector.trackConnectorRequest(
+          this.type,
+          Date.now() - startedAt,
+          downloadResponse.ok
         );
+        requestTracked = true;
+
+        if (!downloadResponse.ok) {
+          throw new Error(
+            `SharePoint download failed (${downloadResponse.status}) for ${item.id}`
+          );
+        }
+        const fileBytes = await downloadResponse.arrayBuffer();
+        return Buffer.from(fileBytes);
+      } catch (error) {
+        if (!requestTracked) {
+          metricsCollector.trackConnectorRequest(this.type, Date.now() - startedAt, false);
+        }
+        throw error;
       }
-      const fileBytes = await downloadResponse.arrayBuffer();
-      return Buffer.from(fileBytes);
     }
 
     const integrationId = config?.integrationId || item.metadata?.integrationId;
@@ -153,45 +243,91 @@ class SharePointAdapter implements ConnectorAdapter {
     }
 
     const token = await this.getAccessToken(integrationId);
-    const response = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${item.id}/content`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `SharePoint file content request failed (${response.status}) for ${item.id}`
+    const startedAt = Date.now();
+    let requestTracked = false;
+    try {
+      const response = await fetch(
+        `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${item.id}/content`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-    }
 
-    const bytes = await response.arrayBuffer();
-    return Buffer.from(bytes);
+      metricsCollector.trackConnectorRequest(
+        this.type,
+        Date.now() - startedAt,
+        response.ok
+      );
+      requestTracked = true;
+
+      if (!response.ok) {
+        throw new Error(
+          `SharePoint file content request failed (${response.status}) for ${item.id}`
+        );
+      }
+
+      const bytes = await response.arrayBuffer();
+      return Buffer.from(bytes);
+    } catch (error) {
+      if (!requestTracked) {
+        metricsCollector.trackConnectorRequest(this.type, Date.now() - startedAt, false);
+      }
+      throw error;
+    }
   }
 
   private async graphJson<T>(
     integrationId: string,
-    path: string
+    path: string,
+    schema?: z.ZodType<T>
   ): Promise<T> {
     const token = await this.getAccessToken(integrationId);
-    const response = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    });
+    const startedAt = Date.now();
+    let requestTracked = false;
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `SharePoint Graph request failed (${response.status}): ${text.slice(0, 300)}`
+    try {
+      const response = await fetch(`https://graph.microsoft.com/v1.0${path}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      metricsCollector.trackConnectorRequest(
+        this.type,
+        Date.now() - startedAt,
+        response.ok
       );
-    }
+      requestTracked = true;
 
-    return (await response.json()) as T;
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(
+          `SharePoint Graph request failed (${response.status}): ${text.slice(0, 300)}`
+        );
+      }
+
+      const payload = await response.json();
+      if (!schema) {
+        return payload as T;
+      }
+
+      const parsed = schema.safeParse(payload);
+      if (!parsed.success) {
+        throw new Error(
+          `SharePoint response validation failed: ${summarizeSchemaError(parsed.error)}`
+        );
+      }
+
+      return parsed.data;
+    } catch (error) {
+      if (!requestTracked) {
+        metricsCollector.trackConnectorRequest(this.type, Date.now() - startedAt, false);
+      }
+      throw error;
+    }
   }
 
   private normalizeFolderPath(folderPath: string): string {
@@ -251,21 +387,45 @@ class JiraAdapter implements ConnectorAdapter {
       jql
     )}&maxResults=${maxResults}&fields=${encodeURIComponent(fields)}`;
 
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        Authorization: authHeader,
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Jira search failed (${response.status}): ${errorText.slice(0, 300)}`
+    const startedAt = Date.now();
+    let requestTracked = false;
+    let data: JiraSearchResponse;
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+          Authorization: authHeader,
+        },
+      });
+      metricsCollector.trackConnectorRequest(
+        this.type,
+        Date.now() - startedAt,
+        response.ok
       );
+      requestTracked = true;
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Jira search failed (${response.status}): ${errorText.slice(0, 300)}`
+        );
+      }
+
+      const payload = await response.json();
+      const parsed = jiraSearchResponseSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new Error(
+          `Jira response validation failed: ${summarizeSchemaError(parsed.error)}`
+        );
+      }
+      data = parsed.data;
+    } catch (error) {
+      if (!requestTracked) {
+        metricsCollector.trackConnectorRequest(this.type, Date.now() - startedAt, false);
+      }
+      throw error;
     }
 
-    const data = (await response.json()) as JiraSearchResponse;
     return (data.issues || []).map((issue) => {
       const summary = issue.fields?.summary || issue.key;
       const description = this.extractJiraText(issue.fields?.description);
@@ -307,26 +467,51 @@ class JiraAdapter implements ConnectorAdapter {
       return item.name;
     }
 
-    const response = await fetch(
-      `${baseUrl}/rest/api/3/issue/${encodeURIComponent(
-        issueKey
-      )}?fields=summary,description`,
-      {
-        headers: {
-          Accept: "application/json",
-          Authorization: authHeader,
-        },
-      }
-    );
+    const startedAt = Date.now();
+    let requestTracked = false;
+    try {
+      const response = await fetch(
+        `${baseUrl}/rest/api/3/issue/${encodeURIComponent(
+          issueKey
+        )}?fields=summary,description`,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: authHeader,
+          },
+        }
+      );
+      metricsCollector.trackConnectorRequest(
+        this.type,
+        Date.now() - startedAt,
+        response.ok
+      );
+      requestTracked = true;
 
-    if (!response.ok) {
+      if (!response.ok) {
+        return item.name;
+      }
+
+      const payload = await response.json();
+      const parsed = jiraIssueResponseSchema.safeParse(payload);
+      if (!parsed.success) {
+        logger.warn("Jira issue response validation failed", {
+          issueKey,
+          validationError: summarizeSchemaError(parsed.error),
+        });
+        return item.name;
+      }
+
+      const data: JiraIssueResponse = parsed.data;
+      const summary = data.fields?.summary || issueKey;
+      const description = this.extractJiraText(data.fields?.description);
+      return [summary, description].filter(Boolean).join("\n\n");
+    } catch (_error) {
+      if (!requestTracked) {
+        metricsCollector.trackConnectorRequest(this.type, Date.now() - startedAt, false);
+      }
       return item.name;
     }
-
-    const data = await response.json();
-    const summary = data?.fields?.summary || issueKey;
-    const description = this.extractJiraText(data?.fields?.description);
-    return [summary, description].filter(Boolean).join("\n\n");
   }
 
   private buildAuthHeader(config: any): string | null {
@@ -398,9 +583,12 @@ class NotionAdapter implements ConnectorAdapter {
 
     if (pageIds.length > 0) {
       for (const pageId of pageIds) {
-        const page = await this.notionRequest(
+        const page = await this.notionRequest<NotionPage>(
           token,
-          `/v1/pages/${encodeURIComponent(pageId)}`
+          `/v1/pages/${encodeURIComponent(pageId)}`,
+          "GET",
+          undefined,
+          notionPageSchema
         );
         items.push(this.toConnectorItem(page));
       }
@@ -415,18 +603,27 @@ class NotionAdapter implements ConnectorAdapter {
       searchBody.query = config.query.trim();
     }
 
-    const response = (await this.notionRequest(
+    const response = await this.notionRequest<NotionSearchResponse>(
       token,
       "/v1/search",
       "POST",
-      searchBody
-    )) as NotionSearchResponse;
+      searchBody,
+      notionSearchResponseSchema
+    );
 
-    for (const page of response.results || []) {
-      if (page?.object !== "page") {
+    for (const pageCandidate of response.results || []) {
+      if ((pageCandidate as any)?.object !== "page") {
         continue;
       }
-      items.push(this.toConnectorItem(page));
+
+      const page = notionPageSchema.safeParse(pageCandidate);
+      if (!page.success) {
+        logger.warn("Notion page skipped due to schema validation failure", {
+          validationError: summarizeSchemaError(page.error),
+        });
+        continue;
+      }
+      items.push(this.toConnectorItem(page.data));
     }
 
     return items;
@@ -447,7 +644,7 @@ class NotionAdapter implements ConnectorAdapter {
     return blocksText || item.name;
   }
 
-  private toConnectorItem(page: any): ConnectorItem {
+  private toConnectorItem(page: NotionPage): ConnectorItem {
     const pageId = page.id;
     const title = this.getPageTitle(page) || `Notion Page ${pageId}`;
     return {
@@ -470,7 +667,7 @@ class NotionAdapter implements ConnectorAdapter {
     return typeof token === "string" && token.trim() ? token.trim() : null;
   }
 
-  private getPageTitle(page: any): string {
+  private getPageTitle(page: NotionPage): string {
     const titleProp = page?.properties
       ? Object.values(page.properties).find(
           (property: any) => property?.type === "title"
@@ -489,13 +686,16 @@ class NotionAdapter implements ConnectorAdapter {
 
     do {
       const query = cursor ? `?start_cursor=${encodeURIComponent(cursor)}` : "";
-      const response = await this.notionRequest(
+      const response = await this.notionRequest<NotionBlocksResponse>(
         token,
-        `/v1/blocks/${encodeURIComponent(blockId)}/children${query}`
+        `/v1/blocks/${encodeURIComponent(blockId)}/children${query}`,
+        "GET",
+        undefined,
+        notionBlocksResponseSchema
       );
 
       for (const block of response.results || []) {
-        const richText = block?.[block?.type]?.rich_text;
+        const richText = (block as any)?.[(block as any)?.type]?.rich_text;
         if (Array.isArray(richText)) {
           const line = richText
             .map((entry: any) => entry?.plain_text || "")
@@ -507,37 +707,67 @@ class NotionAdapter implements ConnectorAdapter {
         }
       }
 
-      cursor = response.has_more ? response.next_cursor : undefined;
+      cursor = response.has_more ? response.next_cursor || undefined : undefined;
     } while (cursor);
 
     return segments.join("\n").trim();
   }
 
-  private async notionRequest(
+  private async notionRequest<T>(
     token: string,
     path: string,
     method: "GET" | "POST" = "GET",
-    body?: Record<string, any>
-  ): Promise<any> {
-    const response = await fetch(`https://api.notion.com${path}`, {
-      method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Notion-Version": "2022-06-28",
-        Accept: "application/json",
-        ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
-      },
-      ...(method === "POST" ? { body: JSON.stringify(body || {}) } : {}),
-    });
+    body?: Record<string, any>,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    const startedAt = Date.now();
+    let requestTracked = false;
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `Notion API request failed (${response.status}): ${text.slice(0, 300)}`
+    try {
+      const response = await fetch(`https://api.notion.com${path}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Notion-Version": "2022-06-28",
+          Accept: "application/json",
+          ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
+        },
+        ...(method === "POST" ? { body: JSON.stringify(body || {}) } : {}),
+      });
+
+      metricsCollector.trackConnectorRequest(
+        this.type,
+        Date.now() - startedAt,
+        response.ok
       );
-    }
+      requestTracked = true;
 
-    return await response.json();
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(
+          `Notion API request failed (${response.status}): ${text.slice(0, 300)}`
+        );
+      }
+
+      const payload = await response.json();
+      if (!schema) {
+        return payload as T;
+      }
+
+      const parsed = schema.safeParse(payload);
+      if (!parsed.success) {
+        throw new Error(
+          `Notion response validation failed: ${summarizeSchemaError(parsed.error)}`
+        );
+      }
+
+      return parsed.data;
+    } catch (error) {
+      if (!requestTracked) {
+        metricsCollector.trackConnectorRequest(this.type, Date.now() - startedAt, false);
+      }
+      throw error;
+    }
   }
 }
 

@@ -3,10 +3,11 @@
 **Date:** February 8, 2026  
 **Scope:** `npm audit` dev-only advisory chain (`drizzle-kit` -> `@esbuild-kit/*` -> `esbuild`)  
 **Advisory:** GHSA-67mh-4wv8-2f99
+**Status:** Closed on February 15, 2026 (dependency chain remediated; audits clean)
 
 ## Decision
 
-`Accepted with controls (temporary)` for production release.
+`Accepted with controls (temporary)` for production release (historical decision).
 
 ## Rationale
 
@@ -26,7 +27,13 @@
 1. Upgrade to a `drizzle-kit` chain that no longer pulls vulnerable `@esbuild-kit/*` `esbuild`.
 2. `npm audit` returns no findings for this advisory without introducing breaking migration regressions.
 
+## Resolution (2026-02-15)
+
+- Dependency chain was upgraded/overridden to remove the affected advisory path.
+- `npm audit` and `npm audit --omit=dev` both return `0 vulnerabilities`.
+- CI now enforces blocking high/critical audit gates.
+
 ## Evidence
 
-- `docs/project-analysis/evidence/20260208-130320/09-audit-all.log`
-- `docs/project-analysis/evidence/20260208-130320/08-audit-prod.log`
+- `TODO.md` current validation evidence section
+- `.github/workflows/ci.yml` audit enforcement steps

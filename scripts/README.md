@@ -144,6 +144,47 @@ tsx scripts/validate-compliance.ts
 npm run compliance:validate
 ```
 
+### `cloud-validation-sweep.ts`
+
+Validates cloud runtime readiness with strict environment checks and endpoint probes.
+
+**Purpose:**
+- Ensures required cloud env vars exist (`DATABASE_URL`, `SESSION_SECRET`)
+- Boots the app in cloud mode and waits for readiness
+- Validates key runtime endpoints (`/health`, `/api/ai/health`)
+- Verifies local-only API gating behavior in cloud mode
+- Writes a JSON report under `artifacts/cloud-validation/`
+
+**Usage:**
+```bash
+npm run cloud:validate
+```
+
+Optional overrides:
+```bash
+tsx scripts/cloud-validation-sweep.ts --strict-env --timeout-ms=60000 --port=5620
+```
+
+### `validate-windows-release-evidence.ts`
+
+Validates Windows release evidence bundles and generates a manifest with SHA-256 file hashes.
+
+**Purpose:**
+- Confirms clean-VM install/uninstall evidence files exist
+- Confirms SmartScreen unsigned/signed screenshots exist
+- Confirms signature verification report and desktop smoke report exist
+- Produces `evidence-manifest.json` for audit traceability
+
+**Usage:**
+```bash
+npm run windows:evidence:validate -- --evidence-root=./docs/project-analysis/evidence/windows-release
+```
+
+Optional strict mode:
+```bash
+tsx scripts/validate-windows-release-evidence.ts --strict
+```
+
 ### `production-build-check.ts`
 
 Validates production build before deployment.

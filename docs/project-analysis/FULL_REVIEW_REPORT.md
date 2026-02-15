@@ -2,14 +2,19 @@
 
 Generated: 2026-01-27 20:27:07
 
-## Artifacts produced
-- FILE_STRUCTURE_MAP.txt (full tree listing)
-- FULL_FILE_INVENTORY.csv (per-file metadata)
-- FILE_STATS_SUMMARY.txt (counts + largest files)
-- DIRECTORY_STATS.txt (top-level dir sizes & file counts)
-- LARGE_FILES.txt (top 100 by size)
-- DOCS_INDEX.md (markdown titles index)
-- CODE_TODO_INDEX.txt (TODO/FIXME/XXX/HACK index)
+## Artifact status
+
+This report is a historical snapshot generated on 2026-01-27.
+
+The raw generated artifacts referenced below were intentionally removed from source control on 2026-02-15 during documentation cleanup:
+
+- `FILE_STRUCTURE_MAP.txt`
+- `FULL_FILE_INVENTORY.csv`
+- `FILE_STATS_SUMMARY.txt`
+- `DIRECTORY_STATS.txt`
+- `LARGE_FILES.txt`
+- `DOCS_INDEX.md`
+- `CODE_TODO_INDEX.txt`
 
 ## File statistics (from FILE_STATS_SUMMARY.txt)
 Total files: 84007
@@ -214,7 +219,7 @@ Top folders with TODO markers:
 - C: 5433
 
 ## Documentation index
-See DOCS_INDEX.md for all markdown files and their titles.
+Use `docs/project-analysis/README.md` for the current curated archive index.
 
 ## Notes on review methodology
 - Full recursive inventory generated across all folders (including node_modules and build artifacts).

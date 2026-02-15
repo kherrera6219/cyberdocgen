@@ -36,6 +36,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added connector API integration test coverage for `/api/connectors` and `/api/connectors/:id/import`.
 - Added targeted regression tests for performance metrics correctness and phase sweep argument/report behavior.
 - Added Authenticode verification script for Windows release executables: `scripts/verify-windows-signatures.ps1`.
+- Added cloud validation sweep script: `scripts/cloud-validation-sweep.ts` and manual CI workflow `.github/workflows/cloud-validation.yml`.
+- Added Windows release evidence validator: `scripts/validate-windows-release-evidence.ts`.
+- Added connector-specific API rate limiting tiers (`connectorRead`, `connectorWrite`, `connectorImport`) and route enforcement for `/api/connectors`.
+- Added runtime schema validation for external connector API responses (SharePoint, Jira, Notion) to prevent unsafe typed-cast assumptions.
+- Added connector latency/error metrics in centralized telemetry (`metricsCollector.trackConnectorRequest`).
+- Added developer governance baseline artifacts:
+  - `.husky/pre-commit` (`npm run lint` + `npm run check`)
+  - `docs/adr/README.md`
+  - `docs/adr/0001-production-hardening-baseline.md`
+- Added runbooks:
+  - `docs/CLOUD_VALIDATION_RUNBOOK.md`
+  - `docs/WINDOWS_RELEASE_EVIDENCE_GUIDE.md`
 
 ### Changed
 
@@ -52,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `npm run build:win:release`
   - `npm run build:store:release`
 - Updated tag-gated release policy workflow to run on Windows, build signed NSIS artifacts, verify Authenticode signatures, and publish signature reports.
+- Updated Windows release documentation to include evidence validation and SmartScreen capture requirements.
 - Aligned coverage enforcement baseline to active gate policy (`80%` lines/functions/statements, `78%` branches) and synchronized hotspot reporting thresholds.
 
 ### Fixed
@@ -66,6 +79,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eliminated backend CJS build warning risk by removing server-side `import.meta.url` dependency from runtime migration path resolution.
 - Burned down lint warnings introduced by governance/data-layer hardening work and restored clean `npm run lint`.
 - Fixed performance telemetry integrity in `performanceService` by removing duplicate request increments and deriving `errorRate` without mutating absolute error counters.
+
+### Removed
+
+- Removed generated documentation junk and stale evidence snapshots from `docs/project-analysis`:
+  - machine-generated file inventories/maps/CSV dumps
+  - old dated evidence runs under `docs/project-analysis/evidence/20260208-*`
+- Removed local generated `artifacts/` run output from version control scope and added `artifacts/` to `.gitignore`.
 
 ## [2.2.0] - 2026-01-19
 

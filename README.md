@@ -2,7 +2,7 @@
 
 ## Enterprise Compliance Management System
 
-**Version 2.4.0** | February 9, 2026
+**Version 2.4.0** | February 15, 2026
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-2.4.0-green.svg)](CHANGELOG.md)
@@ -43,8 +43,14 @@
 - ✅ **Phase Sweep Passing** - `lint`, `check`, `test:run --coverage`, `npm audit --audit-level=high`, `windows:validate`, and local-mode smoke all pass in one run.
 - ✅ **Coverage Gate Stabilized** - global coverage thresholds now enforce `80%` lines/functions/statements and `78%` branches (current baseline: `82.88%` statements, `80.35%` functions, `78.13%` branches).
 - ✅ **Connector API Hardening** - `/api/connectors` and `/api/connectors/:id/import` now enforce strict request validation and return `400` for invalid payloads instead of internal errors.
+- ✅ **Connector Abuse Protection Added** - connector endpoints now enforce dedicated read/write/import rate limit tiers.
+- ✅ **External Contract Validation Added** - SharePoint, Jira, and Notion responses now have runtime schema validation before ingestion.
+- ✅ **Connector Telemetry Added** - connector latency/error metrics are now tracked in centralized metrics output.
 - ✅ **Connector Integration Coverage Added** - API-level integration tests now cover connector listing, creation, import, and auth/org guardrails.
 - ✅ **Release Signing Pipeline Advanced** - tag-gated Windows CI now builds release `.exe` artifacts and runs Authenticode verification with report upload.
+- ✅ **Cloud Validation Harness Added** - strict cloud validation sweep (`npm run cloud:validate`) plus manual CI workflow (`cloud-validation.yml`) now produce auditable cloud-mode reports.
+- ✅ **Windows Release Evidence Validation Added** - SmartScreen and clean-VM evidence requirements are now codified and validated via `npm run windows:evidence:validate`.
+- ✅ **Documentation Cleanup Completed** - removed generated inventory/log dump documents and retained curated review/runbook docs only.
 
 **February 10, 2026 - Windows Runtime Cleanup & Installer Validation:**
 
@@ -57,7 +63,7 @@
 **February 9, 2026 - Operational Sweep (Production Candidate):**
 
 - ✅ **Core Gates Passing** - `check`, `lint` (0 warnings), `test:run`, `build`, `windows:validate`, `build:win`, `verify-build`
-- ✅ **Release Evidence Archived** - see `docs/project-analysis/evidence/20260208-130320/` and `docs/project-analysis/evidence/20260208-203122/`
+- ✅ **Release Evidence Workflow Established** - see `docs/WINDOWS_RELEASE_EVIDENCE_GUIDE.md` and `TODO.md` for latest pending evidence items
 - ✅ **Windows Installer UX Hardened** - guided install with location chooser, installer/uninstaller completion notifications, and data-retention uninstall prompt
 - ✅ **Desktop First-Run Clarity** - local mode docs and navigation now surface AI API key setup as the primary post-install step
 - ✅ **Sectioned Production Review Complete** - Electron path-safety hardening, local API route validation/timeouts, cloud/local UI gating, and mobile navigation parity fixes applied
@@ -312,6 +318,9 @@ For detailed setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_
 - [Security](docs/SECURITY.md) - Security implementation details
 - [Testing](docs/TESTING.md) - Testing strategies and guidelines
 - [Release Readiness Tracker](TODO.md) - Canonical production readiness backlog and verification status
+- [Cloud Validation Runbook](docs/CLOUD_VALIDATION_RUNBOOK.md) - Production-like cloud validation and evidence flow
+- [Windows Release Evidence Guide](docs/WINDOWS_RELEASE_EVIDENCE_GUIDE.md) - Clean-VM + SmartScreen evidence requirements
+- [Architecture Decisions (ADR)](docs/adr/README.md) - Decision log for production architecture and governance
 
 ### Operations
 
@@ -455,7 +464,7 @@ npm run db:push      # Apply database changes
 
 1. Create a new branch for your feature
 2. Make your changes with tests
-3. Run tests and type checking
+3. Run tests and type checking (or rely on pre-commit hooks for `lint` + `check`)
 4. Submit a pull request
 
 See [Development Guide](docs/DEVELOPMENT_GUIDE.md) for detailed information.

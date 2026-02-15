@@ -10,6 +10,7 @@ coverage
 coverage_*.json
 *.log
 .vitest-results.json
+artifacts/
 
 # Local mode test data
 local-data-test/

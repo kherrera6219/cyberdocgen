@@ -1,5 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 
+interface ConnectorTypeMetrics {
+  requests: number;
+  errors: number;
+  avgResponseTime: number;
+  lastResponseTime: number;
+}
+
 interface Metrics {
   requests: {
     total: number;
@@ -23,12 +30,22 @@ interface Metrics {
     failedAuths: number;
     rateLimitHits: number;
   };
+  connectors: {
+    totalRequests: number;
+    totalErrors: number;
+    avgResponseTime: number;
+    byType: Record<
+      string,
+      ConnectorTypeMetrics
+    >;
+  };
   uptime: number;
   startTime: Date;
 }
 
 class MetricsCollector {
   private metrics: Metrics;
+  private connectorTypeMetrics = new Map<string, ConnectorTypeMetrics>();
 
   constructor() {
     this.metrics = {
@@ -53,6 +70,12 @@ class MetricsCollector {
         authAttempts: 0,
         failedAuths: 0,
         rateLimitHits: 0
+      },
+      connectors: {
+        totalRequests: 0,
+        totalErrors: 0,
+        avgResponseTime: 0,
+        byType: {}
       },
       uptime: 0,
       startTime: new Date()
@@ -147,6 +170,46 @@ class MetricsCollector {
     }
   }
 
+  // Track connector API operations
+  trackConnectorRequest(type: string, responseTime: number, success: boolean = true) {
+    const safeType = typeof type === 'string' && type.trim() ? type.trim().toLowerCase() : 'unknown';
+    this.metrics.connectors.totalRequests++;
+
+    if (!success) {
+      this.metrics.connectors.totalErrors++;
+    }
+
+    if (this.metrics.connectors.avgResponseTime === 0) {
+      this.metrics.connectors.avgResponseTime = responseTime;
+    } else {
+      this.metrics.connectors.avgResponseTime =
+        (this.metrics.connectors.avgResponseTime * 0.9) + (responseTime * 0.1);
+    }
+
+    if (!this.connectorTypeMetrics.has(safeType)) {
+      this.connectorTypeMetrics.set(safeType, {
+        requests: 0,
+        errors: 0,
+        avgResponseTime: 0,
+        lastResponseTime: 0,
+      });
+    }
+
+    const connectorMetrics = this.connectorTypeMetrics.get(safeType)!;
+    connectorMetrics.requests++;
+    connectorMetrics.lastResponseTime = responseTime;
+    connectorMetrics.avgResponseTime =
+      connectorMetrics.requests === 1
+        ? responseTime
+        : (connectorMetrics.avgResponseTime * 0.9) + (responseTime * 0.1);
+
+    if (!success) {
+      connectorMetrics.errors++;
+    }
+
+    this.metrics.connectors.byType = Object.fromEntries(this.connectorTypeMetrics.entries());
+  }
+
   // Get current metrics
   getMetrics(): Metrics & { computedMetrics: any } {
     const now = Date.now();
@@ -175,6 +238,9 @@ class MetricsCollector {
         errorRate: this.metrics.requests.total > 0 
           ? (serverErrors / this.metrics.requests.total) * 100
           : 0,
+        connectorErrorRate: this.metrics.connectors.totalRequests > 0
+          ? (this.metrics.connectors.totalErrors / this.metrics.connectors.totalRequests) * 100
+          : 0,
         authFailureRate: this.metrics.security.authAttempts > 0
           ? (this.metrics.security.failedAuths / this.metrics.security.authAttempts) * 100
           : 0
@@ -184,11 +250,13 @@ class MetricsCollector {
 
   // Reset metrics (for testing or periodic resets)
   reset() {
+    this.connectorTypeMetrics.clear();
     this.metrics = {
       requests: { total: 0, byStatus: {}, byEndpoint: {}, responseTimes: [] },
       ai: { documentsGenerated: 0, analysisRequests: 0, chatbotInteractions: 0, errorRate: 0 },
       database: { queries: 0, errors: 0, avgResponseTime: 0 },
       security: { authAttempts: 0, failedAuths: 0, rateLimitHits: 0 },
+      connectors: { totalRequests: 0, totalErrors: 0, avgResponseTime: 0, byType: {} },
       uptime: 0,
       startTime: new Date()
     };

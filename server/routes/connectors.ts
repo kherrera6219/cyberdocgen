@@ -3,6 +3,11 @@ import { connectorService } from "../services/connectorService";
 import { z } from "zod";
 import { isAuthenticated } from "../replitAuth";
 import { requireOrganization } from "../middleware/multiTenant";
+import {
+  connectorImportLimiter,
+  connectorReadLimiter,
+  connectorWriteLimiter,
+} from "../middleware/rateLimiter";
 
 export const connectorRouter = Router();
 const connectorTypeSchema = z.enum(["sharepoint", "jira", "notion"] as const);
@@ -36,7 +41,7 @@ connectorRouter.use(isAuthenticated);
 connectorRouter.use(requireOrganization);
 
 // Get all connectors for the current organization
-connectorRouter.get("/", async (req, res) => {
+connectorRouter.get("/", connectorReadLimiter, async (req, res) => {
   try {
     const { organizationId } = getRequestContext(req);
 
@@ -52,7 +57,7 @@ connectorRouter.get("/", async (req, res) => {
 });
 
 // Create a new connector configuration
-connectorRouter.post("/", async (req, res) => {
+connectorRouter.post("/", connectorWriteLimiter, async (req, res) => {
   try {
     const validatedData = createConnectorRequestSchema.parse(req.body);
     const { userId, organizationId } = getRequestContext(req);
@@ -83,7 +88,7 @@ connectorRouter.post("/", async (req, res) => {
 });
 
 // Trigger an import (Run Snapshot)
-connectorRouter.post("/:id/import", async (req, res) => {
+connectorRouter.post("/:id/import", connectorImportLimiter, async (req, res) => {
   try {
     const configId = req.params.id;
     const { snapshotId } = runImportRequestSchema.parse(req.body);

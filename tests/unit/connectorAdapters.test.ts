@@ -251,6 +251,28 @@ describe("Connector adapters", () => {
       expect(content).toContain("Rotation runbook.");
     });
 
+    it("rejects Jira responses that fail runtime schema validation", async () => {
+      const adapter = connectorService.getAdapter("jira");
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () =>
+          ({
+            ok: true,
+            json: async () => ({
+              issues: [{ key: "SEC-200" }],
+            }),
+          }) as any
+        )
+      );
+
+      await expect(
+        adapter.listItems({
+          baseUrl: "https://jira.example.com",
+          bearerToken: "token",
+        })
+      ).rejects.toThrow("Jira response validation failed");
+    });
+
     it("falls back to item name when Jira fetch cannot build request", async () => {
       const adapter = connectorService.getAdapter("jira");
 
@@ -366,6 +388,29 @@ describe("Connector adapters", () => {
 
       expect(items).toHaveLength(1);
       expect(items[0].id).toBe("page-2");
+    });
+
+    it("rejects Notion search responses that fail runtime schema validation", async () => {
+      const adapter = connectorService.getAdapter("notion");
+
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () =>
+          ({
+            ok: true,
+            json: async () => ({
+              results: "invalid",
+            }),
+          }) as any
+        )
+      );
+
+      await expect(
+        adapter.listItems({
+          apiToken: "notion-token",
+          query: "policy",
+        })
+      ).rejects.toThrow("Notion response validation failed");
     });
 
     it("falls back to item name when fetchItem has no token", async () => {

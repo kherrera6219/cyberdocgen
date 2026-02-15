@@ -43,6 +43,21 @@ const rateLimitConfigs: Record<string, RateLimitConfig> = {
     max: 100,
     message: 'API rate limit exceeded. Please slow down your requests.',
   },
+  connectorRead: {
+    windowMs: 60 * 1000,
+    max: 120,
+    message: 'Connector read rate limit exceeded. Please slow down your requests.',
+  },
+  connectorWrite: {
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+    message: 'Connector configuration rate limit exceeded. Please try again later.',
+  },
+  connectorImport: {
+    windowMs: 60 * 60 * 1000,
+    max: 15,
+    message: 'Connector import rate limit exceeded. Please wait before starting another import.',
+  },
   upload: {
     windowMs: 60 * 60 * 1000,
     max: 100,
@@ -98,6 +113,9 @@ export const authStrictLimiter = createRateLimiter('authStrict');
 export const aiLimiter = createRateLimiter('ai');
 export const aiGenerationLimiter = createRateLimiter('aiGeneration');
 export const apiLimiter = createRateLimiter('api');
+export const connectorReadLimiter = createRateLimiter('connectorRead');
+export const connectorWriteLimiter = createRateLimiter('connectorWrite');
+export const connectorImportLimiter = createRateLimiter('connectorImport');
 export const uploadLimiter = createRateLimiter('upload');
 
 export function getRateLimitMiddleware(tier: keyof typeof rateLimitConfigs = 'general') {

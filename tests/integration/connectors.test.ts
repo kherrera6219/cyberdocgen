@@ -3,7 +3,7 @@ import express from "express";
 import request from "supertest";
 import { connectorRouter } from "../../server/routes/connectors";
 
-const { authState, mockConnectorService } = vi.hoisted(() => ({
+const { authState, mockConnectorService, rateLimitState } = vi.hoisted(() => ({
   authState: {
     userId: "test-user-id",
     organizationId: "test-org-id",
@@ -12,6 +12,9 @@ const { authState, mockConnectorService } = vi.hoisted(() => ({
     getConfigs: vi.fn(),
     createConfig: vi.fn(),
     runImport: vi.fn(),
+  },
+  rateLimitState: {
+    block: false,
   },
 }));
 
@@ -48,12 +51,34 @@ vi.mock("../../server/middleware/multiTenant", () => ({
   },
 }));
 
+vi.mock("../../server/middleware/rateLimiter", () => ({
+  connectorReadLimiter: (_req: any, res: any, next: any) => {
+    if (rateLimitState.block) {
+      return res.status(429).json({ error: "Rate limit exceeded" });
+    }
+    next();
+  },
+  connectorWriteLimiter: (_req: any, res: any, next: any) => {
+    if (rateLimitState.block) {
+      return res.status(429).json({ error: "Rate limit exceeded" });
+    }
+    next();
+  },
+  connectorImportLimiter: (_req: any, res: any, next: any) => {
+    if (rateLimitState.block) {
+      return res.status(429).json({ error: "Rate limit exceeded" });
+    }
+    next();
+  },
+}));
+
 describe("Connector Routes Integration", () => {
   let app: express.Express;
 
   beforeEach(() => {
     authState.userId = "test-user-id";
     authState.organizationId = "test-org-id";
+    rateLimitState.block = false;
     vi.clearAllMocks();
 
     app = express();
@@ -166,5 +191,16 @@ describe("Connector Routes Integration", () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({ message: "Organization context required" });
     expect(mockConnectorService.getConfigs).not.toHaveBeenCalled();
+  });
+
+  it("returns 429 when connector routes are rate-limited", async () => {
+    rateLimitState.block = true;
+
+    const response = await request(app)
+      .post("/api/connectors/connector-1/import")
+      .send({ snapshotId: "snapshot-1" });
+
+    expect(response.status).toBe(429);
+    expect(mockConnectorService.runImport).not.toHaveBeenCalled();
   });
 });

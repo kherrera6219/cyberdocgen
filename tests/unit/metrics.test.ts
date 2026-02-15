@@ -13,6 +13,7 @@ describe('MetricsCollector', () => {
     expect(metrics.ai.documentsGenerated).toBe(0);
     expect(metrics.database.queries).toBe(0);
     expect(metrics.security.authAttempts).toBe(0);
+    expect(metrics.connectors.totalRequests).toBe(0);
   });
 
   it('should track AI operations', () => {
@@ -46,6 +47,19 @@ describe('MetricsCollector', () => {
     expect(metrics.security.authAttempts).toBe(1);
     expect(metrics.security.failedAuths).toBe(1);
     expect(metrics.security.rateLimitHits).toBe(1);
+  });
+
+  it('should track connector latency and errors', () => {
+    metricsCollector.trackConnectorRequest('jira', 120, true);
+    metricsCollector.trackConnectorRequest('jira', 240, false);
+    metricsCollector.trackConnectorRequest('notion', 80, true);
+
+    const metrics = metricsCollector.getMetrics();
+    expect(metrics.connectors.totalRequests).toBe(3);
+    expect(metrics.connectors.totalErrors).toBe(1);
+    expect(metrics.connectors.byType.jira.requests).toBe(2);
+    expect(metrics.connectors.byType.jira.errors).toBe(1);
+    expect(metrics.computedMetrics.connectorErrorRate).toBeGreaterThan(0);
   });
 
   it('should collect request metrics via middleware', async () => {

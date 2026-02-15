@@ -1,0 +1,41 @@
+name: Cloud Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      timeout_ms:
+        description: "Cloud validation timeout in milliseconds"
+        required: false
+        default: "60000"
+
+permissions:
+  contents: read
+
+jobs:
+  cloud-validation:
+    name: Cloud Validation Sweep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run cloud validation sweep
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: npm run cloud:validate -- --timeout-ms=${{ inputs.timeout_ms }}
+
+      - name: Upload cloud validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloud-validation-reports
+          path: artifacts/cloud-validation/

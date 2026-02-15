@@ -115,6 +115,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\windows-desktop-smoke.ps1
 
 Detailed checklist and report artifact expectations:
 - `docs/WINDOWS_DESKTOP_SMOKE_CHECKLIST.md`
+- `docs/WINDOWS_RELEASE_EVIDENCE_GUIDE.md`
 
 ## Microsoft Store Checklist (APPX Path)
 
@@ -135,6 +136,7 @@ Release signing scripts:
 - `npm run build:win:release` (forces release signing policy for NSIS `.exe`)
 - `npm run build:store:release` (forces release signing policy for APPX)
 - `npm run windows:verify-signatures` (Authenticode verification for generated `.exe` artifacts)
+- `npm run windows:evidence:validate` (validates required clean-VM + SmartScreen evidence bundle and writes `evidence-manifest.json`)
 
 Local hardening updates:
 - API key management and local settings pages are local-mode only (hidden in cloud mode navigation and guarded at runtime).
