@@ -9,11 +9,8 @@ import {
 } from "lucide-react";
 import { TemporaryLoginDialog } from "@/components/TemporaryLoginDialog";
 import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
-import { useAuth } from "@/hooks/useAuth";
 
 export function Landing() {
-  const { isLocalMode } = useAuth();
-
   const aiModels = [
     { name: "GPT-5.1", provider: "OpenAI", icon: Brain },
     { name: "Claude Opus 4.5", provider: "Anthropic", icon: Sparkles },
@@ -46,32 +43,18 @@ export function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6 px-4">
-              {isLocalMode ? (
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
-                  data-testid="button-get-started"
-                >
-                  <Link href="/dashboard">
-                    Enter App
+              <TemporaryLoginDialog
+                trigger={
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
+                    data-testid="button-get-started"
+                  >
+                    Start for Free
                     <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              ) : (
-                <TemporaryLoginDialog 
-                  trigger={
-                    <Button 
-                      size="lg" 
-                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-md shadow-lg transition-all duration-300"
-                      data-testid="button-get-started"
-                    >
-                      Login
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  }
-                />
-              )}
+                  </Button>
+                }
+              />
 
               <Button
                 asChild
@@ -266,7 +249,7 @@ export function Landing() {
                   className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-md shadow-lg transition-all duration-300"
                   data-testid="button-start-free-trial"
                 >
-                  Login
+                  Start for Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               }

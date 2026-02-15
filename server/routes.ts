@@ -63,7 +63,9 @@ import { registerClientErrorRoutes } from "./routes/clientErrors";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = process.env.NODE_ENV === 'production';
-  const enableTempAuth = process.env.ENABLE_TEMP_AUTH === 'true' && !isProduction;
+  // Local desktop mode requires quick-access login (name/email) in packaged production builds.
+  // In cloud mode, temp auth remains opt-in and non-production only.
+  const enableTempAuth = isLocalMode() || (process.env.ENABLE_TEMP_AUTH === 'true' && !isProduction);
 
   // 1. Fundamental defensive and observability stack (Priority 1)
   app.use(securityHeaders);
