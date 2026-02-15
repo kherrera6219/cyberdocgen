@@ -4,6 +4,7 @@ import path from 'path';
 import type { IDbConnection, IDbProvider, IDbTransaction } from '../interfaces';
 import { logger } from '../../utils/logger';
 import { createIntegrityEnvelope, type IntegrityEnvelope, verifyIntegrityEnvelope } from '../../utils/dataIntegrity';
+import { registerSqliteCompatibilityFunctions } from '../../utils/sqliteCompatibility';
 
 export interface SqliteDbStats {
   path: string;
@@ -117,6 +118,7 @@ export class SqliteDbProvider implements IDbProvider {
     db.pragma('cache_size = -64000');
     db.pragma('temp_store = MEMORY');
     db.pragma('foreign_keys = ON');
+    registerSqliteCompatibilityFunctions(db);
     logger.info('[SqliteDbProvider] Connection configured with WAL mode and performance settings');
   }
 

@@ -9,6 +9,7 @@ import fs from "fs";
 import { logger } from "./utils/logger";
 import { getRuntimeConfig, isLocalMode as runtimeIsLocalMode } from "./config/runtime";
 import { createIntegrityEnvelope, verifyIntegrityEnvelope, type IntegrityEnvelope } from "./utils/dataIntegrity";
+import { registerSqliteCompatibilityFunctions } from "./utils/sqliteCompatibility";
 
 neonConfig.webSocketConstructor = ws;
 
@@ -144,6 +145,7 @@ function configureLocalSqliteConnection(sqlite: BetterSqliteDatabase): void {
   sqlite.pragma('journal_mode = WAL');
   sqlite.pragma('synchronous = NORMAL');
   sqlite.pragma('foreign_keys = ON');
+  registerSqliteCompatibilityFunctions(sqlite);
 }
 
 function initializeLocalSqliteConnection(): void {
