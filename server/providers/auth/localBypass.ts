@@ -103,11 +103,35 @@ export function localAuthBypassMiddleware(
     return;
   }
 
+  const session = (req as any).session as Record<string, any> | undefined;
+  const sessionUserId =
+    typeof session?.userId === 'string' && session.userId.trim().length > 0
+      ? session.userId.trim()
+      : LOCAL_ADMIN_USER.id;
+  const sessionEmail =
+    typeof session?.tempUserEmail === 'string' && session.tempUserEmail.trim().length > 0
+      ? session.tempUserEmail.trim().toLowerCase()
+      : LOCAL_ADMIN_USER.email;
+  const sessionDisplayName =
+    typeof session?.tempUserName === 'string' ? session.tempUserName.trim() : '';
+  const [derivedFirstName, ...derivedLastNameParts] = sessionDisplayName
+    ? sessionDisplayName.split(/\s+/)
+    : [LOCAL_ADMIN_USER.firstName, LOCAL_ADMIN_USER.lastName];
+  const sessionOrganizationId =
+    typeof session?.organizationId === 'string' && session.organizationId.trim().length > 0
+      ? session.organizationId.trim()
+      : LOCAL_ADMIN_USER.organizationId;
+
   const syntheticUser = {
     ...LOCAL_ADMIN_USER,
+    id: sessionUserId,
+    email: sessionEmail,
+    firstName: derivedFirstName || LOCAL_ADMIN_USER.firstName,
+    lastName: derivedLastNameParts.join(' ') || LOCAL_ADMIN_USER.lastName,
+    organizationId: sessionOrganizationId,
     claims: {
-      sub: LOCAL_ADMIN_USER.id,
-      email: LOCAL_ADMIN_USER.email,
+      sub: sessionUserId,
+      email: sessionEmail,
     },
   };
 
@@ -116,10 +140,13 @@ export function localAuthBypassMiddleware(
   (req as any).tenant = LOCAL_TENANT;
 
   // Populate session for middleware/utilities that rely on session-based identity.
-  const session = (req as any).session;
   if (session) {
-    session.userId = LOCAL_ADMIN_USER.id;
-    session.organizationId = LOCAL_ADMIN_USER.organizationId;
+    if (!session.userId) {
+      session.userId = sessionUserId;
+    }
+    if (!session.organizationId) {
+      session.organizationId = sessionOrganizationId;
+    }
   }
   
   // Also set on req.isAuthenticated for Passport compatibility

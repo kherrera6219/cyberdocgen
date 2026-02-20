@@ -1352,14 +1352,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+    const normalizedUserData: UpsertUser = isLocalSqliteMode
+      ? {
+          ...userData,
+          // SQLite local mode stores JSON-like columns as TEXT in baseline schema.
+          // Keep nullable values here to avoid object binding failures.
+          profilePreferences: userData.profilePreferences ?? null,
+          notificationSettings: userData.notificationSettings ?? null,
+        }
+      : userData;
+    const nowValue = isLocalSqliteMode ? new Date().toISOString() : new Date();
+
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values(normalizedUserData as any)
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          ...userData,
-          updatedAt: new Date(),
+          ...(normalizedUserData as any),
+          updatedAt: nowValue,
         },
       })
       .returning();
