@@ -174,7 +174,8 @@ describe("RepoParserService", () => {
 
   it("rejects oversized uploads before any database writes", async () => {
     const oversized = {
-      length: 500 * 1024 * 1024 + 1,
+      filePath: "C:/tmp/oversized.zip",
+      fileSize: 500 * 1024 * 1024 + 1,
     } as any;
 
     await expect(
@@ -274,7 +275,7 @@ describe("RepoParserService", () => {
 
     zipState.entries = [createZipEntry("src/big.ts", { size: 2 * 1024 * 1024 * 1024 + 1 })];
     await expect(
-      (service as any).extractZipSecurely({ length: 30_000_000 } as any, "snapshot-1", "org-1"),
+      (service as any).extractZipSecurely({ filePath: "C:/tmp/repo.zip", fileSize: 30_000_000 } as any, "snapshot-1", "org-1"),
     ).rejects.toBeInstanceOf(ValidationError);
   });
 

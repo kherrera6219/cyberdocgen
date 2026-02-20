@@ -219,7 +219,9 @@ describe('EnterpriseAuthService', () => {
         id: 'user-id',
         email: 'test@example.com',
         passwordHash: 'hashed',
-        accountLockedUntil: null
+        accountLockedUntil: null,
+        accountStatus: 'active',
+        emailVerified: true,
       };
       vi.mocked(db.query.users.findFirst).mockResolvedValue(mockUser as any);
       vi.mocked(bcrypt.compare).mockResolvedValue(true as any);
@@ -233,7 +235,13 @@ describe('EnterpriseAuthService', () => {
     it('authenticates successfully with username', async () => {
       vi.mocked(db.query.users.findFirst)
         .mockResolvedValueOnce(null as any) // Exact match fails
-        .mockResolvedValueOnce({ id: 'user-id', email: 'user@cyberdocgen.com', passwordHash: 'h' } as any); // Username match succeeds
+        .mockResolvedValueOnce({
+          id: 'user-id',
+          email: 'user@cyberdocgen.com',
+          passwordHash: 'h',
+          accountStatus: 'active',
+          emailVerified: true,
+        } as any); // Username match succeeds
       
       vi.mocked(bcrypt.compare).mockResolvedValue(true as any);
 
@@ -247,6 +255,19 @@ describe('EnterpriseAuthService', () => {
       vi.mocked(bcrypt.compare).mockResolvedValue(false as any);
 
       await expect(authService.authenticateUser('u', 'p')).rejects.toThrow(UnauthorizedError);
+    });
+
+    it('throws UnauthorizedError for inactive or unverified account', async () => {
+      vi.mocked(db.query.users.findFirst).mockResolvedValue({
+        id: 'user-id',
+        email: 'test@example.com',
+        passwordHash: 'hashed',
+        accountStatus: 'pending_verification',
+        emailVerified: false,
+      } as any);
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as any);
+
+      await expect(authService.authenticateUser('test@example.com', 'password')).rejects.toThrow(UnauthorizedError);
     });
 
     it('throws RateLimitError if account is locked', async () => {

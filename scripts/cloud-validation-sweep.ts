@@ -106,20 +106,30 @@ function createReportDir(root: string): string {
   return reportDir;
 }
 
-function missingCloudEnvVars(): string[] {
-  const missing: string[] = [];
+function validateCloudEnvVars(): string[] {
+  const issues: string[] = [];
   const databaseUrl = process.env.DATABASE_URL;
   const sessionSecret = process.env.SESSION_SECRET;
+  const encryptionKey = process.env.ENCRYPTION_KEY;
+  const dataIntegritySecret = process.env.DATA_INTEGRITY_SECRET;
 
   if (!databaseUrl || databaseUrl.trim().length === 0) {
-    missing.push("DATABASE_URL");
+    issues.push("DATABASE_URL");
   }
 
-  if (!sessionSecret || sessionSecret.trim().length === 0) {
-    missing.push("SESSION_SECRET");
+  if (!sessionSecret || sessionSecret.trim().length < 32) {
+    issues.push("SESSION_SECRET (min 32 chars)");
   }
 
-  return missing;
+  if (!encryptionKey || !/^[a-fA-F0-9]{64}$/.test(encryptionKey.trim())) {
+    issues.push("ENCRYPTION_KEY (64-char hex)");
+  }
+
+  if (!dataIntegritySecret || dataIntegritySecret.trim().length < 32) {
+    issues.push("DATA_INTEGRITY_SECRET (min 32 chars)");
+  }
+
+  return issues;
 }
 
 async function waitForReady(baseUrl: string, timeoutMs: number): Promise<boolean> {
@@ -194,13 +204,13 @@ async function run(): Promise<void> {
   const reportJsonFile = path.join(reportDir, "report.json");
   const logs: string[] = [];
 
-  const missingVars = missingCloudEnvVars();
-  if (missingVars.length > 0) {
+  const envIssues = validateCloudEnvVars();
+  if (envIssues.length > 0) {
     const check: EndpointCheckResult = {
       name: "Cloud Environment Variables",
       status: options.strictEnv ? "failed" : "skipped",
-      expected: "DATABASE_URL and SESSION_SECRET are present",
-      actual: `Missing: ${missingVars.join(", ")}`,
+      expected: "DATABASE_URL, SESSION_SECRET, ENCRYPTION_KEY, and DATA_INTEGRITY_SECRET are production-valid",
+      actual: `Missing/invalid: ${envIssues.join(", ")}`,
     };
 
     const summary = summarizeChecks([check]);

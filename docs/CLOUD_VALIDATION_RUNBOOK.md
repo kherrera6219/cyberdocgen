@@ -1,13 +1,15 @@
 # Cloud Validation Runbook
 
-Last Updated: February 15, 2026
+Last Updated: February 20, 2026
 
 This runbook defines the repeatable cloud-mode validation process for production-like environments.
 
 ## Prerequisites
 
 - `DATABASE_URL` set to the target cloud database
-- `SESSION_SECRET` set to production-grade secret value
+- `SESSION_SECRET` set to a production-grade value (minimum 32 characters)
+- `ENCRYPTION_KEY` set to a 64-character hex key
+- `DATA_INTEGRITY_SECRET` set to a production-grade value (minimum 32 characters)
 - Network connectivity from runner/host to cloud dependencies
 
 ## Local Execution
@@ -20,7 +22,7 @@ npm run cloud:validate -- --timeout-ms=60000
 
 This performs:
 
-1. strict environment validation (`DATABASE_URL`, `SESSION_SECRET`)
+1. strict environment validation (`DATABASE_URL`, `SESSION_SECRET`, `ENCRYPTION_KEY`, `DATA_INTEGRITY_SECRET`)
 2. cloud-mode startup readiness checks (`/live`, `/ready`)
 3. core endpoint checks (`/health`, `/api/ai/health`)
 4. cloud/local mode boundary check (`/api/local/api-keys/configured` not publicly available)
@@ -43,6 +45,8 @@ Trigger manually with `workflow_dispatch` and ensure repository secrets include:
 
 - `DATABASE_URL`
 - `SESSION_SECRET`
+- `ENCRYPTION_KEY`
+- `DATA_INTEGRITY_SECRET`
 
 Artifact output:
 

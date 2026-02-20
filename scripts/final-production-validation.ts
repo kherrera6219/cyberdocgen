@@ -23,7 +23,7 @@ async function validateEnvironment(): Promise<ValidationResult> {
   const checks = [];
   
   // Critical environment variables
-  const criticalVars = ['DATABASE_URL', 'SESSION_SECRET', 'ENCRYPTION_KEY'];
+  const criticalVars = ['DATABASE_URL', 'SESSION_SECRET', 'ENCRYPTION_KEY', 'DATA_INTEGRITY_SECRET'];
   const envMap = new Map(Object.entries(process.env));
   for (const varName of criticalVars) {
     if (envMap.get(varName)) {
@@ -73,6 +73,23 @@ async function validateEnvironment(): Promise<ValidationResult> {
       name: 'Session Secret Strength',
       status: 'fail',
       message: 'Session secret too weak (minimum 32 characters)',
+      critical: true
+    });
+  }
+
+  // Data integrity secret validation
+  if (process.env.DATA_INTEGRITY_SECRET && process.env.DATA_INTEGRITY_SECRET.length >= 32) {
+    checks.push({
+      name: 'Data Integrity Secret Strength',
+      status: 'pass',
+      message: 'Data integrity secret meets minimum length requirements',
+      critical: true
+    });
+  } else {
+    checks.push({
+      name: 'Data Integrity Secret Strength',
+      status: 'fail',
+      message: 'Data integrity secret too weak (minimum 32 characters)',
       critical: true
     });
   }

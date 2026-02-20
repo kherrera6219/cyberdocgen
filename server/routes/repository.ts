@@ -20,6 +20,10 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
+import fs from 'fs/promises';
+import os from 'os';
+import path from 'path';
+import crypto from 'crypto';
 import { db } from '../db';
 import { repositoryAnalysisRuns, repositorySnapshots, repositoryTasks } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
@@ -47,11 +51,24 @@ function requireOrganizationContext(req: MultiTenantRequest): string {
   return req.organizationId;
 }
 
-// Configure multer for file uploads (memory storage for security)
+// Configure multer for file uploads using disk storage to avoid large in-memory buffers.
+const MAX_REPOSITORY_UPLOAD_SIZE = 200 * 1024 * 1024; // 200MB
+const uploadTempDir = path.join(os.tmpdir(), 'cyberdocgen', 'repository-uploads');
+
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      fs.mkdir(uploadTempDir, { recursive: true })
+        .then(() => cb(null, uploadTempDir))
+        .catch((error) => cb(error as Error, uploadTempDir));
+    },
+    filename: (_req, file, cb) => {
+      const extension = path.extname(file.originalname).toLowerCase() || '.zip';
+      cb(null, `${Date.now()}-${crypto.randomUUID()}${extension}`);
+    },
+  }),
   limits: {
-    fileSize: 500 * 1024 * 1024, // 500MB
+    fileSize: MAX_REPOSITORY_UPLOAD_SIZE,
   },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype === 'application/zip' || file.originalname.endsWith('.zip')) {
@@ -110,34 +127,40 @@ router.post(
       throw new ForbiddenError('Cross-organization snapshot upload is not allowed', 'CROSS_TENANT_ACCESS');
     }
 
-    // Upload and extract
-    const result = await repoParserService.uploadAndExtract(
-      file.buffer,
-      file.originalname,
-      organizationId,
-      companyProfileId,
-      userId,
-      name
-    );
+    const uploadedFilePath = file.path;
+    try {
+      // Upload and extract
+      const result = await repoParserService.uploadAndExtract(
+        { filePath: uploadedFilePath, fileSize: file.size },
+        file.originalname,
+        organizationId,
+        companyProfileId,
+        userId,
+        name
+      );
 
-    // Generate manifest
-    const manifest = await repoParserService.generateManifest(
-      result.snapshotId,
-      result.extractedPath
-    );
+      // Generate manifest
+      const manifest = await repoParserService.generateManifest(
+        result.snapshotId,
+        result.extractedPath
+      );
 
-    // Detect technologies
-    await repoParserService.detectTechnologies(result.snapshotId, manifest.files);
+      // Detect technologies
+      await repoParserService.detectTechnologies(result.snapshotId, manifest.files);
 
-    // Index files into database
-    await repoParserService.indexFiles(result.snapshotId, manifest.files);
+      // Index files into database
+      await repoParserService.indexFiles(result.snapshotId, manifest.files);
 
-    res.status(201).json(createSuccessResponse({
-      snapshotId: result.snapshotId,
-      extractedPath: result.extractedPath,
-      fileCount: result.fileCount,
-      manifestHash: manifest.manifestHash,
-    }, req.requestId));
+      res.status(201).json(createSuccessResponse({
+        snapshotId: result.snapshotId,
+        extractedPath: result.extractedPath,
+        fileCount: result.fileCount,
+        manifestHash: manifest.manifestHash,
+      }, req.requestId));
+    } finally {
+      // Best-effort cleanup of uploaded archive from temp storage.
+      await fs.unlink(uploadedFilePath).catch(() => undefined);
+    }
   }, {
     audit: {
       action: 'create',

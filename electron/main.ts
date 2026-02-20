@@ -88,20 +88,62 @@ function saveWindowState(state: WindowState): void {
  * Path validation to prevent directory traversal attacks
  */
 function isPathSafe(requestedPath: string): boolean {
-  try {
-    if (typeof requestedPath !== 'string' || requestedPath.trim().length === 0) {
-      return false;
-    }
-
-    const resolved = path.resolve(requestedPath);
-    const allowed = path.resolve(app.getPath('userData'));
-    const relative = path.relative(allowed, resolved);
-
-    // Prevent prefix-bypass paths like "...\\CyberDocGen2\\..."
-    return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
-  } catch {
+  if (typeof requestedPath !== 'string' || requestedPath.trim().length === 0) {
     return false;
   }
+
+  const resolved = path.resolve(requestedPath);
+  const allowed = path.resolve(app.getPath('userData'));
+  const relative = path.relative(allowed, resolved);
+
+  // Prevent prefix-bypass paths like "...\\CyberDocGen2\\..."
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function isPathWithinRoot(rootPath: string, targetPath: string): boolean {
+  const relative = path.relative(rootPath, targetPath);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+async function resolveSafePath(requestedPath: string): Promise<string> {
+  if (!isPathSafe(requestedPath)) {
+    throw new Error('Invalid file path: access denied');
+  }
+
+  const allowedRoot = path.resolve(app.getPath('userData'));
+  const resolvedPath = path.resolve(requestedPath);
+  const existingPath = fs.existsSync(resolvedPath) ? resolvedPath : path.dirname(resolvedPath);
+
+  let canonicalExistingPath: string;
+  try {
+    canonicalExistingPath = await fs.promises.realpath(existingPath);
+  } catch {
+    throw new Error('Invalid file path: target directory does not exist');
+  }
+
+  if (!isPathWithinRoot(allowedRoot, canonicalExistingPath)) {
+    throw new Error('Invalid file path: symbolic link escapes allowed directory');
+  }
+
+  const relativePath = path.relative(allowedRoot, resolvedPath);
+  let currentPath = allowedRoot;
+  for (const segment of relativePath.split(path.sep).filter(Boolean)) {
+    currentPath = path.join(currentPath, segment);
+    try {
+      const entryStats = await fs.promises.lstat(currentPath);
+      if (entryStats.isSymbolicLink()) {
+        throw new Error('Invalid file path: symbolic links are not allowed');
+      }
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT') {
+        break;
+      }
+      throw error;
+    }
+  }
+
+  return resolvedPath;
 }
 
 function ensureTrustedIpcSender(event: IpcMainInvokeEvent): void {
@@ -610,19 +652,15 @@ function setupIpcHandlers() {
   // Read file with path validation
   ipcMain.handle('read-file', async (event, filePath: string) => {
     ensureTrustedIpcSender(event);
-    if (!isPathSafe(filePath)) {
-      throw new Error('Invalid file path: access denied');
-    }
-    return fs.promises.readFile(filePath, 'utf8');
+    const safePath = await resolveSafePath(filePath);
+    return fs.promises.readFile(safePath, 'utf8');
   });
 
   // Write file with path validation
   ipcMain.handle('write-file', async (event, filePath: string, data: string) => {
     ensureTrustedIpcSender(event);
-    if (!isPathSafe(filePath)) {
-      throw new Error('Invalid file path: access denied');
-    }
-    return fs.promises.writeFile(filePath, data, 'utf8');
+    const safePath = await resolveSafePath(filePath);
+    return fs.promises.writeFile(safePath, data, 'utf8');
   });
 
   // Get app info

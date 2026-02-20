@@ -31,6 +31,8 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          DATA_INTEGRITY_SECRET: ${{ secrets.DATA_INTEGRITY_SECRET }}
         run: npm run cloud:validate -- --timeout-ms=${{ inputs.timeout_ms }}
 
       - name: Upload cloud validation reports

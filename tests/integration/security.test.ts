@@ -21,6 +21,11 @@ vi.mock('../../server/services/performanceService', () => ({
   }
 }));
 
+const isLocalModeMock = vi.hoisted(() => vi.fn(() => false));
+vi.mock('../../server/config/runtime', () => ({
+  isLocalMode: isLocalModeMock,
+}));
+
 import express from 'express';
 import request from 'supertest';
 import cookieParser from 'cookie-parser';
@@ -31,7 +36,7 @@ import {
   threatDetection, 
   errorHandler,
   requestLogger,
-  generateCsrfToken
+  requireMFAForHighRisk
 } from '../../server/middleware/security';
 import { ForbiddenError } from '../../server/utils/errorHandling';
 
@@ -43,6 +48,7 @@ describe('Security Middleware', () => {
   let app: express.Express;
 
   beforeEach(() => {
+    isLocalModeMock.mockReturnValue(false);
     app = express();
     app.use(express.json());
     app.use(cookieParser());
@@ -200,6 +206,54 @@ describe('Security Middleware', () => {
 
       await request(app).get('/test');
       expect(logger.info).toHaveBeenCalled();
+    });
+  });
+
+  describe('requireMFAForHighRisk', () => {
+    it('accepts high-risk requests with recent session MFA verification', () => {
+      const req: any = {
+        path: '/api/admin/users',
+        session: {
+          userId: 'enterprise-user',
+          mfaVerified: true,
+          mfaVerifiedAt: new Date().toISOString(),
+        },
+      };
+      const res: any = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      };
+      const next = vi.fn();
+
+      requireMFAForHighRisk(req, res, next);
+
+      expect(next).toHaveBeenCalledWith();
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('blocks high-risk requests when MFA verification is stale', () => {
+      const req: any = {
+        path: '/api/admin/users',
+        session: {
+          userId: 'enterprise-user',
+          mfaVerified: true,
+          mfaVerifiedAt: new Date(Date.now() - (31 * 60 * 1000)).toISOString(),
+        },
+      };
+      const res: any = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn(),
+      };
+      const next = vi.fn();
+
+      requireMFAForHighRisk(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: false,
+        error: expect.objectContaining({ code: 'MFA_VERIFICATION_EXPIRED' }),
+      }));
     });
   });
 });

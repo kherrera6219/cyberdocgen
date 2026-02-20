@@ -6,6 +6,36 @@
 
 ---
 
+## 2026-02-20 Security Remediation Update
+
+This section supersedes prior open security concerns from the production code review completed on February 20, 2026.
+
+### Resolved in Code
+- Storage access is now organization-scoped and enforces ownership checks for document operations (`server/routes/storage.ts`, `server/services/objectStorageService.ts`).
+- High-risk MFA middleware supports session-based enterprise auth in addition to token claims (`server/middleware/security.ts`).
+- Mutating client requests now send CSRF headers and credentials for repository, MFA setup, and contact workflows (`client/src/hooks/useRepositoryAPI.ts`, `client/src/pages/mfa-setup.tsx`, `client/src/pages/contact.tsx`, `client/src/lib/queryClient.ts`).
+- Request content-type validation now permits secure multipart and urlencoded submissions for mutating routes (`server/middleware/security.ts`).
+- Enterprise auth rejects inactive or unverified accounts at login (`server/services/enterpriseAuthService.ts`).
+- Audit logging now captures actor/session identity for both token and session-authenticated requests (`server/services/auditService.ts`).
+- Cloud runtime no longer falls back to localhost `BASE_URL` in production-cloud mode (`server/config/runtime.ts`).
+- Removed forced trust-proxy override from auth bootstrap to avoid misconfiguration in non-proxy deployments (`server/replitAuth.ts`).
+- Upload pipeline moved from in-memory buffers to temporary disk storage with cleanup and a 200 MB max size to reduce memory-exhaustion risk (`server/routes/repository.ts`, `server/services/repoParserService.ts`).
+- Electron file read/write IPC now resolves canonical paths and rejects symlinks to prevent traversal and link-based escapes (`electron/main.ts`).
+
+### Deployment and Validation Documentation Updates
+- Cloud validation workflow and production compose config now require `ENCRYPTION_KEY` and `DATA_INTEGRITY_SECRET` (`.github/workflows/cloud-validation.yml`, `docker-compose.prod.yml`).
+- Validation scripts enforce strict checks for `DATABASE_URL`, `SESSION_SECRET`, `ENCRYPTION_KEY`, and `DATA_INTEGRITY_SECRET` (`scripts/cloud-validation-sweep.ts`, `scripts/final-production-validation.ts`, `scripts/production-deployment-check.ts`).
+- Runbook and scripts documentation updated to reflect required secrets (`docs/CLOUD_VALIDATION_RUNBOOK.md`, `scripts/README.md`).
+
+### Verification Evidence (2026-02-20)
+- `npm run check`: passed.
+- Targeted security and regression suite: 111 tests passed (storage routes, auth/session, CSRF, MFA pages/hooks, repository upload/parser pipeline, security integration coverage).
+
+### Remaining Risk Notes
+- Local runtime artifacts under `local-data/` are environment-specific and should remain excluded from production commits/releases.
+
+---
+
 ## Executive Summary
 
 The application demonstrates **enterprise-grade security** with comprehensive protection mechanisms across all layers. All critical security requirements for production deployment are met or exceeded.

@@ -155,14 +155,20 @@ export class AuditService {
     resourceId?: string,
     additionalContext?: Record<string, any>
   ): Promise<void> {
+    const session = req.session as Record<string, any> | undefined;
+    const user = (req as any).user;
+    const userId = session?.userId || user?.claims?.sub || user?.id;
+    const organizationId = session?.organizationId || user?.organizationId || (req as any).organizationId;
+
     const entry: AuditLogEntry = {
-      userId: (req as any).user?.id,
-      organizationId: (req as any).user?.organizationId || (req as any).organizationId,
+      userId,
+      organizationId,
       action,
       resourceType,
       resourceId,
       ipAddress: req.ip || 'unknown',
       userAgent: req.get('User-Agent'),
+      sessionId: req.sessionID,
       riskLevel: this.calculateRiskLevel(action, resourceType),
       additionalContext
     };

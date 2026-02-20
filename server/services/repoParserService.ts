@@ -13,6 +13,7 @@
 
 import path from 'path';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import crypto from 'crypto';
 import AdmZip from 'adm-zip';
 import { logger } from '../utils/logger';
@@ -27,7 +28,7 @@ import {
 } from '@shared/schema';
 
 // Security limits
-const MAX_UPLOAD_SIZE = 500 * 1024 * 1024; // 500MB
+const MAX_UPLOAD_SIZE = 200 * 1024 * 1024; // 200MB
 const MAX_EXTRACTED_SIZE = 2 * 1024 * 1024 * 1024; // 2GB uncompressed
 const MAX_FILE_COUNT = 50000; // Prevent excessive file operations
 const MAX_PATH_LENGTH = 4096; // Prevent excessively long paths
@@ -70,6 +71,8 @@ interface TechnologyDetection {
   infraTools: string[];
 }
 
+type ZipInput = Buffer | { filePath: string; fileSize: number };
+
 interface FileManifest {
   snapshotId: string;
   files: Array<{
@@ -100,7 +103,7 @@ export class RepoParserService {
    * Upload and extract a repository ZIP file
    */
   async uploadAndExtract(
-    zipBuffer: Buffer,
+    zipInput: ZipInput,
     fileName: string,
     organizationId: string,
     companyProfileId: string,
@@ -108,11 +111,13 @@ export class RepoParserService {
     snapshotName: string
   ): Promise<{ snapshotId: string; extractedPath: string; fileCount: number }> {
     try {
+      const fileSize = this.getZipInputSize(zipInput);
+
       // Security: validate file size
-      if (zipBuffer.length > MAX_UPLOAD_SIZE) {
+      if (fileSize > MAX_UPLOAD_SIZE) {
         throw new ValidationError(
           `File size exceeds maximum allowed size of ${MAX_UPLOAD_SIZE / 1024 / 1024}MB`,
-          { size: zipBuffer.length, maxSize: MAX_UPLOAD_SIZE }
+          { size: fileSize, maxSize: MAX_UPLOAD_SIZE }
         );
       }
 
@@ -123,7 +128,7 @@ export class RepoParserService {
       }
 
       // Calculate file hash before extraction
-      const fileHash = this.calculateHash(zipBuffer);
+      const fileHash = await this.calculateZipInputHash(zipInput);
 
       // Create database record with "extracting" status
       const [snapshot] = await db.insert(repositorySnapshots).values({
@@ -153,16 +158,17 @@ export class RepoParserService {
         ipAddress: 'system',
         metadata: {
           fileName,
-          fileSize: zipBuffer.length,
+          fileSize,
           fileHash,
         },
       });
 
       // Extract to secure location
       const extractionResult = await this.extractZipSecurely(
-        zipBuffer,
+        zipInput,
         snapshot.id,
-        organizationId
+        organizationId,
+        fileHash
       );
 
       // Update snapshot with extraction details
@@ -202,14 +208,17 @@ export class RepoParserService {
    * Extract ZIP file securely with comprehensive security checks
    */
   private async extractZipSecurely(
-    zipBuffer: Buffer,
+    zipInput: ZipInput,
     snapshotId: string,
-    organizationId: string
+    organizationId: string,
+    fileHash: string = ''
   ): Promise<ExtractionResult> {
     let zip: AdmZip;
     
     try {
-      zip = new AdmZip(zipBuffer);
+      zip = Buffer.isBuffer(zipInput)
+        ? new AdmZip(zipInput)
+        : new AdmZip(zipInput.filePath);
     } catch (error) {
       throw new ValidationError('Invalid or corrupted ZIP file', {
         error: error instanceof Error ? error.message : String(error),
@@ -227,7 +236,7 @@ export class RepoParserService {
     }
 
     // Security: check compression ratio (zip bomb detection)
-    const compressedSize = zipBuffer.length;
+    const compressedSize = this.getZipInputSize(zipInput);
     let uncompressedSize = 0;
     
     for (const entry of entries) {
@@ -310,9 +319,7 @@ export class RepoParserService {
     }
 
     // Make entire directory read-only
-    await this.makeDirectoryReadOnly(extractPath);
-
-    const fileHash = this.calculateHash(zipBuffer);
+      await this.makeDirectoryReadOnly(extractPath);
 
     logger.info('ZIP extraction completed securely', {
       snapshotId,
@@ -625,6 +632,27 @@ export class RepoParserService {
    */
   private calculateHash(buffer: Buffer): string {
     return crypto.createHash('sha256').update(buffer).digest('hex');
+  }
+
+  private getZipInputSize(zipInput: ZipInput): number {
+    return Buffer.isBuffer(zipInput) ? zipInput.length : zipInput.fileSize;
+  }
+
+  private async calculateZipInputHash(zipInput: ZipInput): Promise<string> {
+    if (Buffer.isBuffer(zipInput)) {
+      return this.calculateHash(zipInput);
+    }
+
+    return new Promise<string>((resolve, reject) => {
+      const hash = crypto.createHash('sha256');
+      const stream = fsSync.createReadStream(zipInput.filePath);
+
+      stream.on('data', (chunk) => {
+        hash.update(chunk);
+      });
+      stream.on('end', () => resolve(hash.digest('hex')));
+      stream.on('error', reject);
+    });
   }
 
   /**

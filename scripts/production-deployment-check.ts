@@ -17,7 +17,7 @@ interface DeploymentCheck {
 }
 
 async function checkEnvironmentVariables(): Promise<DeploymentCheck> {
-  const required = ['DATABASE_URL', 'SESSION_SECRET', 'ENCRYPTION_KEY'];
+  const required = ['DATABASE_URL', 'SESSION_SECRET', 'ENCRYPTION_KEY', 'DATA_INTEGRITY_SECRET'];
   const envMap = new Map(Object.entries(process.env));
   const missing = required.filter(key => !envMap.get(key));
 
@@ -117,7 +117,8 @@ async function checkSecurityConfiguration(): Promise<DeploymentCheck> {
   const checks = [
     process.env.NODE_ENV === 'production',
     process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 32,
-    process.env.ENCRYPTION_KEY && process.env.ENCRYPTION_KEY.length === 64
+    process.env.ENCRYPTION_KEY && process.env.ENCRYPTION_KEY.length === 64,
+    process.env.DATA_INTEGRITY_SECRET && process.env.DATA_INTEGRITY_SECRET.length >= 32
   ];
 
   const passedChecks = checks.filter(Boolean).length;

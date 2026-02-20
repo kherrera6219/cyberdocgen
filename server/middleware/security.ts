@@ -323,14 +323,22 @@ export function sanitizeInput(req: Request, res: Response, next: NextFunction) {
 
 // Request validation middleware
 export function validateRequest(req: Request, res: Response, next: NextFunction) {
-  // Check Content-Type for POST/PUT requests
+  // Check Content-Type for state-changing requests.
+  // Allow JSON, multipart uploads, and URL-encoded forms.
   if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-    if (!req.is('application/json')) {
+    const hasContentType = typeof req.headers['content-type'] === 'string';
+    const isAllowedContentType =
+      req.is('application/json')
+      || req.is('application/*+json')
+      || req.is('multipart/form-data')
+      || req.is('application/x-www-form-urlencoded');
+
+    if (hasContentType && !isAllowedContentType) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'INVALID_CONTENT_TYPE',
-          message: "Content-Type must be application/json"
+          message: 'Content-Type must be JSON, multipart/form-data, or application/x-www-form-urlencoded'
         }
       });
     }
@@ -636,6 +644,7 @@ export function requireMFA(req: Request, res: Response, next: NextFunction) {
 // High-risk operation middleware
 export function requireMFAForHighRisk(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
+  const session = req.session as SessionWithCsrf | undefined;
   if (isLocalMode()) {
     return next();
   }
@@ -652,13 +661,17 @@ export function requireMFAForHighRisk(req: Request, res: Response, next: NextFun
   const isHighRisk = highRiskOperations.some(path => normalizedPath.startsWith(path));
 
   // Let downstream auth middleware handle unauthenticated requests with 401.
-  if (!isHighRisk || !user) {
+  const sessionUserId = typeof session?.userId === 'string' ? session.userId : undefined;
+  const userId = sessionUserId || user?.claims?.sub || user?.id;
+  if (!isHighRisk || !userId) {
     return next();
   }
 
-  const mfaVerifiedAt = user.mfaVerifiedAt ? Date.parse(String(user.mfaVerifiedAt)) : NaN;
+  const mfaVerified = session?.mfaVerified === true || user?.mfaVerified === true;
+  const rawVerifiedAt = session?.mfaVerifiedAt || user?.mfaVerifiedAt;
+  const mfaVerifiedAt = rawVerifiedAt ? Date.parse(String(rawVerifiedAt)) : NaN;
   const hasRecentMfa =
-    user.mfaVerified === true
+    mfaVerified
     && Number.isFinite(mfaVerifiedAt)
     && (Date.now() - mfaVerifiedAt) <= 30 * 60 * 1000;
 

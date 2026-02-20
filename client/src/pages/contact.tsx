@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Shield, Mail, MapPin, MessageSquare, Send, Clock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
+import { getCsrfTokenFromCookie } from "@/lib/queryClient";
 
 export default function Contact() {
   const { toast } = useToast();
@@ -32,9 +33,16 @@ export default function Contact() {
     };
     
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const csrfToken = getCsrfTokenFromCookie();
+      if (csrfToken) {
+        headers["X-CSRF-Token"] = csrfToken;
+      }
+
       const response = await fetch("/api/contact-messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
+        credentials: "include",
         body: JSON.stringify(data),
       });
       

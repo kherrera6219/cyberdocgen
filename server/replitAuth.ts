@@ -138,7 +138,6 @@ async function upsertUser(claims: ReplitUser['claims']) {
 const registeredStrategies = new Set<string>();
 
 export async function setupAuth(app: Express) {
-  app.set("trust proxy", 1);
   // Note: Session middleware is now initialized in server/index.ts BEFORE CSRF protection
   // This ensures CSRF has access to session for token storage
   // app.use(getSession()); - Moved to server/index.ts

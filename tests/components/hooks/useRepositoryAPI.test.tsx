@@ -68,8 +68,16 @@ describe("useRepositoryAPI hooks", () => {
 
     const disabledCtx = createWrapper();
     renderHook(() => useRepository(""), { wrapper: disabledCtx.wrapper });
-    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/repository");
-    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/repository/repo-1");
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/repository",
+      expect.objectContaining({ credentials: "include" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/repository/repo-1",
+      expect.objectContaining({ credentials: "include" }),
+    );
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -153,7 +161,11 @@ describe("useRepositoryAPI hooks", () => {
         method: "POST",
       }),
     );
-    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/repository/snap-1/analysis");
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/repository/snap-1/analysis",
+      expect.objectContaining({ credentials: "include" }),
+    );
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 

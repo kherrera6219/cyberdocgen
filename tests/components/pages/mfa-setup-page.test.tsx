@@ -105,10 +105,10 @@ describe("MFA setup page flows", () => {
     const clickMock = vi.fn();
     const originalCreateElement = document.createElement.bind(document);
 
-    vi.stubGlobal("URL", {
-      createObjectURL: createObjectURLMock,
-      revokeObjectURL: revokeObjectURLMock,
-    });
+    class URLWithBlobHelpers extends URL {}
+    (URLWithBlobHelpers as unknown as { createObjectURL: typeof createObjectURLMock }).createObjectURL = createObjectURLMock;
+    (URLWithBlobHelpers as unknown as { revokeObjectURL: typeof revokeObjectURLMock }).revokeObjectURL = revokeObjectURLMock;
+    vi.stubGlobal("URL", URLWithBlobHelpers as unknown as typeof URL);
 
     vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
       if (tagName.toLowerCase() === "a") {

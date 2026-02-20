@@ -140,7 +140,10 @@ describe("repository routes", () => {
     expect(uploadOk.body.success).toBe(true);
     expect(uploadOk.body.data.snapshotId).toBe(snapshotId);
     expect(uploadAndExtractMock).toHaveBeenCalledWith(
-      expect.any(Buffer),
+      expect.objectContaining({
+        filePath: expect.any(String),
+        fileSize: expect.any(Number),
+      }),
       "repo.zip",
       orgId,
       profileId,

@@ -149,7 +149,7 @@ npm run compliance:validate
 Validates cloud runtime readiness with strict environment checks and endpoint probes.
 
 **Purpose:**
-- Ensures required cloud env vars exist (`DATABASE_URL`, `SESSION_SECRET`)
+- Ensures required cloud env vars exist (`DATABASE_URL`, `SESSION_SECRET`, `ENCRYPTION_KEY`, `DATA_INTEGRITY_SECRET`)
 - Boots the app in cloud mode and waits for readiness
 - Validates key runtime endpoints (`/health`, `/api/ai/health`)
 - Verifies local-only API gating behavior in cloud mode

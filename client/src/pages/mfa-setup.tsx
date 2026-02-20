@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { logger } from '../utils/logger';
 import { useToast } from '../hooks/use-toast';
+import { getCsrfTokenFromCookie } from '../lib/queryClient';
 
 interface MFAStatus {
   enabled: boolean;
@@ -46,15 +47,32 @@ export default function MFASetupPage() {
   const [success, setSuccess] = useState('');
   const [activeStep, setActiveStep] = useState<'status' | 'totp-setup' | 'sms-setup' | 'backup-codes'>('status');
 
+  const withSessionAndCsrf = (init: RequestInit = {}): RequestInit => {
+    const method = (init.method || 'GET').toUpperCase();
+    const headers: Record<string, string> = {
+      ...((init.headers as Record<string, string> | undefined) || {}),
+    };
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+      const csrfToken = getCsrfTokenFromCookie();
+      if (csrfToken) {
+        headers['X-CSRF-Token'] = csrfToken;
+      }
+    }
+
+    return {
+      ...init,
+      credentials: 'include',
+      headers,
+    };
+  };
+
   useEffect(() => {
     loadMFAStatus();
   }, []);
 
   const loadMFAStatus = async () => {
     try {
-      const response = await fetch('/api/auth/mfa/status', {
-        credentials: 'include'
-      });
+      const response = await fetch('/api/auth/mfa/status', withSessionAndCsrf());
       if (response.ok) {
         const data = await response.json();
         setStatus(data);
@@ -69,10 +87,9 @@ export default function MFASetupPage() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/mfa/setup/totp', {
+      const response = await fetch('/api/auth/mfa/setup/totp', withSessionAndCsrf({
         method: 'POST',
-        credentials: 'include'
-      });
+      }));
       
       if (response.ok) {
         const data = await response.json();
@@ -96,12 +113,11 @@ export default function MFASetupPage() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/mfa/verify/totp', {
+      const response = await fetch('/api/auth/mfa/verify/totp', withSessionAndCsrf({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ token: verificationCode })
-      });
+      }));
       
       if (response.ok) {
         setSuccess('TOTP authentication enabled successfully!');
@@ -126,12 +142,11 @@ export default function MFASetupPage() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/mfa/setup/sms', {
+      const response = await fetch('/api/auth/mfa/setup/sms', withSessionAndCsrf({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ phoneNumber })
-      });
+      }));
       
       if (response.ok) {
         setSuccess('SMS verification code sent!');
@@ -154,12 +169,11 @@ export default function MFASetupPage() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/mfa/verify/sms', {
+      const response = await fetch('/api/auth/mfa/verify/sms', withSessionAndCsrf({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ code: verificationCode })
-      });
+      }));
       
       if (response.ok) {
         setSuccess('SMS authentication enabled successfully!');
@@ -182,10 +196,9 @@ export default function MFASetupPage() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/mfa/backup-codes', {
+      const response = await fetch('/api/auth/mfa/backup-codes', withSessionAndCsrf({
         method: 'POST',
-        credentials: 'include'
-      });
+      }));
       
       if (response.ok) {
         const data = await response.json();

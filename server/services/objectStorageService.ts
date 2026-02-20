@@ -70,6 +70,27 @@ class GoogleCloudStorageService {
     }
     return this.bucket;
   }
+
+  private getOrganizationPrefix(organizationId?: string): string | null {
+    return organizationId ? `organizations/${organizationId}` : null;
+  }
+
+  private buildScopedPath(basePath: string, organizationId?: string): string {
+    const organizationPrefix = this.getOrganizationPrefix(organizationId);
+    return organizationPrefix ? `${organizationPrefix}/${basePath}` : basePath;
+  }
+
+  private stripOrganizationPrefix(path: string, organizationId?: string): string {
+    const organizationPrefix = this.getOrganizationPrefix(organizationId);
+    if (!organizationPrefix) {
+      return path;
+    }
+
+    const prefixWithSlash = `${organizationPrefix}/`;
+    return path.startsWith(prefixWithSlash)
+      ? path.slice(prefixWithSlash.length)
+      : path;
+  }
   
   private async upload(path: string, data: string | Buffer): Promise<UploadResult> {
     const bucket = await this.ensureClient();
@@ -103,8 +124,8 @@ class GoogleCloudStorageService {
     }
   }
 
-  async uploadDocument(documentId: string, content: any): Promise<UploadResult> {
-    const filename = `documents/${documentId}.json`;
+  async uploadDocument(documentId: string, content: any, organizationId?: string): Promise<UploadResult> {
+    const filename = this.buildScopedPath(`documents/${documentId}.json`, organizationId);
     return this.upload(filename, JSON.stringify(content, null, 2));
   }
 
@@ -113,13 +134,13 @@ class GoogleCloudStorageService {
     return this.upload(fullPath, data);
   }
 
-  async uploadCompanyProfile(profileId: string, profileData: any): Promise<UploadResult> {
-    const filename = `profiles/${profileId}.json`;
+  async uploadCompanyProfile(profileId: string, profileData: any, organizationId?: string): Promise<UploadResult> {
+    const filename = this.buildScopedPath(`profiles/${profileId}.json`, organizationId);
     return this.upload(filename, JSON.stringify(profileData, null, 2));
   }
   
-  async downloadDocument(documentId: string): Promise<DownloadResult> {
-    const filename = `documents/${documentId}.json`;
+  async downloadDocument(documentId: string, organizationId?: string): Promise<DownloadResult> {
+    const filename = this.buildScopedPath(`documents/${documentId}.json`, organizationId);
     const result = await this.download(filename);
     if (result.success && result.data) {
       try {
@@ -135,8 +156,8 @@ class GoogleCloudStorageService {
     return this.download(path);
   }
 
-  async downloadCompanyProfile(profileId: string): Promise<DownloadResult> {
-    const filename = `profiles/${profileId}.json`;
+  async downloadCompanyProfile(profileId: string, organizationId?: string): Promise<DownloadResult> {
+    const filename = this.buildScopedPath(`profiles/${profileId}.json`, organizationId);
     const result = await this.download(filename);
     if (result.success && result.data) {
       try {
@@ -201,23 +222,23 @@ class GoogleCloudStorageService {
     }
   }
 
-  async deleteDocument(documentId: string): Promise<UploadResult> {
-    const filename = `documents/${documentId}.json`;
+  async deleteDocument(documentId: string, organizationId?: string): Promise<UploadResult> {
+    const filename = this.buildScopedPath(`documents/${documentId}.json`, organizationId);
     return this.deleteObject(filename);
   }
 
-  async deleteCompanyProfile(profileId: string): Promise<UploadResult> {
-    const filename = `profiles/${profileId}.json`;
+  async deleteCompanyProfile(profileId: string, organizationId?: string): Promise<UploadResult> {
+    const filename = this.buildScopedPath(`profiles/${profileId}.json`, organizationId);
     return this.deleteObject(filename);
   }
   
-  async uploadBackup(backupId: string, data: any): Promise<UploadResult> {
-    const filename = `backups/${backupId}.json`;
+  async uploadBackup(backupId: string, data: any, organizationId?: string): Promise<UploadResult> {
+    const filename = this.buildScopedPath(`backups/${backupId}.json`, organizationId);
     return this.upload(filename, JSON.stringify(data, null, 2));
   }
 
-  async downloadBackup(backupId: string): Promise<DownloadResult> {
-    const filename = `backups/${backupId}.json`;
+  async downloadBackup(backupId: string, organizationId?: string): Promise<DownloadResult> {
+    const filename = this.buildScopedPath(`backups/${backupId}.json`, organizationId);
     const result = await this.download(filename);
     if (result.success && result.data) {
       try {
@@ -229,18 +250,20 @@ class GoogleCloudStorageService {
     return result;
   }
   
-  async uploadAuditLogs(logId: string, logs: any[]): Promise<UploadResult> {
-    const filename = `audit-logs/${logId}.json`;
+  async uploadAuditLogs(logId: string, logs: any[], organizationId?: string): Promise<UploadResult> {
+    const filename = this.buildScopedPath(`audit-logs/${logId}.json`, organizationId);
     return this.upload(filename, JSON.stringify(logs, null, 2));
   }
 
-  async getStorageStats(): Promise<DownloadResult> {
+  async getStorageStats(organizationId?: string): Promise<DownloadResult> {
     try {
-      const listResult = await this.listObjects();
+      const organizationPrefix = this.getOrganizationPrefix(organizationId);
+      const listPrefix = organizationPrefix ? `${organizationPrefix}/` : undefined;
+      const listResult = await this.listObjects(listPrefix);
       if (!listResult.success || !listResult.files) {
         return { success: false, error: 'Failed to get storage stats' };
       }
-      const files = listResult.files;
+      const files = listResult.files.map((file) => this.stripOrganizationPrefix(file, organizationId));
       const stats = {
         totalFiles: files.length,
         byFolder: {

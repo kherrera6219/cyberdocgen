@@ -207,7 +207,6 @@ describe("replitAuth", () => {
 
     await setupAuth(app as any);
 
-    expect(app.set).toHaveBeenCalledWith("trust proxy", 1);
     expect(app.routes["/api/login"]).toBeDefined();
     expect(app.routes["/api/callback"]).toBeDefined();
     expect(app.routes["/api/logout"]).toBeDefined();

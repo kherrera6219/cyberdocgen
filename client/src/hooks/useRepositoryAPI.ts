@@ -4,8 +4,29 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getCsrfTokenFromCookie } from '@/lib/queryClient';
 
 const API_BASE = '/api/repository';
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+function withSecureRequestInit(init: RequestInit = {}): RequestInit {
+  const method = (init.method || 'GET').toUpperCase();
+  const headers: Record<string, string> = {
+    ...((init.headers as Record<string, string> | undefined) || {}),
+  };
+  if (MUTATING_METHODS.has(method)) {
+    const csrfToken = getCsrfTokenFromCookie();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
+
+  return {
+    ...init,
+    credentials: 'include',
+    headers,
+  };
+}
 
 // Types
 export interface RepositorySnapshot {
@@ -71,7 +92,7 @@ export function useRepositories() {
   return useQuery({
     queryKey: ['repositories'],
     queryFn: async () => {
-      const res = await fetch(API_BASE);
+      const res = await fetch(API_BASE, withSecureRequestInit());
       if (!res.ok) throw new Error('Failed to fetch repositories');
       const data = await res.json();
       return data.data.snapshots as RepositorySnapshot[];
@@ -84,7 +105,7 @@ export function useRepository(id: string) {
   return useQuery({
     queryKey: ['repository', id],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/${id}`);
+      const res = await fetch(`${API_BASE}/${id}`, withSecureRequestInit());
       if (!res.ok) throw new Error('Failed to fetch repository');
       const data = await res.json();
       return data.data.snapshot as RepositorySnapshot;
@@ -115,10 +136,10 @@ export function useUploadRepository() {
       formData.append('companyProfileId', companyProfileId);
       formData.append('name', name);
 
-      const res = await fetch(`${API_BASE}/upload`, {
+      const res = await fetch(`${API_BASE}/upload`, withSecureRequestInit({
         method: 'POST',
         body: formData,
-      });
+      }));
 
       if (!res.ok) {
         const error = await res.json();
@@ -148,11 +169,11 @@ export function useStartAnalysis() {
       frameworks: string[];
       depth?: string;
     }) => {
-      const res = await fetch(`${API_BASE}/${snapshotId}/analyze`, {
+      const res = await fetch(`${API_BASE}/${snapshotId}/analyze`, withSecureRequestInit({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ frameworks, depth }),
-      });
+      }));
 
       if (!res.ok) throw new Error('Failed to start analysis');
       const data = await res.json();
@@ -170,7 +191,7 @@ export function useAnalysisStatus(snapshotId: string) {
   return useQuery({
     queryKey: ['analysis', snapshotId],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/${snapshotId}/analysis`);
+      const res = await fetch(`${API_BASE}/${snapshotId}/analysis`, withSecureRequestInit());
       if (!res.ok) throw new Error('Failed to fetch analysis status');
       const data = await res.json();
       return data.data as { analysisRun: AnalysisRun | null; snapshot: Partial<RepositorySnapshot> };
@@ -198,7 +219,7 @@ export function useFindings(snapshotId: string, filters?: {
   return useQuery({
     queryKey: ['findings', snapshotId, filters],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/${snapshotId}/findings?${queryString}`);
+      const res = await fetch(`${API_BASE}/${snapshotId}/findings?${queryString}`, withSecureRequestInit());
       if (!res.ok) throw new Error('Failed to fetch findings');
       const data = await res.json();
       return data.data as {
@@ -227,11 +248,11 @@ export function useReviewFinding() {
       status?: string;
       humanOverride?: any;
     }) => {
-      const res = await fetch(`${API_BASE}/${snapshotId}/findings/${findingId}`, {
+      const res = await fetch(`${API_BASE}/${snapshotId}/findings/${findingId}`, withSecureRequestInit({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, humanOverride }),
-      });
+      }));
 
       if (!res.ok) throw new Error('Failed to review finding');
       const data = await res.json();
@@ -248,7 +269,7 @@ export function useTasks(snapshotId: string) {
   return useQuery({
     queryKey: ['tasks', snapshotId],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/${snapshotId}/tasks`);
+      const res = await fetch(`${API_BASE}/${snapshotId}/tasks`, withSecureRequestInit());
       if (!res.ok) throw new Error('Failed to fetch tasks');
       const data = await res.json();
       return data.data.tasks as Task[];
@@ -271,11 +292,11 @@ export function useUpdateTask() {
       taskId: string;
       status: string;
     }) => {
-      const res = await fetch(`${API_BASE}/${snapshotId}/tasks/${taskId}`, {
+      const res = await fetch(`${API_BASE}/${snapshotId}/tasks/${taskId}`, withSecureRequestInit({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
-      });
+      }));
 
       if (!res.ok) throw new Error('Failed to update task');
       const data = await res.json();
@@ -293,9 +314,9 @@ export function useDeleteRepository() {
 
   return useMutation({
     mutationFn: async (snapshotId: string) => {
-      const res = await fetch(`${API_BASE}/${snapshotId}`, {
+      const res = await fetch(`${API_BASE}/${snapshotId}`, withSecureRequestInit({
         method: 'DELETE',
-      });
+      }));
 
       if (!res.ok) throw new Error('Failed to delete repository');
       return snapshotId;

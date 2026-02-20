@@ -121,12 +121,18 @@ function resolveLocalMigrationsPath(): string | undefined {
  * Cloud mode configuration (existing behavior)
  */
 function buildCloudModeConfig(): RuntimeConfig {
+  const port = parseInt(process.env.PORT || '5000', 10);
+  const configuredBaseUrl = process.env.BASE_URL?.trim();
+  const fallbackBaseUrl = process.env.NODE_ENV === 'production'
+    ? ''
+    : `http://localhost:${port}`;
+
   return {
     mode: 'cloud',
     server: {
       host: process.env.HOST || '0.0.0.0',
-      port: parseInt(process.env.PORT || '5000', 10),
-      baseUrl: process.env.BASE_URL || 'http://localhost:5000',
+      port,
+      baseUrl: configuredBaseUrl || fallbackBaseUrl,
     },
     database: {
       type: 'postgres',

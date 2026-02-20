@@ -608,6 +608,17 @@ export class EnterpriseAuthService {
         throw new UnauthorizedError('Invalid credentials');
       }
 
+      // Enforce account lifecycle checks after credential verification.
+      // This prevents pending, disabled, or unverified accounts from authenticating.
+      if (user.accountStatus !== 'active' || user.emailVerified !== true) {
+        logger.warn('Blocked login for inactive or unverified account', {
+          userId: user.id,
+          accountStatus: user.accountStatus,
+          emailVerified: user.emailVerified,
+        });
+        throw new UnauthorizedError('Account is not active. Please verify your email before logging in.');
+      }
+
       // Record successful login
       await this.recordSuccessfulLogin(user.id, ipAddress);
 
