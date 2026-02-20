@@ -193,10 +193,30 @@ export class DatabaseHealthService {
 
       const tableCount = Number((tableResult.rows[0] as { count?: number })?.count || 0);
 
+      // Use Postgres planner stats to avoid expensive COUNT(*) scans on every table.
+      const rowCountResult = await db.execute(sql`
+        SELECT
+          relname::text AS table_name,
+          n_live_tup::bigint AS row_count
+        FROM pg_stat_user_tables
+        ORDER BY n_live_tup DESC, relname ASC
+        LIMIT 50
+      `);
+
+      const rowCounts: Record<string, number> = {};
+      for (const row of rowCountResult.rows as Array<{ table_name?: unknown; row_count?: unknown }>) {
+        if (typeof row.table_name !== 'string') {
+          continue;
+        }
+
+        const parsedCount = Number(row.row_count ?? 0);
+        rowCounts[row.table_name] = Number.isFinite(parsedCount) ? parsedCount : 0;
+      }
+
       return {
         sizeBytes,
         tableCount,
-        rowCounts: {}, // TODO: Add specific table row counts if needed
+        rowCounts,
       };
     } catch (error) {
       logger.error('Failed to get database stats', {

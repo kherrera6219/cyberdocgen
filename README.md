@@ -2,7 +2,7 @@
 
 ## Enterprise Compliance Management System
 
-**Version 2.4.0** | February 15, 2026
+**Version 2.4.0** | February 20, 2026
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-2.4.0-green.svg)](CHANGELOG.md)
@@ -12,7 +12,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![Production Candidate](https://img.shields.io/badge/Status-Production%20Candidate-yellow.svg)](TODO.md)
 [![Windows Desktop](https://img.shields.io/badge/Windows-NSIS%20Ready-success.svg)](docs/WINDOWS_DESKTOP_GUIDE.md)
-[![Security](https://img.shields.io/badge/Prod%20Audit-0%20vulns-brightgreen.svg)](TODO.md)
+[![Security](https://img.shields.io/badge/Prod%20Audit-advisories%20pending-yellow.svg)](TODO.md)
 
 ## Quick Links
 
@@ -37,6 +37,14 @@
 - [License](#license)
 
 ## Latest Updates
+
+**February 20, 2026 - Documentation and Validation Reconciliation:**
+
+- ✅ **Core Validation Reconfirmed** - `check`, `lint`, `test:run`, `test:run -- --coverage`, `build`, and `windows:validate` are passing.
+- ✅ **Coverage Baseline Reconfirmed** - current global coverage is `82.87%` statements/lines, `80.43%` functions, `78.16%` branches.
+- ✅ **Dependency Remediation Pass Applied** - `npm audit fix` applied non-breaking updates and reduced advisory count.
+- ⚠️ **Security Advisories Still Open** - `npm audit --omit=dev` and full `npm audit` still report unresolved transitive advisories requiring further dependency upgrades.
+- ⚠️ **External Evidence Tasks Still Pending** - cloud strict validation and Windows signed-evidence capture remain blocked on production secrets and clean-VM/manual evidence capture.
 
 **February 15, 2026 - Phase Sweep and API Contract Hardening:**
 
@@ -542,8 +550,8 @@ kubectl apply -f k8s/
 
 ### Current Release (v2.4.0 - February 2026)
 
-- ✅ **Dependencies (production)** - `npm audit --omit=dev` reports 0 vulnerabilities as of February 9, 2026
-- ✅ **Dependencies (full tree)** - `npm audit` reports 0 vulnerabilities as of February 9, 2026
+- ⚠️ **Dependencies (production)** - `npm audit --omit=dev` currently reports 5 high-severity advisories (as of February 20, 2026)
+- ⚠️ **Dependencies (full tree)** - `npm audit` currently reports 40 advisories (4 moderate, 36 high) as of February 20, 2026
 - ✅ **TypeScript** - 0 compilation errors (100% type safety)
 - ✅ **Code Quality** - Production-ready, optimization plan for future releases
 
@@ -569,8 +577,8 @@ kubectl apply -f k8s/
 
 ### Quality Metrics
 
-- ✅ **Dependencies (production)** - 0 vulnerabilities in runtime dependency tree
-- ✅ **Dependencies (development)** - 0 advisories in the current dependency graph
+- ⚠️ **Dependencies (production)** - runtime dependency advisories remain and are being tracked in `TODO.md`
+- ⚠️ **Dependencies (development)** - dev + tooling advisories remain; resolution requires additional dependency upgrade work
 - ✅ **Test Suite** - Comprehensive coverage (Backend Services 100% covered)
 - ✅ **Code Splitting** - 40+ lazy-loaded routes for performance
 - ✅ **Accessibility** - WCAG 2.2 AA compliance
@@ -597,8 +605,8 @@ kubectl apply -f k8s/
 **Phase 3 - Feature Completion & Testing** (✅ COMPLETE)
 
 - **Production Status:** v2.4.0 (Production Candidate, Windows sign-off pending)
-- **Quality Track Status:** Core gates passing with February 2026 operational sweep complete
-- **Test Coverage:** 85.40% statements/lines, 80.14% branches, 81.47% functions (global 80/80/80/80 gate enforced)
+- **Quality Track Status:** Core local gates passing with February 20, 2026 sweep complete
+- **Test Coverage:** 82.87% statements/lines, 78.16% branches, 80.43% functions (global 80/80/80/80 gate enforced)
 - ✅ WCAG 2.2 AA basic accessibility compliance
 - ✅ PWA offline support implemented
 - ✅ Security enhancements complete
