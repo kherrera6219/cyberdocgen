@@ -680,6 +680,31 @@ Detail: Backend server process exited unexpectedly during startup (exit code 1).
    %APPDATA%\Roaming\rest-express\security\backend-secrets.json
    ```
 
+### Tests fail with `better-sqlite3` `NODE_MODULE_VERSION` mismatch
+
+**Symptom:**
+```text
+Error: The module '...better_sqlite3.node' was compiled against a different Node.js version
+```
+
+**Why it happens:**
+
+- `electron:install-app-deps` rebuilds native modules for Electron runtime ABI.
+- `vitest` runs on Node runtime ABI.
+- If the module was last rebuilt for Electron, Node-based tests can fail.
+
+**Solutions:**
+
+1. **Rebuild native module for current Node runtime before running tests:**
+   ```bash
+   npm rebuild better-sqlite3
+   ```
+
+2. **If you are returning to desktop packaging afterward, re-apply Electron native deps:**
+   ```bash
+   npm run electron:install-app-deps
+   ```
+
 ### Docker build fails with missing `scripts/build-server.js`
 
 **Symptom:**

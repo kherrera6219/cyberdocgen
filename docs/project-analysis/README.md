@@ -10,6 +10,7 @@ This folder keeps curated, human-authored analysis and review artifacts.
 - `MICROSOFT_UI_UX_FRONTEND_AUDIT_2026-02-09.md`
 - `MICROSOFT_UI_UX_REMEDIATION_2026-02-09.md`
 - `DEBUG_ERROR_SWEEP_2026-02-09.md`
+- `DEBUG_ERROR_SWEEP_2026-02-20.md`
 - `DEV_TOOLCHAIN_ADVISORY_DECISION_2026-02-08.md`
 
 ## Cleanup Policy

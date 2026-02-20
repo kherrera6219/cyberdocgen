@@ -1362,16 +1362,16 @@ export class DatabaseStorage implements IStorage {
           notificationSettings: userData.notificationSettings ?? null,
         }
       : userData;
-    const nowValue = isLocalSqliteMode ? new Date().toISOString() : new Date();
 
     const [user] = await db
       .insert(users)
-      .values(normalizedUserData as any)
+      .values(normalizedUserData)
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          ...(normalizedUserData as any),
-          updatedAt: nowValue,
+          ...normalizedUserData,
+          // Avoid binding JS Date objects in SQLite upsert path.
+          updatedAt: sql`CURRENT_TIMESTAMP`,
         },
       })
       .returning();

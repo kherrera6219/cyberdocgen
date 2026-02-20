@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -47,7 +47,7 @@ export default function MFASetupPage() {
   const [success, setSuccess] = useState('');
   const [activeStep, setActiveStep] = useState<'status' | 'totp-setup' | 'sms-setup' | 'backup-codes'>('status');
 
-  const withSessionAndCsrf = (init: RequestInit = {}): RequestInit => {
+  const withSessionAndCsrf = useCallback((init: RequestInit = {}): RequestInit => {
     const method = (init.method || 'GET').toUpperCase();
     const headers: Record<string, string> = {
       ...((init.headers as Record<string, string> | undefined) || {}),
@@ -64,13 +64,9 @@ export default function MFASetupPage() {
       credentials: 'include',
       headers,
     };
-  };
-
-  useEffect(() => {
-    loadMFAStatus();
   }, []);
 
-  const loadMFAStatus = async () => {
+  const loadMFAStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/mfa/status', withSessionAndCsrf());
       if (response.ok) {
@@ -80,7 +76,11 @@ export default function MFASetupPage() {
     } catch (err) {
       logger.error('Failed to load MFA status:', err);
     }
-  };
+  }, [withSessionAndCsrf]);
+
+  useEffect(() => {
+    loadMFAStatus();
+  }, [loadMFAStatus]);
 
   const setupTOTP = async () => {
     setIsLoading(true);
