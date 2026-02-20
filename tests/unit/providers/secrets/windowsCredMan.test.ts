@@ -3,7 +3,7 @@
  * Sprint 3: Windows Integration & Key Management
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WindowsCredentialManagerProvider, LLM_API_KEYS } from '../../../../server/providers/secrets/windowsCredMan';
 
 describe('WindowsCredentialManagerProvider', () => {
@@ -11,6 +11,13 @@ describe('WindowsCredentialManagerProvider', () => {
 
   beforeEach(() => {
     provider = new WindowsCredentialManagerProvider();
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.ALLOW_ENV_SECRET_FALLBACK;
+  });
+
+  afterEach(() => {
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.ALLOW_ENV_SECRET_FALLBACK;
   });
 
   describe('LLM_API_KEYS constants', () => {
@@ -65,6 +72,7 @@ describe('WindowsCredentialManagerProvider', () => {
 
   describe('Environment variable fallback', () => {
     it('should fallback to environment variables when keytar not available', async () => {
+      process.env.ALLOW_ENV_SECRET_FALLBACK = 'true';
       // Set environment variable
       process.env.OPENAI_API_KEY = 'test-key-123';
 
@@ -74,9 +82,6 @@ describe('WindowsCredentialManagerProvider', () => {
       if (!provider.isAvailable()) {
         expect(value).toBe('test-key-123');
       }
-
-      // Cleanup
-      delete process.env.OPENAI_API_KEY;
     });
   });
 

@@ -92,12 +92,13 @@ function createProviders(): MockProviders {
 }
 
 describe("localMode routes", () => {
-  const app = createApp();
+  let app: ReturnType<typeof createApp>;
   let providers: MockProviders;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
+    app = createApp();
     providers = createProviders();
     getProvidersMock.mockResolvedValue(providers);
 
@@ -204,6 +205,7 @@ describe("localMode routes", () => {
   });
 
   it("returns configured API key providers", async () => {
+    providers.secrets.getConfiguredProviders.mockResolvedValue(["OPENAI"]);
     const response = await request(app).get("/api/local/api-keys/configured").expect(200);
     expect(response.body.configured).toEqual(["OPENAI"]);
   });
