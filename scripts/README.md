@@ -146,10 +146,10 @@ npm run compliance:validate
 
 ### `cloud-validation-sweep.ts`
 
-Validates cloud runtime readiness with strict environment checks and endpoint probes.
+Validates cloud runtime readiness with endpoint probes, with optional strict environment enforcement.
 
 **Purpose:**
-- Ensures required cloud env vars exist (`DATABASE_URL`, `SESSION_SECRET`, `ENCRYPTION_KEY`, `DATA_INTEGRITY_SECRET`)
+- In strict mode, ensures required cloud env vars exist (`DATABASE_URL`, `SESSION_SECRET`, `ENCRYPTION_KEY`, `DATA_INTEGRITY_SECRET`)
 - Boots the app in cloud mode and waits for readiness
 - Validates key runtime endpoints (`/health`, `/api/ai/health`)
 - Verifies local-only API gating behavior in cloud mode
@@ -165,6 +165,11 @@ Optional overrides:
 tsx scripts/cloud-validation-sweep.ts --strict-env --timeout-ms=60000 --port=5620
 ```
 
+Strict npm script:
+```bash
+npm run cloud:validate:strict -- --timeout-ms=60000
+```
+
 ### `validate-windows-release-evidence.ts`
 
 Validates Windows release evidence bundles and generates a manifest with SHA-256 file hashes.
@@ -174,6 +179,7 @@ Validates Windows release evidence bundles and generates a manifest with SHA-256
 - Confirms SmartScreen unsigned/signed screenshots exist
 - Confirms signature verification report and desktop smoke report exist
 - Produces `evidence-manifest.json` for audit traceability
+- Non-strict mode records missing evidence without failing the command
 
 **Usage:**
 ```bash
@@ -288,7 +294,7 @@ Build Artifacts...
 
 Compliance...
 ✅ SOC 2 requirements: MET
-✅ Security audit: PASSED
+✅ Security audit threshold: PASSED (audit-level=high)
 
 ✅✅✅ SYSTEM IS PRODUCTION READY! ✅✅✅
 ```

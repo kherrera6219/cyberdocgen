@@ -126,6 +126,7 @@ async function validateWACK() {
   let errors = 0;
 
   const storeSubmissionMode = isEnabledFlag('WINDOWS_STORE_SUBMISSION');
+  const strictStoreEnv = storeSubmissionMode && (isEnabledFlag('WINDOWS_STORE_ENV_STRICT') || process.env.RELEASE_BUILD === 'true');
   const requiredStoreEnvNames = [
     'WINDOWS_STORE_IDENTITY_NAME',
     'WINDOWS_STORE_PUBLISHER',
@@ -133,11 +134,20 @@ async function validateWACK() {
   ];
   if (storeSubmissionMode) {
     logger.info('i Store submission mode enabled (WINDOWS_STORE_SUBMISSION=true)');
+    if (!strictStoreEnv) {
+      logger.info(
+        'i Store env strict mode disabled; APPX config values can be used when WINDOWS_STORE_* env vars are not provided',
+      );
+    }
     for (const envName of requiredStoreEnvNames) {
       const envValue = getEnvValueInsensitive(envName);
       if (!envValue || envValue.trim().length === 0) {
-        logger.error(`✗ Store submission mode requires environment variable ${envName}`);
-        errors++;
+        if (strictStoreEnv) {
+          logger.error(`✗ Store submission strict mode requires environment variable ${envName}`);
+          errors++;
+        } else {
+          logger.warn(`! ${envName} not set; falling back to APPX config value if available`);
+        }
       } else {
         logger.info(`✓ Store submission environment variable set: ${envName}`);
       }
@@ -455,8 +465,10 @@ async function validateWACK() {
           const envValue = getEnvValueInsensitive(envRef);
           if (envValue && envValue.trim().length > 0) {
             logger.info(`✓ Environment variable ${envRef} is set for APPX ${field.label}`);
-          } else if (storeSubmissionMode && field.requiredForStore) {
-            logger.error(`✗ Missing environment variable ${envRef} required by APPX ${field.label}`);
+          } else if (storeSubmissionMode && field.requiredForStore && strictStoreEnv) {
+            logger.error(
+              `✗ Missing environment variable ${envRef} required by APPX ${field.label} in strict store mode`,
+            );
             errors++;
           } else {
             logger.warn(

@@ -12,7 +12,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![Production Candidate](https://img.shields.io/badge/Status-Production%20Candidate-yellow.svg)](TODO.md)
 [![Windows Desktop](https://img.shields.io/badge/Windows-NSIS%20Ready-success.svg)](docs/WINDOWS_DESKTOP_GUIDE.md)
-[![Security](https://img.shields.io/badge/Prod%20Audit-advisories%20pending-yellow.svg)](TODO.md)
+[![Security](https://img.shields.io/badge/Prod%20Audit-clean-brightgreen.svg)](TODO.md)
 
 ## Quick Links
 
@@ -43,8 +43,9 @@
 - ✅ **Core Validation Reconfirmed** - `check`, `lint`, `test:run`, `test:run -- --coverage`, `build`, and `windows:validate` are passing.
 - ✅ **Coverage Baseline Reconfirmed** - current global coverage is `82.87%` statements/lines, `80.43%` functions, `78.16%` branches.
 - ✅ **Dependency Remediation Pass Applied** - `npm audit fix` applied non-breaking updates and reduced advisory count.
-- ⚠️ **Security Advisories Still Open** - `npm audit --omit=dev` and full `npm audit` still report unresolved transitive advisories requiring further dependency upgrades.
-- ⚠️ **External Evidence Tasks Still Pending** - cloud strict validation and Windows signed-evidence capture remain blocked on production secrets and clean-VM/manual evidence capture.
+- ✅ **Production Dependency Audit Clean** - `npm audit --omit=dev` reports `0` vulnerabilities.
+- ⚠️ **Dev/Tooling Advisories Still Open** - full `npm audit` still reports `17` moderate transitive advisories (non-blocking at `audit-level=high`).
+- ⚠️ **External Evidence Tasks Still Pending** - strict cloud validation and Windows signed-evidence capture remain blocked on production secrets and clean-VM/manual evidence capture.
 
 **February 15, 2026 - Phase Sweep and API Contract Hardening:**
 
@@ -58,7 +59,7 @@
 - ✅ **Connector Telemetry Added** - connector latency/error metrics are now tracked in centralized metrics output.
 - ✅ **Connector Integration Coverage Added** - API-level integration tests now cover connector listing, creation, import, and auth/org guardrails.
 - ✅ **Release Signing Pipeline Advanced** - tag-gated Windows CI now builds release `.exe` artifacts and runs Authenticode verification with report upload.
-- ✅ **Cloud Validation Harness Added** - strict cloud validation sweep (`npm run cloud:validate`) plus manual CI workflow (`cloud-validation.yml`) now produce auditable cloud-mode reports.
+- ✅ **Cloud Validation Harness Added** - local preflight (`npm run cloud:validate`) and strict cloud validation (`npm run cloud:validate:strict`) plus manual CI workflow (`cloud-validation.yml`) now produce auditable cloud-mode reports.
 - ✅ **Windows Release Evidence Validation Added** - SmartScreen and clean-VM evidence requirements are now codified and validated via `npm run windows:evidence:validate`.
 - ✅ **Documentation Cleanup Completed** - removed generated inventory/log dump documents and retained curated review/runbook docs only.
 
@@ -455,7 +456,7 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 - **Single Source of Truth**: All active development is consolidated on the `main` branch so downstream branches can be safely deleted after merging.
 - **Feature Branches Only for Work-In-Progress**: Create short-lived feature branches from `main` and open pull requests back to `main`.
 - **Quality Gate Visibility**: `npm run check`, `npm run lint`, `npm run test:run`, and `npm run build` are currently passing.
-- **Security Posture**: `npm audit --omit=dev` and full `npm audit` are clean.
+- **Security Posture**: `npm audit --omit=dev` is clean; full `npm audit` currently reports moderate dev/tooling advisories.
 
 ## Development
 
@@ -550,8 +551,8 @@ kubectl apply -f k8s/
 
 ### Current Release (v2.4.0 - February 2026)
 
-- ⚠️ **Dependencies (production)** - `npm audit --omit=dev` currently reports 5 high-severity advisories (as of February 20, 2026)
-- ⚠️ **Dependencies (full tree)** - `npm audit` currently reports 40 advisories (4 moderate, 36 high) as of February 20, 2026
+- ✅ **Dependencies (production)** - `npm audit --omit=dev` reports 0 vulnerabilities (as of February 20, 2026)
+- ⚠️ **Dependencies (full tree)** - `npm audit` currently reports 17 moderate advisories in dev/tooling dependencies (as of February 20, 2026)
 - ✅ **TypeScript** - 0 compilation errors (100% type safety)
 - ✅ **Code Quality** - Production-ready, optimization plan for future releases
 
@@ -577,7 +578,7 @@ kubectl apply -f k8s/
 
 ### Quality Metrics
 
-- ⚠️ **Dependencies (production)** - runtime dependency advisories remain and are being tracked in `TODO.md`
+- ✅ **Dependencies (production)** - runtime dependency audit is clean (`npm audit --omit=dev`)
 - ⚠️ **Dependencies (development)** - dev + tooling advisories remain; resolution requires additional dependency upgrade work
 - ✅ **Test Suite** - Comprehensive coverage (Backend Services 100% covered)
 - ✅ **Code Splitting** - 40+ lazy-loaded routes for performance

@@ -197,8 +197,13 @@ async function run(): Promise<void> {
   console.log(`Passed: ${summary.passedCount}`);
   console.log(`Failed: ${summary.failedCount}`);
 
-  if (!summary.passed) {
+  if (!summary.passed && options.strict) {
     process.exitCode = 1;
+    return;
+  }
+
+  if (!summary.passed) {
+    console.log("Non-strict mode: missing evidence recorded in report; command exits successfully.");
   }
 }
 

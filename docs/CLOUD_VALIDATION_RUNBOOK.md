@@ -2,25 +2,40 @@
 
 Last Updated: February 20, 2026
 
-This runbook defines the repeatable cloud-mode validation process for production-like environments.
+This runbook defines the repeatable cloud-mode validation process for both local preflight and production-like environments.
 
 ## Prerequisites
 
-- `DATABASE_URL` set to the target cloud database
-- `SESSION_SECRET` set to a production-grade value (minimum 32 characters)
-- `ENCRYPTION_KEY` set to a 64-character hex key
-- `DATA_INTEGRITY_SECRET` set to a production-grade value (minimum 32 characters)
-- Network connectivity from runner/host to cloud dependencies
+- For strict runs: `DATABASE_URL` set to the target cloud database
+- For strict runs: `SESSION_SECRET` set to a production-grade value (minimum 32 characters)
+- For strict runs: `ENCRYPTION_KEY` set to a 64-character hex key
+- For strict runs: `DATA_INTEGRITY_SECRET` set to a production-grade value (minimum 32 characters)
+- Network connectivity from runner/host to cloud dependencies (strict and non-strict)
 
 ## Local Execution
 
-Run:
+Run (non-strict preflight):
 
 ```bash
 npm run cloud:validate -- --timeout-ms=60000
 ```
 
 This performs:
+
+1. cloud-mode startup readiness checks (`/live`, `/ready`)
+2. core endpoint checks (`/health`, `/api/ai/health`)
+3. cloud/local mode boundary check (`/api/local/api-keys/configured` not publicly available)
+4. report generation even when strict env secrets are not present
+
+## Strict Execution (Local or CI)
+
+Run:
+
+```bash
+npm run cloud:validate:strict -- --timeout-ms=60000
+```
+
+Strict mode adds:
 
 1. strict environment validation (`DATABASE_URL`, `SESSION_SECRET`, `ENCRYPTION_KEY`, `DATA_INTEGRITY_SECRET`)
 2. cloud-mode startup readiness checks (`/live`, `/ready`)
@@ -56,6 +71,6 @@ Artifact output:
 
 `CLOUD-01` can be closed when:
 
-1. cloud validation report shows all checks passing
+1. strict cloud validation report (`cloud:validate:strict`) shows all checks passing
 2. run is executed against production-like infra with real secrets
 3. report artifact is archived with release evidence
