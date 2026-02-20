@@ -1,0 +1,80 @@
+{
+  "generatedAt": "2026-02-20T19:05:20.788Z",
+  "options": {
+    "evidenceRoot": "C:\\software\\cyberdocgen\\docs\\project-analysis\\evidence\\windows-release",
+    "strict": true
+  },
+  "summary": {
+    "passed": false,
+    "total": 9,
+    "passedCount": 0,
+    "failedCount": 9,
+    "failedItems": [
+      "Signed Install Log",
+      "Signed Uninstall Log",
+      "Install Completion Screenshot",
+      "Uninstall Completion Screenshot",
+      "Start Menu Launch Screenshot",
+      "Desktop Smoke Report",
+      "Unsigned SmartScreen Screenshot",
+      "Signed SmartScreen Screenshot",
+      "Signature Verification Report"
+    ]
+  },
+  "items": [
+    {
+      "name": "Signed Install Log",
+      "status": "failed",
+      "expected": "Installer run log from signed NSIS package on clean VM",
+      "actual": "Missing file: signed-install.log"
+    },
+    {
+      "name": "Signed Uninstall Log",
+      "status": "failed",
+      "expected": "Uninstaller run log from signed NSIS package on clean VM",
+      "actual": "Missing file: signed-uninstall.log"
+    },
+    {
+      "name": "Install Completion Screenshot",
+      "status": "failed",
+      "expected": "Screenshot of installer completion confirmation",
+      "actual": "Missing file: screenshots/install-complete.png"
+    },
+    {
+      "name": "Uninstall Completion Screenshot",
+      "status": "failed",
+      "expected": "Screenshot of uninstaller completion confirmation",
+      "actual": "Missing file: screenshots/uninstall-complete.png"
+    },
+    {
+      "name": "Start Menu Launch Screenshot",
+      "status": "failed",
+      "expected": "Screenshot showing app launch from Start Menu",
+      "actual": "Missing file: screenshots/start-menu-launch.png"
+    },
+    {
+      "name": "Desktop Smoke Report",
+      "status": "failed",
+      "expected": "JSON output from scripts/windows-desktop-smoke.ps1",
+      "actual": "Missing file: desktop-smoke-report.json"
+    },
+    {
+      "name": "Unsigned SmartScreen Screenshot",
+      "status": "failed",
+      "expected": "SmartScreen behavior for unsigned installer",
+      "actual": "Missing file: screenshots/smartscreen-unsigned.png"
+    },
+    {
+      "name": "Signed SmartScreen Screenshot",
+      "status": "failed",
+      "expected": "SmartScreen behavior for signed installer",
+      "actual": "Missing file: screenshots/smartscreen-signed.png"
+    },
+    {
+      "name": "Signature Verification Report",
+      "status": "failed",
+      "expected": "JSON report from windows signature verification",
+      "actual": "Missing file: signature-report.json"
+    }
+  ]
+}

@@ -65,9 +65,9 @@ Additional release-readiness validation (same date):
 - `cloud:validate:strict`: FAIL expected until production-valid secrets are provided
 - `npm audit fix`: PARTIAL (non-breaking updates applied)
 - `npm audit --omit=dev`: PASS (`0` vulnerabilities)
-- `npm audit`: PASS at configured threshold (`audit-level=high`), while still reporting `17` moderate advisories in dev/tooling chains
+- `npm audit`: PASS (`0` vulnerabilities)
 
 ## Notes
 
 - Native module ABI can drift depending on whether dependencies were last rebuilt for Node or Electron. See `docs/TROUBLESHOOTING.md` for recovery commands.
-- Remaining audit advisories are currently in the full dev/tooling dependency tree (`npm audit`) and require additional upgrade planning and compatibility validation before forced remediations.
+- Dependency audit is currently clean for both production-only and full dependency trees.

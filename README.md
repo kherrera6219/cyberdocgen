@@ -44,7 +44,8 @@
 - ✅ **Coverage Baseline Reconfirmed** - current global coverage is `82.87%` statements/lines, `80.43%` functions, `78.16%` branches.
 - ✅ **Dependency Remediation Pass Applied** - `npm audit fix` applied non-breaking updates and reduced advisory count.
 - ✅ **Production Dependency Audit Clean** - `npm audit --omit=dev` reports `0` vulnerabilities.
-- ⚠️ **Dev/Tooling Advisories Still Open** - full `npm audit` still reports `17` moderate transitive advisories (non-blocking at `audit-level=high`).
+- ✅ **Full Dependency Audit Clean** - full `npm audit` now also reports `0` vulnerabilities.
+- ✅ **GitHub Security Pipeline Passing** - Security Scan, Dependency Scan, License Scan, and SBOM generation checks are passing on `main`.
 - ⚠️ **External Evidence Tasks Still Pending** - strict cloud validation and Windows signed-evidence capture remain blocked on production secrets and clean-VM/manual evidence capture.
 
 **February 15, 2026 - Phase Sweep and API Contract Hardening:**
@@ -139,7 +140,7 @@
 **Version 2.0.1 - January 17, 2026** - Maintenance Release:
 
 - ✅ **Dependencies** - Updated zod-validation-error to v5.0.0
-- ⚠️ **Security** - Production dependency audit is clean; dev-tooling advisories are tracked
+- ✅ **Security** - Dependency audits are currently clean for production and full trees
 - ✅ **Code Quality** - Analyzed codebase, identified optimization opportunities
 
 **Version 2.0.0 - January 17, 2026** - Infrastructure Hardening:
@@ -456,7 +457,7 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 - **Single Source of Truth**: All active development is consolidated on the `main` branch so downstream branches can be safely deleted after merging.
 - **Feature Branches Only for Work-In-Progress**: Create short-lived feature branches from `main` and open pull requests back to `main`.
 - **Quality Gate Visibility**: `npm run check`, `npm run lint`, `npm run test:run`, and `npm run build` are currently passing.
-- **Security Posture**: `npm audit --omit=dev` is clean; full `npm audit` currently reports moderate dev/tooling advisories.
+- **Security Posture**: `npm audit --omit=dev` and full `npm audit` are clean.
 
 ## Development
 
@@ -552,7 +553,7 @@ kubectl apply -f k8s/
 ### Current Release (v2.4.0 - February 2026)
 
 - ✅ **Dependencies (production)** - `npm audit --omit=dev` reports 0 vulnerabilities (as of February 20, 2026)
-- ⚠️ **Dependencies (full tree)** - `npm audit` currently reports 17 moderate advisories in dev/tooling dependencies (as of February 20, 2026)
+- ✅ **Dependencies (full tree)** - `npm audit` reports 0 vulnerabilities (as of February 20, 2026)
 - ✅ **TypeScript** - 0 compilation errors (100% type safety)
 - ✅ **Code Quality** - Production-ready, optimization plan for future releases
 
@@ -579,7 +580,7 @@ kubectl apply -f k8s/
 ### Quality Metrics
 
 - ✅ **Dependencies (production)** - runtime dependency audit is clean (`npm audit --omit=dev`)
-- ⚠️ **Dependencies (development)** - dev + tooling advisories remain; resolution requires additional dependency upgrade work
+- ✅ **Dependencies (development)** - full dependency audit is also clean (`npm audit`)
 - ✅ **Test Suite** - Comprehensive coverage (Backend Services 100% covered)
 - ✅ **Code Splitting** - 40+ lazy-loaded routes for performance
 - ✅ **Accessibility** - WCAG 2.2 AA compliance

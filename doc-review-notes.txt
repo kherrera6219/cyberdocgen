@@ -1,0 +1,33 @@
+﻿Document Review Notes
+## README.md
+- Highlights enterprise compliance platform, multi-model AI, security features (MFA, AES-256, TLS 1.3), multi-framework support, production candidate status arguing release stability.
+- Quick Start lists prerequisites (Node 20+, npm/yarn, optional Postgres, AI keys), install steps (clone, npm install), env setup (.env, local mode variables), optional DB push, npm run dev, local/cloud URLs.
+- Links to supplementary docs for environment setup, development guide, architecture, API docs, deployment guide, troubleshooting; notes Windows-specific docs and windows readiness (installer, release evidence).
+
+## CHANGELOG.md
+- Releases track enhancements and hardening; recent unreleased changes add AI governance endpoints, retention/connector audits, runbooks (cloud validation, Windows release evidence), governance scripts, and AES local secret bootstrapping.
+- Change entries note production gating: electron rebuild, release signing, coverage thresholds, Windows evidence, clean npm audit, and runbook updates; good context for operations readiness.
+
+## CODE_OF_CONDUCT.md
+- Standard Contributor Covenant 2.1 with pledge, standards, enforcement ladder, and contact placeholder for reporting; helpful for community expectations, not production ops but part of docs.
+
+## COMMERCIAL_LICENSE.md
+- Dual license; noncommercial use allowed under PolyForm Noncommercial 1.0.0, commercial usage requires paid license tiers (Startup /yr, Business /yr, Enterprise custom) with support, custom options, and SLA; contact info provided.
+
+## CONTRIBUTING.md
+- Contribution guide reiterates prerequisites (Node 20, Postgres 16, npm/yarn, git) and mirrors Quick Start steps (clone, npm install, .env, db push, npm run dev) and links to environment doc.
+- Development workflow covers branch naming, conventional commits, testing commands, documentation update triggers, and security reporting best practices (npm audit, keep dependencies patched, keep secrets out of repo).
+
+## LICENSES_ALLOWED.md
+- Inventory of approved licenses (permissive list) plus review stance on weak copyleft vs banned copyleft; instructs to run 
+px license-checker --summary --production for audits and states current distribution (MIT dominant, all production dependencies approved as of Jan 2026).
+
+## MICROSOFT_STORE_SUBMISSION_GUIDE.md
+- Specific guidance for Microsoft Store/OFF packages: windows build targets NSIS and APPX, partner center identity values (WINDOWS_STORE_* env vars), validation commands (
+pm run windows:validate:store, 
+pm run build:store), expected artifacts, silent install/uninstall parameters.
+- Runtime policy states auto-updater disabled in Store builds; validation script scripts/validate-wack.ts enforces NSIS presence, APPX metadata, and runtime guard.
+
+## TODO.md
+- Current validation evidence list (lint, windows validate, test coverage, sweep, audits) and statuses for commands; outstanding tasks revolve around Windows release evidence, SmartScreen docs, cloud validation, store submission, Firebase deployment.
+

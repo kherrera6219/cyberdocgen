@@ -16,9 +16,9 @@
 - `npm run windows:evidence:validate -- --strict` -> FAIL expected until clean-VM evidence bundle exists
 - `npm run cloud:validate` -> PASS (non-strict mode; environment validation is skipped when secrets are absent)
 - `npm run cloud:validate:strict` -> FAIL expected without production cloud secrets (`DATABASE_URL`, `SESSION_SECRET`, `ENCRYPTION_KEY`, `DATA_INTEGRITY_SECRET`)
-- `npm audit fix` -> PARTIAL (`package-lock.json` updated with non-breaking remediations)
+- `npm audit fix` -> COMPLETE (`package-lock.json` remediations applied and validated)
 - `npm audit --omit=dev` -> PASS (`0` vulnerabilities)
-- `npm audit` -> PASS at configured gate (`audit-level=high`), with `17` moderate advisories still reported in dev/tooling dependency chains
+- `npm audit` -> PASS (`0` vulnerabilities)
 
 ## Recently Completed (2026-02-20)
 
@@ -28,6 +28,7 @@
 - Updated Windows evidence validation to emit a manifest and succeed in non-strict mode while preserving strict failure mode.
 - Closed internal code TODO in `server/services/databaseHealthService.ts` by returning table row-count estimates from `pg_stat_user_tables`.
 - Debug and troubleshooting documentation updated for native SQLite ABI mismatch recovery (`better-sqlite3` Node vs Electron rebuild flow).
+- Resolved Dependabot/default-branch dependency alert and reconfirmed GitHub CI security jobs on `main`.
 
 ## Done vs Remaining
 
@@ -36,7 +37,7 @@
 | Core quality gates | DONE | Local repo gates are passing (`check`, `lint`, `test:run`, `build`, `windows:validate`, `windows:validate:store`, `cloud:validate`) |
 | Windows clean-VM evidence bundle | NOT DONE | Requires manual execution on clean signed-build VM and screenshot/log capture |
 | Cloud strict validation with production secrets | NOT DONE | Requires production-like environment and managed secrets not available in local repo context |
-| Dependency advisory elimination | PARTIAL | Runtime tree is clean (`npm audit --omit=dev`), but full dependency tree still reports `17` moderate advisories in dev/tooling chains |
+| Dependency advisory elimination | DONE | Runtime and full dependency trees are clean (`npm audit --omit=dev` and `npm audit` both report `0` vulnerabilities) |
 
 ## Remaining In-Code TODO Markers
 
@@ -54,6 +55,6 @@
 | WIN-03 | Capture SmartScreen behavior (unsigned vs signed) and document release policy | PARTIAL | Validation manifest expects both SmartScreen screenshots; both currently missing |
 | WIN-04 | Run desktop smoke checklist on clean VM (Start Menu launch + local API-key roundtrip) and archive report | PARTIAL | `desktop-smoke-report.json` and launch screenshot still missing from evidence bundle |
 | CLOUD-01 | Complete cloud-mode validation in a production-like environment with required secrets/infrastructure | PARTIAL | Local `npm run cloud:validate` passes in non-strict mode; `npm run cloud:validate:strict` still requires injected production secrets |
-| SEC-01 | Resolve remaining `npm audit` advisories without regressions | PARTIAL | Runtime audit is clean (`npm audit --omit=dev`), but full `npm audit` still reports `17` moderate advisories in dev/tooling dependencies |
+| SEC-01 | Resolve remaining `npm audit` advisories without regressions | DONE | `npm audit --omit=dev` and full `npm audit` now both report `0` vulnerabilities |
 | STORE-01 | Complete Microsoft Partner Center submission actions (identity/listing/upload/certification) | EXTERNAL | Requires Partner Center account operations outside repo automation |
 | FB-01 | Complete Firebase project/secrets/deploy track | EXTERNAL | Requires Firebase project setup and operator-managed secrets/deployment |
