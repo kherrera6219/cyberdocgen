@@ -38,6 +38,12 @@
 
 ## Latest Updates
 
+**February 23, 2026 - Local Quick-Access and Dashboard Reliability:**
+
+- ✅ **Temp Login Session Context Fixed** - quick-access login now guarantees a persisted user + organization membership and stores `session.organizationId` before redirecting to `/dashboard`.
+- ✅ **Local SQLite Bind Hardening Added** - local-mode `users`, `organizations`, `user_organizations`, and `notifications` writes now normalize booleans and timestamps into SQLite-safe primitives.
+- ✅ **Dashboard Load Path Stabilized** - dashboard and activity feed now safely unwrap API envelope responses (`{ success, data }`) to avoid runtime array-shape crashes after login.
+
 **February 20, 2026 - Documentation and Validation Reconciliation:**
 
 - ✅ **Core Validation Reconfirmed** - `check`, `lint`, `test:run`, `test:run -- --coverage`, `build`, and `windows:validate` are passing.

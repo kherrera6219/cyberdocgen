@@ -317,6 +317,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (enableTempAuth) {
     logger.warn('Temporary authentication endpoints are enabled for non-production use');
 
+    const sanitizeSlugSegment = (value: string): string => {
+      return value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60);
+    };
+
+    const ensureOrganizationMembership = async (
+      userId: string,
+      displayName: string,
+      email: string
+    ): Promise<string> => {
+      const memberships = await storage.getUserOrganizations(userId);
+      if (memberships.length > 0) {
+        return memberships[0].organizationId;
+      }
+
+      const orgNameBase = displayName.trim() || email.split('@')[0] || 'User';
+      const orgName = `${orgNameBase}'s Workspace`.slice(0, 120);
+      const slugSeed = sanitizeSlugSegment(email.split('@')[0] || orgNameBase) || 'workspace';
+      let lastError: unknown;
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const slugSuffix = crypto.randomBytes(3).toString('hex');
+        const slug = `demo-${slugSeed}-${slugSuffix}`.slice(0, 100);
+
+        try {
+          const organization = await storage.createOrganization({
+            name: orgName,
+            slug,
+          });
+
+          await storage.addUserToOrganization({
+            userId,
+            organizationId: organization.id,
+            role: 'owner',
+          });
+
+          return organization.id;
+        } catch (error: unknown) {
+          lastError = error;
+
+          // If membership was created by a concurrent request, use it.
+          const refreshedMemberships = await storage.getUserOrganizations(userId);
+          if (refreshedMemberships.length > 0) {
+            return refreshedMemberships[0].organizationId;
+          }
+        }
+      }
+
+      throw lastError ?? new Error('Failed to provision organization for temporary user');
+    };
+
     app.post('/api/auth/temp-login', authLimiter, async (req: Request, res) => {
       try {
         const { name, email } = req.body;
@@ -344,62 +398,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           const tempUserId = `temp-${crypto.createHash('sha256').update(sanitizedEmail).digest('hex').slice(0, 16)}`;
           try {
-            const createdUser = await storage.createUser({
+            const createdUser = await storage.upsertUser({
+              id: tempUserId,
               email: sanitizedEmail,
               firstName: sanitizedName.split(' ')[0] || sanitizedName,
               lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
               profileImageUrl: null,
+              lastLoginAt: new Date(),
             });
             sessionUserId = createdUser.id;
             logger.info('Temp login created persisted temp user', { userId: sessionUserId, email: sanitizedEmail });
           } catch (createError) {
-            // SQLite local mode can reject non-primitive default binds for the users table.
-            // Fall back to a session-only temp identity so demo login still works.
-            sessionUserId = tempUserId;
-            logger.warn('Temp login falling back to session-only identity', {
-              userId: sessionUserId,
-              email: sanitizedEmail,
-              error: createError instanceof Error ? createError.message : String(createError),
-            });
+            // Handle rare race where another request creates the same email in between reads.
+            const racedUser = await storage.getUserByEmail(sanitizedEmail);
+            if (racedUser) {
+              sessionUserId = racedUser.id;
+              logger.warn('Temp login recovered from concurrent user creation', {
+                userId: sessionUserId,
+                email: sanitizedEmail,
+              });
+            } else {
+              throw createError;
+            }
           }
         }
 
-        req.session.regenerate((regenerateErr) => {
-          if (regenerateErr) {
-            logger.error('Failed to regenerate session', { error: regenerateErr });
-            res.status(500).json({ message: 'Failed to create secure session' });
-            return;
-          }
+        const organizationId = await ensureOrganizationMembership(sessionUserId, sanitizedName, sanitizedEmail);
 
-          req.session.userId = sessionUserId;
-          req.session.isTemporary = true;
-          req.session.tempUserName = sanitizedName;
-          req.session.tempUserEmail = sanitizedEmail;
-          req.session.loginTime = new Date().toISOString();
-          req.session.mfaVerified = true;
-          req.session.mfaVerifiedAt = new Date().toISOString() as any;
-
-          req.session.save((err) => {
-            if (err) {
-              logger.error('Failed to save temp session', { error: err });
-              res.status(500).json({ message: 'Failed to create session' });
+        await new Promise<void>((resolve, reject) => {
+          req.session.regenerate((regenerateErr) => {
+            if (regenerateErr) {
+              reject(regenerateErr);
               return;
             }
-
-            logger.info('Temporary login successful with session regeneration', { userId: sessionUserId, email: sanitizedEmail });
-
-            res.json({
-              success: true,
-              user: {
-                id: sessionUserId,
-                email: sanitizedEmail,
-                displayName: sanitizedName,
-                firstName: sanitizedName.split(' ')[0] || sanitizedName,
-                lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
-                isTemporary: true,
-              }
-            });
+            resolve();
           });
+        });
+
+        req.session.userId = sessionUserId;
+        req.session.organizationId = organizationId;
+        req.session.email = sanitizedEmail;
+        req.session.isTemporary = true;
+        req.session.tempUserName = sanitizedName;
+        req.session.tempUserEmail = sanitizedEmail;
+        req.session.loginTime = new Date().toISOString();
+        req.session.mfaVerified = true;
+        req.session.mfaVerifiedAt = new Date().toISOString() as any;
+
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              reject(saveErr);
+              return;
+            }
+            resolve();
+          });
+        });
+
+        logger.info('Temporary login successful with session regeneration', {
+          userId: sessionUserId,
+          organizationId,
+          email: sanitizedEmail,
+        });
+
+        res.json({
+          success: true,
+          user: {
+            id: sessionUserId,
+            email: sanitizedEmail,
+            displayName: sanitizedName,
+            firstName: sanitizedName.split(' ')[0] || sanitizedName,
+            lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
+            isTemporary: true,
+          }
         });
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);

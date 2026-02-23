@@ -252,6 +252,38 @@ SESSION_SECRET must be at least 32 characters
    npm run dev
    ```
 
+### "Start for Free" login works but dashboard fails to load
+
+**Symptoms:**
+```
+Login failed
+SQLite3 can only bind numbers, strings, bigints, buffers, and null
+```
+or:
+```
+Failure to load dashboard data
+Organization context required
+```
+
+**Why it happens:**
+
+- Local quick-access login completed without a persisted organization membership.
+- SQLite local-mode writes attempted to bind non-primitive values (for example booleans) during user/org provisioning.
+
+**Fix status (v2.4.0, Feb 23, 2026):**
+
+- Temp login now provisions user + organization membership before session save.
+- Local SQLite user/org/notification writes now normalize to SQLite-safe primitive binds.
+- Dashboard/activity pages now unwrap `{ success, data }` response envelopes safely.
+
+**If you still see this on desktop:**
+
+1. Install the newest desktop build containing the Feb 23, 2026 patch set.
+2. Fully exit all running `CyberDocGen.exe` processes and relaunch.
+3. If needed, clear local demo data by backing up and then removing:
+   - `%LOCALAPPDATA%\\CyberDocGen\\cyberdocgen.db`
+   - `%LOCALAPPDATA%\\CyberDocGen\\files`
+
 ### Port already in use
 
 **Symptom:**

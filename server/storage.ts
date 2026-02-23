@@ -79,6 +79,65 @@ function buildAuditSignableData(log: Pick<AuditLog, "userId" | "organizationId" 
   });
 }
 
+function coerceLocalDateValue(value: unknown): Date | null | undefined {
+  if (value === undefined || value === null) {
+    return value;
+  }
+  if (value instanceof Date) {
+    return value;
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
+function coerceLocalBooleanValue(value: unknown, fallback: boolean): number {
+  if (typeof value === 'boolean') {
+    return value ? 1 : 0;
+  }
+  if (typeof value === 'number') {
+    return value === 0 ? 0 : 1;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true' || normalized === '1') {
+      return 1;
+    }
+    if (normalized === 'false' || normalized === '0' || normalized.length === 0) {
+      return 0;
+    }
+  }
+  return fallback ? 1 : 0;
+}
+
+function normalizeLocalUserWriteValues(input: Record<string, unknown>): Record<string, unknown> {
+  const now = new Date();
+  return {
+    ...input,
+    id: typeof input.id === 'string' && input.id.trim().length > 0 ? input.id : randomUUID(),
+    role: typeof input.role === 'string' && input.role.trim().length > 0 ? input.role : 'user',
+    accountStatus: typeof input.accountStatus === 'string' && input.accountStatus.trim().length > 0
+      ? input.accountStatus
+      : 'pending_verification',
+    isActive: coerceLocalBooleanValue(input.isActive, true),
+    emailVerified: coerceLocalBooleanValue(input.emailVerified, false),
+    phoneVerified: coerceLocalBooleanValue(input.phoneVerified, false),
+    twoFactorEnabled: coerceLocalBooleanValue(input.twoFactorEnabled, false),
+    passkeyEnabled: coerceLocalBooleanValue(input.passkeyEnabled, false),
+    failedLoginAttempts: typeof input.failedLoginAttempts === 'number' && Number.isFinite(input.failedLoginAttempts)
+      ? input.failedLoginAttempts
+      : 0,
+    profilePreferences: input.profilePreferences ?? null,
+    notificationSettings: input.notificationSettings ?? null,
+    lastLoginAt: coerceLocalDateValue(input.lastLoginAt) ?? null,
+    accountLockedUntil: coerceLocalDateValue(input.accountLockedUntil) ?? null,
+    createdAt: coerceLocalDateValue(input.createdAt) ?? now,
+    updatedAt: coerceLocalDateValue(input.updatedAt) ?? now,
+  };
+}
+
 // Types for filtered queries
 export interface UserFilters {
   search?: string;
@@ -1335,9 +1394,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+    const normalizedInsertData = isLocalSqliteMode
+      ? normalizeLocalUserWriteValues(insertUser as Record<string, unknown>)
+      : insertUser;
+
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values(normalizedInsertData)
       .returning();
     return user;
   }
@@ -1353,44 +1417,15 @@ export class DatabaseStorage implements IStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
-    const coerceDateValue = (value: unknown): Date | null | undefined => {
-      if (value === undefined || value === null) {
-        return value;
-      }
-      if (value instanceof Date) {
-        return value;
-      }
-      if (typeof value === 'string' || typeof value === 'number') {
-        const parsed = new Date(value);
-        return Number.isNaN(parsed.getTime()) ? null : parsed;
-      }
-      return null;
-    };
-
     const normalizedUserData = isLocalSqliteMode
-      ? (() => {
-          const now = new Date();
-          const source = userData as Record<string, unknown>;
-          return {
-            ...userData,
-            // SQLite local mode stores JSON-like columns as TEXT in baseline schema.
-            // Keep nullable values here to avoid object binding failures.
-            profilePreferences: userData.profilePreferences ?? null,
-            notificationSettings: userData.notificationSettings ?? null,
-            // Ensure timestamp columns are always Date/null so pg-core encoders don't throw.
-            lastLoginAt: coerceDateValue(source.lastLoginAt) ?? null,
-            accountLockedUntil: coerceDateValue(source.accountLockedUntil) ?? null,
-            createdAt: coerceDateValue(source.createdAt) ?? now,
-            updatedAt: coerceDateValue(source.updatedAt) ?? now,
-          };
-        })()
+      ? normalizeLocalUserWriteValues(userData as Record<string, unknown>)
       : userData;
 
     const conflictSet = { ...(normalizedUserData as Record<string, unknown>) };
     // Preserve original creation time on upsert updates.
     delete conflictSet.createdAt;
     conflictSet.updatedAt = isLocalSqliteMode
-      ? (coerceDateValue(conflictSet.updatedAt) ?? new Date())
+      ? (coerceLocalDateValue(conflictSet.updatedAt) ?? new Date())
       : sql`CURRENT_TIMESTAMP`;
 
     const [user] = await db
@@ -1642,9 +1677,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrganization(insertOrg: InsertOrganization): Promise<Organization> {
+    const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+    const normalizedOrgData = isLocalSqliteMode
+      ? (() => {
+          const source = insertOrg as Record<string, unknown>;
+          const now = new Date();
+          return {
+            ...insertOrg,
+            id: typeof source.id === 'string' && source.id.trim().length > 0 ? source.id : randomUUID(),
+            isActive: coerceLocalBooleanValue(source.isActive, true),
+            description: source.description ?? null,
+            logo: source.logo ?? null,
+            website: source.website ?? null,
+            contactEmail: source.contactEmail ?? null,
+            createdAt: coerceLocalDateValue(source.createdAt) ?? now,
+            updatedAt: coerceLocalDateValue(source.updatedAt) ?? now,
+          };
+        })()
+      : insertOrg;
+
     const [org] = await db
       .insert(organizations)
-      .values(insertOrg)
+      .values(normalizedOrgData)
       .returning();
     return org;
   }
@@ -1668,9 +1722,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addUserToOrganization(membership: InsertUserOrganization): Promise<UserOrganization> {
+    const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+    const normalizedMembershipData = isLocalSqliteMode
+      ? (() => {
+          const source = membership as Record<string, unknown>;
+          return {
+            ...membership,
+            id: typeof source.id === 'string' && source.id.trim().length > 0 ? source.id : randomUUID(),
+            role: typeof source.role === 'string' && source.role.trim().length > 0 ? source.role : 'member',
+            joinedAt: coerceLocalDateValue(source.joinedAt) ?? new Date(),
+          };
+        })()
+      : membership;
+
     const [userOrg] = await db
       .insert(userOrganizations)
-      .values(membership)
+      .values(normalizedMembershipData)
       .returning();
     return userOrg;
   }
@@ -2134,35 +2201,60 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadNotificationCount(userId: string): Promise<number> {
+    const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+    const unreadFlag = isLocalSqliteMode ? 0 : false;
+
     const [result] = await db
       .select({ count: count() })
       .from(notifications)
-      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, unreadFlag as any)));
     return result?.count ?? 0;
   }
 
   async createNotification(notification: InsertNotification): Promise<Notification> {
+    const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+    const normalizedNotificationData = isLocalSqliteMode
+      ? (() => {
+          const source = notification as Record<string, unknown>;
+          return {
+            ...notification,
+            id: typeof source.id === 'string' && source.id.trim().length > 0 ? source.id : randomUUID(),
+            isRead: coerceLocalBooleanValue(source.isRead, false),
+            metadata: source.metadata ?? null,
+            organizationId: source.organizationId ?? null,
+            createdAt: coerceLocalDateValue(source.createdAt) ?? new Date(),
+          };
+        })()
+      : notification;
+
     const [newNotification] = await db
       .insert(notifications)
-      .values(notification)
+      .values(normalizedNotificationData)
       .returning();
     return newNotification;
   }
 
   async markNotificationAsRead(id: string, userId: string): Promise<Notification | undefined> {
+    const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+    const readFlag = isLocalSqliteMode ? 1 : true;
+
     const [notification] = await db
       .update(notifications)
-      .set({ isRead: true })
+      .set({ isRead: readFlag as any })
       .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
       .returning();
     return notification || undefined;
   }
 
   async markAllNotificationsAsRead(userId: string): Promise<number> {
+    const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+    const readFlag = isLocalSqliteMode ? 1 : true;
+    const unreadFlag = isLocalSqliteMode ? 0 : false;
+
     const result = await db
       .update(notifications)
-      .set({ isRead: true })
-      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+      .set({ isRead: readFlag as any })
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, unreadFlag as any)));
     return (result).rowCount ?? 0;
   }
 

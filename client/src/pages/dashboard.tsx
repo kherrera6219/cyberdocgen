@@ -29,6 +29,17 @@ const RiskHeatmap = lazy(() => import("@/components/ai/RiskHeatmap").then(m => (
 const ControlPrioritizer = lazy(() => import("@/components/ai/ControlPrioritizer").then(m => ({ default: m.ControlPrioritizer })));
 
 const GENERATION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes timeout
+type ApiArrayResponse<T> = { success?: boolean; data?: T[] };
+
+function unwrapArrayData<T>(payload: T[] | ApiArrayResponse<T> | undefined): T[] {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+  if (payload && Array.isArray(payload.data)) {
+    return payload.data;
+  }
+  return [];
+}
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -72,18 +83,20 @@ export default function Dashboard() {
 
   // Get documents
   const { 
-    data: documents = [], 
+    data: documentsResponse, 
     isLoading: documentsLoading,
     isError: documentsError,
     refetch: refetchDocuments
-  } = useQuery<Document[]>({
+  } = useQuery<Document[] | ApiArrayResponse<Document>>({
     queryKey: ["/api/documents"],
   });
 
+  const documents = useMemo(() => unwrapArrayData(documentsResponse), [documentsResponse]);
 
-  const { data: approvals = [] } = useQuery<DocumentApproval[]>({
+  const { data: approvalsResponse } = useQuery<DocumentApproval[] | ApiArrayResponse<DocumentApproval>>({
     queryKey: ["/api/approvals?status=pending"],
   });
+  const approvals = useMemo(() => unwrapArrayData(approvalsResponse), [approvalsResponse]);
 
   // Calculate stats with guards for undefined data
   const completedDocs = documents?.filter(doc => doc.status === 'complete').length ?? 0;

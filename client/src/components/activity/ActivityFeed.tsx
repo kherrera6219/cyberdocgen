@@ -45,6 +45,29 @@ interface AuditLogsResponse {
   total: number;
 }
 
+type WrappedAuditLogsResponse = {
+  success?: boolean;
+  data?: AuditLogsResponse;
+};
+
+function unwrapAuditLogsResponse(payload: AuditLogsResponse | WrappedAuditLogsResponse | undefined): AuditLogsResponse {
+  if (!payload) {
+    return { data: [], page: 1, limit: 0, total: 0 };
+  }
+
+  const directPayload = payload as AuditLogsResponse;
+  if (Array.isArray(directPayload.data)) {
+    return directPayload;
+  }
+
+  const wrappedPayload = payload as WrappedAuditLogsResponse;
+  if (wrappedPayload.data && Array.isArray(wrappedPayload.data.data)) {
+    return wrappedPayload.data;
+  }
+
+  return { data: [], page: 1, limit: 0, total: 0 };
+}
+
 const actionIcons: Record<string, typeof Activity> = {
   CREATE: Plus,
   READ: Eye,
@@ -117,11 +140,11 @@ interface ActivityFeedProps {
 export function ActivityFeed({ limit = 10, compact = false, showViewAll = true }: ActivityFeedProps) {
   const [, setLocation] = useLocation();
   
-  const { data, isLoading, isError } = useQuery<AuditLogsResponse>({
+  const { data, isLoading, isError } = useQuery<AuditLogsResponse | WrappedAuditLogsResponse>({
     queryKey: [`/api/audit-trail?limit=${limit}`],
   });
 
-  const activities = data?.data ?? [];
+  const activities = unwrapAuditLogsResponse(data).data;
 
   if (isLoading) {
     return (
