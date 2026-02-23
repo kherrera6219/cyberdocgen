@@ -76,12 +76,15 @@
    - Added clear UX guardrail in `client/src/pages/repository-analysis.tsx` to direct users to complete company profile setup before upload.
    - Updated repository page tests in `tests/components/pages/admin-connectors-repository.test.tsx` for explicit profile-context behavior.
 
-## Remaining Findings
+## Phase 5 Status Update (Resolved)
+1. Evidence ingestion status is now backend-driven.
+   - Removed in-UI timeout status simulation from `client/src/pages/evidence-ingestion.tsx`.
+   - Added polling of `/api/evidence?snapshotId=:id` with status mapping from `processingStatus`.
+   - Queue UI now reflects server-side `pending -> extracting -> indexing -> analyzing -> completed/failed` progression.
+   - Updated tests in `tests/components/pages/evidence-ingestion.interactions.test.tsx` to validate backend-synchronized status behavior.
 
-### Low / informational
-1. Evidence ingestion uses simulated in-UI status progression after upload.
-   - Evidence: `client/src/pages/evidence-ingestion.tsx:183`
-   - Impact: visual status can drift from backend processing state.
+## Remaining Findings
+- None in the scoped page-wiring backlog from this deep-dive pass.
 
 ## Pages reviewed as intentionally static (not wiring defects)
 - Marketing/legal/public informational pages:
@@ -101,10 +104,5 @@
    - Connectors Hub list/create/import
 2. Add endpoint contract checks for dashboard generation and RUM metrics posting.
 
-### Phase 5 - Evidence ingestion parity
-1. Replace simulated post-upload status progression with backend-driven processing status.
-2. Add polling/subscription contract for ingestion job state transitions.
-
 ## Recommended implementation order
-1. Regression coverage for remaining page-wiring critical paths.
-2. Evidence ingestion backend/status parity.
+1. Maintain regression coverage for page-wiring critical paths as new pages evolve.

@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated tag-gated release policy workflow to run on Windows, build signed NSIS artifacts, verify Authenticode signatures, and publish signature reports.
 - Updated Windows release documentation to include evidence validation and SmartScreen capture requirements.
 - Aligned coverage enforcement baseline to active gate policy (`80%` lines/functions/statements, `78%` branches) and synchronized hotspot reporting thresholds.
+- Updated Evidence Ingestion UI to source processing state from backend evidence records (`/api/evidence?snapshotId=...`) rather than simulated client-side timers.
 
 ### Fixed
 
@@ -88,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eliminated backend CJS build warning risk by removing server-side `import.meta.url` dependency from runtime migration path resolution.
 - Burned down lint warnings introduced by governance/data-layer hardening work and restored clean `npm run lint`.
 - Fixed performance telemetry integrity in `performanceService` by removing duplicate request increments and deriving `errorRate` without mutating absolute error counters.
+- Fixed Evidence Ingestion status drift where queue rows could show inaccurate progress independent of server-side processing state.
 
 ### Removed
 

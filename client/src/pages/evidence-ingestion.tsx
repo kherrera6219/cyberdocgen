@@ -1,11 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -13,22 +13,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Upload, 
-  FileText, 
-  CheckCircle2, 
-  AlertCircle, 
+import {
+  Upload,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
   X,
   Loader2,
   Clock,
-  Link as LinkIcon
+  Link as LinkIcon,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { SnapshotManager } from "@/components/evidence/SnapshotManager";
 import { WebImportDialog } from "@/components/evidence/WebImportDialog";
 
+type BackendProcessingStatus = "pending" | "extracting" | "indexing" | "analyzing" | "completed" | "failed";
+
 interface EvidenceFile {
   id: string;
+  serverId?: string;
   name: string;
   size: number;
   type: string;
@@ -38,48 +41,139 @@ interface EvidenceFile {
   uploadedAt?: string;
 }
 
-// ... (existing code)
+interface EvidenceListItem {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  category?: string;
+  processingStatus?: BackendProcessingStatus;
+  createdAt?: string;
+}
 
-  const getStatusIcon = (status: EvidenceFile["status"]) => {
-    switch (status) {
-      case "uploading":
-        return <Clock className="w-4 h-4 text-blue-500 animate-pulse" />;
-      case "pending":
-        return <Clock className="w-4 h-4 text-gray-400" />;
-      case "extracting":
-        return <FileText className="w-4 h-4 text-orange-500 animate-pulse" />;
-      case "indexing":
-        return <LinkIcon className="w-4 h-4 text-purple-500 animate-pulse" />;
-      case "analyzing":
-        return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
-      case "completed":
-        return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-      case "error":
-      case "failed":
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
+interface EvidenceListResponse {
+  data?:
+    | {
+        evidence?: EvidenceListItem[];
+      }
+    | EvidenceListItem[];
+}
+
+interface UploadEvidenceResponse {
+  data?: EvidenceListItem;
+}
+
+const CATEGORIES = ["Company Profile", "Product & System", "Security Program", "Evidence"] as const;
+
+const STATUS_PROGRESS: Record<EvidenceFile["status"], number> = {
+  uploading: 0,
+  pending: 20,
+  extracting: 45,
+  indexing: 65,
+  analyzing: 85,
+  completed: 100,
+  failed: 0,
+  error: 0,
+};
+
+const TERMINAL_FILE_STATUSES = new Set<EvidenceFile["status"]>(["completed", "failed", "error"]);
+
+function mapBackendStatus(status: string | undefined): EvidenceFile["status"] {
+  switch (status) {
+    case "pending":
+    case "extracting":
+    case "indexing":
+    case "analyzing":
+    case "completed":
+    case "failed":
+      return status;
+    default:
+      return "pending";
+  }
+}
+
+function getProgressForStatus(status: EvidenceFile["status"]): number {
+  return STATUS_PROGRESS[status] ?? 0;
+}
+
+function normalizeEvidenceListResponse(payload: unknown): EvidenceListItem[] {
+  if (Array.isArray(payload)) {
+    return payload as EvidenceListItem[];
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const response = payload as EvidenceListResponse;
+  if (Array.isArray(response.data)) {
+    return response.data;
+  }
+
+  if (response.data && typeof response.data === "object") {
+    const evidence = (response.data as { evidence?: EvidenceListItem[] }).evidence;
+    if (Array.isArray(evidence)) {
+      return evidence;
     }
-  };
+  }
 
-  const getStatusLabel = (status: EvidenceFile["status"]) => {
-    switch (status) {
-      case "uploading": return "Uploading...";
-      case "pending": return "Queued";
-      case "extracting": return "Extracting Text...";
-      case "indexing": return "Indexing Content...";
-      case "analyzing": return "AI Analysis...";
-      case "completed": return "Ready";
-      case "error": 
-      case "failed": return "Failed";
-      default: return status;
-    }
-  };
+  return [];
+}
 
-const CATEGORIES = [
-  "Company Profile",
-  "Product & System", 
-  "Security Program", 
-  "Evidence"
-];
+function normalizeUploadResponse(payload: unknown): EvidenceListItem | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const data = (payload as UploadEvidenceResponse).data;
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  return data;
+}
+
+const getStatusIcon = (status: EvidenceFile["status"]) => {
+  switch (status) {
+    case "uploading":
+      return <Clock className="w-4 h-4 text-blue-500 animate-pulse" />;
+    case "pending":
+      return <Clock className="w-4 h-4 text-gray-400" />;
+    case "extracting":
+      return <FileText className="w-4 h-4 text-orange-500 animate-pulse" />;
+    case "indexing":
+      return <LinkIcon className="w-4 h-4 text-purple-500 animate-pulse" />;
+    case "analyzing":
+      return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
+    case "completed":
+      return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+    case "error":
+    case "failed":
+      return <AlertCircle className="w-4 h-4 text-red-500" />;
+  }
+};
+
+const getStatusLabel = (status: EvidenceFile["status"]) => {
+  switch (status) {
+    case "uploading":
+      return "Uploading...";
+    case "pending":
+      return "Queued";
+    case "extracting":
+      return "Extracting Text...";
+    case "indexing":
+      return "Indexing Content...";
+    case "analyzing":
+      return "AI Analysis...";
+    case "completed":
+      return "Ready";
+    case "error":
+    case "failed":
+      return "Failed";
+    default:
+      return status;
+  }
+};
 
 export default function EvidenceIngestion() {
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string | null>(null);
@@ -88,24 +182,86 @@ export default function EvidenceIngestion() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const { data: evidenceRecords = [] } = useQuery<EvidenceListItem[]>({
+    queryKey: ["/api/evidence", selectedSnapshotId],
+    enabled: Boolean(selectedSnapshotId),
+    refetchInterval: (query) => {
+      const records = Array.isArray(query.state.data) ? query.state.data : [];
+      const recordById = new Map(records.map((record) => [record.id, record]));
+      const trackedFiles = files.filter((file) => Boolean(file.serverId));
+
+      if (trackedFiles.length === 0) {
+        return false;
+      }
+
+      const hasActiveProcessing = trackedFiles.some((file) => {
+        const record = file.serverId ? recordById.get(file.serverId) : undefined;
+        const status = record ? mapBackendStatus(record.processingStatus) : file.status;
+        return !TERMINAL_FILE_STATUSES.has(status);
+      });
+
+      return hasActiveProcessing ? 1500 : false;
+    },
+    queryFn: async () => {
+      if (!selectedSnapshotId) {
+        return [];
+      }
+
+      const snapshotId = selectedSnapshotId;
+      const response = await apiRequest("GET", `/api/evidence?snapshotId=${encodeURIComponent(snapshotId)}`);
+      return normalizeEvidenceListResponse(response);
+    },
+  });
+
+  const evidenceRecordById = useMemo(
+    () => new Map(evidenceRecords.map((record) => [record.id, record])),
+    [evidenceRecords],
+  );
+
+  const displayFiles = useMemo(
+    () =>
+      files.map((file) => {
+        if (!file.serverId) {
+          return file;
+        }
+
+        const serverRecord = evidenceRecordById.get(file.serverId);
+        if (!serverRecord) {
+          return file;
+        }
+
+        const mappedStatus = mapBackendStatus(serverRecord.processingStatus);
+        return {
+          ...file,
+          status: mappedStatus,
+          progress: getProgressForStatus(mappedStatus),
+          uploadedAt: serverRecord.createdAt ?? file.uploadedAt,
+          category: serverRecord.category || file.category,
+        };
+      }),
+    [files, evidenceRecordById],
+  );
+
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!selectedSnapshotId) throw new Error("Please select an audit snapshot first.");
+      if (!selectedSnapshotId) {
+        throw new Error("Please select an audit snapshot first.");
+      }
 
-      return new Promise((resolve, reject) => {
+      return new Promise<unknown>((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => {
-          const base64String = (reader.result as string).split(',')[1];
-          
+          const base64String = (reader.result as string).split(",")[1];
+
           apiRequest("/api/evidence/upload", "POST", {
             fileName: file.name,
             fileData: base64String,
             snapshotId: selectedSnapshotId,
-            category: selectedCategory
+            category: selectedCategory,
           }).then(resolve).catch(reject);
         };
-        reader.onerror = error => reject(error);
+        reader.onerror = (error) => reject(error);
       });
     },
     onSuccess: () => {
@@ -124,108 +280,104 @@ export default function EvidenceIngestion() {
     },
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (!selectedSnapshotId) {
-      toast({
-        title: "Action Required",
-        description: "Please select an Audit Snapshot context before uploading.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newFiles: EvidenceFile[] = acceptedFiles.map((file) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      status: "uploading",
-      progress: 0,
-      category: selectedCategory,
-    }));
-
-    setFiles((prev) => [...prev, ...newFiles]);
-
-    // Process uploads
-    acceptedFiles.forEach((file, index) => {
-      const evidenceFile = newFiles[index];
-      
-      // Simulate progress
-      const progressInterval = setInterval(() => {
-        setFiles((prev) => 
-          prev.map((f) => {
-            if (f.id === evidenceFile.id && f.status === "uploading") {
-              const newProgress = Math.min(f.progress + 10, 90);
-              return { ...f, progress: newProgress };
-            }
-            return f;
-          })
-        );
-      }, 200);
-
-      uploadMutation.mutateAsync(file)
-        .then(() => {
-          clearInterval(progressInterval);
-          setFiles((prev) =>
-            prev.map((f) => {
-              if (f.id === evidenceFile.id) {
-                return { 
-                  ...f, 
-                  status: "extracting", // Start granular status simulation
-                  progress: 100,
-                  uploadedAt: new Date().toISOString()
-                };
-              }
-              return f;
-            })
-          );
-          
-          // Simulate status progression for UI demo
-          setTimeout(() => {
-             setFiles(prev => prev.map(f => f.id === evidenceFile.id ? { ...f, status: 'indexing' } : f));
-             setTimeout(() => {
-                setFiles(prev => prev.map(f => f.id === evidenceFile.id ? { ...f, status: 'analyzing' } : f));
-                setTimeout(() => {
-                    setFiles(prev => prev.map(f => f.id === evidenceFile.id ? { ...f, status: 'completed' } : f));
-                }, 1500);
-             }, 1500);
-          }, 1500);
-        })
-        .catch(() => {
-          clearInterval(progressInterval);
-          setFiles((prev) =>
-            prev.map((f) => {
-              if (f.id === evidenceFile.id) {
-                return { ...f, status: "error", progress: 0 };
-              }
-              return f;
-            })
-          );
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (!selectedSnapshotId) {
+        toast({
+          title: "Action Required",
+          description: "Please select an Audit Snapshot context before uploading.",
+          variant: "destructive",
         });
-    });
-  }, [selectedSnapshotId, selectedCategory, uploadMutation, toast]);
+        return;
+      }
+
+      const newFiles: EvidenceFile[] = acceptedFiles.map((file) => ({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        status: "uploading",
+        progress: 0,
+        category: selectedCategory,
+      }));
+
+      setFiles((prev) => [...prev, ...newFiles]);
+
+      acceptedFiles.forEach((file, index) => {
+        const localFile = newFiles[index];
+
+        const progressInterval = setInterval(() => {
+          setFiles((prev) =>
+            prev.map((queuedFile) => {
+              if (queuedFile.id === localFile.id && queuedFile.status === "uploading") {
+                const nextProgress = Math.min(queuedFile.progress + 10, 90);
+                return { ...queuedFile, progress: nextProgress };
+              }
+              return queuedFile;
+            }),
+          );
+        }, 200);
+
+        uploadMutation
+          .mutateAsync(file)
+          .then((responsePayload) => {
+            clearInterval(progressInterval);
+
+            const uploadedRecord = normalizeUploadResponse(responsePayload);
+            const backendStatus = mapBackendStatus(uploadedRecord?.processingStatus);
+
+            setFiles((prev) =>
+              prev.map((queuedFile) => {
+                if (queuedFile.id !== localFile.id) {
+                  return queuedFile;
+                }
+
+                return {
+                  ...queuedFile,
+                  serverId: uploadedRecord?.id || queuedFile.serverId,
+                  status: backendStatus,
+                  progress: getProgressForStatus(backendStatus),
+                  uploadedAt: uploadedRecord?.createdAt || new Date().toISOString(),
+                  category: uploadedRecord?.category || queuedFile.category,
+                };
+              }),
+            );
+          })
+          .catch(() => {
+            clearInterval(progressInterval);
+            setFiles((prev) =>
+              prev.map((queuedFile) => {
+                if (queuedFile.id === localFile.id) {
+                  return { ...queuedFile, status: "error", progress: 0 };
+                }
+                return queuedFile;
+              }),
+            );
+          });
+      });
+    },
+    [selectedSnapshotId, selectedCategory, uploadMutation, toast],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/pdf': ['.pdf'],
-      'image/*': ['.png', '.jpg', '.jpeg'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      "application/pdf": [".pdf"],
+      "image/*": [".png", ".jpg", ".jpeg"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
     },
-    disabled: !selectedSnapshotId
+    disabled: !selectedSnapshotId,
   });
 
   const removeFile = (id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
+    setFiles((prev) => prev.filter((file) => file.id !== id));
   };
 
-
-
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -235,10 +387,7 @@ export default function EvidenceIngestion() {
         <p className="text-muted-foreground">Upload and process compliance evidence for audit readiness</p>
       </div>
 
-      <SnapshotManager 
-        selectedSnapshotId={selectedSnapshotId}
-        onSnapshotSelect={(id) => setSelectedSnapshotId(id)}
-      />
+      <SnapshotManager selectedSnapshotId={selectedSnapshotId} onSnapshotSelect={(id) => setSelectedSnapshotId(id)} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -246,26 +395,28 @@ export default function EvidenceIngestion() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="space-y-1">
                 <CardTitle>Upload Evidence</CardTitle>
-                <CardDescription>
-                  Select a category and drop files to ingest.
-                </CardDescription>
+                <CardDescription>Select a category and drop files to ingest.</CardDescription>
               </div>
               <WebImportDialog snapshotId={selectedSnapshotId} />
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                 <label className="text-sm font-medium">Document Category</label>
-                 <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={!selectedSnapshotId}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {CATEGORIES.map(cat => (
-                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                        ))}
-                    </SelectContent>
-                 </Select>
-                 {!selectedSnapshotId && <p className="text-xs text-orange-500">Select a snapshot above to enable upload.</p>}
+                <label className="text-sm font-medium">Document Category</label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={!selectedSnapshotId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!selectedSnapshotId && (
+                  <p className="text-xs text-orange-500">Select a snapshot above to enable upload.</p>
+                )}
               </div>
 
               <div
@@ -273,9 +424,12 @@ export default function EvidenceIngestion() {
                 className={`
                   border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
                   transition-colors duration-200
-                  ${isDragActive 
-                    ? "border-primary bg-primary/5" 
-                    : !selectedSnapshotId ? "opacity-50 cursor-not-allowed" : "border-muted-foreground/25 hover:border-primary/50"
+                  ${
+                    isDragActive
+                      ? "border-primary bg-primary/5"
+                      : !selectedSnapshotId
+                        ? "opacity-50 cursor-not-allowed"
+                        : "border-muted-foreground/25 hover:border-primary/50"
                   }
                 `}
               >
@@ -293,40 +447,29 @@ export default function EvidenceIngestion() {
             </CardContent>
           </Card>
 
-          {files.length > 0 && (
+          {displayFiles.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Upload Queue</CardTitle>
-                <CardDescription>{files.length} file(s) in queue</CardDescription>
+                <CardDescription>{displayFiles.length} file(s) in queue</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {files.map((file) => (
-                  <div 
-                    key={file.id} 
-                    className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
-                  >
+                {displayFiles.map((file) => (
+                  <div key={file.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                     <FileText className="w-8 h-8 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium truncate">{file.name}</p>
                         <Badge variant="secondary">{formatFileSize(file.size)}</Badge>
                       </div>
-                      {file.status === "uploading" && (
-                        <Progress value={file.progress} className="h-1 mt-2" />
-                      )}
+                      {file.status === "uploading" && <Progress value={file.progress} className="h-1 mt-2" />}
                       <div className="flex items-center gap-2 mt-1">
                         {getStatusIcon(file.status)}
-                        <span className="text-sm text-muted-foreground">
-                          {file.status}
-                        </span>
+                        <span className="text-sm text-muted-foreground">{getStatusLabel(file.status)}</span>
                         <Badge variant="outline">{file.category}</Badge>
                       </div>
                     </div>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      onClick={() => removeFile(file.id)}
-                    >
+                    <Button size="icon" variant="ghost" onClick={() => removeFile(file.id)}>
                       <X className="w-4 h-4" />
                     </Button>
                   </div>

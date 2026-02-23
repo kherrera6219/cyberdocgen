@@ -71,6 +71,48 @@ describe("EvidenceIngestion interactions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("FileReader", MockFileReader as unknown as typeof FileReader);
+    apiRequestMock.mockImplementation(async (urlOrMethod: unknown, maybeUrl: unknown, body: unknown) => {
+      const resolvedUrl =
+        typeof urlOrMethod === "string" && (urlOrMethod === "GET" || urlOrMethod === "POST")
+          ? String(maybeUrl)
+          : String(urlOrMethod);
+
+      if (resolvedUrl.startsWith("/api/evidence?snapshotId=")) {
+        return {
+          success: true,
+          data: {
+            evidence: [
+              {
+                id: "cloud-1",
+                fileName: "policy.pdf",
+                fileSize: 14,
+                mimeType: "application/pdf",
+                category: "Evidence",
+                processingStatus: "extracting",
+                createdAt: "2026-02-23T00:00:00.000Z",
+              },
+            ],
+          },
+        };
+      }
+
+      if (resolvedUrl === "/api/evidence/upload") {
+        return {
+          success: true,
+          data: {
+            id: "cloud-1",
+            fileName: (body as { fileName?: string })?.fileName || "policy.pdf",
+            fileSize: 14,
+            mimeType: "application/pdf",
+            category: "Evidence",
+            processingStatus: "extracting",
+            createdAt: "2026-02-23T00:00:00.000Z",
+          },
+        };
+      }
+
+      return { success: true };
+    });
   });
 
   afterEach(() => {
@@ -97,8 +139,7 @@ describe("EvidenceIngestion interactions", () => {
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
 
-  it("uploads files, advances status, and allows queue cleanup", async () => {
-    apiRequestMock.mockResolvedValue({ success: true });
+  it("uploads files, syncs status from backend, and allows queue cleanup", async () => {
     const user = userEvent.setup();
 
     renderWithProviders(<EvidenceIngestion />);
@@ -132,7 +173,7 @@ describe("EvidenceIngestion interactions", () => {
       );
     });
 
-    expect(await screen.findByText("extracting")).toBeInTheDocument();
+    expect(await screen.findByText(/extracting text/i)).toBeInTheDocument();
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Evidence uploaded",
@@ -147,7 +188,27 @@ describe("EvidenceIngestion interactions", () => {
   });
 
   it("marks file status as error when upload fails", async () => {
-    apiRequestMock.mockRejectedValueOnce(new Error("Upload failed"));
+    apiRequestMock.mockImplementation(async (urlOrMethod: unknown, maybeUrl: unknown) => {
+      const resolvedUrl =
+        typeof urlOrMethod === "string" && (urlOrMethod === "GET" || urlOrMethod === "POST")
+          ? String(maybeUrl)
+          : String(urlOrMethod);
+
+      if (resolvedUrl.startsWith("/api/evidence?snapshotId=")) {
+        return {
+          success: true,
+          data: {
+            evidence: [],
+          },
+        };
+      }
+
+      if (resolvedUrl === "/api/evidence/upload") {
+        throw new Error("Upload failed");
+      }
+
+      return { success: true };
+    });
     const user = userEvent.setup();
 
     renderWithProviders(<EvidenceIngestion />);
@@ -166,7 +227,7 @@ describe("EvidenceIngestion interactions", () => {
       await dropzoneState.onDrop?.([file]);
     });
 
-    expect(await screen.findByText("error")).toBeInTheDocument();
+    expect(await screen.findByText(/failed/i)).toBeInTheDocument();
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Upload failed",

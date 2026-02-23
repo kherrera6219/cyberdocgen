@@ -38,6 +38,12 @@
 
 ## Latest Updates
 
+**February 23, 2026 - Evidence Ingestion Status Parity Completed:**
+
+- ✅ **Backend-Driven Queue Statuses** - Evidence upload queue now reflects server `processingStatus` states (`pending`, `extracting`, `indexing`, `analyzing`, `completed`, `failed`) instead of frontend timeout simulation.
+- ✅ **Live Snapshot-Scoped Polling Added** - Evidence page now polls `/api/evidence?snapshotId=...` and automatically reconciles queue row status with backend records.
+- ✅ **Regression Coverage Added** - `tests/components/pages/evidence-ingestion.interactions.test.tsx` now validates backend-synchronized status progression and failure handling.
+
 **February 23, 2026 - Local Quick-Access and Dashboard Reliability:**
 
 - ✅ **Temp Login Session Context Fixed** - quick-access login now guarantees a persisted user + organization membership and stores `session.organizationId` before redirecting to `/dashboard`.
