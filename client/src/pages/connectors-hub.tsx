@@ -19,6 +19,10 @@ interface ConnectorConfig {
   lastSnapshotId?: string;
 }
 
+interface ConnectorListResponse {
+  data?: ConnectorConfig[];
+}
+
 export default function ConnectorsHub() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -28,14 +32,18 @@ export default function ConnectorsHub() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newConnectorName, setNewConnectorName] = useState("");
   const [newConnectorType, setNewConnectorType] = useState<string>("sharepoint");
+  const [newIntegrationId, setNewIntegrationId] = useState("");
 
   // Fetch Connectors
   const { data: connectors = [], isLoading } = useQuery({
     queryKey: ["/api/connectors"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/connectors");
-      const json = await res.json();
-      return json.data as ConnectorConfig[];
+      const response = await apiRequest("GET", "/api/connectors");
+      if (response && typeof response === "object" && "json" in response && typeof (response as Response).json === "function") {
+        const payload = await (response as Response).json();
+        return (payload as ConnectorListResponse)?.data ?? [];
+      }
+      return (response as ConnectorListResponse)?.data ?? [];
     }
   });
 
@@ -43,18 +51,22 @@ export default function ConnectorsHub() {
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!selectedSnapshotId) throw new Error("Snapshot required for context.");
+      if (!newConnectorName.trim()) throw new Error("Connector name is required.");
+      const resolvedIntegrationId =
+        newIntegrationId.trim()
+        || `${newConnectorType}:${newConnectorName.trim().toLowerCase().replace(/\s+/g, "-")}`;
       await apiRequest("POST", "/api/connectors", {
-        name: newConnectorName,
+        name: newConnectorName.trim(),
         connectorType: newConnectorType,
-        integrationId: "mock-integration-id", // In real app, this comes from OAuth flow
-        organizationId: "default", // Should be dynamic
-        scopeConfig: { site: "My Team Site" } // Mock scope
+        integrationId: resolvedIntegrationId,
+        scopeConfig: {},
       });
     },
     onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["/api/connectors"] });
         setIsDialogOpen(false);
         setNewConnectorName("");
+        setNewIntegrationId("");
         toast({ title: "Connector Created", description: "New connector ready to import." });
     },
     onError: (err: Error) => {
@@ -132,10 +144,21 @@ export default function ConnectorsHub() {
                             placeholder="e.g. Engineering Jira Board"
                         />
                     </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Integration ID</label>
+                        <Input
+                            value={newIntegrationId}
+                            onChange={(e) => setNewIntegrationId(e.target.value)}
+                            placeholder="Paste integration ID from connected provider"
+                        />
+                    </div>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
+                    <Button
+                        onClick={() => createMutation.mutate()}
+                        disabled={createMutation.isPending || !newConnectorName.trim()}
+                    >
                         {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Create
                     </Button>

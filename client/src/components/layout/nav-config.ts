@@ -14,6 +14,7 @@ import {
   KeyRound,
   LayoutDashboard,
   Lock,
+  Search,
   Settings,
   Shield,
   ShieldCheck,
@@ -64,6 +65,7 @@ export const aiToolsNavItems: NavItem[] = [
 
 export const complianceNavItems: NavItem[] = [
   { href: "/gap-analysis", icon: Target, label: "Gap Analysis" },
+  { href: "/repository-analysis", icon: Search, label: "Repository Analysis" },
   { href: "/control-approvals", icon: CheckSquare, label: "Control Approvals" },
   { href: "/auditor-workspace", icon: Eye, label: "Auditor Workspace" },
   { href: "/audit-trail", icon: History, label: "Audit Trail" },

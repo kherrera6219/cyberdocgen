@@ -156,7 +156,7 @@ describe("Additional page smoke coverage", () => {
 
   it("renders document versions page", () => {
     renderWithProviders(<DocumentVersions documentId="doc-1" documentTitle="Policy Document" />);
-    expect(screen.getByText(/version history/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /version history/i })).toBeInTheDocument();
   });
 
   it("renders MCP tools page", () => {

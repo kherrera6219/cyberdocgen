@@ -46,8 +46,9 @@ interface Agent {
   name: string;
   description: string;
   model: string;
-  tools: string[];
-  capabilities: string[];
+  tools?: string[];
+  availableTools?: string[];
+  capabilities?: string[];
 }
 
 interface Attachment {
@@ -87,11 +88,43 @@ const MAX_ATTACHMENTS = 10;
 const MAX_ATTACHMENT_CONTENT_CHARS = 2_000_000;
 const MAX_TOTAL_ATTACHMENT_CONTENT_CHARS = 8_000_000;
 
+const FRAMEWORK_CONTEXTS = [
+  { value: "all-frameworks", label: "All Frameworks" },
+  { value: "iso-27001", label: "ISO 27001" },
+  { value: "soc-2", label: "SOC 2 Type II" },
+  { value: "fedramp", label: "FedRAMP" },
+  { value: "nist-800-53", label: "NIST 800-53" },
+  { value: "gdpr", label: "GDPR" },
+  { value: "hipaa", label: "HIPAA" },
+  { value: "pci-dss", label: "PCI-DSS" },
+] as const;
+
+const QUICK_ACTIONS = [
+  { label: "Generate Doc", prompt: "Generate a draft compliance policy document." },
+  { label: "Analyze Gap", prompt: "Run a gap analysis and list top missing controls." },
+  { label: "Risk Assessment", prompt: "Assess key compliance risks and propose remediations." },
+] as const;
+
+function createWelcomeMessage(): Message {
+  return {
+    id: `welcome-${crypto.randomUUID()}`,
+    role: "assistant",
+    content:
+      "Hello. I am your compliance assistant. Ask questions, attach files, and choose a framework context for targeted guidance.",
+    timestamp: new Date(),
+  };
+}
+
+function getFrameworkLabel(value: string): string {
+  return FRAMEWORK_CONTEXTS.find((option) => option.value === value)?.label ?? "All Frameworks";
+}
+
 export default function AIAssistant() {
   const { toast } = useToast();
   const [selectedAgent, setSelectedAgent] = useState<string>("compliance-chat");
+  const [selectedFramework, setSelectedFramework] = useState<string>("all-frameworks");
   const [inputMessage, setInputMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => [createWelcomeMessage()]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isProcessingAttachments, setIsProcessingAttachments] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -106,7 +139,6 @@ export default function AIAssistant() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const attachmentsRef = useRef<Attachment[]>([]);
 
@@ -130,6 +162,15 @@ export default function AIAssistant() {
 
   useEffect(() => {
     return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (synthRef.current) {
+        synthRef.current.cancel();
+      }
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+      }
       revokeAttachmentPreviews(attachmentsRef.current);
     };
   }, [revokeAttachmentPreviews]);
@@ -223,12 +264,15 @@ export default function AIAssistant() {
       return apiRequest(`/api/mcp/agents/${agentId}/clear`, "POST");
     },
     onSuccess: () => {
-      setMessages([]);
+      setMessages([createWelcomeMessage()]);
       setAttachments((prev) => {
         revokeAttachmentPreviews(prev);
         return [];
       });
       setCanvasData(null);
+      setInputMessage("");
+      setTypingMessageId(null);
+      setDisplayedContent("");
       toast({
         title: "Conversation Cleared",
         description: "Started a new conversation with the AI assistant.",
@@ -360,7 +404,7 @@ export default function AIAssistant() {
     }
   }, [attachments, readFileAsDataUrl, toast]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open: openFilePicker } = useDropzone({
     onDrop,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
@@ -386,26 +430,124 @@ export default function AIAssistant() {
   };
 
   const startVoiceRecording = () => {
-    // ... (voice recording logic)
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const SpeechRecognition =
+      (window as Window & { webkitSpeechRecognition?: new () => any; SpeechRecognition?: new () => any }).SpeechRecognition
+      || (window as Window & { webkitSpeechRecognition?: new () => any; SpeechRecognition?: new () => any }).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast({
+        title: "Voice input unavailable",
+        description: "This browser does not support speech recognition.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!recognitionRef.current) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = "en-US";
+
+      recognitionRef.current.onstart = () => {
+        setIsRecording(true);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onerror = (event: { message?: string; error?: string }) => {
+        setIsRecording(false);
+        toast({
+          title: "Voice input failed",
+          description: event?.message || event?.error || "Unable to capture voice input.",
+          variant: "destructive",
+        });
+      };
+
+      recognitionRef.current.onresult = (event: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript?: string }>> }) => {
+        const parts: string[] = [];
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          const transcript = event.results[i]?.[0]?.transcript;
+          if (transcript) {
+            parts.push(transcript);
+          }
+        }
+
+        const transcriptText = parts.join(" ").trim();
+        if (transcriptText) {
+          setInputMessage((prev) => [prev.trim(), transcriptText].filter(Boolean).join(" ").trim());
+        }
+      };
+    }
+
+    try {
+      recognitionRef.current.start();
+    } catch (error) {
+      logger.error("Failed to start speech recognition", { error });
+      setIsRecording(false);
+      toast({
+        title: "Voice input failed",
+        description: "Unable to start recording.",
+        variant: "destructive",
+      });
+    }
   };
 
   const stopVoiceRecording = () => {
-    // ... (voice recording logic)
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsRecording(false);
   };
 
   const speakText = (text: string) => {
-    // ... (text to speech logic)
+    if (!text.trim()) {
+      return;
+    }
+    if (!synthRef.current) {
+      toast({
+        title: "Voice output unavailable",
+        description: "Speech synthesis is not supported in this browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    synthRef.current.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      toast({
+        title: "Voice output failed",
+        description: "Could not play synthesized audio.",
+        variant: "destructive",
+      });
+    };
+
+    setIsSpeaking(true);
+    synthRef.current.speak(utterance);
   };
 
   const stopSpeaking = () => {
-    // ... (text to speech logic)
+    if (synthRef.current) {
+      synthRef.current.cancel();
+    }
+    setIsSpeaking(false);
   };
 
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, displayedContent, executeAgentMutation.isPending]);
 
   const handleSendMessage = () => {
     if (isProcessingAttachments) {
@@ -416,19 +558,31 @@ export default function AIAssistant() {
       return;
     }
 
-    if (!inputMessage.trim() && attachments.length === 0) return;
+    const trimmedMessage = inputMessage.trim();
+    if (!trimmedMessage && attachments.length === 0) return;
+
+    const messageAttachments = attachments.map((attachment) => ({
+      id: attachment.id,
+      name: attachment.name,
+      type: attachment.type,
+      size: attachment.size,
+    }));
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: "user",
-      content: inputMessage || (attachments.length > 0 ? `[Sent ${attachments.length} file(s)]` : ''),
+      content: trimmedMessage || (attachments.length > 0 ? `[Sent ${attachments.length} file(s)]` : ''),
       timestamp: new Date(),
-      attachments: attachments.length > 0 ? [...attachments] : undefined,
+      attachments: messageAttachments.length > 0 ? messageAttachments : undefined,
     };
 
     setMessages((prev) => [...prev, userMessage]);
     
-    let prompt = inputMessage;
+    let prompt = trimmedMessage;
+    if (selectedFramework !== "all-frameworks") {
+      const frameworkLabel = getFrameworkLabel(selectedFramework);
+      prompt = `Framework context: ${frameworkLabel}\n\n${prompt}`.trim();
+    }
     if (canvasData) {
       prompt += "\n\n[Canvas drawing attached]";
     }
@@ -520,52 +674,384 @@ export default function AIAssistant() {
   const selectedAgentData = allAgents.find((a) => a.id === selectedAgent);
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-120px)]" {...getRootProps()}>
+    <div className="flex h-full min-h-0 flex-col gap-4 p-4 md:p-6" {...getRootProps()}>
       <input {...getInputProps()} data-testid="input-file-dropzone" />
-      
+
       {isDragActive && (
-        <div className="fixed inset-0 bg-primary/10 border-2 border-dashed border-primary z-50 flex items-center justify-center">
-          <div className="text-center bg-background p-8 rounded-lg shadow-lg">
-            <Upload className="h-12 w-12 mx-auto mb-4 text-primary" />
-            <p className="text-lg font-medium">Drop files here</p>
-            <p className="text-sm text-muted-foreground">PDF, DOCX, Images, TXT, JSON</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="rounded-lg border-2 border-dashed border-primary bg-card p-8 text-center shadow-xl">
+            <Upload className="mx-auto mb-3 h-10 w-10 text-primary" />
+            <p className="text-lg font-semibold">Drop files to attach</p>
+            <p className="text-sm text-muted-foreground">PDF, DOCX, TXT, JSON, images</p>
           </div>
         </div>
       )}
-      
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4">
-        <div className="flex items-center gap-3">
-          <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold" data-testid="text-page-title">AI Assistant</h1>
-            <p className="text-sm text-muted-foreground">Chat with voice, upload files, or draw on canvas</p>
-          </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold" data-testid="text-page-title">AI Assistant</h1>
+          <p className="text-sm text-muted-foreground">
+            Chat with compliance-focused agents using file uploads and voice controls.
+          </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-            <SelectTrigger className="w-full sm:w-[220px]" data-testid="select-agent">
-              <SelectValue placeholder="Select an agent" />
+            <SelectTrigger className="w-full sm:w-[240px]" data-testid="select-agent">
+              <SelectValue placeholder={agentsLoading ? "Loading agents..." : "Select an agent"} />
             </SelectTrigger>
             <SelectContent>
-              {agentsLoading ? (
+              {agentsLoading && (
                 <SelectItem value="loading" disabled>Loading agents...</SelectItem>
-              ) : (
-                allAgents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    <div className="flex items-center gap-2">
-                      {getAgentIcon(agent.id)}
-                      <span>{agent.name}</span>
-                    </div>
-                  </SelectItem>
-                ))
               )}
+              {!agentsLoading && allAgents.map((agent) => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  <div className="flex items-center gap-2">
+                    {getAgentIcon(agent.id)}
+                    <span>{agent.name}</span>
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          {/* ... other buttons */}
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => clearConversationMutation.mutate(selectedAgent)}
+            disabled={clearConversationMutation.isPending}
+            data-testid="button-new-chat"
+          >
+            {clearConversationMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-2 h-4 w-4" />
+            )}
+            New Chat
+          </Button>
         </div>
       </div>
 
-      {/* ... rest of the component */}
+      <Card>
+        <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">{selectedAgentData?.name || "AI Agent"}</p>
+            <p className="text-xs text-muted-foreground">{selectedAgentData?.description || "No agent description available."}</p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {(selectedAgentData?.capabilities || []).slice(0, 4).map((capability) => (
+              <Badge key={capability} variant="secondary" className="text-[11px]">
+                <CheckCircle className="mr-1 h-3 w-3" />
+                {capability}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col gap-3">
+        <TabsList className="w-fit">
+          <TabsTrigger value="chat" data-testid="tab-chat">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Chat
+          </TabsTrigger>
+          <TabsTrigger value="canvas">
+            <Pencil className="mr-2 h-4 w-4" />
+            Agent Details
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="chat" className="mt-0 flex min-h-0 flex-1 flex-col">
+          <Card className="flex min-h-0 flex-1 flex-col">
+            <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+              <ScrollArea className="min-h-0 flex-1 pr-2" ref={scrollAreaRef}>
+                <div className="space-y-4" role="log" aria-live="polite" aria-label="AI assistant conversation">
+                  {messages.map((message) => {
+                    const isAssistant = message.role === "assistant";
+                    const isTyping = typingMessageId === message.id;
+                    const content = isTyping ? displayedContent : message.content;
+
+                    return (
+                      <div key={message.id} className={`flex ${isAssistant ? "justify-start" : "justify-end"}`}>
+                        <div
+                          className={`max-w-[92%] space-y-2 rounded-xl border px-4 py-3 text-sm shadow-sm md:max-w-[80%] ${
+                            isAssistant
+                              ? "border-border bg-card"
+                              : "border-primary/40 bg-primary/10"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border bg-background">
+                              {isAssistant ? <Bot className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+                            </span>
+                            <span>{isAssistant ? "Assistant" : "You"}</span>
+                            <span>{message.timestamp.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>
+                          </div>
+
+                          <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
+
+                          {message.attachments && message.attachments.length > 0 && (
+                            <div className="space-y-1.5 rounded-md border bg-background/70 p-2">
+                              {message.attachments.map((attachment) => (
+                                <div key={attachment.id} className="flex items-center gap-2 text-xs">
+                                  {getFileIcon(attachment.type)}
+                                  <span className="truncate">{attachment.name}</span>
+                                  <span className="text-muted-foreground">{formatFileSize(attachment.size)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {message.toolCalls && message.toolCalls.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {message.toolCalls.map((toolCall, index) => (
+                                <Badge key={`${toolCall.toolName}-${index}`} variant="outline" className="text-[11px]">
+                                  <Wrench className="mr-1 h-3 w-3" />
+                                  {toolCall.toolName}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {executeAgentMutation.isPending && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[92%] space-y-2 rounded-xl border bg-card px-4 py-3 text-sm shadow-sm md:max-w-[80%]">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border bg-background">
+                            <Bot className="h-3.5 w-3.5" />
+                          </span>
+                          <span>Assistant</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Analyzing request and drafting response...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_ACTIONS.map((action) => (
+                    <Button
+                      key={action.label}
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setInputMessage(action.prompt)}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {attachments.length > 0 && (
+                  <div className="grid gap-2 md:grid-cols-2">
+                    {attachments.map((attachment) => (
+                      <div key={attachment.id} className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            {getFileIcon(attachment.type)}
+                            <p className="truncate text-sm font-medium">{attachment.name}</p>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(attachment.size)}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {attachment.preview && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => window.open(attachment.preview, "_blank")}
+                              aria-label={`Preview ${attachment.name}`}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => removeAttachment(attachment.id)}
+                            aria-label={`Remove ${attachment.name}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Textarea
+                  value={inputMessage}
+                  onChange={(event) => setInputMessage(event.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask me anything about compliance..."
+                  className="min-h-[110px] resize-y"
+                  disabled={executeAgentMutation.isPending}
+                  data-testid="textarea-message"
+                />
+
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={openFilePicker}
+                      disabled={isProcessingAttachments || executeAgentMutation.isPending}
+                    >
+                      {isProcessingAttachments ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Paperclip className="mr-2 h-4 w-4" />
+                      )}
+                      Attach
+                    </Button>
+
+                    <Select value={selectedFramework} onValueChange={setSelectedFramework}>
+                      <SelectTrigger className="h-9 w-[190px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FRAMEWORK_CONTEXTS.map((framework) => (
+                          <SelectItem key={framework.value} value={framework.value}>
+                            {framework.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Button
+                      type="button"
+                      variant={isRecording ? "default" : "outline"}
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+                      aria-label={isRecording ? "Stop voice recording" : "Start voice recording"}
+                    >
+                      {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant={voiceEnabled ? "default" : "outline"}
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => {
+                        setVoiceEnabled((prev) => {
+                          const next = !prev;
+                          if (!next) {
+                            stopSpeaking();
+                          }
+                          return next;
+                        });
+                      }}
+                      aria-label={voiceEnabled ? "Disable voice playback" : "Enable voice playback"}
+                    >
+                      {voiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                    </Button>
+
+                    {isSpeaking && (
+                      <Button type="button" variant="outline" size="sm" onClick={stopSpeaking}>
+                        Stop Voice
+                      </Button>
+                    )}
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleSendMessage}
+                    disabled={executeAgentMutation.isPending || isProcessingAttachments || (!inputMessage.trim() && attachments.length === 0)}
+                    data-testid="button-send-message"
+                  >
+                    {executeAgentMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="mr-2 h-4 w-4" />
+                    )}
+                    Send
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="canvas" className="mt-0">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {getAgentIcon(selectedAgent)}
+                {selectedAgentData?.name || "Selected Agent"}
+              </CardTitle>
+              <CardDescription>
+                Review currently connected tools and capabilities for this assistant.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Model</p>
+                <p className="font-medium">{selectedAgentData?.model || "Unknown"}</p>
+              </div>
+
+              <div>
+                <p className="mb-2 text-muted-foreground">Capabilities</p>
+                <div className="flex flex-wrap gap-2">
+                  {(selectedAgentData?.capabilities || []).length > 0 ? (
+                    (selectedAgentData?.capabilities || []).map((capability) => (
+                      <Badge key={capability} variant="secondary">
+                        <CheckCircle className="mr-1 h-3 w-3" />
+                        {capability}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-muted-foreground">No capabilities provided.</span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-muted-foreground">Connected Tools</p>
+                <div className="flex flex-wrap gap-2">
+                  {(selectedAgentData?.availableTools || selectedAgentData?.tools || []).length > 0 ? (
+                    (selectedAgentData?.availableTools || selectedAgentData?.tools || []).map((tool) => (
+                      <Badge key={tool} variant="outline">
+                        <Wrench className="mr-1 h-3 w-3" />
+                        {tool}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-muted-foreground">No tools reported.</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" onClick={() => setActiveTab("chat")}>
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Back to Chat
+                </Button>
+                <Button type="button" variant="outline" onClick={() => clearConversationMutation.mutate(selectedAgent)}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Reset Conversation
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -121,6 +121,9 @@ describe('Dashboard Component', () => {
       if (endpoint === '/api/company-profiles' || endpoint.includes('company-profiles')) {
         return Promise.resolve([mockCompanyProfile]);
       }
+      if (endpoint === '/api/documents/generate') {
+        return Promise.resolve({ data: { jobId: 'job-1' } });
+      }
       if (endpoint === '/api/documents' || endpoint.includes('documents')) {
         return Promise.resolve(mockDocuments);
       }

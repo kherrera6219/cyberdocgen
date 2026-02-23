@@ -45,6 +45,22 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => authState,
 }));
 
+vi.mock("@/contexts/OrganizationContext", () => ({
+  useOrganizationOptional: () => ({
+    profile: {
+      id: "profile-1",
+      organizationId: "org-1",
+      companyName: "CyberDoc",
+      industry: "Technology",
+      companySize: "11-50",
+    },
+    profiles: [],
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+}));
+
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({
     toast: toastMock,

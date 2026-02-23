@@ -1,162 +1,109 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  History, 
-  Eye, 
-  Download, 
-  GitCompare, 
-  RotateCcw, 
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  History,
+  Eye,
+  Download,
+  GitCompare,
+  RotateCcw,
   GitBranch,
-  Clock,
   User,
   FileText,
   Tag,
-  ArrowRight,
   Calendar,
   CheckCircle2,
-  AlertTriangle
 } from "lucide-react";
-import type { DocumentVersion } from "@shared/schema";
-
-interface VersionComparisonProps {
-  documentId: string;
-  version1: number;
-  version2: number;
-}
-
-// Mock document versions data
-const mockVersions: DocumentVersion[] = [
-  {
-    id: "ver-3",
-    documentId: "doc-1",
-    versionNumber: 3,
-    title: "Information Security Policy v3.0",
-    content: `# Information Security Policy v3.0
-
-## Overview
-This document establishes the information security policy framework for our organization in accordance with ISO 27001:2022 requirements.
-
-## Updates in v3.0
-- Added cloud security controls
-- Enhanced incident response procedures
-- Updated risk assessment methodology
-- Included remote work security guidelines
-
-## 1. Introduction
-...comprehensive policy content...`,
-    changes: "Major update: Added cloud security controls, enhanced incident response, updated for remote work",
-    changeType: "major",
-    createdBy: "user-2",
-    createdAt: new Date("2024-08-14T16:00:00Z"),
-    status: "published",
-    fileSize: 45000,
-    checksum: "a1b2c3d4e5f6..."
-  },
-  {
-    id: "ver-2",
-    documentId: "doc-1", 
-    versionNumber: 2,
-    title: "Information Security Policy v2.1",
-    content: `# Information Security Policy v2.1
-
-## Overview
-This document establishes the information security policy framework for our organization in accordance with ISO 27001:2022 requirements.
-
-## Updates in v2.1
-- Fixed typos and formatting issues
-- Updated compliance references
-- Clarified access control procedures
-
-## 1. Introduction
-...policy content...`,
-    changes: "Minor update: Fixed typos, updated compliance references, clarified access controls",
-    changeType: "minor",
-    createdBy: "user-1",
-    createdAt: new Date("2024-08-10T14:30:00Z"),
-    status: "archived",
-    fileSize: 42000,
-    checksum: "b2c3d4e5f6g7..."
-  },
-  {
-    id: "ver-1",
-    documentId: "doc-1",
-    versionNumber: 1,
-    title: "Information Security Policy v1.0",
-    content: `# Information Security Policy v1.0
-
-## Overview
-This document establishes the information security policy framework for our organization.
-
-## 1. Introduction
-Initial version of the information security policy...`,
-    changes: "Initial version",
-    changeType: "major",
-    createdBy: "user-1",
-    createdAt: new Date("2024-07-15T10:00:00Z"),
-    status: "archived",
-    fileSize: 35000,
-    checksum: "c3d4e5f6g7h8..."
-  }
-];
+import type { Document, DocumentVersion } from "@shared/schema";
 
 interface DocumentVersionsProps {
   documentId: string;
-  documentTitle: string;
+  documentTitle?: string;
+}
+
+interface DocumentVersionResponse {
+  data?: DocumentVersion[];
+}
+
+interface DocumentResponse {
+  data?: Document;
+}
+
+function normalizeVersionsResponse(payload: unknown): DocumentVersion[] {
+  if (Array.isArray(payload)) {
+    return payload as DocumentVersion[];
+  }
+
+  if (payload && typeof payload === "object") {
+    const data = (payload as DocumentVersionResponse).data;
+    if (Array.isArray(data)) {
+      return data;
+    }
+  }
+
+  return [];
+}
+
+function normalizeDocumentResponse(payload: unknown): Document | null {
+  if (payload && typeof payload === "object" && "id" in (payload as Record<string, unknown>)) {
+    return payload as Document;
+  }
+
+  if (payload && typeof payload === "object") {
+    const data = (payload as DocumentResponse).data;
+    if (data && typeof data === "object") {
+      return data;
+    }
+  }
+
+  return null;
+}
+
+function parseVersionDate(value: unknown): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 export default function DocumentVersions({ documentId, documentTitle }: DocumentVersionsProps) {
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
+  const [selectedVersions, setSelectedVersions] = useState<number[]>([]);
   const [compareMode, setCompareMode] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<DocumentVersion | null>(null);
 
-  // Fetch document versions
-  const { data: versions = [], isLoading } = useQuery({
+  const { data: versions = [], isLoading } = useQuery<DocumentVersion[]>({
     queryKey: ["/api/documents", documentId, "versions"],
-    queryFn: () => mockVersions.filter(v => v.documentId === documentId),
-  });
-
-  // Create new version mutation
-  const createVersionMutation = useMutation({
-    mutationFn: async (data: { changes: string; changeType: string }) => {
-      return apiRequest(`/api/documents/${documentId}/versions`, {
-        method: "POST", 
-        body: data
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Version Created",
-        description: "New document version has been created successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/documents", documentId, "versions"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Version Creation Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+    enabled: Boolean(documentId),
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/documents/${documentId}/versions`);
+      return normalizeVersionsResponse(response);
     },
   });
 
-  // Restore version mutation
+  const { data: documentData } = useQuery<Document | null>({
+    queryKey: ["/api/documents", documentId, "detail"],
+    enabled: Boolean(documentId),
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/documents/${documentId}`);
+      return normalizeDocumentResponse(response);
+    },
+  });
+
+  const resolvedDocumentTitle = documentTitle || documentData?.title || "Document";
+
   const restoreVersionMutation = useMutation({
-    mutationFn: async (versionId: string) => {
-      return apiRequest(`/api/documents/${documentId}/versions/${versionId}/restore`, {
-        method: "POST"
+    mutationFn: async (versionNumber: number) => {
+      return apiRequest(`/api/documents/${documentId}/versions/${versionNumber}/restore`, {
+        method: "POST",
       });
     },
     onSuccess: () => {
@@ -165,6 +112,8 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
         description: "Document has been restored to the selected version.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", documentId, "versions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/documents", documentId, "detail"] });
     },
     onError: (error: Error) => {
       toast({
@@ -204,29 +153,30 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
   };
 
   const formatFileSize = (bytes: number) => {
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 Bytes';
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    if (bytes <= 0) return "0 Bytes";
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return `${Math.round((bytes / Math.pow(1024, i)) * 100) / 100} ${sizes[i]}`;
   };
 
-  const formatDate = (date: Date | null) => {
-    if (!date) return 'Unknown date';
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  const formatDate = (value: unknown) => {
+    const date = parseVersionDate(value);
+    if (!date) return "Unknown date";
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(date);
   };
 
-  const handleVersionSelect = (versionId: string) => {
+  const handleVersionSelect = (versionNumber: number) => {
     if (compareMode) {
-      if (selectedVersions.includes(versionId)) {
-        setSelectedVersions(prev => prev.filter(id => id !== versionId));
+      if (selectedVersions.includes(versionNumber)) {
+        setSelectedVersions((prev) => prev.filter((id) => id !== versionNumber));
       } else if (selectedVersions.length < 2) {
-        setSelectedVersions(prev => [...prev, versionId]);
+        setSelectedVersions((prev) => [...prev, versionNumber]);
       }
     }
   };
@@ -241,6 +191,12 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
     }
   };
 
+  const selectedVersionContent = selectedVersion?.content || "";
+  const selectedVersionPreview =
+    selectedVersionContent.length > 1000
+      ? `${selectedVersionContent.substring(0, 1000)}...`
+      : selectedVersionContent;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -251,7 +207,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
             Version History
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {documentTitle} - Track changes and manage document versions
+            {resolvedDocumentTitle} - Track changes and manage document versions
           </p>
         </div>
 
@@ -291,12 +247,19 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
       )}
 
       {/* Version Timeline */}
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            Loading version history...
+          </CardContent>
+        </Card>
+      ) : (
       <div className="relative">
         {/* Timeline Line */}
         <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
 
         <div className="space-y-6">
-          {versions.map((version, index) => (
+          {versions.map((version) => (
             <div key={version.id} className="relative flex items-start gap-6">
               {/* Timeline Node */}
               <div className={`flex items-center justify-center w-16 h-16 rounded-full border-4 ${
@@ -311,11 +274,11 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
 
               {/* Version Card */}
               <Card className={`flex-1 ${
-                compareMode && selectedVersions.includes(version.id) 
+                compareMode && selectedVersions.includes(version.versionNumber)
                   ? 'ring-2 ring-blue-500 ring-offset-2' 
                   : ''
               } ${compareMode ? 'cursor-pointer hover:shadow-md' : ''}`}
-              onClick={() => compareMode && handleVersionSelect(version.id)}>
+              onClick={() => compareMode && handleVersionSelect(version.versionNumber)}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -361,7 +324,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                       Changes in this version:
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 p-3 rounded-md">
-                      {version.changes}
+                      {version.changes || "No change summary provided."}
                     </p>
                   </div>
 
@@ -389,7 +352,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            restoreVersionMutation.mutate(version.id);
+                            restoreVersionMutation.mutate(version.versionNumber);
                           }}
                           disabled={restoreVersionMutation.isPending}
                         >
@@ -400,7 +363,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                     </div>
 
                     <div className="text-xs text-gray-500">
-                      Checksum: {version.checksum?.slice(0, 12)}...
+                      Checksum: {version.checksum ? `${version.checksum.slice(0, 12)}...` : "N/A"}
                     </div>
                   </div>
                 </CardContent>
@@ -409,6 +372,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
           ))}
         </div>
       </div>
+      )}
 
       {/* Version Preview Modal */}
       {selectedVersion && (
@@ -434,7 +398,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
               <div>
                 <h4 className="font-medium mb-2">Changes in this version:</h4>
                 <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-md">
-                  <p className="text-sm">{selectedVersion.changes}</p>
+                  <p className="text-sm">{selectedVersion.changes || "No change summary provided."}</p>
                 </div>
               </div>
 
@@ -443,8 +407,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                 <h4 className="font-medium mb-2">Content Preview:</h4>
                 <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900 max-h-96 overflow-y-auto">
                   <pre className="text-sm whitespace-pre-wrap">
-                    {selectedVersion.content.substring(0, 1000)}
-                    {selectedVersion.content.length > 1000 && '...'}
+                    {selectedVersionPreview || "No content available for this version."}
                   </pre>
                 </div>
               </div>
@@ -459,7 +422,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
                   <Button 
                     variant="outline" 
                     className="flex-1"
-                    onClick={() => restoreVersionMutation.mutate(selectedVersion.id)}
+                    onClick={() => restoreVersionMutation.mutate(selectedVersion.versionNumber)}
                     disabled={restoreVersionMutation.isPending}
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
@@ -473,7 +436,7 @@ export default function DocumentVersions({ documentId, documentTitle }: Document
       )}
 
       {/* Empty State */}
-      {versions.length === 0 && (
+      {!isLoading && versions.length === 0 && (
         <div className="text-center py-12">
           <History className="h-16 w-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">

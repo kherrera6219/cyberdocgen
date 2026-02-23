@@ -1,103 +1,106 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useOrganizationOptional } from "@/contexts/OrganizationContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  FileText, 
-  Download, 
-  Edit3, 
-  Eye, 
-  Trash2, 
-  Plus, 
-  Search, 
-  Filter,
+import {
+  FileText,
+  Download,
+  Edit3,
+  Eye,
+  Trash2,
+  Plus,
+  Search,
   Bot,
-  Users,
   Calendar,
-  Star,
   Clock,
   CheckCircle,
   FileSpreadsheet,
   File,
-  FileImage
 } from "lucide-react";
 import type { Document } from "@shared/schema";
-
-// Mock data for documents - in real app this would come from API
-const mockDocuments: Document[] = [
-  {
-    id: "doc-1",
-    companyProfileId: "profile-1",
-    createdBy: "user-1",
-    title: "Information Security Policy",
-    description: "Comprehensive information security policy document",
-    framework: "ISO27001",
-    subFramework: null,
-    category: "policy",
-    documentType: "pdf",
-    content: "This document outlines our information security policy...",
-    templateData: null,
-    status: "approved",
-    version: 2,
-    tags: ["security", "policy", "iso27001"],
-    fileName: "info-security-policy-v2.pdf",
-    fileType: ".pdf",
-    fileSize: 2048000,
-    downloadUrl: "/downloads/info-security-policy-v2.pdf",
-    aiGenerated: true,
-    aiModel: "gpt-4",
-    generationPrompt: "Generate an ISO 27001 compliant information security policy",
-    reviewedBy: "user-2",
-    reviewedAt: new Date("2024-08-01"),
-    approvedBy: "user-3", 
-    approvedAt: new Date("2024-08-10"),
-    createdAt: new Date("2024-07-15"),
-    updatedAt: new Date("2024-08-10"),
-  },
-  // Add more mock documents...
-];
 
 interface DocumentWorkspaceProps {
   organizationId?: string;
 }
 
-export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceProps) {
-  const { user } = useAuth();
+interface DocumentListResponse {
+  data?: Document[];
+}
+
+interface GenerateDocumentPayload {
+  framework: string;
+  category: string;
+  title: string;
+  description?: string;
+}
+
+function normalizeDocumentsResponse(payload: unknown): Document[] {
+  if (Array.isArray(payload)) {
+    return payload as Document[];
+  }
+
+  if (payload && typeof payload === "object") {
+    const data = (payload as DocumentListResponse).data;
+    if (Array.isArray(data)) {
+      return data;
+    }
+  }
+
+  return [];
+}
+
+function formatDocumentDate(value: unknown): string {
+  if (!value) {
+    return "Unknown date";
+  }
+
+  const parsedDate = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Unknown date";
+  }
+
+  return parsedDate.toLocaleDateString();
+}
+
+export default function DocumentWorkspace(_props: DocumentWorkspaceProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const organizationContext = useOrganizationOptional();
+  const profile = organizationContext?.profile ?? null;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFramework, setSelectedFramework] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
 
-  // Fetch documents
-  const { data: documents = [], isLoading } = useQuery({
-    queryKey: ["/api/documents", organizationId],
-    queryFn: () => mockDocuments, // Replace with actual API call
+  const { data: documents = [], isLoading } = useQuery<Document[]>({
+    queryKey: ["/api/documents"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/documents");
+      return normalizeDocumentsResponse(response);
+    },
   });
 
-  // Generate new document mutation
   const generateDocumentMutation = useMutation({
-    mutationFn: async (data: {
-      framework: string;
-      category: string;
-      title: string;
-      description?: string;
-    }) => {
+    mutationFn: async (data: GenerateDocumentPayload) => {
+      if (!profile?.id) {
+        throw new Error("Complete your company profile before generating documents.");
+      }
+
       return apiRequest("/api/documents/generate", {
         method: "POST",
-        body: data
+        body: {
+          ...data,
+          companyProfileId: profile.id,
+        },
       });
     },
     onSuccess: () => {
@@ -116,11 +119,10 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
     },
   });
 
-  // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (documentId: string) => {
       return apiRequest(`/api/documents/${documentId}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
     },
     onSuccess: () => {
@@ -139,11 +141,12 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
     },
   });
 
-  // Filter documents based on search and filters
-  const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doc.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doc.framework.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredDocuments = documents.filter((doc) => {
+    const normalizedSearch = searchQuery.toLowerCase();
+    const matchesSearch =
+      doc.title.toLowerCase().includes(normalizedSearch) ||
+      doc.description?.toLowerCase().includes(normalizedSearch) ||
+      doc.framework.toLowerCase().includes(normalizedSearch);
 
     const matchesFramework = selectedFramework === "all" || doc.framework === selectedFramework;
     const matchesStatus = selectedStatus === "all" || doc.status === selectedStatus;
@@ -151,7 +154,7 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
     return matchesSearch && matchesFramework && matchesStatus;
   });
 
-  const getDocumentIcon = (documentType: string) => {
+  const getDocumentIcon = (documentType: string | null) => {
     switch (documentType) {
       case "excel":
         return <FileSpreadsheet className="h-5 w-5 text-green-600" />;
@@ -180,10 +183,10 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
   };
 
   const formatFileSize = (bytes: number) => {
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 Bytes';
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    if (bytes <= 0) return "0 Bytes";
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    return `${Math.round((bytes / Math.pow(1024, i)) * 100) / 100} ${sizes[i]}`;
   };
 
   return (
@@ -262,6 +265,7 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
                 <GenerateDocumentForm 
                   onGenerate={(data) => generateDocumentMutation.mutate(data)}
                   isLoading={generateDocumentMutation.isPending}
+                  canGenerate={Boolean(profile?.id)}
                 />
               </DialogContent>
             </Dialog>
@@ -284,7 +288,7 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
                 <div>
                   <p className="text-sm text-green-600 dark:text-green-400">Approved</p>
                   <p className="text-2xl font-bold text-green-800 dark:text-green-200">
-                    {documents.filter(d => d.status === "approved").length}
+                    {documents.filter((d) => d.status === "approved").length}
                   </p>
                 </div>
               </div>
@@ -295,7 +299,7 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
                 <div>
                   <p className="text-sm text-yellow-600 dark:text-yellow-400">In Progress</p>
                   <p className="text-2xl font-bold text-yellow-800 dark:text-yellow-200">
-                    {documents.filter(d => d.status === "in_progress").length}
+                    {documents.filter((d) => d.status === "in_progress").length}
                   </p>
                 </div>
               </div>
@@ -306,7 +310,7 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
                 <div>
                   <p className="text-sm text-purple-600 dark:text-purple-400">AI Generated</p>
                   <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">
-                    {documents.filter(d => d.aiGenerated).length}
+                    {documents.filter((d) => d.aiGenerated).length}
                   </p>
                 </div>
               </div>
@@ -315,105 +319,121 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
         </div>
 
         {/* Documents Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDocuments.map((document) => (
-            <Card key={document.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    {getDocumentIcon(document.documentType)}
-                    <div>
-                      <CardTitle className="text-lg">{document.title}</CardTitle>
-                      <CardDescription className="line-clamp-2">
-                        {document.description}
-                      </CardDescription>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Card key={`document-skeleton-${index}`} className="animate-pulse">
+                <CardHeader>
+                  <div className="h-6 w-2/3 rounded bg-muted" />
+                  <div className="h-4 w-1/2 rounded bg-muted" />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="h-4 w-full rounded bg-muted" />
+                  <div className="h-4 w-4/5 rounded bg-muted" />
+                  <div className="h-8 w-full rounded bg-muted" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredDocuments.map((document) => {
+              const tags = Array.isArray(document.tags) ? document.tags : [];
+              return (
+                <Card key={document.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        {getDocumentIcon(document.documentType)}
+                        <div>
+                          <CardTitle className="text-lg">{document.title}</CardTitle>
+                          <CardDescription className="line-clamp-2">
+                            {document.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                      {document.aiGenerated && (
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                          <Bot className="h-3 w-3 mr-1" />
+                          AI
+                        </Badge>
+                      )}
                     </div>
-                  </div>
-                  {document.aiGenerated && (
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                      <Bot className="h-3 w-3 mr-1" />
-                      AI
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Document Info */}
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-4">
-                    <Badge className={getStatusColor(document.status)}>
-                      {document.status}
-                    </Badge>
-                    <span className="text-gray-600 dark:text-gray-400">v{document.version}</span>
-                  </div>
-                  <span className="text-gray-500">{formatFileSize(document.fileSize || 0)}</span>
-                </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-4">
+                        <Badge className={getStatusColor(document.status)}>
+                          {document.status}
+                        </Badge>
+                        <span className="text-gray-600 dark:text-gray-400">v{document.version}</span>
+                      </div>
+                      <span className="text-gray-500">{formatFileSize(document.fileSize || 0)}</span>
+                    </div>
 
-                {/* Framework and Category */}
-                <div className="flex items-center gap-2 text-sm">
-                  <Badge variant="outline">{document.framework}</Badge>
-                  <Badge variant="outline">{document.category}</Badge>
-                </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Badge variant="outline">{document.framework}</Badge>
+                      <Badge variant="outline">{document.category}</Badge>
+                    </div>
 
-                {/* Tags */}
-                {document.tags && document.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {document.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {document.tags.length > 3 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{document.tags.length - 3}
-                      </Badge>
+                    {tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {tags.slice(0, 3).map((tag) => (
+                          <Badge key={tag} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {tags.length > 3 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{tags.length - 3}
+                          </Badge>
+                        )}
+                      </div>
                     )}
-                  </div>
-                )}
 
-                {/* Last Updated */}
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Calendar className="h-3 w-3" />
-                  Updated {document.updatedAt.toLocaleDateString()}
-                </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      Updated {formatDocumentDate(document.updatedAt)}
+                    </div>
 
-                <Separator />
+                    <Separator />
 
-                {/* Actions */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedDocument(document)}
-                      aria-label={`Preview ${document.title}`}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" aria-label={`Edit ${document.title}`}>
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" aria-label={`Download ${document.title}`}>
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => deleteDocumentMutation.mutate(document.id)}
-                    disabled={deleteDocumentMutation.isPending}
-                    aria-label={`Delete ${document.title}`}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedDocument(document)}
+                          aria-label={`Preview ${document.title}`}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" aria-label={`Edit ${document.title}`}>
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" aria-label={`Download ${document.title}`}>
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteDocumentMutation.mutate(document.id)}
+                        disabled={deleteDocumentMutation.isPending}
+                        aria-label={`Delete ${document.title}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {/* Empty State */}
-        {filteredDocuments.length === 0 && (
+        {!isLoading && filteredDocuments.length === 0 && (
           <div className="text-center py-12">
             <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
             <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">
@@ -439,6 +459,7 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
                 <GenerateDocumentForm 
                   onGenerate={(data) => generateDocumentMutation.mutate(data)}
                   isLoading={generateDocumentMutation.isPending}
+                  canGenerate={Boolean(profile?.id)}
                 />
               </DialogContent>
             </Dialog>
@@ -460,12 +481,14 @@ export default function DocumentWorkspace({ organizationId }: DocumentWorkspaceP
 // Generate Document Form Component
 function GenerateDocumentForm({ 
   onGenerate, 
-  isLoading 
+  isLoading,
+  canGenerate,
 }: { 
-  onGenerate: (data: any) => void;
+  onGenerate: (data: GenerateDocumentPayload) => void;
   isLoading: boolean;
+  canGenerate: boolean;
 }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<GenerateDocumentPayload>({
     framework: "",
     category: "",
     title: "",
@@ -533,7 +556,17 @@ function GenerateDocumentForm({
         />
       </div>
 
-      <Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700">
+      {!canGenerate && (
+        <p className="text-sm text-muted-foreground">
+          Complete your company profile before generating documents.
+        </p>
+      )}
+
+      <Button
+        type="submit"
+        disabled={isLoading || !canGenerate}
+        className="w-full bg-blue-600 hover:bg-blue-700"
+      >
         {isLoading ? "Generating..." : "Generate Document"}
       </Button>
     </form>
@@ -548,6 +581,10 @@ function DocumentPreviewModal({
   document: Document;
   onClose: () => void;
 }) {
+  const previewContent = document.content || "";
+  const contentSnippet =
+    previewContent.length > 500 ? `${previewContent.substring(0, 500)}...` : previewContent;
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
@@ -566,7 +603,7 @@ function DocumentPreviewModal({
           <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
             <h4 className="font-medium mb-2">Content Preview</h4>
             <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-              {document.content.substring(0, 500)}...
+              {contentSnippet || "No content available yet."}
             </div>
           </div>
 
@@ -578,8 +615,8 @@ function DocumentPreviewModal({
                 AI Generation Details
               </h4>
               <div className="space-y-2 text-sm">
-                <div><strong>Model:</strong> {document.aiModel}</div>
-                <div><strong>Prompt:</strong> {document.generationPrompt}</div>
+                <div><strong>Model:</strong> {document.aiModel || "N/A"}</div>
+                <div><strong>Prompt:</strong> {document.generationPrompt || "N/A"}</div>
               </div>
             </div>
           )}

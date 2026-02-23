@@ -8,6 +8,8 @@ import NISTFramework from "../../../client/src/pages/nist-framework";
 import DocumentWorkspace from "../../../client/src/pages/document-workspace";
 import { renderWithProviders } from "../utils/renderWithProviders";
 
+const apiRequestMock = vi.hoisted(() => vi.fn(async () => ({ success: true, data: [] })));
+
 vi.mock("@/components/compliance/FrameworkSpreadsheet", () => ({
   FrameworkSpreadsheet: () => <div data-testid="framework-spreadsheet">FrameworkSpreadsheet</div>,
 }));
@@ -22,6 +24,10 @@ vi.mock("@/hooks/useAuth", () => ({
 
 vi.mock("@/components/help/ContextualHelp", () => ({
   HelpTooltip: ({ title }: { title: string }) => <span data-testid={`help-${title}`}>{title}</span>,
+}));
+
+vi.mock("@/lib/queryClient", () => ({
+  apiRequest: (...args: unknown[]) => apiRequestMock(...args),
 }));
 
 describe("Framework and profile page smoke coverage", () => {

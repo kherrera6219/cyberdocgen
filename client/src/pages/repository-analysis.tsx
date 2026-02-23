@@ -35,12 +35,15 @@ import {
   useDeleteRepository,
 } from '@/hooks/useRepositoryAPI';
 import { useToast } from '@/hooks/use-toast';
+import { useOrganizationOptional } from '@/contexts/OrganizationContext';
 
 export function RepositoryAnalysisPage() {
   const { snapshotId } = useParams<{ snapshotId?: string }>();
   const [, setLocation] = useLocation();
   const navigate = (to: string) => setLocation(to);
   const { toast } = useToast();
+  const organizationContext = useOrganizationOptional();
+  const profile = organizationContext?.profile ?? null;
 
   const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>(['SOC2']);
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
@@ -57,14 +60,23 @@ export function RepositoryAnalysisPage() {
   const updateTaskMutation = useUpdateTask();
   const deleteMutation = useDeleteRepository();
 
-  // Get org ID from current user/session (hardcoded for demo)
-  const organizationId = 'org-123';
-  const companyProfileId = 'profile-456';
+  const organizationId = profile?.organizationId ?? null;
+  const companyProfileId = profile?.id ?? null;
+  const hasProfileContext = Boolean(organizationId && companyProfileId);
 
   const handleUpload = async (
     file: File,
     metadata: { organizationId: string; companyProfileId: string; name: string }
   ) => {
+    if (!hasProfileContext) {
+      toast({
+        title: 'Profile Required',
+        description: 'Complete company profile setup before uploading repositories.',
+        variant: 'destructive',
+      });
+      throw new Error('Company profile context is required.');
+    }
+
     try {
       const result = await uploadMutation.mutateAsync({
         file,
@@ -182,11 +194,20 @@ export function RepositoryAnalysisPage() {
           </div>
         </div>
 
-        <RepoUploadZone
-          onUpload={handleUpload}
-          organizationId={organizationId}
-          companyProfileId={companyProfileId}
-        />
+        {hasProfileContext ? (
+          <RepoUploadZone
+            onUpload={handleUpload}
+            organizationId={organizationId as string}
+            companyProfileId={companyProfileId as string}
+          />
+        ) : (
+          <div className="rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 space-y-3">
+            <p>Complete company profile setup before uploading repositories for analysis.</p>
+            <Button variant="outline" size="sm" onClick={() => navigate('/profile')}>
+              Go to Company Profile
+            </Button>
+          </div>
+        )}
 
         {loadingRepos ? (
           <div className="text-center py-12">Loading repositories...</div>

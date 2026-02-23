@@ -92,7 +92,7 @@ function DocumentVersionsWrapper() {
   const params = useParams<{ id: string }>();
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading document versions...</div>}>
-      <DocumentVersions documentId={params.id || ""} documentTitle="Document" />
+      <DocumentVersions documentId={params.id || ""} />
     </Suspense>
   );
 }
@@ -144,7 +144,10 @@ function AuthenticatedRouter() {
         <BoundaryRoute path="/fedramp-framework" component={FedRAMPFramework} />
         <BoundaryRoute path="/nist-framework" component={NISTFramework} />
         <BoundaryRoute path="/audit-trail" component={AuditTrail} />
+        <BoundaryRoute path="/repository" component={RepositoryAnalysis} />
+        <BoundaryRoute path="/repository/:snapshotId" component={RepositoryAnalysis} />
         <BoundaryRoute path="/repository-analysis" component={RepositoryAnalysis} />
+        <BoundaryRoute path="/repository-analysis/:snapshotId" component={RepositoryAnalysis} />
         <BoundaryRoute path="/document-versions/:id" component={DocumentVersionsWrapper} />
         <BoundaryRoute path="/user-profile" component={UserProfile} />
         <BoundaryRoute path="/organizations" component={OrganizationSetup} requiredMode="cloud" requiredFeature="organizationManagement" />

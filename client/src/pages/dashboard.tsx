@@ -145,7 +145,7 @@ export default function Dashboard() {
     mutationFn: async ({ framework }: { framework: string }) => {
       if (!profile) throw new Error("No company profile found");
 
-      return await apiRequest("/api/generate-documents", {
+      return await apiRequest("/api/documents/generate", {
         method: "POST",
         body: {
           companyProfileId: profile.id,
@@ -153,8 +153,17 @@ export default function Dashboard() {
         }
       });
     },
-    onSuccess: (data) => {
-      const jobId = data.jobId;
+    onSuccess: (data: { jobId?: string; data?: { jobId?: string } }) => {
+      const jobId = data?.data?.jobId ?? data?.jobId;
+      if (!jobId) {
+        cleanupGeneration();
+        toast({
+          title: "Generation Failed",
+          description: "Generation job could not be started.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Set generation timeout
       generationTimeoutRef.current = setTimeout(() => {
@@ -178,7 +187,8 @@ export default function Dashboard() {
             throw new Error(`Failed to fetch job status: ${jobResponse.status}`);
           }
 
-          const job: GenerationJob = await jobResponse.json();
+          const jobPayload = await jobResponse.json();
+          const job: GenerationJob = jobPayload?.data ?? jobPayload;
 
           if (!isMountedRef.current) return;
 

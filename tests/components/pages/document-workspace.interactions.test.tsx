@@ -19,13 +19,62 @@ vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: toastMock }),
 }));
 
+vi.mock("@/contexts/OrganizationContext", () => ({
+  useOrganizationOptional: () => ({
+    profile: {
+      id: "profile-1",
+      companyName: "CyberDoc",
+      industry: "Technology",
+      companySize: "11-50",
+    },
+    profiles: [],
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+}));
+
 vi.mock("@/lib/queryClient", () => ({
   apiRequest: (...args: unknown[]) => apiRequestMock(...args),
 }));
 
+const mockDocuments = [
+  {
+    id: "doc-1",
+    companyProfileId: "profile-1",
+    createdBy: "user-1",
+    title: "Information Security Policy",
+    description: "Comprehensive information security policy document",
+    framework: "ISO27001",
+    category: "policy",
+    documentType: "pdf",
+    content: "This document outlines our information security policy...",
+    status: "approved",
+    version: 2,
+    tags: ["security", "policy", "iso27001"],
+    fileSize: 2048000,
+    aiGenerated: true,
+    aiModel: "gpt-4",
+    generationPrompt: "Generate an ISO 27001 compliant information security policy",
+    updatedAt: "2024-08-10T00:00:00.000Z",
+  },
+];
+
 describe("DocumentWorkspace interactions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    apiRequestMock.mockImplementation(async (urlOrMethod: unknown, maybeUrl: unknown) => {
+      const resolvedUrl =
+        typeof urlOrMethod === "string" && (urlOrMethod === "GET" || urlOrMethod === "POST" || urlOrMethod === "DELETE")
+          ? String(maybeUrl)
+          : String(urlOrMethod);
+
+      if (resolvedUrl === "/api/documents") {
+        return { success: true, data: mockDocuments };
+      }
+
+      return {};
+    });
   });
 
   it("filters documents by search text and shows empty state", async () => {
@@ -53,8 +102,6 @@ describe("DocumentWorkspace interactions", () => {
 
   it("opens preview modal and deletes a document", async () => {
     const user = userEvent.setup();
-    apiRequestMock.mockResolvedValue({});
-
     renderWithProviders(<DocumentWorkspace organizationId="org-1" />);
 
     const titleNode = await screen.findByText("Information Security Policy");
@@ -86,8 +133,6 @@ describe("DocumentWorkspace interactions", () => {
 
   it("submits the generate document form from the dialog", async () => {
     const user = userEvent.setup();
-    apiRequestMock.mockResolvedValue({});
-
     renderWithProviders(<DocumentWorkspace organizationId="org-1" />);
 
     await user.click(screen.getByRole("button", { name: /^generate document$/i }));
@@ -103,7 +148,10 @@ describe("DocumentWorkspace interactions", () => {
     await waitFor(() => {
       expect(apiRequestMock).toHaveBeenCalledWith(
         "/api/documents/generate",
-        expect.objectContaining({ method: "POST" })
+        expect.objectContaining({
+          method: "POST",
+          body: expect.objectContaining({ companyProfileId: "profile-1" }),
+        })
       );
     });
   });
