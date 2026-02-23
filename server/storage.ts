@@ -1353,26 +1353,52 @@ export class DatabaseStorage implements IStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
-    const normalizedUserData: UpsertUser = isLocalSqliteMode
-      ? {
-          ...userData,
-          // SQLite local mode stores JSON-like columns as TEXT in baseline schema.
-          // Keep nullable values here to avoid object binding failures.
-          profilePreferences: userData.profilePreferences ?? null,
-          notificationSettings: userData.notificationSettings ?? null,
-        }
+    const coerceDateValue = (value: unknown): Date | null | undefined => {
+      if (value === undefined || value === null) {
+        return value;
+      }
+      if (value instanceof Date) {
+        return value;
+      }
+      if (typeof value === 'string' || typeof value === 'number') {
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+      return null;
+    };
+
+    const normalizedUserData = isLocalSqliteMode
+      ? (() => {
+          const now = new Date();
+          const source = userData as Record<string, unknown>;
+          return {
+            ...userData,
+            // SQLite local mode stores JSON-like columns as TEXT in baseline schema.
+            // Keep nullable values here to avoid object binding failures.
+            profilePreferences: userData.profilePreferences ?? null,
+            notificationSettings: userData.notificationSettings ?? null,
+            // Ensure timestamp columns are always Date/null so pg-core encoders don't throw.
+            lastLoginAt: coerceDateValue(source.lastLoginAt) ?? null,
+            accountLockedUntil: coerceDateValue(source.accountLockedUntil) ?? null,
+            createdAt: coerceDateValue(source.createdAt) ?? now,
+            updatedAt: coerceDateValue(source.updatedAt) ?? now,
+          };
+        })()
       : userData;
+
+    const conflictSet = { ...(normalizedUserData as Record<string, unknown>) };
+    // Preserve original creation time on upsert updates.
+    delete conflictSet.createdAt;
+    conflictSet.updatedAt = isLocalSqliteMode
+      ? (coerceDateValue(conflictSet.updatedAt) ?? new Date())
+      : sql`CURRENT_TIMESTAMP`;
 
     const [user] = await db
       .insert(users)
       .values(normalizedUserData)
       .onConflictDoUpdate({
         target: users.id,
-        set: {
-          ...normalizedUserData,
-          // Avoid binding JS Date objects in SQLite upsert path.
-          updatedAt: sql`CURRENT_TIMESTAMP`,
-        },
+        set: conflictSet as any,
       })
       .returning();
     return user;

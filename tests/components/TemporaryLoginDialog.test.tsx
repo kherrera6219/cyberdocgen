@@ -4,9 +4,11 @@ import { TemporaryLoginDialog } from '../../client/src/components/TemporaryLogin
 import { apiRequest, queryClient } from '../../client/src/lib/queryClient';
 import userEvent from '@testing-library/user-event';
 
+const setLocationMock = vi.fn();
+
 // Mock wouter
 vi.mock('wouter', () => ({
-  useLocation: () => ['/', vi.fn()],
+  useLocation: () => ['/', setLocationMock],
 }));
 
 // Mock API
@@ -29,6 +31,7 @@ vi.mock('../../client/src/hooks/useAuth', () => ({
 describe('TemporaryLoginDialog', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        setLocationMock.mockReset();
     });
 
     it('opens dialog when trigger clicked', async () => {
@@ -73,6 +76,22 @@ describe('TemporaryLoginDialog', () => {
                 body: { name: 'Test User', email: 'test@example.com' }
             }));
             expect(queryClient.refetchQueries).toHaveBeenCalled();
+        });
+    });
+
+    it('navigates to dashboard after successful temporary login', async () => {
+        const user = userEvent.setup();
+        (apiRequest as any).mockResolvedValue({ success: true, user: { id: 'temp-123' } });
+
+        render(<TemporaryLoginDialog />);
+
+        fireEvent.click(screen.getByTestId('button-temp-login'));
+        await user.type(screen.getByTestId('input-temp-name'), 'Test User');
+        await user.type(screen.getByTestId('input-temp-email'), 'test@example.com');
+        await user.click(screen.getByTestId('button-temp-login-submit'));
+
+        await waitFor(() => {
+            expect(setLocationMock).toHaveBeenCalledWith('/dashboard');
         });
     });
 });

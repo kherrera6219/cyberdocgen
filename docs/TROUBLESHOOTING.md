@@ -661,10 +661,9 @@ Detail: Backend server process exited unexpectedly during startup (exit code 1).
 
 **Solutions:**
 
-1. **Rebuild Electron native modules and repackage:**
+1. **Stage Electron prebuilt native SQLite binary and repackage:**
    ```bash
-   npm run electron:rebuild-native
-   npm run electron:install-app-deps
+   npm run electron:prepare-better-sqlite3
    npm run build:win
    ```
 
@@ -689,9 +688,9 @@ Error: The module '...better_sqlite3.node' was compiled against a different Node
 
 **Why it happens:**
 
-- `electron:install-app-deps` rebuilds native modules for Electron runtime ABI.
+- `electron:prepare-better-sqlite3` stages `better-sqlite3` for Electron runtime ABI.
 - `vitest` runs on Node runtime ABI.
-- If the module was last rebuilt for Electron, Node-based tests can fail.
+- If the module was last staged for Electron, Node-based tests can fail.
 
 **Solutions:**
 
@@ -700,9 +699,9 @@ Error: The module '...better_sqlite3.node' was compiled against a different Node
    npm rebuild better-sqlite3
    ```
 
-2. **If you are returning to desktop packaging afterward, re-apply Electron native deps:**
+2. **If you are returning to desktop packaging afterward, re-stage Electron ABI deps:**
    ```bash
-   npm run electron:install-app-deps
+   npm run electron:prepare-better-sqlite3
    ```
 
 ### Docker build fails with missing `scripts/build-server.js`

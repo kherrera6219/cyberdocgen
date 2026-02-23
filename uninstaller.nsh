@@ -32,6 +32,9 @@ remove_data:
   DetailPrint "Removed application data from rest-express and CyberDocGen directories in AppData/LocalAppData"
 
 uninstall_complete:
+  ; Keep the standard NSIS uninstaller progress page.
+  DetailPrint "Standard uninstaller wizard enabled: uninstall progress page"
+
   ; Uninstall progress is shown by default on the NSIS "Uninstalling" page.
   ; Show an explicit completion notification for interactive uninstalls.
   IfSilent skip_uninstall_message

@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DatabaseStorage } from '../../server/storage';
 import { db } from '../../server/db';
 
+const originalDeploymentMode = process.env.DEPLOYMENT_MODE;
+
 // Minimalistic but working mock for Drizzle
 vi.mock('../../server/db', () => {
   const mockQuery: any = {
@@ -33,11 +35,58 @@ describe('DatabaseStorage Comprehensive Coverage', () => {
   beforeEach(() => {
     storage = new DatabaseStorage();
     vi.clearAllMocks();
+    process.env.DEPLOYMENT_MODE = originalDeploymentMode;
   });
 
   const mockResolved = (data: any) => {
     vi.mocked(db.then).mockImplementationOnce((f: any) => Promise.resolve(data).then(f));
   };
+
+  describe('User Upsert Normalization', () => {
+    it('normalizes local sqlite date values and strips createdAt from conflict updates', async () => {
+      process.env.DEPLOYMENT_MODE = 'local';
+
+      mockResolved([{ id: 'temp-1', email: 'temp@example.com' }]);
+      await storage.upsertUser({
+        id: 'temp-1',
+        email: 'temp@example.com',
+        firstName: 'Temp',
+        lastLoginAt: '2026-02-20T10:00:00.000Z' as any,
+        accountLockedUntil: 'not-a-date' as any,
+      } as any);
+
+      const valuesArg = vi.mocked(db.values).mock.calls.at(-1)?.[0] as Record<string, unknown>;
+      expect(valuesArg.profilePreferences).toBeNull();
+      expect(valuesArg.notificationSettings).toBeNull();
+      expect(valuesArg.createdAt).toBeInstanceOf(Date);
+      expect(valuesArg.updatedAt).toBeInstanceOf(Date);
+      expect(valuesArg.lastLoginAt).toBeInstanceOf(Date);
+      expect(valuesArg.accountLockedUntil).toBeNull();
+
+      const conflictArg = vi.mocked(db.onConflictDoUpdate).mock.calls.at(-1)?.[0] as {
+        set: Record<string, unknown>;
+      };
+      expect(conflictArg.set.createdAt).toBeUndefined();
+      expect(conflictArg.set.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('keeps cloud mode conflict updatedAt as SQL expression', async () => {
+      process.env.DEPLOYMENT_MODE = 'cloud';
+
+      mockResolved([{ id: 'cloud-1', email: 'cloud@example.com' }]);
+      await storage.upsertUser({
+        id: 'cloud-1',
+        email: 'cloud@example.com',
+        firstName: 'Cloud',
+      } as any);
+
+      const conflictArg = vi.mocked(db.onConflictDoUpdate).mock.calls.at(-1)?.[0] as {
+        set: Record<string, unknown>;
+      };
+      expect(conflictArg.set.createdAt).toBeUndefined();
+      expect(conflictArg.set.updatedAt).not.toBeInstanceOf(Date);
+    });
+  });
 
   describe('Organization & User-Org Operations', () => {
     it('covers organizations', async () => {

@@ -4,6 +4,7 @@ copyright: "Copyright © 2026 Lucentry.AI"
 directories:
   output: dist/packaging
   buildResources: build
+npmRebuild: false
 files:
   - dist/**/*
   - "!dist/packaging*"

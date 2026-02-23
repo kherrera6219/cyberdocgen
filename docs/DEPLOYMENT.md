@@ -36,8 +36,7 @@ npm run build:win
 npm run windows:validate   # Validate Windows packaging config/assets
 npm run build              # Build frontend (Vite)
 npm run electron:build     # Build Electron main process
-npm run electron:rebuild-native   # Rebuild better-sqlite3 for Electron ABI
-npm run electron:install-app-deps # Re-sync native dependencies for packaging
+npm run electron:prepare-better-sqlite3 # Stage Electron ABI prebuilt better-sqlite3 binary
 npx electron-builder build --win nsis # Package installer
 npm run build:store        # Build APPX package for Microsoft Store
 node scripts/verify-build.js # Verify build artifacts + local startup probes

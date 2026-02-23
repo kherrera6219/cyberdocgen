@@ -343,15 +343,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           logger.info('Temp login using existing user', { userId: sessionUserId, email: sanitizedEmail });
         } else {
           const tempUserId = `temp-${crypto.createHash('sha256').update(sanitizedEmail).digest('hex').slice(0, 16)}`;
-          await storage.upsertUser({
-            id: tempUserId,
-            email: sanitizedEmail,
-            firstName: sanitizedName.split(' ')[0] || sanitizedName,
-            lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
-            profileImageUrl: null,
-          });
-          sessionUserId = tempUserId;
-          logger.info('Temp login created new temp user', { userId: sessionUserId, email: sanitizedEmail });
+          try {
+            const createdUser = await storage.createUser({
+              email: sanitizedEmail,
+              firstName: sanitizedName.split(' ')[0] || sanitizedName,
+              lastName: sanitizedName.split(' ').slice(1).join(' ') || '',
+              profileImageUrl: null,
+            });
+            sessionUserId = createdUser.id;
+            logger.info('Temp login created persisted temp user', { userId: sessionUserId, email: sanitizedEmail });
+          } catch (createError) {
+            // SQLite local mode can reject non-primitive default binds for the users table.
+            // Fall back to a session-only temp identity so demo login still works.
+            sessionUserId = tempUserId;
+            logger.warn('Temp login falling back to session-only identity', {
+              userId: sessionUserId,
+              email: sanitizedEmail,
+              error: createError instanceof Error ? createError.message : String(createError),
+            });
+          }
         }
 
         req.session.regenerate((regenerateErr) => {
@@ -393,7 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.error('Temporary login failed', { error: errorMessage });
+        logger.error('Temporary login failed', { error, errorMessage });
         res.status(500).json({ message: 'Login failed', error: errorMessage });
       }
     });
@@ -510,9 +520,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
+      // Include isTemporary flag for temp sessions
+      const isTemporary = req.session?.isTemporary === true || String(userId).startsWith('temp-');
+
       const user = await storage.getUser(String(userId));
-      
+
       if (!user) {
+        if (isTemporary) {
+          const tempDisplayName = req.session?.tempUserName || 'Temporary User';
+          const [firstName, ...lastNameParts] = tempDisplayName.trim().split(/\s+/);
+          const syntheticUser = {
+            id: String(userId),
+            email: req.session?.tempUserEmail || '',
+            firstName: firstName || tempDisplayName,
+            lastName: lastNameParts.join(' ') || '',
+            profileImageUrl: null,
+            role: 'user',
+            isActive: true,
+            createdAt: req.session?.loginTime || new Date().toISOString(),
+            updatedAt: req.session?.loginTime || new Date().toISOString(),
+          };
+
+          res.json({
+            ...syntheticUser,
+            isTemporary: true,
+            displayName: tempDisplayName,
+          });
+          return;
+        }
+
         res.status(404).json({ message: "User not found" });
         return;
       }
@@ -524,8 +560,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         String(userId)
       );
 
-      // Include isTemporary flag for temp sessions
-      const isTemporary = req.session?.isTemporary === true || String(userId).startsWith('temp-');
       res.json({
         ...user,
         isTemporary,
