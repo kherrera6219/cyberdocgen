@@ -38,6 +38,12 @@
 
 ## Latest Updates
 
+**March 14, 2026 - Endpoint Completion & Documentation Consolidation:**
+
+- ✅ **Evidence Ingestion Pipeline** - Finished offline text extraction spanning PDF, Word, and Excel formats, integrated directly with Claude 3.5 Sonnet profile merging.
+- ✅ **Evidence Mappings Endpoints** - Finalized Evidence-to-Control mapping integrations and unskipped all corresponding E2E testing flows.
+- ✅ **Documentation Re-Baseline** - Archived >30 redundant and overlapping specification files into `docs/archive`, standardizing on README, ARCHITECTURE, SECURITY, and TODO for single-source knowledge.
+
 **February 23, 2026 - Evidence Ingestion Status Parity Completed:**
 
 - ✅ **Backend-Driven Queue Statuses** - Evidence upload queue now reflects server `processingStatus` states (`pending`, `extracting`, `indexing`, `analyzing`, `completed`, `failed`) instead of frontend timeout simulation.

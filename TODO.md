@@ -41,10 +41,10 @@
 
 ## Remaining In-Code TODO Markers
 
-| ID | Location | Status | Notes |
-|---|---|---|---|
-| CODE-01 | `server/services/ingestionService.ts` | DONE | `extractCompanyProfile` merged into company profile via Claude 4.6 Sonnet |
-| CODE-02 | `tests/integration/evidence-control-mapping.test.ts` | DONE | Evidence-to-control mapping endpoints implemented |
+### ✅ Application Logic & APIs (DONE)
+- [x] **CODE-01: Evidence Ingestion Pipeline**: Functional PDF/Word/Excel extraction with AI processing.
+- [x] **CODE-02: Evidence-to-Control API**: Fully implemented schema, mapping routes, and passing End-to-End integration tests.
+- [x] **Documentation Archival**: Consolidated legacy documentation into `docs/archive` to prioritize enterprise artifacts.
 
 ## Outstanding Items
 

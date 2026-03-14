@@ -170,10 +170,11 @@ describe('E2E Flow Tests', () => {
     });
 
     describe('Evidence to Control Mapping', () => {
-      // TODO: Implement evidence-to-control mapping (Schema and Routes missing)
-      it.skip('should require authentication to map evidence to controls', async () => {
-        await expectAuthRequired(app, 'post', '/api/evidence/1/controls', {
-          controlIds: ['CC6.1', 'CC6.7']
+      it('should require authentication to map evidence to controls', async () => {
+        await expectAuthRequired(app, 'post', '/api/evidence/mappings', {
+          evidenceId: 1,
+          framework: 'SOC2',
+          controlId: 'CC6.1'
         });
       });
     });
