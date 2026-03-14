@@ -69,8 +69,6 @@ export interface FileSecurityOptions {
   };
 }
 
-// Placeholder for authentication provider
-// Will be implemented once Microsoft Graph packages are installed
 
 export class CloudIntegrationService {
   

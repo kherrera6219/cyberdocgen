@@ -190,8 +190,17 @@ export class EntraIdAuthProvider implements IAuthProvider {
       riskScore += 2;
     }
     
-    // Check for unusual IP (would need geo-IP service in production)
-    // This is a placeholder for actual IP reputation checking
+    // Evaluate IP risk based on configured corporate network boundaries
+    const ip = claims.ipaddr || req.ip;
+    if (ip) {
+      const allowedIps = process.env.ALLOWED_CORPORATE_IPS?.split(',') || ['127.0.0.1', '::1'];
+      const isCorporateNetwork = allowedIps.some(allowed => ip.startsWith(allowed));
+      
+      if (!isCorporateNetwork) {
+        riskScore += 2; // High risk jump if outside configured safe boundary
+        logger.warn('[EntraIdAuthProvider] Sign-in detected from outside corporate boundary', { ip, user: user.id });
+      }
+    }
     
     // Determine risk level
     if (riskScore >= 3) return 'high';

@@ -95,7 +95,7 @@ const initializationPromise = (async () => {
 
   try {
     const { initializeGoogleCloudOperations } = await import("./monitoring/googleCloud.js");
-    initializeGoogleCloudOperations();
+    initializeGoogleCloudOperations(app);
     logger.debug('[Server] Google Cloud Operations initialized');
   } catch (error) {
     console.warn('[Server] Google Cloud Operations initialization failed (non-critical):', error);

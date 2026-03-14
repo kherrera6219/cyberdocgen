@@ -175,6 +175,12 @@ class Logger {
       return;
     }
 
+    // Forward to external logger (e.g. Google Cloud) if configured
+    if ((global as any).__externalLogger) {
+      const extLevel = level === LogLevel.DEBUG ? 'debug' : level === LogLevel.WARN ? 'warn' : level === LogLevel.ERROR ? 'error' : 'info';
+      (global as any).__externalLogger.log(extLevel, scrubbedMessage, scrubbedMeta);
+    }
+
     switch (level) {
       case LogLevel.ERROR:
         console.error(coloredMessage);
@@ -237,6 +243,11 @@ class Logger {
       // Add metadata if provided
       if (scrubbedMeta && Object.keys(scrubbedMeta).length > 0) {
         logMessage += ` ${JSON.stringify(scrubbedMeta)}`;
+      }
+
+      // Forward to external logger (e.g. Google Cloud) if configured
+      if ((global as any).__externalLogger) {
+        (global as any).__externalLogger.error(scrubbedMessage, scrubbedMeta);
       }
 
       // Console output for errors
@@ -304,3 +315,8 @@ class Logger {
 }
 
 export const logger = new Logger();
+
+// Simple hook to inject cloud logging (like Google Cloud Winston transport)
+export const setExternalLogger = (extLogger: any) => {
+  (global as any).__externalLogger = extLogger;
+};

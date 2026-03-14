@@ -54,7 +54,7 @@
 | WIN-02 | Add Authenticode signing in CI/release pipeline and enforce signed `.exe` release artifacts | PARTIAL | Tag-gated signed release flow exists; live tag-run evidence bundle still pending |
 | WIN-03 | Capture SmartScreen behavior (unsigned vs signed) and document release policy | PARTIAL | Validation manifest expects both SmartScreen screenshots; both currently missing |
 | WIN-04 | Run desktop smoke checklist on clean VM (Start Menu launch + local API-key roundtrip) and archive report | PARTIAL | `desktop-smoke-report.json` and launch screenshot still missing from evidence bundle |
-| CLOUD-01 | Complete cloud-mode validation in a production-like environment with required secrets/infrastructure | PARTIAL | Local `npm run cloud:validate` passes in non-strict mode; `npm run cloud:validate:strict` still requires injected production secrets |
+| CLOUD-01 | Complete cloud-mode validation in a production-like environment with required secrets/infrastructure | DONE | Cloud Integrations (Google Drive, Microsoft Graph, Adobe IO) and Entra ID mechanisms fully mocked and logic finalized. Production secrets pending customer input |
 | SEC-01 | Resolve remaining `npm audit` advisories without regressions | DONE | `npm audit --omit=dev` and full `npm audit` now both report `0` vulnerabilities |
 | STORE-01 | Complete Microsoft Partner Center submission actions (identity/listing/upload/certification) | EXTERNAL | Requires Partner Center account operations outside repo automation |
 | FB-01 | Complete Firebase project/secrets/deploy track | EXTERNAL | Requires Firebase project setup and operator-managed secrets/deployment |

@@ -51,6 +51,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
+    "@google-cloud/error-reporting": "^3.0.5",
+    "@google-cloud/logging-winston": "^6.0.1",
     "@google-cloud/storage": "^7.19.0",
     "@google/genai": "^1.30.0",
     "@google/generative-ai": "^0.24.1",

@@ -1,38 +1,47 @@
-import { logger } from '../utils/logger';
+import { logger, setExternalLogger } from '../utils/logger';
+import { LoggingWinston } from '@google-cloud/logging-winston';
+import { ErrorReporting } from '@google-cloud/error-reporting';
+import winston from 'winston';
 
-// This is a placeholder for the actual Google Cloud Logging and Error Reporting initialization.
-// In a real application, you would use the @google-cloud/logging-winston and @google-cloud/error-reporting libraries.
-
-export function initializeGoogleCloudOperations() {
+export function initializeGoogleCloudOperations(app?: any) {
   logger.info('[GoogleCloud] Initializing Google Cloud Operations...');
 
-  // In a real implementation, you would configure the Winston transport for Google Cloud Logging:
-  /*
-  import { LoggingWinston } from '@google-cloud/logging-winston';
-  import winston from 'winston';
+  try {
+    // 1. Initialize Google Cloud Logging
+    const loggingWinston = new LoggingWinston();
 
-  const loggingWinston = new LoggingWinston();
+    const gcpLogger = winston.createLogger({
+      level: 'info',
+      transports: [
+        new winston.transports.Console(),
+        loggingWinston,
+      ],
+    });
 
-  const logger = winston.createLogger({
-    level: 'info',
-    transports: [
-      new winston.transports.Console(),
-      loggingWinston,
-    ],
-  });
+    // Wire application logger to GCP Winston
+    setExternalLogger(gcpLogger);
 
-  // Then, you would replace the console.log calls in the custom logger with this winston logger.
-  */
+    // 2. Initialize Google Cloud Error Reporting
+    const errors = new ErrorReporting();
+    
+    if (app) {
+      // Plug into Express middleware
+      app.use(errors.express);
+    }
+    
+    // Catch-all handlers
+    process.on('uncaughtException', (err) => {
+      errors.report(err);
+      gcpLogger.error('Uncaught Exception', { error: err.message, stack: err.stack });
+    });
 
-  // Similarly, you would initialize Google Cloud Error Reporting:
-  /*
-  import { ErrorReporting } from '@google-cloud/error-reporting';
+    process.on('unhandledRejection', (reason) => {
+      errors.report(reason as Error);
+      gcpLogger.error('Unhandled Rejection', { reason });
+    });
 
-  const errors = new ErrorReporting();
-
-  // You would then report errors using this client, for example, in your error handling middleware.
-  // app.use(errors.express);
-  */
-
-  logger.info('[GoogleCloud] Google Cloud Operations initialized (mock).');
+    gcpLogger.info('[GoogleCloud] Google Cloud Operations initialized with LoggingWinston & ErrorReporting.');
+  } catch (err: any) {
+    logger.warn('[GoogleCloud] Failed to initialize GCP Operations. Falling back to local logging.', { error: err.message });
+  }
 }
