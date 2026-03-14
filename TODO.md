@@ -43,8 +43,8 @@
 
 | ID | Location | Status | Notes |
 |---|---|---|---|
-| CODE-01 | `server/services/ingestionService.ts` | OPEN | `extractCompanyProfile` merge into company profile persistence is still a placeholder |
-| CODE-02 | `tests/integration/e2e-flows.test.ts` | OPEN | Evidence-to-control mapping auth test remains skipped because route/schema are not present |
+| CODE-01 | `server/services/ingestionService.ts` | DONE | `extractCompanyProfile` merged into company profile via Claude 4.6 Sonnet |
+| CODE-02 | `tests/integration/evidence-control-mapping.test.ts` | DONE | Evidence-to-control mapping endpoints implemented |
 
 ## Outstanding Items
 

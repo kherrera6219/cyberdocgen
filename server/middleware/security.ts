@@ -180,7 +180,7 @@ function getRateLimitKey(req: Request): string {
 // Rate limiting configurations with user-based keys
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit per user+IP to 100 requests per windowMs
+  max: 1000, // limit per user+IP to 1000 requests per windowMs
   message: "Too many requests, please try again later.",
   standardHeaders: true,
   legacyHeaders: true,
@@ -225,7 +225,7 @@ export const authLimiter = rateLimit({
     });
     next(new RateLimitError('Too many authentication attempts, please try again later', {
       code: 'AUTH_RATE_LIMIT_EXCEEDED',
-      retryAfter: res.getHeader('Retry-After')
+  retryAfter: res.getHeader('Retry-After')
     }));
   },
 });
@@ -241,31 +241,31 @@ export const generationLimiter = rateLimit({
   handler: (req: Request, res: Response, next: NextFunction) => {
     logger.warn('Generation rate limit exceeded', {
       ip: req.ip,
-      userId: (req as any).user?.claims?.sub || 'anonymous',
-      path: req.path,
     });
-    next(new RateLimitError('Generation limit exceeded. Please wait before generating more documents.', {
-      code: 'GENERATION_LIMIT_EXCEEDED',
-      retryAfter: res.getHeader('Retry-After'),
-      remainingQuota: 0
-    }));
+    res.status(429).json({
+      success: false,
+      error: {
+        code: 'AI_RATE_LIMIT_EXCEEDED',
+        message: "Too many AI requests, please slow down.",
+        details: {
+          retryAfter: res.getHeader('Retry-After')
+        }
+      }
+    });
   },
 });
 
-// AI operations rate limiter (stricter limits for expensive operations)
 export const aiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 20, // 20 requests per minute per user
-  message: "Too many AI requests, please slow down.",
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 50, // limit per user+IP to 50 AI requests per hour
+  message: "AI usage limit exceeded. Please wait before issuing more requests.",
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: true,
   keyGenerator: getRateLimitKey,
   validate: false,
-  handler: (req, res) => {
-    logger.warn('AI rate limit exceeded', {
+  handler: (req: Request, res: Response, next: NextFunction) => {
+    logger.warn('AI general rate limit exceeded', {
       ip: req.ip,
-      userId: (req as any).user?.claims?.sub || 'anonymous',
-      path: req.path,
     });
     res.status(429).json({
       success: false,
@@ -285,7 +285,7 @@ export const aiLimiter = rateLimit({
  * Use validateBody() and validateQuery() from './routeValidation' with schemas from
  * 'server/validation/schemas.ts' instead. This provides type-safe validation with
  * better error messages and automatic data transformation.
- * 
+ *
  * This middleware will be removed in a future version.
  * Migration: Replace sanitizeInput with validateBody(yourSchema) in route definitions.
  */

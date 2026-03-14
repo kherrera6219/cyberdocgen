@@ -2050,3 +2050,44 @@ export const aiUsageDisclosuresRelations = relations(aiUsageDisclosures, ({ one 
     references: [modelCards.id],
   }),
 }));
+
+export const evidenceControlMappings = pgTable("evidence_control_mappings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  evidenceId: varchar("evidence_id").references(() => cloudFiles.id, { onDelete: 'cascade' }).notNull(),
+  framework: varchar("framework").notNull(),
+  controlId: varchar("control_id").notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  mappedBy: varchar("mapped_by").references(() => users.id, { onDelete: 'set null' }),
+  mappingSource: varchar("mapping_source").notNull().default("manual"), // 'manual' or 'ai_suggested'
+  confidenceScore: decimal("confidence_score", { precision: 5, scale: 2 }), // Useful if AI mapping
+  status: varchar("status").notNull().default("active"), // 'active', 'rejected'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  evidenceControlUnique: unique().on(table.evidenceId, table.framework, table.controlId),
+  orgIdx: index("idx_evidence_mappings_org").on(table.organizationId),
+  evidenceIdx: index("idx_evidence_mappings_evidence").on(table.evidenceId),
+}));
+
+export const evidenceControlMappingsRelations = relations(evidenceControlMappings, ({ one }) => ({
+  evidence: one(cloudFiles, {
+    fields: [evidenceControlMappings.evidenceId],
+    references: [cloudFiles.id],
+  }),
+  organization: one(organizations, {
+    fields: [evidenceControlMappings.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [evidenceControlMappings.mappedBy],
+    references: [users.id],
+  }),
+}));
+
+export const insertEvidenceControlMappingSchema = cis(evidenceControlMappings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+

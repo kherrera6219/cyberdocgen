@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from 'express';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { db } from '../db';
-import { cloudFiles } from '@shared/schema';
+import { cloudFiles, evidenceControlMappings, insertEvidenceControlMappingSchema } from '@shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { objectStorageService } from '../services/objectStorageService';
 import { auditService, AuditAction } from '../services/auditService';
@@ -193,6 +193,101 @@ export function registerEvidenceRoutes(app: Router) {
         count: evidenceFiles.length
       }
     });
+  }));
+
+  /**
+   * EVIDENCE-TO-CONTROL MAPPING ROUTES (CODE-02)
+   */
+
+  // Map Evidence to a Framework Control
+  router.post('/mappings', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const userId = getRequiredUserId(req);
+    
+    // Validate request body against schema (omitting server-set fields)
+    const payload = insertEvidenceControlMappingSchema.parse(req.body);
+
+    if (payload.organizationId !== organizationId) {
+      throw new AppError("Cross-organization mapping is not allowed", 403, "FORBIDDEN");
+    }
+
+    // Check if mapping already exists
+    const existing = await db.query.evidenceControlMappings.findFirst({
+      where: and(
+        eq(evidenceControlMappings.organizationId, organizationId),
+        eq(evidenceControlMappings.evidenceId, payload.evidenceId),
+        eq(evidenceControlMappings.framework, payload.framework),
+        eq(evidenceControlMappings.controlId, payload.controlId)
+      )
+    });
+
+    if (existing) {
+      res.status(200).json({ success: true, data: existing, message: "Mapping already exists" });
+      return;
+    }
+
+    const [mapping] = await db.insert(evidenceControlMappings).values({
+      ...payload,
+      mappedBy: userId,
+    }).returning();
+
+    await auditService.logAction({
+      action: AuditAction.CREATE,
+      entityType: 'evidence_mapping',
+      entityId: mapping.id,
+      userId,
+      organizationId,
+      ipAddress: req.ip || '',
+      metadata: { evidenceId: mapping.evidenceId, controlId: mapping.controlId }
+    });
+
+    res.status(201).json({ success: true, data: mapping });
+  }));
+
+  // List Evidence Mappings
+  router.get('/mappings', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const { framework, controlId, evidenceId } = req.query;
+
+    const filters = [eq(evidenceControlMappings.organizationId, organizationId)];
+    if (typeof framework === 'string') filters.push(eq(evidenceControlMappings.framework, framework));
+    if (typeof controlId === 'string') filters.push(eq(evidenceControlMappings.controlId, controlId));
+    if (typeof evidenceId === 'string') filters.push(eq(evidenceControlMappings.evidenceId, evidenceId));
+
+    const mappings = await db.query.evidenceControlMappings.findMany({
+      where: and(...filters),
+      with: { evidence: true },
+      orderBy: (m, { desc }) => [desc(m.createdAt)]
+    });
+
+    res.json({ success: true, data: mappings });
+  }));
+
+  // Delete Evidence Mapping
+  router.delete('/mappings/:id', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const userId = getRequiredUserId(req);
+    const { id } = req.params;
+
+    const [deleted] = await db.delete(evidenceControlMappings)
+      .where(and(
+        eq(evidenceControlMappings.id, id),
+        eq(evidenceControlMappings.organizationId, organizationId)
+      ))
+      .returning();
+
+    if (!deleted) throw new NotFoundError("Mapping not found");
+
+    await auditService.logAction({
+      action: AuditAction.DELETE,
+      entityType: 'evidence_mapping',
+      entityId: id,
+      userId,
+      organizationId,
+      ipAddress: req.ip || '',
+    });
+
+    res.json({ success: true, message: "Mapping deleted successfully" });
   }));
 
   app.use('/api/evidence', router);

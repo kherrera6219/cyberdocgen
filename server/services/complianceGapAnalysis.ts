@@ -147,7 +147,7 @@ class ComplianceGapAnalysisService {
       
       const aiResponse = await aiOrchestrator.generateContent({
         prompt: analysisPrompt,
-        model: 'claude-sonnet-4', // Use Claude for complex analysis
+        model: 'claude-sonnet-4-6', // Use Claude for complex analysis
         temperature: 0.3, // Lower temperature for consistent analysis
         maxTokens: 4000
       });
@@ -365,7 +365,7 @@ Provide 2-3 specific remediation recommendations in JSON format:
       try {
         const aiResponse = await aiOrchestrator.generateContent({
           prompt: remediationPrompt,
-          model: 'gpt-5.1',
+          model: 'gpt-5.4',
           temperature: 0.4,
           maxTokens: 1500
         });

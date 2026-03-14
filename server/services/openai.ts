@@ -65,7 +65,7 @@ Make the document practical and implementable, with specific controls, procedure
 
   try {
     const response = await getOpenAIClient().chat.completions.create({
-      model: "gpt-5.1",
+      model: "gpt-5.4",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
@@ -119,7 +119,7 @@ export async function generateComplianceDocuments(
 export async function generateContentWithOpenAI(prompt: string): Promise<string> {
   try {
     const response = await getOpenAIClient().chat.completions.create({
-      model: "gpt-5.1",
+      model: "gpt-5.4",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 2000,
     });

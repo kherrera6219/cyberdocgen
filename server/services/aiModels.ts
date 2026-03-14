@@ -1,60 +1,66 @@
 /**
- * Latest AI Model Configurations
- * Updated to use the most advanced available models as of December 2024
+ * AI Model Configurations — March 2026
+ *
+ * OpenAI    : gpt-5.4           — released March 2026, 272K context, configurable reasoning
+ *             gpt-5-mini         — smaller/faster variant for low-latency calls
+ * Anthropic : claude-sonnet-4-6  — released Feb 17 2026, 1M token context (beta), best Sonnet yet
+ *             claude-opus-4-5-20251101 — Nov 2025 Opus, fallback for heavy generation
+ * Google    : gemini-3.1-pro-preview — GA preview Mar 2026 (3.0-pro deprecated Mar 9, 2026)
+ *             gemini-2.0-flash         — stable fallback
  */
 
 export const AI_MODELS = {
-  // OpenAI - GPT-4.1 (Latest coding-focused model with 1M token context)
+  // OpenAI — GPT-5.4: frontier model for complex professional work and reasoning
   OPENAI: {
-    primary: "gpt-5.1",
-    fallback: "gpt-4.1-mini",
-    description: "Latest GPT-4.1 with 1M token context, 54.6% on SWE-bench, optimized for coding",
-    capabilities: ["advanced reasoning", "coding", "document generation", "1M token context"],
-    maxTokens: 1000000,
-    released: "2024-04-14",
+    primary: "gpt-5.4",
+    fallback: "gpt-5-mini",
+    description: "GPT-5.4: frontier model with 272K context, configurable reasoning effort, computer use API (March 2026)",
+    capabilities: ["advanced reasoning", "coding", "computer use", "272K context", "configurable reasoning effort"],
+    maxTokens: 272_000,
+    released: "2026-03-01",
   },
 
-  // Anthropic - Claude Opus 4.1 (Released August 5, 2025) 
+  // Anthropic — Claude Sonnet 4.6: best Sonnet ever, 1M token context window in beta
   ANTHROPIC: {
-    primary: "claude-opus-4-5",
-    fallback: "claude-sonnet-4",
-    description: "World's best coding model with hybrid reasoning capabilities",
-    capabilities: ["hybrid reasoning", "advanced coding", "7-hour autonomous tasks", "extended thinking"],
-    maxTokens: 500000,
-    released: "2025-08-05",
+    primary: "claude-sonnet-4-6",
+    fallback: "claude-opus-4-5-20251101",
+    description: "Claude Sonnet 4.6: Anthropic's best Sonnet, 1M token context (beta), top coding & long-context reasoning (Feb 2026)",
+    capabilities: ["1M token context (beta)", "coding", "computer use", "agent planning", "long-context reasoning"],
+    maxTokens: 1_000_000,
+    released: "2026-02-17",
   },
 
-  // Google - Gemini 2.0 Flash (Latest multimodal model)
+  // Google — Gemini 3.1 Pro Preview: latest Gemini, successor to 3.0 Pro (deprecated Mar 9, 2026)
   GOOGLE: {
-    primary: "gemini-3.0-pro",
-    fallback: "gemini-1.5-pro",
-    description: "Latest Gemini 2.0 with native multimodal output, 2x faster than 1.5 Pro",
-    capabilities: ["multimodal input/output", "native tool use", "1M token context", "image generation"],
-    maxTokens: 1000000,
-    released: "2024-12-11",
+    primary: "gemini-3.1-pro-preview",
+    fallback: "gemini-2.0-flash",
+    description: "Gemini 3.1 Pro Preview: latest Gemini, replaces deprecated Gemini 3.0 Pro (Mar 2026)",
+    capabilities: ["multimodal", "advanced reasoning", "1M token context", "custom tool use"],
+    maxTokens: 1_000_000,
+    released: "2026-03-01",
   },
 } as const;
 
 export const MODEL_SELECTION_STRATEGY = {
-  // For compliance document generation
+  // Compliance document generation — GPT-5.4 for quality + configurable reasoning depth
   COMPLIANCE_GENERATION: {
     primary: AI_MODELS.OPENAI.primary,
     secondary: AI_MODELS.ANTHROPIC.primary,
-    rationale: "GPT-4.1 for quality generation with 1M context, Claude for analytical backup"
+    rationale: "GPT-5.4 for high-quality generation with configurable reasoning; Sonnet 4.6 for policy-heavy content with 1M context",
   },
 
-  // For risk analysis and reasoning
+  // Risk analysis — Claude Sonnet 4.6 excels at long-context reasoning and agent planning
   RISK_ANALYSIS: {
     primary: AI_MODELS.ANTHROPIC.primary,
     secondary: AI_MODELS.OPENAI.primary,
-    rationale: "Claude excels at analytical reasoning and risk assessment"
+    rationale: "Claude Sonnet 4.6 for deep analytical reasoning over large compliance contexts",
   },
 
-  // For large document processing
+  // Large context processing — Gemini 3.1 Pro handles massive document sets
   LARGE_CONTEXT: {
     primary: AI_MODELS.GOOGLE.primary,
     secondary: AI_MODELS.GOOGLE.fallback,
-    rationale: "Gemini 2.0 Flash handles massive context with multimodal capabilities"
+    rationale: "Gemini 3.1 Pro Preview for 1M token multi-document context analysis",
   },
 } as const;
 

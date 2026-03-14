@@ -92,7 +92,7 @@ JSON Response:`;
     try {
       const response = await aiOrchestrator.generateContent({
         prompt,
-        model: 'gpt-5.1',
+        model: 'gpt-5.4',
         temperature: 0.2,
         maxTokens: 2000,
       });
@@ -175,7 +175,7 @@ JSON Response:`;
     try {
       const response = await aiOrchestrator.generateContent({
         prompt,
-        model: 'gpt-5.1',
+        model: 'gpt-5.4',
         temperature: 0.2,
         maxTokens: 2000,
       });
@@ -242,7 +242,7 @@ JSON Response:`;
     try {
       const response = await aiOrchestrator.generateContent({
         prompt,
-        model: 'gpt-5.1',
+        model: 'gpt-5.4',
         temperature: 0.3,
         maxTokens: 2000,
       });

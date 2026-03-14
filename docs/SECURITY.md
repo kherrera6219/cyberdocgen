@@ -111,8 +111,9 @@ CyberDocGen implements comprehensive threat detection with pattern recognition:
 
 **Tiered Rate Limiting**:
 - **General API**: 1000 requests per 15 minutes
+- **AI Generation Endpoints**: 10 requests per hour
+- **Other AI Operations**: 50 requests per hour
 - **Authentication**: 5 attempts per 15 minutes
-- **AI Generation**: 10 requests per hour
 - **File Uploads**: 5 uploads per hour
 - **MFA Operations**: 10 attempts per hour
 - **Admin Operations**: 100 requests per 15 minutes

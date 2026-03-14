@@ -575,19 +575,6 @@ kubectl apply -f k8s/
 - ✅ **MCP Security** - Authentication and multi-tenant isolation enforced
 - ✅ **Data Retention** - GDPR/CCPA compliant deletion workflows (8 data types)
 - ✅ **Error Handling** - Enterprise-grade error boundaries (frontend + backend)
-- ✅ **CSP** - Content Security Policy meta tag for defense-in-depth
-
-### Application Features
-
-- ✅ **Core Features** - 41 pages, 93+ components, 36 services, 26 route modules
-- ✅ **AI Orchestration** - Multi-model (GPT-5.1, Claude Opus 4.5, Gemini 3.0 Pro)
-- ✅ **Security Controls** - MFA, threat detection, immutable audit trails (see current advisory status above)
-- ✅ **Multi-tenancy** - Organization isolation with RBAC
-- ✅ **Documentation** - 20+ comprehensive guides, versioned
-- ✅ **Performance** - Bundle optimized 86% (1,121 KB → 154 KB)
-- ✅ **Cloud Integration** - Google Drive, OneDrive (OAuth ready)
-- ✅ **Compliance** - ISO 27001, SOC 2, FedRAMP, NIST 800-53 templates
-- ✅ **Workflows** - Evidence management, approvals, version control
 
 ### Quality Metrics
 

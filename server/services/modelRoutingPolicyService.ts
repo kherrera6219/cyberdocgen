@@ -1,6 +1,7 @@
 import { logger } from "../utils/logger";
 
-export type RouteModel = "gpt-5.1" | "claude-sonnet-4" | "gemini-3-pro" | "auto";
+// Model IDs — March 2026. Must match AIModel type in aiOrchestrator.ts exactly.
+export type RouteModel = "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.1-pro-preview" | "auto";
 export type RoutedModel = Exclude<RouteModel, "auto">;
 
 export interface ModelRoutingRequest {
@@ -33,18 +34,20 @@ class ModelRoutingPolicyService {
       };
     }
 
+    // Chat responses — Claude Sonnet 4.6 has 1M ctx for conversation history
     if (request.operation === "chat_response") {
       return {
-        selectedModel: "claude-sonnet-4",
-        fallbackModel: "gpt-5.1",
+        selectedModel: "claude-sonnet-4-6",
+        fallbackModel: "gpt-5.4",
         reason: "chat_reasoning_policy",
       };
     }
 
+    // Export generation — GPT-5.4 for structured output quality
     if (request.operation === "export_generation") {
       return {
-        selectedModel: "gpt-5.1",
-        fallbackModel: "claude-sonnet-4",
+        selectedModel: "gpt-5.4",
+        fallbackModel: "claude-sonnet-4-6",
         reason: "export_quality_policy",
       };
     }
@@ -53,24 +56,26 @@ class ModelRoutingPolicyService {
       const category = (request.templateCategory || "").toLowerCase();
       if (category.includes("policy")) {
         return {
-          selectedModel: "claude-sonnet-4",
-          fallbackModel: "gpt-5.1",
+          selectedModel: "claude-sonnet-4-6",
+          fallbackModel: "gpt-5.4",
           reason: "policy_document_preference",
         };
       }
       if (category.includes("analysis") || category.includes("assessment")) {
         return {
-          selectedModel: "gemini-3-pro",
-          fallbackModel: "claude-sonnet-4",
+          // Gemini 3.1 Pro for long-context analysis
+          selectedModel: "gemini-3.1-pro-preview",
+          fallbackModel: "claude-sonnet-4-6",
           reason: "analysis_document_preference",
         };
       }
     }
 
+    // Large prompts — Gemini 3.1 Pro has 1M token context
     if ((request.promptLength || 0) > 15000) {
       return {
-        selectedModel: "gemini-3-pro",
-        fallbackModel: "claude-sonnet-4",
+        selectedModel: "gemini-3.1-pro-preview",
+        fallbackModel: "claude-sonnet-4-6",
         reason: "large_prompt_policy",
       };
     }
@@ -78,28 +83,28 @@ class ModelRoutingPolicyService {
     const framework = (request.framework || "").toLowerCase();
     if (framework.includes("iso") || framework.includes("soc")) {
       return {
-        selectedModel: "claude-sonnet-4",
-        fallbackModel: "gpt-5.1",
+        selectedModel: "claude-sonnet-4-6",
+        fallbackModel: "gpt-5.4",
         reason: "framework_policy_default",
       };
     }
 
     return {
-      selectedModel: "gpt-5.1",
-      fallbackModel: "gemini-3-pro",
+      selectedModel: "gpt-5.4",
+      fallbackModel: "gemini-3.1-pro-preview",
       reason: "default_policy",
     };
   }
 
   getFallbackModel(model: RoutedModel): RoutedModel {
     switch (model) {
-      case "gpt-5.1":
-        return "gemini-3-pro";
-      case "gemini-3-pro":
-        return "claude-sonnet-4";
-      case "claude-sonnet-4":
+      case "gpt-5.4":
+        return "gemini-3.1-pro-preview";
+      case "gemini-3.1-pro-preview":
+        return "claude-sonnet-4-6";
+      case "claude-sonnet-4-6":
       default:
-        return "gpt-5.1";
+        return "gpt-5.4";
     }
   }
 

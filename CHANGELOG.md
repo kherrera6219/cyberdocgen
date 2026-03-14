@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Evidence Pipeline (CODE-01)**: Implemented real text extraction (PDF, DOCX, XLSX, TXT) using pdf-parse and mammoth.
+- **AI Profile Merge**: Ingested compliance documents now intelligently merge findings into the Company Profile using Claude 4.6 Sonnet with strict Zod validation.
+- **Evidence-to-Control Mapping (CODE-02)**: Added new \`evidenceControlMappings\` schema and API routes for linking evidence to framework controls (SOC2, ISO27001).
+- **Integration Tests**: Added end-to-end integration tests for Evidence Mappings API.
+
+### Changed
+- **AI Models**: Pushed multi-model orchestrator to production March 2026 models (\`gpt-5.4\`, \`claude-sonnet-4-6\`, \`gemini-3.1-pro-preview\`).
+- **Security**: Hardened ingestion pipeline with 50MB file size limits and sanitized filenames.
+- **Rate Limits**: Synchronized rate limits with enterprise documentation (1000/15m general, 50/1h AI).
+- **Type Safety**: Removed pervasive \`as any\` casts around db insert/update payloads to enhance correctness.
+
+### Fixed
+- Fixed broken foreign key constraint (\`integrationId\`) on manual file uploads by dynamically seeding manual-upload integrations.
+
+### Added (Previous)
+
+
 - Introduced AI governance subsystems for production operations:
   - Versioned prompt template registry
   - Model routing policy engine

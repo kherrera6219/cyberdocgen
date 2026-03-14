@@ -27,10 +27,10 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
   - Query timeout configuration (10s connection, 30s idle)
   - Graceful shutdown with proper cleanup
 - **Authentication**: Enterprise authentication with MFA support
-- **AI Integration**: Multi-model orchestration (OpenAI GPT-5.1, Anthropic Claude Opus 4.5, Google Gemini 3.0 Pro)
+- **AI Integration**: Multi-model orchestration (OpenAI GPT-5.4, Anthropic Claude 4.6 Sonnet, Google Gemini 3.1 Pro)
 - **Storage**: Cloud object storage for document assets (Google Cloud Storage)
-- **Route Modules**: 26 organized API route modules
-- **Business Services**: 36 specialized service modules
+- **Route Modules**: 27 organized API route modules
+- **Business Services**: 37 specialized service modules
 - **Middleware Stack**: 10-layer security and monitoring middleware
 
 ### Database Design
@@ -50,9 +50,9 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 ### Multi-Model Orchestration
 The system implements intelligent model selection based on task requirements with automatic fallback:
 
-- **OpenAI GPT-5.1**: Document generation, content analysis (latest flagship model, Nov 2025)
-- **Anthropic Claude Opus 4.5**: Complex reasoning, risk assessment (latest reasoning model, Nov 2025)
-- **Google Gemini 3.0 Pro**: Multimodal analysis, compliance review (latest multimodal model, Dec 2025)
+- **OpenAI GPT-5.4**: Document generation, content analysis (latest flagship model, March 2026)
+- **Anthropic Claude 4.6 Sonnet**: Complex reasoning, profile integration (latest reasoning model, March 2026)
+- **Google Gemini 3.1 Pro**: Multimodal analysis, compliance review (latest multimodal model, March 2026)
 - **Automatic Fallback**: Graceful degradation when models are unavailable with health checking
 - **Load Balancing**: Intelligent distribution across available models
 
@@ -89,7 +89,7 @@ The system implements intelligent model selection based on task requirements wit
 5. **Audit Logger**: Immutable audit trail for all operations
 6. **Route Access Validation**: Route-level access control
 7. **Performance Logging**: Request/response time tracking
-8. **Rate Limiting**: Tiered limits (1000 requests per 15 min general, 10/hour for AI)
+8. **Rate Limiting**: Tiered limits (1000 requests per 15 min general, 50/hour for AI)
 9. **MFA Enforcement**: Multi-factor authentication for high-risk operations
 10. **Request Validation**: Comprehensive Zod schema validation
 
