@@ -46,3 +46,5 @@ test-results/
 .playwright/
 gcloud-service-key.json
 keys.txt
+test-ai-keys.ts
+test-ai-keys-fast.ts

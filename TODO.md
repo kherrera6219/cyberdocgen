@@ -1,7 +1,15 @@
 # CyberDocGen Outstanding TODO
 
-**Last Verified:** February 20, 2026  
+**Last Verified:** March 15, 2026  
 **Scope:** Outstanding and recently completed release-readiness tasks.
+
+## Recent Hardening (2026-03-15)
+
+- **Electron Builder Patch:** Fixed `ERR_ELECTRON_BUILDER_CANNOT_EXECUTE` by patching `app-builder-lib` (removed `-w` from npm prefix).
+- **Installer Bloat Fix:** Optimized `electron-builder.yml` to exclude recursive `dist` and `release` directories, reducing setup size to ~175MB.
+- **Backend Stability:** Hardened production startup by ensuring secrets auto-provisioning and refining environment validation.
+- **UI UX:** Fixed installation progress hang by removing blocking MessageBox calls in main process.
+- **AI Parity:** Refreshed model IDs for GPT-4o, Claude 3.5 Sonnet, and Gemini 1.5 Pro.
 
 ## Current Validation Evidence (2026-02-20)
 

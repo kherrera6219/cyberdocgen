@@ -38,7 +38,8 @@ export class WindowsCredentialManagerProvider implements ISecretsProvider {
   private async initKeytar(): Promise<void> {
     try {
       // Dynamically import keytar (native module)
-      this.keytar = await import('keytar');
+      const keytarModule = await import('keytar');
+      this.keytar = keytarModule.default || keytarModule;
       this.isKeytarAvailable = true;
       logger.debug('[WindowsCredentialManagerProvider] Initialized successfully');
     } catch (error) {

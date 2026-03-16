@@ -70,7 +70,7 @@ Make the document practical and implementable, with specific controls, procedure
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      max_tokens: 4000,
+      max_completion_tokens: 4000,
     });
 
     return response.choices[0].message.content || "";

@@ -11,10 +11,10 @@ import { getAnthropicClient } from "./aiClients";
  * Do NOT revert to claude-3.x models unless explicitly asked.
  */
 
-// Primary: Claude Sonnet 4.6 — best Sonnet, 1M context window in beta (Feb 2026)
+// Primary: Claude Sonnet 4.6 — best Sonnet, 1M context window in beta (Feb 17, 2026)
 const DEFAULT_MODEL_STR = "claude-sonnet-4-6";
-// Fallback: Claude Opus 4.5 — used if Sonnet 4.6 is unavailable
-const OPUS_MODEL = "claude-opus-4-5-20251101";
+// Fallback: Claude Opus 4.6 — released Feb 5, 2026
+const OPUS_MODEL = "claude-opus-4-6";
 
 export interface DocumentTemplate {
   title: string;

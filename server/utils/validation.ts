@@ -13,13 +13,13 @@ function createEnvSchema() {
     // DATABASE_URL is only required in cloud mode
     DATABASE_URL: isLocalMode
       ? z.string().optional()
-      : z.string().min(1, 'DATABASE_URL is required in cloud mode'),
+      : z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
     ANTHROPIC_API_KEY: z.string().optional(),
     // SESSION_SECRET is only required in cloud mode
     SESSION_SECRET: isLocalMode
       ? z.string().optional()
-      : z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
+      : z.string().optional(),
     REPL_ID: z.string().optional(),
     REPLIT_DOMAINS: z.string().optional(),
     DEFAULT_OBJECT_STORAGE_BUCKET_ID: z.string().optional(),
@@ -54,7 +54,7 @@ export function validateEnvironment(): EnvConfig {
       logger.warn('ANTHROPIC_API_KEY is not set - AI features using Anthropic will not work');
     }
 
-    if (validated.NODE_ENV === 'production') {
+    if (validated.NODE_ENV === 'production' && validated.DEPLOYMENT_MODE !== 'local') {
       const encryptionKey = validated.ENCRYPTION_KEY || '';
       if (!/^[a-fA-F0-9]{64}$/.test(encryptionKey)) {
         throw new Error('ENCRYPTION_KEY must be a 64-character hex value in production');

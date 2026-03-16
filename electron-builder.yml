@@ -2,49 +2,37 @@ appId: com.cyberdocgen.app
 productName: CyberDocGen
 copyright: "Copyright © 2026 Lucentry.AI"
 directories:
-  output: dist/packaging
+  output: dist/release
   buildResources: build
 npmRebuild: false
 files:
-  - dist/**/*
-  - "!dist/packaging*"
-  - public/**/*
+  - dist/index.cjs
+  - dist/public/**/*
+  - dist/electron/**/*
+  - dist/migrations/**/*
   - local-data/cyberdocgen.db
   - package.json
   - node_modules/**/*
-asarUnpack:
-  - "node_modules/better-sqlite3/**/*"
-  - "node_modules/bindings/**/*"
-  - "node_modules/file-uri-to-path/**/*"
-  - "node_modules/node-gyp-build/**/*"
-  - "node_modules/keytar/**/*"
-  - "node_modules/bcrypt/**/*"
+asar: true
 win:
   target:
     - nsis
-    - appx
-  icon: build/icon.ico
+  legalTrademarks: CyberDocGen
   forceCodeSigning: false
-appx:
-  identityName: "Lucentry.CyberDocGen"
-  publisher: "CN=Lucentry"
-  publisherDisplayName: "Lucentry.AI"
-  applicationId: "CyberDocGen"
-  displayName: "CyberDocGen"
-  artifactName: "${productName}-Store-${version}.${ext}"
-  minVersion: "10.0.19041.0"
-  maxVersionTested: "10.0.22621.0"
-  languages:
-    - en-US
+  icon: build/icon.ico
 nsis:
   oneClick: false
-  allowElevation: true
-  perMachine: false
   allowToChangeInstallationDirectory: true
+  installerHeaderIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerIcon: build/icon.ico
+  include: installer.nsh
+  uninstallerSidebar: uninstaller.nsh
+  perMachine: false
+  allowElevation: true
+  deleteAppDataOnUninstall: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: "CyberDocGen"
-  runAfterFinish: true
-  deleteAppDataOnUninstall: false
-  include: installer.nsh
+  shortcutName: CyberDocGen
   artifactName: "${productName}-Setup-${version}.${ext}"
+  publish: null

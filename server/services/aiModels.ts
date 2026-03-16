@@ -1,12 +1,12 @@
 /**
  * AI Model Configurations — March 2026
  *
- * OpenAI    : gpt-5.4           — released March 2026, 272K context, configurable reasoning
+ * OpenAI    : gpt-5.4           — released March 5, 2026, 272K context, configurable reasoning
  *             gpt-5-mini         — smaller/faster variant for low-latency calls
- * Anthropic : claude-sonnet-4-6  — released Feb 17 2026, 1M token context (beta), best Sonnet yet
- *             claude-opus-4-5-20251101 — Nov 2025 Opus, fallback for heavy generation
- * Google    : gemini-3.1-pro-preview — GA preview Mar 2026 (3.0-pro deprecated Mar 9, 2026)
- *             gemini-2.0-flash         — stable fallback
+ * Anthropic : claude-sonnet-4-6  — released Feb 17, 2026, 1M token context (beta)
+ *             claude-opus-4-6    — released Feb 5, 2026, 1M token context
+ * Google    : gemini-3.1-pro-preview — released Feb 19, 2026 (3.0-pro shut down Mar 9, 2026)
+ *             gemini-3.1-flash-lite-preview — released Mar 3, 2026
  */
 
 export const AI_MODELS = {
@@ -23,21 +23,21 @@ export const AI_MODELS = {
   // Anthropic — Claude Sonnet 4.6: best Sonnet ever, 1M token context window in beta
   ANTHROPIC: {
     primary: "claude-sonnet-4-6",
-    fallback: "claude-opus-4-5-20251101",
-    description: "Claude Sonnet 4.6: Anthropic's best Sonnet, 1M token context (beta), top coding & long-context reasoning (Feb 2026)",
+    fallback: "claude-opus-4-6",
+    description: "Claude Sonnet 4.6: Anthropic's best Sonnet, 1M token context (beta), top coding & long-context reasoning (Feb 17, 2026)",
     capabilities: ["1M token context (beta)", "coding", "computer use", "agent planning", "long-context reasoning"],
     maxTokens: 1_000_000,
     released: "2026-02-17",
   },
 
-  // Google — Gemini 3.1 Pro Preview: latest Gemini, successor to 3.0 Pro (deprecated Mar 9, 2026)
+  // Google — Gemini 3.1 Pro Preview: latest Gemini, successor to 3.0 Pro
   GOOGLE: {
     primary: "gemini-3.1-pro-preview",
-    fallback: "gemini-2.0-flash",
-    description: "Gemini 3.1 Pro Preview: latest Gemini, replaces deprecated Gemini 3.0 Pro (Mar 2026)",
+    fallback: "gemini-3.1-flash-lite-preview",
+    description: "Gemini 3.1 Pro Preview: latest Gemini, replaces shut down Gemini 3.0 Pro (Feb 19, 2026)",
     capabilities: ["multimodal", "advanced reasoning", "1M token context", "custom tool use"],
     maxTokens: 1_000_000,
-    released: "2026-03-01",
+    released: "2026-02-19",
   },
 } as const;
 

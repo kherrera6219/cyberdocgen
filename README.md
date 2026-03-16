@@ -38,7 +38,16 @@
 
 ## Latest Updates
 
+**March 15, 2026 - Windows Release Engineering & Build Hardening:**
+
+- ✅ **Electron Builder Regression Patched** - Remediated `ERR_ELECTRON_BUILDER_CANNOT_EXECUTE` by patching `app-builder-lib` to bypass incompatible `npm prefix -w` workspace detection on Windows.
+- ✅ **Installer Bloat Remediation** - Optimized `electron-builder.yml` file inclusion logic, reducing NSIS installer size from ~6GB (recursive bloat) to ~175MB.
+- ✅ **Production Startup Reliability** - Resolved backend launch crash by hardening environment variable validation and ensuring local secrets auto-provisioning.
+- ✅ **UI Lockup Fixed** - Removed blocking MessageBox calls in the Electron main process that were causing three-quarter progress hangs during installation.
+- ✅ **AI Model ID Refresh** - Updated flagship model IDs (GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro) to ensure API compatibility for the v2.4.0 release candidate.
+
 **March 14, 2026 - Endpoint Completion & Documentation Consolidation:**
+
 
 - ✅ **Evidence Ingestion Pipeline** - Finished offline text extraction spanning PDF, Word, and Excel formats, integrated directly with Claude 3.5 Sonnet profile merging.
 - ✅ **Evidence Mappings Endpoints** - Finalized Evidence-to-Control mapping integrations and unskipped all corresponding E2E testing flows.

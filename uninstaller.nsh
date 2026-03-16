@@ -35,9 +35,7 @@ uninstall_complete:
   ; Keep the standard NSIS uninstaller progress page.
   DetailPrint "Standard uninstaller wizard enabled: uninstall progress page"
 
-  ; Uninstall progress is shown by default on the NSIS "Uninstalling" page.
-  ; Show an explicit completion notification for interactive uninstalls.
-  IfSilent skip_uninstall_message
-  MessageBox MB_OK|MB_ICONINFORMATION "CyberDocGen has been uninstalled successfully."
+  ; Show an explicit completion notification for interactive uninstalls removed to prevent blocking.
+  DetailPrint "Uninstallation complete."
 skip_uninstall_message:
 !macroend

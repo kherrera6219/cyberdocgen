@@ -1,0 +1,21 @@
+
+> rest-express@2.4.0 lint
+> eslint .
+
+
+C:\software\cyberdocgen\debug-run.cjs
+   2:7   error  'path' is assigned a value but never used  no-unused-vars
+   4:1   error  'process' is not defined                   no-undef
+   5:1   error  'process' is not defined                   no-undef
+   7:3   error  'process' is not defined                   no-undef
+  10:1   error  'process' is not defined                   no-undef
+  10:43  error  'promise' is defined but never used        no-unused-vars
+  12:3   error  'process' is not defined                   no-undef
+  16:3   error  'console' is not defined                   no-undef
+  20:3   error  'process' is not defined                   no-undef
+
+C:\software\cyberdocgen\test-ai-keys-fast.ts
+  33:5  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+Γ£û 10 problems (10 errors, 0 warnings)
+
