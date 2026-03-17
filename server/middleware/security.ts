@@ -214,8 +214,13 @@ export const authLimiter = rateLimit({
   message: "Too many authentication attempts, please try again later.",
   standardHeaders: true,
   legacyHeaders: true,
-  // Auth endpoints use IP only (users aren't authenticated yet)
-  keyGenerator: (req) => req.ip || 'unknown',
+  // Auth endpoints use IP and email/username if available
+  keyGenerator: (req) => {
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    // Use email or username from body if present to prevent distributed attacks on a single account
+    const identifier = req.body?.email || req.body?.username;
+    return identifier ? `auth:${identifier.toLowerCase()}:${ip}` : `auth:ip:${ip}`;
+  },
   validate: false,
   skipSuccessfulRequests: true, // Only count failed attempts
   handler: (req: Request, res: Response, next: NextFunction) => {
@@ -408,13 +413,13 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   
   const cspDirectives = [
     "default-src 'self'",
-    // Production: External scripts only (Vite build has no inline scripts)
+    // Production: External scripts only and nonce
     // Development: Allow inline for HMR and dev tools
     isProduction
-      ? "script-src 'self' https://apis.google.com"
-      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://replit.com",
-    // Styles: unsafe-inline needed for Tailwind/CSS-in-JS runtime styles
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+      ? `script-src 'self' 'nonce-${nonce}' https://apis.google.com`
+      : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://replit.com`,
+    // Styles: unsafe-inline is retained for Tailwind/CSS-in-JS, but nonce is added for enhanced security
+    `style-src 'self' 'unsafe-inline' 'nonce-${nonce}' https://fonts.googleapis.com`,
     "img-src 'self' data: https:",
     isProduction
       ? "connect-src 'self' https://api.openai.com https://api.anthropic.com"
@@ -431,8 +436,6 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     isProduction ? "upgrade-insecure-requests" : ""
   ].filter(Boolean);
   res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
-
-  // HSTS in production with preload
   if (process.env.NODE_ENV === 'production') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { logger } from './logger';
+import crypto from 'crypto';
 
 export function handleError(error: unknown, req: Request, res: Response, operation: string): void {
   const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -13,10 +14,14 @@ export function handleError(error: unknown, req: Request, res: Response, operati
 
   logger.error(`Error in ${operation}`, errorContext, req);
 
+  const errorId = crypto.randomBytes(8).toString('hex');
+  const isProduction = process.env.NODE_ENV === 'production';
+
   // Send sanitized error response
   res.status(500).json({ 
     success: false,
-    message: `Failed to ${operation}`,
+    message: isProduction ? `Failed to ${operation}` : `Failed to ${operation}: ${errorMessage}`,
+    errorId,
     timestamp: new Date().toISOString()
   });
 }
