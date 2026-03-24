@@ -93,13 +93,13 @@ export function tracingMiddleware() {
 
     // Don't log health check endpoints to reduce noise
     if (!req.path.includes('/health') && !req.path.includes('/ready') && !req.path.includes('/live')) {
-      logger.debug(JSON.stringify(requestLog));
+      logger.debug('request_start', requestLog);
     }
 
     // Track response for logging
     res.on('finish', () => {
       const duration = Date.now() - traceContext.startTime;
-      
+
       const responseLog = {
         type: 'request_end',
         traceId,
@@ -113,7 +113,7 @@ export function tracingMiddleware() {
 
       // Don't log health check endpoints to reduce noise
       if (!req.path.includes('/health') && !req.path.includes('/ready') && !req.path.includes('/live')) {
-        logger.debug(JSON.stringify(responseLog));
+        logger.debug('request_end', responseLog);
       }
     });
 
