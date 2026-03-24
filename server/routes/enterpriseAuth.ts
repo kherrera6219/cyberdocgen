@@ -186,20 +186,20 @@ router.post('/signup', authStrictLimiter, validateInput(createAccountSchema), se
       requiresEmailVerification: true,
     });
 
-    // In development, provide the token directly for testing
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    
+    // Log the verification URL at debug level for development convenience,
+    // but NEVER expose tokens or URLs in the API response — they must arrive via email only.
+    if (process.env.NODE_ENV !== 'production') {
+      logger.debug('Email verification link (DEV — not sent via email in this environment)', {
+        userId: result.user.id,
+        verificationUrl,
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: {
-        message: isDevelopment 
-          ? 'Account created! Use the verification token below to verify your email (development mode).'
-          : 'Account created successfully. Please check your email for verification.',
+        message: 'Account created successfully. Please check your email for verification.',
         user: result.user,
-        ...(isDevelopment && { 
-          emailVerificationToken: result.emailToken,
-          verificationUrl,
-        }),
       }
     });
   } catch (error: unknown) {
