@@ -332,7 +332,10 @@ export class AuditService {
   private async getLastSignature(): Promise<string | null> {
     try {
       return await storage.getLatestAuditSignature();
-    } catch {
+    } catch (error) {
+      logger.warn('Failed to retrieve latest audit signature — chain will start fresh for this entry', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return null;
     }
   }

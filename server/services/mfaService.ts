@@ -139,12 +139,24 @@ export class MFAService {
       return null;
     }
 
+    let parsedSecret: EncryptedData;
+    let parsedBackupCodes: EncryptedData;
+    try {
+      parsedSecret = JSON.parse(setting.secretEncrypted) as EncryptedData;
+      parsedBackupCodes = JSON.parse(setting.backupCodesEncrypted) as EncryptedData;
+    } catch (parseError) {
+      logger.error('Failed to parse encrypted MFA settings — data may be corrupted', {
+        userId,
+        error: parseError instanceof Error ? parseError.message : String(parseError),
+      });
+      throw new Error('MFA settings are corrupted. Please re-enroll MFA.');
+    }
     const secret = await encryptionService.decryptSensitiveField(
-      JSON.parse(setting.secretEncrypted) as EncryptedData,
+      parsedSecret,
       DataClassification.RESTRICTED
     );
     const backupCodes = await encryptionService.decryptSensitiveField(
-      JSON.parse(setting.backupCodesEncrypted) as EncryptedData,
+      parsedBackupCodes,
       DataClassification.RESTRICTED
     );
 
@@ -239,9 +251,13 @@ export class MFAService {
    */
   async verifyBackupCode(userId: string, code: string, backupCodes: string[]): Promise<boolean> {
     try {
-      const codeIndex = backupCodes.findIndex(backupCode => 
-        crypto.timingSafeEqual(Buffer.from(code), Buffer.from(backupCode))
-      );
+      const codeBuffer = Buffer.from(code);
+      const codeIndex = backupCodes.findIndex(backupCode => {
+        const storedBuffer = Buffer.from(backupCode);
+        // timingSafeEqual requires equal-length buffers; mismatched length = no match
+        if (codeBuffer.length !== storedBuffer.length) return false;
+        return crypto.timingSafeEqual(codeBuffer, storedBuffer);
+      });
 
       const verified = codeIndex !== -1;
 
@@ -273,7 +289,7 @@ export class MFAService {
 
     } catch (error: any) {
       logger.error('MFA backup code verification error', { error: error.message, userId });
-      return false;
+      throw new Error('Failed to verify backup code');
     }
   }
 
@@ -308,7 +324,9 @@ export class MFAService {
       logger.info('MFA SMS setup initiated', { userId, phoneNumber: phoneNumber.slice(-4) });
 
       // In production, send SMS via Twilio or similar service
-      logger.info('SMS verification code (DEV ONLY)', { code: verificationCode, userId });
+      if (process.env.NODE_ENV !== 'production') {
+        logger.debug('SMS verification code (DEV ONLY - never logged in production)', { code: verificationCode, userId });
+      }
 
       return smsConfig;
 
@@ -328,10 +346,11 @@ export class MFAService {
       }
 
       const isExpired = new Date() > smsConfig.expiresAt;
-      const isValidCode = crypto.timingSafeEqual(
-        Buffer.from(code), 
-        Buffer.from(smsConfig.verificationCode)
-      );
+      const codeBuffer = Buffer.from(code);
+      const storedBuffer = Buffer.from(smsConfig.verificationCode);
+      const isValidCode =
+        codeBuffer.length === storedBuffer.length &&
+        crypto.timingSafeEqual(codeBuffer, storedBuffer);
 
       const verified = !isExpired && isValidCode;
 
@@ -358,7 +377,7 @@ export class MFAService {
 
     } catch (error: any) {
       logger.error('MFA SMS verification error', { error: error.message, userId });
-      return false;
+      throw new Error('Failed to verify SMS code');
     }
   }
 
@@ -416,7 +435,7 @@ export class MFAService {
   generateNumericCode(length: number): string {
     let code = '';
     for (let i = 0; i < length; i++) {
-      code += Math.floor(Math.random() * 10).toString();
+      code += crypto.randomInt(0, 10).toString();
     }
     return code;
   }
@@ -457,6 +476,9 @@ export class MFAService {
       return false;
 
     } catch (error) {
+      logger.warn('TOTP token validation threw an unexpected error', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return false;
     }
   }

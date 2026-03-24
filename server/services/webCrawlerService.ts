@@ -78,7 +78,7 @@ export class WebCrawlerService {
                         queue.push({ url: nextUrl.href, depth: current.depth + 1 });
                     }
                   } catch (e) {
-                    // Ignore invalid URLs
+                    logger.debug('Skipping malformed URL during crawl', { href, baseUrl: current.url });
                   }
                }
             }

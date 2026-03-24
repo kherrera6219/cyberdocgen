@@ -204,7 +204,10 @@ export async function decrypt(encryptedData: string | EncryptedData): Promise<st
         return service.decryptSensitiveField(parsedData, DataClassification.RESTRICTED);
       }
     } catch (e) {
-      // Ignore decryption errors for invalid formats
+      logger.warn('Failed to parse encrypted data as JSON — treating as non-JSON format', {
+        error: e instanceof Error ? e.message : String(e),
+        dataLength: encryptedData.length,
+      });
     }
   } else {
     return service.decryptSensitiveField(encryptedData, DataClassification.RESTRICTED);
@@ -299,8 +302,12 @@ export async function decryptDataAtRest(data: any): Promise<any> {
           if (typeof value === 'object' && value !== null && 'encryptedValue' in value) {
             return [key, await decrypt(value as EncryptedData)] as const;
           }
-        } catch {
-          // Keep original value when decryption fails.
+        } catch (decryptErr) {
+          // Keep original value when decryption fails, but log the failure.
+          logger.warn('Failed to decrypt field in decryptDataAtRest — returning original value', {
+            key,
+            error: decryptErr instanceof Error ? decryptErr.message : String(decryptErr),
+          });
         }
 
         return [key, value] as const;

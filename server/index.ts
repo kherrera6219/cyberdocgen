@@ -90,7 +90,7 @@ const initializationPromise = (async () => {
     initTelemetry();
     logger.debug('[Server] Telemetry initialized');
   } catch (error) {
-    console.warn('[Server] Telemetry initialization failed (non-critical):', error);
+    logger.warn('[Server] Telemetry initialization failed (non-critical)', { error });
   }
 
   try {
@@ -98,7 +98,7 @@ const initializationPromise = (async () => {
     initializeGoogleCloudOperations(app);
     logger.debug('[Server] Google Cloud Operations initialized');
   } catch (error) {
-    console.warn('[Server] Google Cloud Operations initialization failed (non-critical):', error);
+    logger.warn('[Server] Google Cloud Operations initialization failed (non-critical)', { error });
   }
 
   logger.debug('[Server] Validating environment variables...');
