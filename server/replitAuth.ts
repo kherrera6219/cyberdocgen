@@ -83,7 +83,7 @@ export function getSession() {
     if (isProduction && !isTestMode) {
       throw new Error('SESSION_SECRET must be set outside local mode');
     }
-    logger.warn('SESSION_SECRET missing in non-production mode; using development fallback secret');
+    logger.warn('SESSION_SECRET missing in non-production cloud mode; using ephemeral per-process secret (sessions will not survive restarts)');
   } else if (!hasStrongConfiguredSecret && isProduction && !isTestMode) {
     logger.warn('SESSION_SECRET is weak in production; use at least 32 characters');
   }

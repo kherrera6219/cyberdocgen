@@ -227,13 +227,10 @@ export class AuditService {
    * Get a specific audit log by ID
    */
   async getAuditById(id: string, organizationId: string): Promise<AuditLog | null> {
-    try {
-      return await storage.getAuditLogById(id, organizationId);
-    } catch (error: unknown) {
-      const errMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Failed to get audit log by ID', { id, organizationId, error: errMessage });
-      return null;
-    }
+    // Intentionally does NOT catch: a DB error is different from "record not found"
+    // and callers need to distinguish between the two.  Not-found returns null;
+    // a real storage failure propagates so the caller can return 500 vs 404.
+    return await storage.getAuditLogById(id, organizationId);
   }
 
   /**

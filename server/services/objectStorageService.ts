@@ -25,6 +25,9 @@ class GoogleCloudStorageService {
   private storage: Storage | null = null;
   private bucket: Bucket | null = null;
   private initialized: boolean = false;
+  // When GCS fails to connect (e.g. transient network error), retry after this timestamp.
+  private retryAfter: number = 0;
+  private static readonly RETRY_INTERVAL_MS = 30_000;
 
   constructor() {
     // Lazy initialization
@@ -53,19 +56,22 @@ class GoogleCloudStorageService {
         throw new Error(`Bucket ${config.storage.bucket} does not exist.`);
       }
       logger.info(`Successfully connected to GCS bucket: ${config.storage.bucket}`);
+      this.initialized = true;
+      this.retryAfter = 0;
     } catch (error) {
-      logger.error('Failed to initialize Google Cloud Storage client', {
+      logger.error('Failed to initialize Google Cloud Storage client — will retry in 30 s', {
         error: error instanceof Error ? error.message : String(error),
       });
       this.storage = null;
       this.bucket = null;
-    } finally {
-      this.initialized = true;
+      // Do NOT set initialized=true: allow the next ensureClient() call after
+      // the retry window to attempt reconnection (e.g. after a transient network blip).
+      this.retryAfter = Date.now() + GoogleCloudStorageService.RETRY_INTERVAL_MS;
     }
   }
 
   private async ensureClient(): Promise<Bucket | null> {
-    if (!this.initialized) {
+    if (!this.initialized && Date.now() >= this.retryAfter) {
       await this.initializeClient();
     }
     return this.bucket;

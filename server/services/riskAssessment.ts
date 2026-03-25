@@ -340,7 +340,7 @@ Prioritize by impact, feasibility, and cost-effectiveness.`;
       frameworkReadiness: frameworks.reduce((acc, framework) => ({
         ...acc,
         [framework]: {
-          readiness: Math.floor(Math.random() * 40) + 30, // 30-70%
+          readiness: 50, // deterministic midpoint of 30-70% — replace with real data
           criticalGaps: ["Policy documentation", "Risk assessment", "Training program"],
           estimatedTimeToCompliance: "12-18 months"
         }

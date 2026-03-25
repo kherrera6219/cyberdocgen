@@ -101,7 +101,7 @@ router.post('/setup', secureHandler(async (req: MultiTenantRequest, _res: Respon
 router.post('/setup/totp', validateInput(setupTOTPSchema), secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   const userId = getRequiredUserId(req);
 
-  const mfaSetup = await mfaService.setupTOTP(userId);
+  const mfaSetup = await mfaService.setupTOTP(userId, req.ip);
   await mfaService.storeTOTPSettings(
     userId,
     mfaSetup.secret,
@@ -141,13 +141,13 @@ router.post('/verify/totp', validateInput(verifyTOTPSchema), secureHandler(async
   let usedBackupCode = false;
 
   if (backupCode) {
-    verified = await mfaService.verifyBackupCode(userId, backupCode, totpSettings.backupCodes);
+    verified = await mfaService.verifyBackupCode(userId, backupCode, totpSettings.backupCodes, req.ip);
     usedBackupCode = verified;
     if (verified) {
       await mfaService.updateBackupCodes(userId, totpSettings.backupCodes);
     }
   } else {
-    const verification = await mfaService.verifyTOTP(userId, token, totpSettings.secret);
+    const verification = await mfaService.verifyTOTP(userId, token, totpSettings.secret, req.ip);
     verified = typeof verification === 'boolean'
       ? verification
       : Boolean(verification.verified);
@@ -187,7 +187,7 @@ router.post('/setup/sms', validateInput(setupSMSSchema), secureHandler(async (re
   const userId = getRequiredUserId(req);
   const { phoneNumber } = req.body;
 
-  const smsConfig = await mfaService.setupSMS(userId, phoneNumber);
+  const smsConfig = await mfaService.setupSMS(userId, phoneNumber, req.ip);
   const includeDevCode =
     process.env.NODE_ENV !== 'production'
     && (
@@ -244,7 +244,7 @@ router.post('/verify/sms', validateInput(verifySMSSchema), secureHandler(async (
     expiresAt: pendingSmsConfig?.expiresAt ? new Date(pendingSmsConfig.expiresAt) : new Date(Date.now() + 10 * 60 * 1000),
   };
 
-  const verified = await mfaService.verifySMS(userId, code, smsConfig);
+  const verified = await mfaService.verifySMS(userId, code, smsConfig, req.ip);
   if (!verified) {
     throw new ValidationError('Invalid SMS verification code', {
       code: 'VERIFICATION_FAILED'
@@ -322,7 +322,7 @@ router.post('/challenge', secureHandler(async (req: MultiTenantRequest, res: Res
 router.post('/backup-codes', secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   const userId = getRequiredUserId(req);
 
-  const mfaSetup = await mfaService.setupTOTP(userId);
+  const mfaSetup = await mfaService.setupTOTP(userId, req.ip);
 
   // Encrypt and store the backup codes
   await encryptionService.encryptSensitiveField(

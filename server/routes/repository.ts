@@ -58,9 +58,15 @@ const uploadTempDir = path.join(os.tmpdir(), 'cyberdocgen', 'repository-uploads'
 const upload = multer({
   storage: multer.diskStorage({
     destination: (_req, _file, cb) => {
+      // Guard ensures cb is called exactly once even if the promise resolves/rejects
+      // after a synchronous throw in an intermediate handler.
+      let called = false;
+      const once = (err: Error | null, dest: string) => {
+        if (!called) { called = true; cb(err, dest); }
+      };
       fs.mkdir(uploadTempDir, { recursive: true })
-        .then(() => cb(null, uploadTempDir))
-        .catch((error) => cb(error as Error, uploadTempDir));
+        .then(() => once(null, uploadTempDir))
+        .catch((error) => once(error as Error, ''));
     },
     filename: (_req, file, cb) => {
       const extension = path.extname(file.originalname).toLowerCase() || '.zip';

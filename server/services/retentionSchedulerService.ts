@@ -54,10 +54,28 @@ class RetentionSchedulerService {
   }
 
   async runNow(): Promise<RetentionRunSummary> {
-    const activeOrgs = await db
-      .select({ id: organizations.id })
-      .from(organizations)
-      .where(eq(organizations.isActive, true));
+    // Retry the org-list query up to 3 times on transient DB errors before
+    // giving up so a single network blip doesn't skip the entire 6-hour cycle.
+    let activeOrgs: Array<{ id: string }> = [];
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        activeOrgs = await db
+          .select({ id: organizations.id })
+          .from(organizations)
+          .where(eq(organizations.isActive, true));
+        break;
+      } catch (err) {
+        if (attempt === MAX_ATTEMPTS) throw err;
+        const delayMs = attempt * 2000;
+        logger.warn("Retention scheduler: DB query failed, retrying", {
+          attempt,
+          delayMs,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
+    }
 
     let archived = 0;
     let deleted = 0;

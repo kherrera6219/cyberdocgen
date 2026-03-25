@@ -47,7 +47,7 @@ export class MFAService {
   /**
    * Generates TOTP secret and backup codes for new MFA setup
    */
-  async setupTOTP(userId: string): Promise<MFASetup> {
+  async setupTOTP(userId: string, ipAddress?: string): Promise<MFASetup> {
     try {
       // Generate base32 secret for TOTP
       const secret = this.generateBase32Secret();
@@ -72,7 +72,7 @@ export class MFAService {
         action: AuditAction.CREATE,
         resourceType: 'mfa_setup',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: RiskLevel.MEDIUM,
         additionalContext: { 
           setupType: 'totp',
@@ -89,7 +89,7 @@ export class MFAService {
         action: AuditAction.CREATE,
         resourceType: 'mfa_setup',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: RiskLevel.HIGH,
         additionalContext: { error: error.message, setupType: 'totp' }
       });
@@ -196,7 +196,7 @@ export class MFAService {
   /**
    * Verifies TOTP token during authentication
    */
-  async verifyTOTP(userId: string, token: string, secret: string): Promise<MFAVerification> {
+  async verifyTOTP(userId: string, token: string, secret: string, ipAddress?: string): Promise<MFAVerification> {
     try {
       const timestamp = Date.now(); // Use milliseconds for validateTOTPToken
       const verified = this.validateTOTPToken(token, secret, timestamp);
@@ -214,7 +214,7 @@ export class MFAService {
         action: AuditAction.READ,
         resourceType: 'mfa_verification',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: verified ? RiskLevel.LOW : RiskLevel.HIGH,
         additionalContext: { 
           verified,
@@ -236,7 +236,7 @@ export class MFAService {
         action: AuditAction.READ,
         resourceType: 'mfa_verification',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: RiskLevel.CRITICAL,
         additionalContext: { error: error.message, verificationType: 'totp' }
       });
@@ -249,7 +249,7 @@ export class MFAService {
   /**
    * Verifies backup code during MFA recovery
    */
-  async verifyBackupCode(userId: string, code: string, backupCodes: string[]): Promise<boolean> {
+  async verifyBackupCode(userId: string, code: string, backupCodes: string[], ipAddress?: string): Promise<boolean> {
     try {
       const codeBuffer = Buffer.from(code);
       const codeIndex = backupCodes.findIndex(backupCode => {
@@ -270,7 +270,7 @@ export class MFAService {
         action: AuditAction.UPDATE,
         resourceType: 'mfa_backup_code',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: verified ? RiskLevel.MEDIUM : RiskLevel.HIGH,
         additionalContext: { 
           verified,
@@ -296,7 +296,7 @@ export class MFAService {
   /**
    * Initiates SMS MFA verification
    */
-  async setupSMS(userId: string, phoneNumber: string): Promise<SMSConfig> {
+  async setupSMS(userId: string, phoneNumber: string, ipAddress?: string): Promise<SMSConfig> {
     try {
       const verificationCode = this.generateNumericCode(6);
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -313,7 +313,7 @@ export class MFAService {
         action: AuditAction.CREATE,
         resourceType: 'mfa_sms_setup',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: RiskLevel.MEDIUM,
         additionalContext: { 
           phoneNumber: phoneNumber.replace(/\d(?=\d{4})/g, '*'), // Mask phone number
@@ -339,7 +339,7 @@ export class MFAService {
   /**
    * Verifies SMS code
    */
-  async verifySMS(userId: string, code: string, smsConfig: SMSConfig): Promise<boolean> {
+  async verifySMS(userId: string, code: string, smsConfig: SMSConfig, ipAddress?: string): Promise<boolean> {
     try {
       if (!smsConfig.verificationCode || !smsConfig.expiresAt) {
         return false;
@@ -358,7 +358,7 @@ export class MFAService {
         action: AuditAction.READ,
         resourceType: 'mfa_sms_verification',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: verified ? RiskLevel.LOW : RiskLevel.HIGH,
         additionalContext: { 
           verified,

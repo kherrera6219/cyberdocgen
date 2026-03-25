@@ -270,11 +270,13 @@ Focus on high-impact, practical improvements.`;
     improvementPotential: number;
   }> {
     
-    // Simulate industry benchmarks (in production, this would use real data)
+    // Static industry benchmark midpoints — deterministic so that two runs on
+    // the same document produce the same comparison text and percentile rank.
+    // Replace with real benchmark data when available.
     const benchmarks = {
-      industryAverage: Math.floor(Math.random() * 20) + 65, // 65-85
-      topQuartile: Math.floor(Math.random() * 10) + 85, // 85-95
-      bottomQuartile: Math.floor(Math.random() * 20) + 45 // 45-65
+      industryAverage: 75,  // midpoint of 65-85
+      topQuartile: 90,      // midpoint of 85-95
+      bottomQuartile: 55,   // midpoint of 45-65
     };
 
     const percentile = this.calculatePercentile(qualityScore, benchmarks);
