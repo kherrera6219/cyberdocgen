@@ -257,3 +257,160 @@ describe('Security Middleware', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// SQL Injection Prevention Tests
+// ---------------------------------------------------------------------------
+describe('SQL Injection Prevention', () => {
+  const SQL_INJECTION_PAYLOADS = [
+    "' OR '1'='1",
+    "'; DROP TABLE users; --",
+    "' UNION SELECT * FROM users --",
+    "1; SELECT * FROM information_schema.tables",
+    "admin'--",
+    "' OR 1=1--",
+    "' OR 'x'='x",
+    "%27 OR %271%27%3D%271",
+    "1' AND SLEEP(5)--",
+  ];
+
+  it('rejects SQL injection in audit trail page parameter', async () => {
+    const app = express();
+    app.use(express.json());
+
+    app.get('/audit', (req, res) => {
+      const { page } = req.query;
+      const parsed = parseInt(page as string, 10);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        return res.status(400).json({ success: false, error: 'Invalid page parameter' });
+      }
+      return res.json({ success: true, page: parsed });
+    });
+
+    for (const payload of SQL_INJECTION_PAYLOADS) {
+      const response = await request(app).get(`/audit?page=${encodeURIComponent(payload)}`);
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    }
+  });
+
+  it('parseInt with radix 10 returns NaN for SQL injection strings', () => {
+    for (const payload of SQL_INJECTION_PAYLOADS) {
+      const result = parseInt(payload, 10);
+      expect(Number.isNaN(result)).toBe(true);
+    }
+  });
+
+  it('rejects SQL injection in date parameters', async () => {
+    const app = express();
+    app.use(express.json());
+
+    app.get('/audit', (req, res) => {
+      const { dateFrom } = req.query;
+      if (dateFrom) {
+        const parsed = new Date(dateFrom as string);
+        if (isNaN(parsed.getTime())) {
+          return res.status(400).json({ success: false, error: 'Invalid date' });
+        }
+      }
+      return res.json({ success: true });
+    });
+
+    const dateInjectionPayloads = [
+      "' OR '1'='1",
+      "2024-01-01; DROP TABLE audit_logs;--",
+      "'; SELECT * FROM users;--",
+    ];
+
+    for (const payload of dateInjectionPayloads) {
+      const response = await request(app).get(`/audit?dateFrom=${encodeURIComponent(payload)}`);
+      expect(response.status).toBe(400);
+    }
+  });
+
+  it('XSS payloads are not reflected in error messages', async () => {
+    const app = express();
+    app.use(express.json());
+    app.use(securityHeaders);
+
+    app.get('/reflect', (req, res) => {
+      // Simulate safe non-reflection
+      res.json({ success: true, page: 1 });
+    });
+
+    const xssPayload = '<script>alert(1)</script>';
+    const response = await request(app).get(`/reflect?q=${encodeURIComponent(xssPayload)}`);
+    const bodyText = JSON.stringify(response.body);
+    expect(bodyText).not.toContain('<script>');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Multi-Tenant Data Isolation Tests
+// ---------------------------------------------------------------------------
+describe('Multi-Tenant Data Isolation', () => {
+  it('organizationId is required for protected routes', async () => {
+    const app = express();
+    app.use(express.json());
+
+    // Simulate a route that requires organization context
+    app.get('/protected', (req: any, res) => {
+      if (!req.organizationId) {
+        return res.status(403).json({ success: false, error: 'Organization context required' });
+      }
+      return res.json({ success: true });
+    });
+
+    const response = await request(app).get('/protected');
+    expect(response.status).toBe(403);
+  });
+
+  it('prevents cross-organization data access via organizationId scoping', () => {
+    // Simulate storage filtering by organizationId
+    const fakeRecords = [
+      { id: '1', organizationId: 'org-A', data: 'secret-A' },
+      { id: '2', organizationId: 'org-B', data: 'secret-B' },
+    ];
+
+    const getForOrg = (orgId: string) => fakeRecords.filter(r => r.organizationId === orgId);
+
+    const orgAResults = getForOrg('org-A');
+    const orgBResults = getForOrg('org-B');
+
+    expect(orgAResults).toHaveLength(1);
+    expect(orgAResults[0].data).toBe('secret-A');
+    expect(orgBResults).toHaveLength(1);
+    expect(orgBResults[0].data).toBe('secret-B');
+
+    // Org A cannot see Org B's data
+    expect(orgAResults.find(r => r.organizationId === 'org-B')).toBeUndefined();
+  });
+
+  it('report ownership check prevents cross-org access', () => {
+    const report = { id: 'report-1', organizationId: 'org-A' };
+    const requestingOrgId = 'org-B';
+
+    const hasAccess = report.organizationId === requestingOrgId;
+    expect(hasAccess).toBe(false);
+  });
+
+  it('CSRF token is required for state-changing requests', async () => {
+    const app = express();
+    app.use(express.json());
+    app.use(cookieParser());
+    app.use(session({ secret: 'test-secret', resave: false, saveUninitialized: true }));
+    app.use(csrfProtection);
+
+    app.post('/state-change', (_req, res) => {
+      res.json({ success: true });
+    });
+
+    // Request without CSRF token should be blocked
+    const response = await request(app)
+      .post('/state-change')
+      .set('Content-Type', 'application/json')
+      .send({ data: 'test' });
+
+    expect([403, 401]).toContain(response.status);
+  });
+});

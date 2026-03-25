@@ -108,8 +108,12 @@ export class PostgresDbProvider implements IDbProvider {
       } catch (error) {
         try {
           await client.query('ROLLBACK');
-        } catch {
-          // Ignore rollback failures if transaction already closed.
+        } catch (rollbackError) {
+          logger.error('[PostgresDbProvider] CRITICAL: Rollback failed after migration error — database may be in unstable state', {
+            migrationFile,
+            originalError: error instanceof Error ? error.message : String(error),
+            rollbackError: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
+          });
         }
         throw error;
       } finally {
@@ -162,8 +166,11 @@ export class PostgresDbProvider implements IDbProvider {
       if (!completed) {
         try {
           await client.query('ROLLBACK');
-        } catch {
-          // Ignore rollback failures if transaction is already closed.
+        } catch (rollbackError) {
+          logger.error('[PostgresDbProvider] CRITICAL: Rollback failed after transaction error — database may be in unstable state', {
+            originalError: error instanceof Error ? error.message : String(error),
+            rollbackError: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
+          });
         }
       }
       throw error;

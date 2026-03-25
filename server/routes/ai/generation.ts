@@ -129,12 +129,25 @@ export function registerGenerationRoutes(router: Router) {
           completedAt: new Date()
         });
       } catch (error) {
-        await storage.updateGenerationJob(job.id, { 
-          status: 'failed', 
-          errorMessage: error instanceof Error ? error.message : 'Generation failed'
-        });
+        try {
+          await storage.updateGenerationJob(job.id, {
+            status: 'failed',
+            errorMessage: error instanceof Error ? error.message : 'Generation failed'
+          });
+        } catch (updateError) {
+          logger.error('Failed to update generation job status after error', {
+            jobId: job.id,
+            updateError: updateError instanceof Error ? updateError.message : String(updateError),
+          });
+        }
       }
-    })();
+    })().catch((fatalError) => {
+      // Safety net: catches any rejection that escapes the inner try/catch
+      logger.error('Unhandled rejection in background document generation', {
+        jobId: job.id,
+        error: fatalError instanceof Error ? fatalError.message : String(fatalError),
+      });
+    });
   }));
 
   /**

@@ -47,7 +47,7 @@ export class MFAService {
   /**
    * Generates TOTP secret and backup codes for new MFA setup
    */
-  async setupTOTP(userId: string): Promise<MFASetup> {
+  async setupTOTP(userId: string, ipAddress?: string): Promise<MFASetup> {
     try {
       // Generate base32 secret for TOTP
       const secret = this.generateBase32Secret();
@@ -72,7 +72,7 @@ export class MFAService {
         action: AuditAction.CREATE,
         resourceType: 'mfa_setup',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: RiskLevel.MEDIUM,
         additionalContext: { 
           setupType: 'totp',
@@ -89,7 +89,7 @@ export class MFAService {
         action: AuditAction.CREATE,
         resourceType: 'mfa_setup',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: RiskLevel.HIGH,
         additionalContext: { error: error.message, setupType: 'totp' }
       });
@@ -139,12 +139,24 @@ export class MFAService {
       return null;
     }
 
+    let parsedSecret: EncryptedData;
+    let parsedBackupCodes: EncryptedData;
+    try {
+      parsedSecret = JSON.parse(setting.secretEncrypted) as EncryptedData;
+      parsedBackupCodes = JSON.parse(setting.backupCodesEncrypted) as EncryptedData;
+    } catch (parseError) {
+      logger.error('Failed to parse encrypted MFA settings — data may be corrupted', {
+        userId,
+        error: parseError instanceof Error ? parseError.message : String(parseError),
+      });
+      throw new Error('MFA settings are corrupted. Please re-enroll MFA.');
+    }
     const secret = await encryptionService.decryptSensitiveField(
-      JSON.parse(setting.secretEncrypted) as EncryptedData,
+      parsedSecret,
       DataClassification.RESTRICTED
     );
     const backupCodes = await encryptionService.decryptSensitiveField(
-      JSON.parse(setting.backupCodesEncrypted) as EncryptedData,
+      parsedBackupCodes,
       DataClassification.RESTRICTED
     );
 
@@ -184,7 +196,7 @@ export class MFAService {
   /**
    * Verifies TOTP token during authentication
    */
-  async verifyTOTP(userId: string, token: string, secret: string): Promise<MFAVerification> {
+  async verifyTOTP(userId: string, token: string, secret: string, ipAddress?: string): Promise<MFAVerification> {
     try {
       const timestamp = Date.now(); // Use milliseconds for validateTOTPToken
       const verified = this.validateTOTPToken(token, secret, timestamp);
@@ -202,7 +214,7 @@ export class MFAService {
         action: AuditAction.READ,
         resourceType: 'mfa_verification',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: verified ? RiskLevel.LOW : RiskLevel.HIGH,
         additionalContext: { 
           verified,
@@ -224,7 +236,7 @@ export class MFAService {
         action: AuditAction.READ,
         resourceType: 'mfa_verification',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: RiskLevel.CRITICAL,
         additionalContext: { error: error.message, verificationType: 'totp' }
       });
@@ -237,11 +249,15 @@ export class MFAService {
   /**
    * Verifies backup code during MFA recovery
    */
-  async verifyBackupCode(userId: string, code: string, backupCodes: string[]): Promise<boolean> {
+  async verifyBackupCode(userId: string, code: string, backupCodes: string[], ipAddress?: string): Promise<boolean> {
     try {
-      const codeIndex = backupCodes.findIndex(backupCode => 
-        crypto.timingSafeEqual(Buffer.from(code), Buffer.from(backupCode))
-      );
+      const codeBuffer = Buffer.from(code);
+      const codeIndex = backupCodes.findIndex(backupCode => {
+        const storedBuffer = Buffer.from(backupCode);
+        // timingSafeEqual requires equal-length buffers; mismatched length = no match
+        if (codeBuffer.length !== storedBuffer.length) return false;
+        return crypto.timingSafeEqual(codeBuffer, storedBuffer);
+      });
 
       const verified = codeIndex !== -1;
 
@@ -254,7 +270,7 @@ export class MFAService {
         action: AuditAction.UPDATE,
         resourceType: 'mfa_backup_code',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: verified ? RiskLevel.MEDIUM : RiskLevel.HIGH,
         additionalContext: { 
           verified,
@@ -273,14 +289,14 @@ export class MFAService {
 
     } catch (error: any) {
       logger.error('MFA backup code verification error', { error: error.message, userId });
-      return false;
+      throw new Error('Failed to verify backup code');
     }
   }
 
   /**
    * Initiates SMS MFA verification
    */
-  async setupSMS(userId: string, phoneNumber: string): Promise<SMSConfig> {
+  async setupSMS(userId: string, phoneNumber: string, ipAddress?: string): Promise<SMSConfig> {
     try {
       const verificationCode = this.generateNumericCode(6);
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -297,7 +313,7 @@ export class MFAService {
         action: AuditAction.CREATE,
         resourceType: 'mfa_sms_setup',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: RiskLevel.MEDIUM,
         additionalContext: { 
           phoneNumber: phoneNumber.replace(/\d(?=\d{4})/g, '*'), // Mask phone number
@@ -308,7 +324,9 @@ export class MFAService {
       logger.info('MFA SMS setup initiated', { userId, phoneNumber: phoneNumber.slice(-4) });
 
       // In production, send SMS via Twilio or similar service
-      logger.info('SMS verification code (DEV ONLY)', { code: verificationCode, userId });
+      if (process.env.NODE_ENV !== 'production') {
+        logger.debug('SMS verification code (DEV ONLY - never logged in production)', { code: verificationCode, userId });
+      }
 
       return smsConfig;
 
@@ -321,17 +339,18 @@ export class MFAService {
   /**
    * Verifies SMS code
    */
-  async verifySMS(userId: string, code: string, smsConfig: SMSConfig): Promise<boolean> {
+  async verifySMS(userId: string, code: string, smsConfig: SMSConfig, ipAddress?: string): Promise<boolean> {
     try {
       if (!smsConfig.verificationCode || !smsConfig.expiresAt) {
         return false;
       }
 
       const isExpired = new Date() > smsConfig.expiresAt;
-      const isValidCode = crypto.timingSafeEqual(
-        Buffer.from(code), 
-        Buffer.from(smsConfig.verificationCode)
-      );
+      const codeBuffer = Buffer.from(code);
+      const storedBuffer = Buffer.from(smsConfig.verificationCode);
+      const isValidCode =
+        codeBuffer.length === storedBuffer.length &&
+        crypto.timingSafeEqual(codeBuffer, storedBuffer);
 
       const verified = !isExpired && isValidCode;
 
@@ -339,7 +358,7 @@ export class MFAService {
         action: AuditAction.READ,
         resourceType: 'mfa_sms_verification',
         resourceId: userId,
-        ipAddress: '127.0.0.1',
+        ipAddress: ipAddress ?? '127.0.0.1',
         riskLevel: verified ? RiskLevel.LOW : RiskLevel.HIGH,
         additionalContext: { 
           verified,
@@ -358,7 +377,7 @@ export class MFAService {
 
     } catch (error: any) {
       logger.error('MFA SMS verification error', { error: error.message, userId });
-      return false;
+      throw new Error('Failed to verify SMS code');
     }
   }
 
@@ -416,7 +435,7 @@ export class MFAService {
   generateNumericCode(length: number): string {
     let code = '';
     for (let i = 0; i < length; i++) {
-      code += Math.floor(Math.random() * 10).toString();
+      code += crypto.randomInt(0, 10).toString();
     }
     return code;
   }
@@ -457,6 +476,9 @@ export class MFAService {
       return false;
 
     } catch (error) {
+      logger.warn('TOTP token validation threw an unexpected error', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return false;
     }
   }

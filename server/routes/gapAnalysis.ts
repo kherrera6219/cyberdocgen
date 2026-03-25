@@ -112,12 +112,10 @@ export function registerGapAnalysisRoutes(router: Router) {
     }
 
     const findings = await storage.getGapAnalysisFindings(id);
-    const recommendations: Awaited<ReturnType<typeof storage.getRemediationRecommendations>> = [];
-    
-    for (const finding of findings) {
-      const findingRecommendations = await storage.getRemediationRecommendations(finding.id);
-      recommendations.push(...findingRecommendations);
-    }
+    const allRecommendations = await Promise.all(
+      findings.map(f => storage.getRemediationRecommendations(f.id))
+    );
+    const recommendations = allRecommendations.flat();
 
     const maturityAssessment = await storage.getComplianceMaturityAssessment(
       organizationId, 
@@ -172,7 +170,8 @@ export function registerGapAnalysisRoutes(router: Router) {
     });
 
     // Background processing
-    setTimeout(async () => {
+    setTimeout(() => {
+      (async () => {
       try {
         const mockFindings = [
           {
@@ -282,10 +281,21 @@ export function registerGapAnalysisRoutes(router: Router) {
           error: error instanceof Error ? error.message : String(error)
         });
         
-        await storage.updateGapAnalysisReport(report.id, {
-          status: 'failed'
-        });
+        try {
+          await storage.updateGapAnalysisReport(report.id, { status: 'failed' });
+        } catch (updateError) {
+          logger.error("Failed to mark gap analysis report as failed", {
+            reportId: report.id,
+            error: updateError instanceof Error ? updateError.message : String(updateError)
+          });
+        }
       }
+      })().catch((fatalError) => {
+        logger.error("Gap analysis background task fatal error", {
+          reportId: report.id,
+          error: fatalError instanceof Error ? fatalError.message : String(fatalError)
+        });
+      });
     }, 2000);
 
     res.json({ 

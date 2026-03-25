@@ -92,10 +92,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   
   // Configure secure CORS
+  // Dev: explicit localhost/127.0.0.1 allowlist — never use `origin: true` which permits
+  // any origin with credentials, negating SameSite cookie protections.
+  const devOrigins = [
+    'http://localhost:5000',
+    'http://localhost:5001',
+    'http://localhost:5173',
+    'http://127.0.0.1:5000',
+    'http://127.0.0.1:5173',
+    ...(process.env.VITE_PORT ? [`http://localhost:${process.env.VITE_PORT}`] : []),
+  ];
   const corsOptions = {
-    origin: isProduction 
-      ? (process.env.ALLOWED_ORIGINS?.split(',') || [/\.replit\.dev$/, /\.repl\.co$/, /\.replit\.app$/])
-      : true,
+    origin: isProduction
+      ? (process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()).filter(Boolean) || [/\.replit\.dev$/, /\.repl\.co$/, /\.replit\.app$/])
+      : devOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Request-ID']

@@ -221,7 +221,7 @@ class MetricsCollector {
       : 0;
     
     const p95ResponseTime = responseTimes.length > 0
-      ? responseTimes.sort((a, b) => a - b)[Math.floor(responseTimes.length * 0.95)]
+      ? [...responseTimes].sort((a, b) => a - b)[Math.floor(responseTimes.length * 0.95)]
       : 0;
 
     const serverErrors = Object.keys(this.metrics.requests.byStatus)

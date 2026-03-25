@@ -16,17 +16,13 @@ export function registerOrganizationsRoutes(router: Router) {
   router.get("/", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const userId = getRequiredUserId(req);
     const userOrganizationsList = await storage.getUserOrganizations(userId);
-    const organizations: Array<
-      NonNullable<Awaited<ReturnType<typeof storage.getOrganization>>> & { role: string }
-    > = [];
-    
-    for (const userOrg of userOrganizationsList) {
-      const org = await storage.getOrganization(userOrg.organizationId);
-      if (org) {
-        organizations.push({ ...org, role: userOrg.role });
-      }
-    }
-    
+    const orgResults = await Promise.all(
+      userOrganizationsList.map(userOrg => storage.getOrganization(userOrg.organizationId))
+    );
+    const organizations = orgResults
+      .map((org, i) => org ? { ...org, role: userOrganizationsList[i].role } : null)
+      .filter((org): org is NonNullable<typeof org> => org !== null);
+
     res.json({ success: true, data: organizations });
   }));
 
@@ -53,7 +49,7 @@ export function registerOrganizationsRoutes(router: Router) {
       entityId: organization.id,
       userId,
       organizationId: organization.id,
-      ipAddress: req.ip || '',
+      ipAddress: req.ip ?? '',
       metadata: {
         action: 'organization_creation',
         name: organization.name

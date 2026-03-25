@@ -160,7 +160,7 @@ export async function registerDocumentsRoutes(router: Router) {
     }
     
     cache.invalidateByPattern('/api/documents');
-    res.status(204).send();
+    res.status(204).end();
   }, { audit: { action: 'delete', entityType: 'document' } }));
 
   router.post('/upload-and-extract', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {

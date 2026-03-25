@@ -81,7 +81,7 @@ router.post('/oauth-settings', isAuthenticated, validateInput(oauthSettingsSchem
   await checkAdmin(req);
   const settings = req.body;
   const userId = getRequiredUserId(req);
-  const ipAddress = req.ip || '127.0.0.1';
+  const ipAddress = req.ip ?? '';
 
   const configUpdates: string[] = [];
   let hasUpdates = false;
@@ -164,7 +164,7 @@ router.post('/pdf-defaults', isAuthenticated, validateInput(pdfDefaultsSchema), 
   await checkAdmin(req);
   const defaults = req.body;
   const userId = getRequiredUserId(req);
-  const ipAddress = req.ip || '127.0.0.1';
+  const ipAddress = req.ip ?? '';
 
   const success = await systemConfigService.setPDFDefaults(defaults, userId, ipAddress);
 
@@ -253,7 +253,7 @@ router.delete('/cloud-integrations/:integrationId', isAuthenticated, secureHandl
     action: AuditAction.DELETE,
     resourceType: 'cloud_integration',
     resourceId: integrationId,
-    ipAddress: req.ip || '127.0.0.1',
+    ipAddress: req.ip ?? '',
     riskLevel: RiskLevel.HIGH,
     additionalContext: {
       provider: integration.provider,

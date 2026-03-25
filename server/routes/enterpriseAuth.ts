@@ -115,35 +115,44 @@ router.post('/login', authStrictLimiter, validateInput(loginSchema), secureHandl
     throw new UnauthorizedError(result.error || 'Authentication failed');
   }
 
-  // Regenerate session to prevent session fixation attacks
+  // Regenerate session to prevent session fixation attacks.
+  // A 5 s timeout guards against express-session store hangs where
+  // the regenerate or save callback is never invoked.
   const regenerateSession = (): Promise<void> => {
     return new Promise((resolve, reject) => {
       if (!req.session) {
         resolve();
         return;
       }
-      
+
+      const timer = setTimeout(() => {
+        reject(new Error('Session operation timed out'));
+      }, 5000);
+
+      const done = (err?: Error | null) => {
+        clearTimeout(timer);
+        if (err) reject(err); else resolve();
+      };
+
       req.session.regenerate((err) => {
         if (err) {
           logger.error('Session regeneration failed', { error: err.message });
-          reject(err);
+          done(err);
           return;
         }
-        
+
         // Set user data on the new session
         req.session.userId = result.user?.id;
         req.session.email = result.user?.email;
         req.session.mfaEnabled = result.user?.twoFactorEnabled;
         req.session.loginTime = new Date().toISOString();
-        
+
         // Save the new session
         req.session.save((saveErr) => {
           if (saveErr) {
             logger.error('Session save failed', { error: saveErr.message });
-            reject(saveErr);
-            return;
           }
-          resolve();
+          done(saveErr ?? null);
         });
       });
     });
@@ -186,20 +195,20 @@ router.post('/signup', authStrictLimiter, validateInput(createAccountSchema), se
       requiresEmailVerification: true,
     });
 
-    // In development, provide the token directly for testing
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    
+    // Log the verification URL at debug level for development convenience,
+    // but NEVER expose tokens or URLs in the API response — they must arrive via email only.
+    if (process.env.NODE_ENV !== 'production') {
+      logger.debug('Email verification link (DEV — not sent via email in this environment)', {
+        userId: result.user.id,
+        verificationUrl,
+      });
+    }
+
     res.status(201).json({
       success: true,
       data: {
-        message: isDevelopment 
-          ? 'Account created! Use the verification token below to verify your email (development mode).'
-          : 'Account created successfully. Please check your email for verification.',
+        message: 'Account created successfully. Please check your email for verification.',
         user: result.user,
-        ...(isDevelopment && { 
-          emailVerificationToken: result.emailToken,
-          verificationUrl,
-        }),
       }
     });
   } catch (error: unknown) {
@@ -352,7 +361,7 @@ router.post('/verify-google-authenticator', authLimiter, validateInput(googleAut
     throw new ValidationError('Google Authenticator not set up for this user');
   }
 
-  const verification = await mfaService.verifyTOTP(userId, token, totpSecret);
+  const verification = await mfaService.verifyTOTP(userId, token, totpSecret, req.ip);
   const verified = typeof verification === 'boolean'
     ? verification
     : Boolean(verification?.verified);

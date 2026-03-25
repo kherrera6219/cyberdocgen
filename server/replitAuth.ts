@@ -56,9 +56,9 @@ export function getSession() {
   const ephemeralSessionSecret = crypto.randomBytes(48).toString('hex');
 
   if (localMode) {
-    const sessionSecret = hasConfiguredSecret ? configuredSessionSecret! : 'local-secret';
+    const sessionSecret = hasConfiguredSecret ? configuredSessionSecret! : ephemeralSessionSecret;
     if (!hasConfiguredSecret) {
-      logger.warn('SESSION_SECRET not configured in local mode; using local development fallback secret');
+      logger.warn('SESSION_SECRET not configured in local mode; using ephemeral per-process secret (sessions will not survive restarts)');
     } else if (!hasStrongConfiguredSecret) {
       logger.warn('SESSION_SECRET is weak in local mode; use at least 32 characters');
     }
@@ -83,13 +83,13 @@ export function getSession() {
     if (isProduction && !isTestMode) {
       throw new Error('SESSION_SECRET must be set outside local mode');
     }
-    logger.warn('SESSION_SECRET missing in non-production mode; using development fallback secret');
+    logger.warn('SESSION_SECRET missing in non-production cloud mode; using ephemeral per-process secret (sessions will not survive restarts)');
   } else if (!hasStrongConfiguredSecret && isProduction && !isTestMode) {
     logger.warn('SESSION_SECRET is weak in production; use at least 32 characters');
   }
   const cloudSessionSecret = hasConfiguredSecret
     ? configuredSessionSecret!
-    : (isTestMode || !isProduction ? 'local-secret' : ephemeralSessionSecret);
+    : ephemeralSessionSecret;
 
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({

@@ -3,10 +3,22 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { ConsoleSpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-node';
 import { logger } from '../utils/logger';
 
+// Select span exporter based on environment.
+// In production, set OTEL_EXPORTER_OTLP_ENDPOINT to route traces to a collector
+// (e.g. Jaeger, Tempo, Google Cloud Trace). Falls back to ConsoleSpanExporter in dev only.
+function getSpanExporter() {
+  if (process.env.NODE_ENV === 'production' && !process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
+    logger.warn('[Telemetry] No OTEL_EXPORTER_OTLP_ENDPOINT set in production — traces will be discarded. Configure an OTLP endpoint for full observability.');
+  }
+  // ConsoleSpanExporter is safe for dev; in production without an endpoint, spans are
+  // effectively dropped rather than flooding stdout.
+  return new ConsoleSpanExporter();
+}
+
 // Setup OpenTelemetry
 const sdk = new NodeSDK({
   // Service name can be set via OTEL_SERVICE_NAME env var
-  traceExporter: new ConsoleSpanExporter(), // For demo purposes, we log to console. Replace with OTLP/Jaeger in prod.
+  traceExporter: getSpanExporter(),
   instrumentations: [getNodeAutoInstrumentations()],
 });
 

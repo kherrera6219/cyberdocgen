@@ -4,10 +4,16 @@
  */
 
 import { Router } from 'express';
+import { z } from 'zod';
 import { databaseHealthService } from '../services/databaseHealthService';
-import { secureHandler } from '../utils/errorHandling';
+import { secureHandler, validateInput, ValidationError } from '../utils/errorHandling';
 import { isAuthenticated } from '../replitAuth';
 import { retentionSchedulerService } from '../services/retentionSchedulerService';
+
+const metricsSchema = z.object({
+  eventType: z.string().min(1).max(100).regex(/^[a-zA-Z0-9._-]+$/, 'Event type must be alphanumeric with dots, dashes, or underscores'),
+  eventData: z.record(z.unknown()).optional(),
+});
 
 const router = Router();
 
@@ -69,18 +75,11 @@ router.post(
 router.post(
   '/metrics',
   isAuthenticated,
+  validateInput(metricsSchema),
   secureHandler(async (req, res) => {
-    const { eventType, eventData } = req.body;
+    const { eventType, eventData } = req.body as z.infer<typeof metricsSchema>;
 
-    if (!eventType) {
-      res.status(400).json({
-        success: false,
-        error: 'Event type is required',
-      });
-      return;
-    }
-
-    await databaseHealthService.logUsageMetric(eventType, eventData || {});
+    await databaseHealthService.logUsageMetric(eventType, eventData ?? {});
 
     res.json({
       success: true,

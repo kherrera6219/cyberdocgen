@@ -10,14 +10,22 @@ import { logger } from "../utils/logger";
 import { sanitizeFilename } from "../utils/validation";
 import { z } from "zod";
 
-// Dynamically required to avoid bundling issues in browser-safe builds
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = require("pdf-parse");
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const mammoth: { extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }> } = require("mammoth");
-// Use any to avoid missing type declaration errors for dynamic xlsx require
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const XLSX: any = require("xlsx");
+// Dynamically required to avoid bundling issues in browser-safe builds.
+// Wrapped in try/catch so a missing optional package produces a clear error
+// message at extraction time rather than crashing the whole module at load.
+const loadOptional = <T>(name: string): T | null => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require(name) as T;
+  } catch {
+    logger.warn(`[Ingestion] Optional dependency '${name}' not installed — ${name} extraction will be unavailable`);
+    return null;
+  }
+};
+
+const pdfParse = loadOptional<(buffer: Buffer) => Promise<{ text: string }>>("pdf-parse");
+const mammoth = loadOptional<{ extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }> }>("mammoth");
+const XLSX = loadOptional<any>("xlsx");
 
 // Supported file types for ingestion
 const SUPPORTED_TYPES = [".pdf", ".docx", ".xlsx", ".png", ".jpg", ".jpeg", ".txt"];
@@ -144,8 +152,15 @@ export class IngestionService {
     } as any).returning();
 
     // 7. Trigger async processing (fire-and-forget — never throws to caller)
-    this.triggerProcessing(record.id, file, safeFileName, category, organizationId).catch((err) => {
+    this.triggerProcessing(record.id, file, safeFileName, category, organizationId).catch(async (err) => {
       logger.error(`[Ingestion] Background processing failed for file ${record.id}:`, { error: err });
+      // Ensure the DB record doesn't stay in an intermediate processing state
+      // when triggerProcessing throws before reaching finalizeWithStatus().
+      try {
+        await this.updateStatus(record.id, 'failed');
+      } catch (statusErr) {
+        logger.error(`[Ingestion] Failed to mark file ${record.id} as failed`, { error: statusErr });
+      }
     });
 
     return record;
@@ -215,10 +230,12 @@ export class IngestionService {
     try {
       switch (ext) {
         case ".pdf": {
+          if (!pdfParse) throw new Error("pdf-parse is not installed");
           const data = await pdfParse(buffer);
           return data.text.trim();
         }
         case ".docx": {
+          if (!mammoth) throw new Error("mammoth is not installed");
           const result = await mammoth.extractRawText({ buffer });
           return result.value.trim();
         }
@@ -226,6 +243,7 @@ export class IngestionService {
           return buffer.toString("utf-8").trim();
         }
         case ".xlsx": {
+          if (!XLSX) throw new Error("xlsx is not installed");
           const workbook = XLSX.read(buffer, { type: "buffer" });
           const lines: string[] = [];
           for (const sheetName of workbook.SheetNames) {

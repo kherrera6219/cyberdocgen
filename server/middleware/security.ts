@@ -492,7 +492,23 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   // Generate unique error ID for tracking
   const errorId = crypto.randomBytes(8).toString('hex');
 
-  // Log full error details (including sensitive data) securely
+  // Scrub known sensitive field names before writing to logs.
+  // This prevents passwords, tokens, and API keys appearing in dev log files
+  // or log-aggregation systems where access control may be coarse-grained.
+  const SENSITIVE_KEYS = new Set([
+    'password', 'passwd', 'secret', 'token', 'apikey', 'api_key',
+    'authorization', 'auth', 'credential', 'credentials', 'ssn',
+    'credit_card', 'creditcard', 'cvv', 'pin',
+  ]);
+  const scrub = (obj: unknown): unknown => {
+    if (!obj || typeof obj !== 'object') return obj;
+    return Object.fromEntries(
+      Object.entries(obj as Record<string, unknown>).map(([k, v]) =>
+        SENSITIVE_KEYS.has(k.toLowerCase()) ? [k, '[REDACTED]'] : [k, scrub(v)]
+      )
+    );
+  };
+
   logger.error('Error occurred', {
     errorId,
     error: err.message,
@@ -502,11 +518,10 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     ip: req.ip,
     userAgent: req.get('User-Agent'),
     userId: (req as any).user?.claims?.sub || 'anonymous',
-    // Include request body for debugging (be careful with sensitive data)
     ...(process.env.NODE_ENV !== 'production' && {
-      body: req.body,
-      query: req.query,
-      params: req.params,
+      body: scrub(req.body),
+      query: scrub(req.query),
+      params: scrub(req.params),
     }),
   }, req);
 

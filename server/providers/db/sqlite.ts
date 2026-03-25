@@ -238,8 +238,12 @@ export class SqliteDbProvider implements IDbProvider {
       } catch (error) {
         try {
           db.exec('ROLLBACK');
-        } catch {
-          // Ignore rollback failures if transaction already closed.
+        } catch (rollbackError) {
+          logger.error('[SqliteDbProvider] CRITICAL: Rollback failed after migration error — database may be in unstable state', {
+            migrationFile: file,
+            originalError: error instanceof Error ? error.message : String(error),
+            rollbackError: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
+          });
         }
 
         const message = error instanceof Error ? error.message : String(error);
@@ -306,8 +310,11 @@ export class SqliteDbProvider implements IDbProvider {
       if (!completed) {
         try {
           db.exec('ROLLBACK');
-        } catch {
-          // Ignore rollback failures if transaction already closed.
+        } catch (rollbackError) {
+          logger.error('[SqliteDbProvider] CRITICAL: Rollback failed after transaction error — database may be in unstable state', {
+            originalError: error instanceof Error ? error.message : String(error),
+            rollbackError: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
+          });
         }
       }
       logger.error('[SqliteDbProvider] Transaction rolled back', { error });
