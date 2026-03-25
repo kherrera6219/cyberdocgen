@@ -67,7 +67,7 @@ export default function MobileNavigation({ className }: MobileNavigationProps) {
             href={item.href}
             data-testid={`mobile-nav-${item.shortLabel.toLowerCase()}`}
             className={cn(
-              "flex flex-col items-center space-y-1 h-auto py-2 px-3 rounded-lg transition-colors min-w-0",
+              "flex flex-col items-center space-y-1 h-auto py-2 px-3 rounded-lg transition-colors min-w-0 min-h-[44px] min-w-[44px]",
               isActive(item.href)
                 ? "text-primary bg-primary/10"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"

@@ -63,11 +63,15 @@ export interface ResearchRequest {
 class CompanyDataExtractionService {
   async extractFromDocument(request: DocumentExtractionRequest): Promise<ExtractedCompanyData> {
     const { documentContent, documentType, filename } = request;
-    
+
+    // Sanitize user-supplied values to prevent prompt injection
+    const safeDocumentType = documentType.replace(/[^\w_-]/g, '');
+    const safeFilename = filename.replace(/[\r\n\t`$]/g, ' ').substring(0, 200);
+
     const prompt = `You are an expert at extracting structured company information from documents.
-    
-Document Type: ${documentType}
-Filename: ${filename}
+
+Document Type: ${safeDocumentType}
+Filename: ${safeFilename}
 
 Extract the following information if present:
 - Company name

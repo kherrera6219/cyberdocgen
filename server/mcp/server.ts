@@ -17,7 +17,7 @@ export const mcpRouter = Router();
 const MAX_BATCH_EXECUTIONS = 10;
 const MAX_ATTACHMENTS = 10;
 const MAX_ATTACHMENT_CONTENT_CHARS = 2_000_000;
-const MAX_TOTAL_ATTACHMENT_CONTENT_CHARS = 8_000_000;
+const MAX_TOTAL_ATTACHMENT_CONTENT_CHARS = 1_000_000;
 const TOOL_EXECUTION_TIMEOUT_MS = 30_000;
 
 function resolveIdentityContext(req: any): Pick<ToolContext, 'userId' | 'organizationId'> {

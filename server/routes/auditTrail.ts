@@ -14,14 +14,19 @@ export function registerAuditTrailRoutes(router: Router) {
     const userId = getRequiredUserId(req);
     const organizationId = req.organizationId!;
     
+    const parsedPage = parseInt(page as string, 10);
+    const parsedLimit = parseInt(limit as string, 10);
+    const parsedDateFrom = dateFrom ? new Date(dateFrom as string) : undefined;
+    const parsedDateTo = dateTo ? new Date(dateTo as string) : undefined;
+
     const auditQuery = {
-      page: parseInt(page as string),
-      limit: parseInt(limit as string),
+      page: Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1,
+      limit: Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 200) : 50,
       ...(entityType && { entityType: entityType as string }),
       ...(action && { action: action as string }),
       ...(search && { search: search as string }),
-      ...(dateFrom && { dateFrom: new Date(dateFrom as string) }),
-      ...(dateTo && { dateTo: new Date(dateTo as string) })
+      ...(parsedDateFrom && !isNaN(parsedDateFrom.getTime()) && { dateFrom: parsedDateFrom }),
+      ...(parsedDateTo && !isNaN(parsedDateTo.getTime()) && { dateTo: parsedDateTo })
     };
 
     const result = await auditService.getAuditLogs(organizationId, auditQuery);
@@ -32,7 +37,7 @@ export function registerAuditTrailRoutes(router: Router) {
       entityId: "system",
       userId: userId,
       organizationId,
-      ipAddress: req.ip || '',
+      ipAddress: req.ip ?? '',
       userAgent: req.get('User-Agent'),
       sessionId: req.sessionID,
       metadata: { filters: auditQuery }
@@ -75,7 +80,7 @@ export function registerAuditTrailRoutes(router: Router) {
       entityId: id,
       userId,
       organizationId,
-      ipAddress: req.ip || '',
+      ipAddress: req.ip ?? '',
       details: { message: `Viewed audit entry ${id}`, auditId: id }
     });
 

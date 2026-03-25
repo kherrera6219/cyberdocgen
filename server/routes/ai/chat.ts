@@ -23,9 +23,16 @@ import { db } from '../../db';
 import { aiSessions } from '@shared/schema';
 import { and, eq } from 'drizzle-orm';
 
+// 500 KB limit on base64-encoded data URL payloads to prevent memory DoS
+const MAX_DATA_URL_BYTES = 500 * 1024;
+
 function decodeDataUrlContent(content: string): string {
   if (!content.startsWith('data:')) {
     return content;
+  }
+
+  if (content.length > MAX_DATA_URL_BYTES) {
+    return '';
   }
 
   const parts = content.split(',', 2);
