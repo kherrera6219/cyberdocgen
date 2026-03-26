@@ -1,6 +1,6 @@
 import { logger } from "../utils/logger";
 
-export type GovernedModel = "gpt-5.1" | "claude-sonnet-4" | "gemini-3-pro";
+export type GovernedModel = "gpt-5.4" | "claude-sonnet-4" | "gemini-3-pro";
 
 export interface ModelCatalogEntry {
   routeModel: GovernedModel;
@@ -13,10 +13,10 @@ export interface ModelCatalogEntry {
 }
 
 const MODEL_CATALOG: Record<GovernedModel, ModelCatalogEntry> = {
-  "gpt-5.1": {
-    routeModel: "gpt-5.1",
+  "gpt-5.4": {
+    routeModel: "gpt-5.4",
     provider: "openai",
-    apiModel: "gpt-5.1",
+    apiModel: "gpt-5.4",
     version: "2025-08",
     releasedAt: "2025-08-01",
     inputCostPerMillionUsd: 5,
@@ -25,7 +25,7 @@ const MODEL_CATALOG: Record<GovernedModel, ModelCatalogEntry> = {
   "claude-sonnet-4": {
     routeModel: "claude-sonnet-4",
     provider: "anthropic",
-    apiModel: "claude-sonnet-4-20250514",
+    apiModel: "claude-sonnet-4-6",
     version: "2025-05-14",
     releasedAt: "2025-05-14",
     inputCostPerMillionUsd: 3,

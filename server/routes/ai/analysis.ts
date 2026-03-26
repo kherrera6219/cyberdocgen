@@ -206,7 +206,7 @@ export function registerAnalysisRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'analysis_document',
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       prompt: content,
       expectedResponseTokens: 800,
     });
@@ -242,7 +242,7 @@ export function registerAnalysisRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'analysis_document',
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       prompt: sanitizedContent,
       response: JSON.stringify(analysis),
       purposeDescription: `Analyze document for ${framework}`,
@@ -252,7 +252,7 @@ export function registerAnalysisRoutes(router: Router) {
     });
     await aiMetadataAuditService.record({
       actionType: 'analysis_document',
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       userId,
       organizationId,
       requestId,
@@ -295,7 +295,7 @@ export function registerAnalysisRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'analysis_extract_profile',
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       prompt: content,
       expectedResponseTokens: 800,
     });
@@ -310,7 +310,7 @@ export function registerAnalysisRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'analysis_extract_profile',
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       prompt: content,
       response: JSON.stringify(extractedProfile),
       purposeDescription: 'Extract company profile from uploaded content',
@@ -320,7 +320,7 @@ export function registerAnalysisRoutes(router: Router) {
     });
     await aiMetadataAuditService.record({
       actionType: 'analysis_extract_profile',
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       userId,
       organizationId,
       requestId,

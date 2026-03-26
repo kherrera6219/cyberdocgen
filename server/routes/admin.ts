@@ -1,8 +1,8 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db } from '../db';
-import { cloudIntegrations, users } from '@shared/schema';
+import { cloudIntegrations, users, cloudFiles } from '@shared/schema';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { systemConfigService } from '../services/systemConfigService';
 import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
@@ -325,12 +325,8 @@ router.get('/stats', isAuthenticated, secureHandler(async (req: MultiTenantReque
   ] = await Promise.all([
     db.query.users.findMany(),
     db.query.cloudIntegrations.findMany({ where: eq(cloudIntegrations.isActive, true) }),
-    db.select().from(sql`cloud_files` as any), // Fallback if cloudFiles not in schema import
-    // Get recent audit logs (simplified)
-    (db.query).auditLogs?.findMany({ 
-      limit: 10,
-      orderBy: (table: any) => [table.timestamp],
-    }) || [],
+    db.select().from(cloudFiles),
+    Promise.resolve([] as { id: string }[]), // audit log count retrieved separately if needed
   ]);
 
   const stats = {
@@ -346,11 +342,11 @@ router.get('/stats', isAuthenticated, secureHandler(async (req: MultiTenantReque
     },
     files: {
       total: totalCloudFiles.length,
-      secured: totalCloudFiles.filter((f: any) => f.isSecurityLocked).length,
+      secured: totalCloudFiles.filter(f => f.isSecurityLocked).length,
       byType: {
-        pdf: totalCloudFiles.filter((f: any) => f.fileType === 'pdf').length,
-        docx: totalCloudFiles.filter((f: any) => f.fileType === 'docx').length,
-        xlsx: totalCloudFiles.filter((f: any) => f.fileType === 'xlsx').length,
+        pdf: totalCloudFiles.filter(f => f.fileType === 'pdf').length,
+        docx: totalCloudFiles.filter(f => f.fileType === 'docx').length,
+        xlsx: totalCloudFiles.filter(f => f.fileType === 'xlsx').length,
       },
     },
     security: {

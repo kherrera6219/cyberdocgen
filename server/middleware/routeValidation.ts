@@ -119,7 +119,7 @@ export const API_ROUTES: RouteInfo[] = [
   { path: '/health', method: 'GET', requiresAuth: false, requiresMfa: false, rateLimitTier: 'low' },
   { path: '/ready', method: 'GET', requiresAuth: false, requiresMfa: false, rateLimitTier: 'low' },
   { path: '/live', method: 'GET', requiresAuth: false, requiresMfa: false, rateLimitTier: 'low' },
-  { path: '/metrics', method: 'GET', requiresAuth: false, requiresMfa: false, rateLimitTier: 'low' },
+  { path: '/metrics', method: 'GET', requiresAuth: true, requiresMfa: false, rateLimitTier: 'low' },
   { path: '/api/auth/user', method: 'GET', requiresAuth: true, requiresMfa: false, rateLimitTier: 'medium' },
   { path: '/api/auth/mfa/*', method: 'ALL', requiresAuth: true, requiresMfa: false, rateLimitTier: 'high' },
   { path: '/auth/temp-login', method: 'POST', requiresAuth: false, requiresMfa: false, rateLimitTier: 'high' },

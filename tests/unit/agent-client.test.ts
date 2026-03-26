@@ -51,7 +51,7 @@ describe('AgentClient', () => {
       name: 'Agent One',
       description: 'Test agent description',
       provider: 'openai' as const,
-      model: 'gpt-5.1' as const,
+      model: 'gpt-5.4' as const,
       systemPrompt: 'Be a helper',
       tools: [],
       capabilities: [AgentCapability.CHAT_INTERACTION]
@@ -88,7 +88,7 @@ describe('AgentClient', () => {
       name: 'OA',
       description: 'OA desc',
       provider: 'openai' as const,
-      model: 'gpt-5.1' as const,
+      model: 'gpt-5.4' as const,
       systemPrompt: 'v',
       tools: [],
       capabilities: [AgentCapability.CHAT_INTERACTION]
@@ -134,7 +134,7 @@ describe('AgentClient', () => {
       name: 'TA',
       description: 'TA desc',
       provider: 'openai' as const,
-      model: 'gpt-5.1' as const,
+      model: 'gpt-5.4' as const,
       systemPrompt: 'v',
       tools: ['t1'],
       capabilities: [AgentCapability.CHAT_INTERACTION]

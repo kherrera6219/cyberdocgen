@@ -25,7 +25,7 @@ const loadOptional = <T>(name: string): T | null => {
 
 const pdfParse = loadOptional<(buffer: Buffer) => Promise<{ text: string }>>("pdf-parse");
 const mammoth = loadOptional<{ extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }> }>("mammoth");
-const XLSX = loadOptional<any>("xlsx");
+const ExcelJS = loadOptional<typeof import("exceljs")>("exceljs");
 
 // Supported file types for ingestion
 const SUPPORTED_TYPES = [".pdf", ".docx", ".xlsx", ".png", ".jpg", ".jpeg", ".txt"];
@@ -243,15 +243,18 @@ export class IngestionService {
           return buffer.toString("utf-8").trim();
         }
         case ".xlsx": {
-          if (!XLSX) throw new Error("xlsx is not installed");
-          const workbook = XLSX.read(buffer, { type: "buffer" });
+          if (!ExcelJS) throw new Error("exceljs is not installed");
+          const workbook = new ExcelJS.Workbook();
+          await workbook.xlsx.load(buffer);
           const lines: string[] = [];
-          for (const sheetName of workbook.SheetNames) {
-            // eslint-disable-next-line security/detect-object-injection
-            const sheet = workbook.Sheets[sheetName];
-            const tsv = XLSX.utils.sheet_to_csv(sheet);
-            lines.push(`[Sheet: ${sheetName}]\n${tsv}`);
-          }
+          workbook.eachSheet((sheet) => {
+            const rows: string[] = [];
+            sheet.eachRow((row) => {
+              const cells = (row.values as any[]).slice(1).map((v: any) => (v == null ? '' : String(v)));
+              rows.push(cells.join(','));
+            });
+            lines.push(`[Sheet: ${sheet.name}]\n${rows.join('\n')}`);
+          });
           return lines.join("\n\n").trim();
         }
         case ".png":

@@ -67,14 +67,14 @@ describe("ModelTransparencyService", () => {
       {
         id: "card-1",
         modelProvider: "openai",
-        modelName: "gpt-5.1",
+        modelName: "gpt-5.4",
         modelVersion: "2024-08-06",
       },
     ]);
 
     const result = await modelTransparencyService.upsertModelCard({
       modelProvider: "openai",
-      modelName: "gpt-5.1",
+      modelName: "gpt-5.4",
       modelVersion: "2024-08-06",
       description: "Updated card",
       intendedUse: "Testing",
@@ -127,7 +127,7 @@ describe("ModelTransparencyService", () => {
       throw new Error("database unavailable");
     });
 
-    const result = await modelTransparencyService.getModelCard("openai", "gpt-5.1");
+    const result = await modelTransparencyService.getModelCard("openai", "gpt-5.4");
 
     expect(result).toBeNull();
     expect(logger.error).toHaveBeenCalledWith(
@@ -151,7 +151,7 @@ describe("ModelTransparencyService", () => {
       userId: "user-1",
       actionType: "generate_document",
       modelProvider: "openai",
-      modelName: "gpt-5.1",
+      modelName: "gpt-5.4",
       purposeDescription: "Generate a policy",
       aiContribution: "assisted",
       userConsented: true,

@@ -89,7 +89,7 @@ Be specific and actionable in feedback.`;
 
     try {
       const response = await getAnthropicClient().messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 2500,
         messages: [{
           role: "user",
@@ -130,7 +130,7 @@ Return JSON with numeric scores for each dimension.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-5.4",
         messages: [{ role: "user", content: structurePrompt }],
         response_format: { type: "json_object" },
         max_tokens: 500
@@ -178,7 +178,7 @@ Return JSON with:
 
     try {
       const response = await getAnthropicClient().messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 1500,
         messages: [{
           role: "user",
@@ -240,7 +240,7 @@ Focus on high-impact, practical improvements.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-5.4",
         messages: [{ role: "user", content: improvementPrompt }],
         response_format: { type: "json_object" },
         max_tokens: 1500

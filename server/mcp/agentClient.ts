@@ -113,7 +113,7 @@ export class AgentClient {
 
     // Execute based on model type
     let response: AgentResponse;
-    if (agent.model === 'gpt-5.1') {
+    if (agent.model === 'gpt-5.4') {
       response = await this.executeOpenAI(agent, request, context, tools);
     } else if (agent.model === 'claude-sonnet-4') {
       response = await this.executeAnthropic(agent, request, context, tools);
@@ -205,7 +205,7 @@ export class AgentClient {
         iteration++;
 
         const response = await getOpenAIClient().chat.completions.create({
-          model: 'gpt-5.1',
+          model: 'gpt-5.4',
           messages,
           tools: tools.length > 0 ? tools : undefined,
           tool_choice: tools.length > 0 ? 'auto' : undefined,
@@ -258,7 +258,7 @@ export class AgentClient {
             content: message.content || '',
             toolCalls,
             metadata: {
-              model: 'gpt-5.1',
+              model: 'gpt-5.4',
               iterations: iteration,
               tokensUsed: response.usage?.total_tokens,
               attachmentCount: request.attachments?.length || 0,
@@ -274,7 +274,7 @@ export class AgentClient {
         content: 'Maximum iterations reached. Task may be incomplete.',
         toolCalls,
         metadata: {
-          model: 'gpt-5.1',
+          model: 'gpt-5.4',
           iterations: iteration,
           maxIterationsReached: true,
           attachmentCount: request.attachments?.length || 0,
@@ -325,7 +325,7 @@ export class AgentClient {
         iteration++;
 
         const response = await getAnthropicClient().messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: agent.maxTokens || 4000,
           system: agent.systemPrompt,
           messages: messages as any,
@@ -611,7 +611,7 @@ export class AgentClient {
     }
   }
 
-  private toGovernedModel(model: AgentConfig["model"]): "gpt-5.1" | "claude-sonnet-4" | "gemini-3-pro" {
+  private toGovernedModel(model: AgentConfig["model"]): "gpt-5.4" | "claude-sonnet-4" | "gemini-3-pro" {
     if (model === "gemini-3.0-pro") {
       return "gemini-3-pro";
     }

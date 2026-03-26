@@ -92,7 +92,7 @@ describe('AIOrchestrator', () => {
              const result = await aiOrchestrator.generateDocument(mockTemplate, mockProfile, 'ISO');
              
              expect(result.content).toBe('OpenAI Content');
-             expect(result.model).toBe('gpt-5.1');
+             expect(result.model).toBe('gpt-5.4');
         });
     });
 
@@ -156,7 +156,7 @@ describe('AIOrchestrator', () => {
         it('selects OpenAI for technical documents', () => {
             const mockTemplate = { category: 'Technical Procedure' } as any;
             const model = (aiOrchestrator as any).selectOptimalModel(mockTemplate, 'NIST');
-            expect(model).toBe('gpt-5.1');
+            expect(model).toBe('gpt-5.4');
         });
     });
 
@@ -179,7 +179,7 @@ describe('AIOrchestrator', () => {
     describe('getAvailableModels', () => {
         it('returns the list of supported models', () => {
             const models = aiOrchestrator.getAvailableModels();
-            expect(models).toContain('gpt-5.1');
+            expect(models).toContain('gpt-5.4');
             expect(models).toContain('claude-sonnet-4');
             expect(models).toContain('auto');
         });

@@ -81,20 +81,10 @@ export function registerGapAnalysisRoutes(router: Router) {
   /**
    * Create a new gap analysis
    */
-  router.post("/", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-    const { framework } = req.body;
-
-    if (!framework) {
-      throw new ValidationError("Framework is required");
-    }
-
-    res.status(501).json({ 
-      success: false, 
-      error: { 
-        code: 'NOT_IMPLEMENTED',
-        message: "Gap analysis generation not yet implemented for this endpoint. Use /api/gap-analysis/generate instead." 
-      }
-    });
+  router.post("/", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, next: NextFunction) => {
+    // Delegate to /generate so both POST / and POST /generate work identically
+    req.url = '/generate';
+    router.handle(req, res, next);
   }));
 
 

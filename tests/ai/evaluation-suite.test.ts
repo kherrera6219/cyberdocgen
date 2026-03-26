@@ -175,7 +175,7 @@ describe('AI Model Fallback', () => {
   it('should fallback to secondary model on primary failure', async () => {
     const result = await mockOrchestratorWithFailure('primary');
     
-    expect(result.model).not.toBe('gpt-5.1');
+    expect(result.model).not.toBe('gpt-5.4');
     expect(result.content).toBeDefined();
     expect(result.fallbackUsed).toBe(true);
   });
@@ -271,7 +271,7 @@ async function mockOutputModeration(output: string): Promise<{ safe: boolean; re
 async function mockDocumentGeneration(framework: string, type: string): Promise<AIResponse> {
   return {
     content: `# ${framework} ${type}\n\n## Purpose\n\nThis document defines...\n\n## Scope\n\nApplies to...\n\n## Policy\n\nThe organization shall...\n\n## Responsibilities\n\nManagement is responsible for...`,
-    model: 'gpt-5.1',
+    model: 'gpt-5.4',
     usage: { promptTokens: 100, completionTokens: 200 },
   };
 }
@@ -279,7 +279,7 @@ async function mockDocumentGeneration(framework: string, type: string): Promise<
 async function mockAIRequest(prompt: string): Promise<AIResponse> {
   return {
     content: 'AI response based on: ' + prompt,
-    model: 'gpt-5.1',
+    model: 'gpt-5.4',
     usage: { promptTokens: prompt.length / 4, completionTokens: 100 },
   };
 }
@@ -302,7 +302,7 @@ async function mockComplianceChat(question: string): Promise<AIResponse> {
   if (question.toLowerCase().includes('soc 2')) {
     return {
       content: 'SOC 2 defines five trust service principles: Security, Availability, Processing Integrity, Confidentiality, and Privacy.',
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       usage: { promptTokens: 50, completionTokens: 100 },
     };
   }
@@ -310,14 +310,14 @@ async function mockComplianceChat(question: string): Promise<AIResponse> {
   if (question.toLowerCase().includes('iso 27001')) {
     return {
       content: 'ISO 27001 Annex A.5 covers organizational controls including A.5.1 Policies for information security, A.5.2 Information security roles, etc.',
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       usage: { promptTokens: 50, completionTokens: 100 },
     };
   }
   
   return {
     content: 'Generic compliance response',
-    model: 'gpt-5.1',
+    model: 'gpt-5.4',
     usage: { promptTokens: 50, completionTokens: 50 },
   };
 }

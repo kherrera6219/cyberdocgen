@@ -22,7 +22,7 @@ describe('AIGuardrailsService', () => {
   const mockContext = {
     requestId: 'test-request-123',
     modelProvider: 'openai',
-    modelName: 'gpt-5.1',
+    modelName: 'gpt-5.4',
     userId: 'user-123',
     organizationId: 'org-123',
     ipAddress: '192.168.1.1',
@@ -540,7 +540,7 @@ describe('AIGuardrailsService', () => {
         const minimalContext = {
           requestId: 'test-123',
           modelProvider: 'openai',
-          modelName: 'gpt-5.1',
+          modelName: 'gpt-5.4',
         };
 
         const result = await aiGuardrailsService.checkGuardrails(
