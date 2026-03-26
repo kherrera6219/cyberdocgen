@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { databaseHealthService } from '../services/databaseHealthService';
-import { secureHandler, validateInput, ValidationError } from '../utils/errorHandling';
+import { secureHandler, validateInput } from '../utils/errorHandling';
 import { isAuthenticated } from '../replitAuth';
 import { retentionSchedulerService } from '../services/retentionSchedulerService';
 

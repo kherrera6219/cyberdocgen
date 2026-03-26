@@ -7,7 +7,7 @@
  * - Error responses follow the { success: false, error: { code, message } } shape
  * - Success responses follow the { success: true, data: ... } shape
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 
