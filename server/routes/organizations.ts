@@ -16,11 +16,12 @@ export function registerOrganizationsRoutes(router: Router) {
   router.get("/", isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const userId = getRequiredUserId(req);
     const userOrganizationsList = await storage.getUserOrganizations(userId);
-    const orgResults = await Promise.all(
-      userOrganizationsList.map(userOrg => storage.getOrganization(userOrg.organizationId))
-    );
-    const organizations = orgResults
-      .map((org, i) => org ? { ...org, role: userOrganizationsList[i].role } : null)
+    const organizations = (await Promise.all(
+      userOrganizationsList.map(async (userOrg) => {
+        const organization = await storage.getOrganization(userOrg.organizationId);
+        return organization ? { ...organization, role: userOrg.role } : null;
+      })
+    ))
       .filter((org): org is NonNullable<typeof org> => org !== null);
 
     res.json({ success: true, data: organizations });

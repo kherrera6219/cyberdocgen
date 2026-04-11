@@ -42,6 +42,7 @@ vi.mock('../../server/services/emailService', () => ({
 vi.mock('../../server/utils/logger', () => ({
     logger: {
         info: vi.fn(),
+        debug: vi.fn(),
         error: vi.fn(),
         warn: vi.fn(),
     }

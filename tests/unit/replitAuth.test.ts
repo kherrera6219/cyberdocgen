@@ -152,6 +152,7 @@ describe("replitAuth", () => {
 
     const { getSession } = await loadAuthModule();
     const middleware = getSession();
+    const sessionOptions = (middleware as any).__sessionOptions;
 
     expect(typeof middleware).toBe("function");
     expect(createMemoryStoreMock).toHaveBeenCalledTimes(1);
@@ -160,7 +161,7 @@ describe("replitAuth", () => {
     );
     expect(sessionMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        secret: "local-secret",
+        secret: expect.any(String),
         cookie: expect.objectContaining({
           secure: false,
           sameSite: "lax",
@@ -168,6 +169,7 @@ describe("replitAuth", () => {
         }),
       })
     );
+    expect(sessionOptions.secret).toHaveLength(96);
   });
 
   it("builds a postgres-backed session config outside local mode", async () => {

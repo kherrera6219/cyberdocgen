@@ -62,6 +62,7 @@ export default [js.configs.recommended, {
     'development-archive/**',
     'test-results/**',
     'playwright-report/**',
+    'storybook-static/**',
     'client/public/sw.js',
     'client/src/stories/**',
     '.storybook/**'

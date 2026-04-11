@@ -186,7 +186,7 @@ router.post('/signup', authStrictLimiter, validateInput(createAccountSchema), se
   try {
     const result = await enterpriseAuthService.createAccount(req.body, ipAddress);
     
-    const verificationUrl = `${getTrustedBaseUrl(req)}/api/auth/enterprise/verify-email?token=${result.emailToken}`;
+    const verificationUrl = `${getTrustedBaseUrl(req)}/api/enterprise-auth/verify-email?token=${result.emailToken}`;
     await sendVerificationEmail(result.user.email, verificationUrl);
     
     logger.info('Enterprise account creation initiated', {
@@ -198,7 +198,7 @@ router.post('/signup', authStrictLimiter, validateInput(createAccountSchema), se
     // Log the verification URL at debug level for development convenience,
     // but NEVER expose tokens or URLs in the API response — they must arrive via email only.
     if (process.env.NODE_ENV !== 'production') {
-      logger.debug('Email verification link (DEV — not sent via email in this environment)', {
+      logger.debug?.('Email verification link (DEV — not sent via email in this environment)', {
         userId: result.user.id,
         verificationUrl,
       });

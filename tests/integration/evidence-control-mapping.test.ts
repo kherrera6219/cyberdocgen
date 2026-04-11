@@ -6,7 +6,10 @@ import { cloudFiles, evidenceControlMappings, users, organizations } from "@shar
 import { eq, and } from "drizzle-orm";
 import { sign } from "jsonwebtoken";
 
-describe("Evidence-to-Control Mapping API (CODE-02)", () => {
+const describeWithLiveDb =
+  process.env.RUN_DB_INTEGRATION_TESTS === "true" ? describe : describe.skip;
+
+describeWithLiveDb("Evidence-to-Control Mapping API (CODE-02)", () => {
   let orgId: string;
   let userId: string;
   let evidenceId: string;

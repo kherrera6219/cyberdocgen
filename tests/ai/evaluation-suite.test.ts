@@ -215,6 +215,8 @@ async function mockPromptShield(input: string): Promise<{ blocked: boolean; reas
   const injectionPatterns = [
     /ignore (all )?previous instructions/i,
     /system:\s*/i,
+    /system override/i,
+    /system prompt/i,
     /forget your rules/i,
     /you are now/i,
   ];
@@ -277,6 +279,15 @@ async function mockDocumentGeneration(framework: string, type: string): Promise<
 }
 
 async function mockAIRequest(prompt: string): Promise<AIResponse> {
+  const shieldResult = await mockPromptShield(prompt);
+  if (shieldResult.blocked) {
+    return {
+      content: 'Request blocked by safety guardrails',
+      model: 'gpt-5.1',
+      usage: { promptTokens: Math.max(1, prompt.length / 4), completionTokens: 12 },
+    };
+  }
+
   return {
     content: 'AI response based on: ' + prompt,
     model: 'gpt-5.1',
@@ -354,7 +365,7 @@ describe('AI Hallucination & Factual Accuracy Evaluations', () => {
     const response = await mockComplianceChat('Explain ISO 27001 Annex A controls');
     const lower = response.content.toLowerCase();
     for (const term of COMPLIANCE_FACTS['ISO 27001'].mustContain) {
-      expect(lower).toContain(term);
+      expect(lower).toContain(term.toLowerCase());
     }
   });
 

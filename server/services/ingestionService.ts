@@ -25,7 +25,7 @@ const loadOptional = <T>(name: string): T | null => {
 
 const pdfParse = loadOptional<(buffer: Buffer) => Promise<{ text: string }>>("pdf-parse");
 const mammoth = loadOptional<{ extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }> }>("mammoth");
-const XLSX = loadOptional<any>("xlsx");
+const ExcelJS = loadOptional<any>("exceljs");
 
 // Supported file types for ingestion
 const SUPPORTED_TYPES = [".pdf", ".docx", ".xlsx", ".png", ".jpg", ".jpeg", ".txt"];
@@ -242,18 +242,8 @@ export class IngestionService {
         case ".txt": {
           return buffer.toString("utf-8").trim();
         }
-        case ".xlsx": {
-          if (!XLSX) throw new Error("xlsx is not installed");
-          const workbook = XLSX.read(buffer, { type: "buffer" });
-          const lines: string[] = [];
-          for (const sheetName of workbook.SheetNames) {
-            // eslint-disable-next-line security/detect-object-injection
-            const sheet = workbook.Sheets[sheetName];
-            const tsv = XLSX.utils.sheet_to_csv(sheet);
-            lines.push(`[Sheet: ${sheetName}]\n${tsv}`);
-          }
-          return lines.join("\n\n").trim();
-        }
+        case ".xlsx":
+          return this.extractSpreadsheetText(buffer);
         case ".png":
         case ".jpg":
         case ".jpeg": {
@@ -270,6 +260,87 @@ export class IngestionService {
       logger.error(`[Ingestion] Text extraction error for ext=${ext}:`, { error: err });
       throw err; // Let caller decide how to handle
     }
+  }
+
+  private async extractSpreadsheetText(buffer: Buffer): Promise<string> {
+    if (!ExcelJS) throw new Error("exceljs is not installed");
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+
+    const sheets = workbook.worksheets
+      .map((worksheet: any) => {
+        const lines: string[] = [];
+        const maxColumns = worksheet.actualColumnCount || 0;
+
+        worksheet.eachRow({ includeEmpty: false }, (row: any) => {
+          const width = Math.max(maxColumns, row.cellCount || 0);
+          const cells = Array.from({ length: width }, (_, index) =>
+            this.serializeSpreadsheetCell(row.getCell(index + 1).value)
+          );
+
+          lines.push(cells.join("\t").trimEnd());
+        });
+
+        const body = lines.filter(Boolean).join("\n").trim();
+        if (!body) {
+          return "";
+        }
+
+        return `[Sheet: ${worksheet.name}]\n${body}`;
+      })
+      .filter(Boolean);
+
+    return sheets.join("\n\n").trim();
+  }
+
+  private serializeSpreadsheetCell(value: unknown): string {
+    if (value == null) {
+      return "";
+    }
+
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.serializeSpreadsheetCell(item)).join(", ");
+    }
+
+    if (typeof value === "object") {
+      const record = value as Record<string, unknown>;
+
+      if (typeof record.text === "string") {
+        return record.text;
+      }
+
+      if (Array.isArray(record.richText)) {
+        return record.richText
+          .map((segment) => {
+            if (segment && typeof segment === "object" && "text" in segment && typeof segment.text === "string") {
+              return segment.text;
+            }
+            return "";
+          })
+          .join("");
+      }
+
+      if ("result" in record) {
+        return this.serializeSpreadsheetCell(record.result);
+      }
+
+      if (typeof record.hyperlink === "string") {
+        return record.hyperlink;
+      }
+
+      if (typeof record.formula === "string") {
+        return record.formula;
+      }
+
+      return JSON.stringify(record);
+    }
+
+    return String(value);
   }
 
   /**

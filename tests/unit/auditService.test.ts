@@ -26,6 +26,7 @@ vi.mock('../../server/storage', () => ({
     getAuditLogsDetailed: vi.fn().mockResolvedValue({ data: [], total: 0 }),
     getAuditStats: vi.fn().mockResolvedValue({ totalEvents: 0, highRiskEvents: 0 }),
     getAuditLogById: vi.fn().mockResolvedValue(null),
+    getLatestAuditSignature: vi.fn().mockResolvedValue(null),
   },
 }));
 

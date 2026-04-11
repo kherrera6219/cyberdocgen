@@ -3,6 +3,7 @@
 import { Router, Response, NextFunction } from 'express';
 import { storage } from '../../storage';
 import { aiOrchestrator } from '../../services/aiOrchestrator';
+import { logger } from '../../utils/logger';
 import {
   isAuthenticated,
   getRequiredUserId,

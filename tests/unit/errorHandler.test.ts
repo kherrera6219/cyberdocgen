@@ -40,7 +40,9 @@ describe('errorHandler', () => {
         expect(statusMock).toHaveBeenCalledWith(500);
         expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({
             success: false,
-            message: 'Failed to testOp'
+            message: 'Failed to testOp: Test Error',
+            errorId: expect.any(String),
+            timestamp: expect.any(String),
         }));
     });
 

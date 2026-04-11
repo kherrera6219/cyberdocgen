@@ -43,6 +43,24 @@ import { ForbiddenError } from '../../server/utils/errorHandling';
 import { threatDetectionService } from '../../server/services/threatDetectionService';
 import { logger } from '../../server/utils/logger';
 
+function strictPositiveInteger(value: unknown): number | null {
+  if (typeof value !== 'string' || !/^\d+$/.test(value)) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function isStrictIsoDate(value: unknown): boolean {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(`${value}T`);
+}
+
 
 describe('Security Middleware', () => {
   let app: express.Express;
@@ -280,8 +298,8 @@ describe('SQL Injection Prevention', () => {
 
     app.get('/audit', (req, res) => {
       const { page } = req.query;
-      const parsed = parseInt(page as string, 10);
-      if (!Number.isFinite(parsed) || parsed <= 0) {
+      const parsed = strictPositiveInteger(page);
+      if (parsed === null) {
         return res.status(400).json({ success: false, error: 'Invalid page parameter' });
       }
       return res.json({ success: true, page: parsed });
@@ -294,10 +312,9 @@ describe('SQL Injection Prevention', () => {
     }
   });
 
-  it('parseInt with radix 10 returns NaN for SQL injection strings', () => {
+  it('strictPositiveInteger rejects SQL injection strings', () => {
     for (const payload of SQL_INJECTION_PAYLOADS) {
-      const result = parseInt(payload, 10);
-      expect(Number.isNaN(result)).toBe(true);
+      expect(strictPositiveInteger(payload)).toBeNull();
     }
   });
 
@@ -308,8 +325,7 @@ describe('SQL Injection Prevention', () => {
     app.get('/audit', (req, res) => {
       const { dateFrom } = req.query;
       if (dateFrom) {
-        const parsed = new Date(dateFrom as string);
-        if (isNaN(parsed.getTime())) {
+        if (!isStrictIsoDate(dateFrom)) {
           return res.status(400).json({ success: false, error: 'Invalid date' });
         }
       }
@@ -395,6 +411,8 @@ describe('Multi-Tenant Data Isolation', () => {
   });
 
   it('CSRF token is required for state-changing requests', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+
     const app = express();
     app.use(express.json());
     app.use(cookieParser());
@@ -412,5 +430,7 @@ describe('Multi-Tenant Data Isolation', () => {
       .send({ data: 'test' });
 
     expect([403, 401]).toContain(response.status);
+
+    vi.unstubAllEnvs();
   });
 });

@@ -6,8 +6,16 @@
  */
 
 import swaggerJsdoc from 'swagger-jsdoc';
+import { createRequire } from 'module';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// swagger-jsdoc still mutates yaml.defaultOptions at runtime, but newer yaml
+// releases no longer initialize that object eagerly. Pre-create it so we can
+// keep the patched yaml version without breaking spec generation.
+const require = createRequire(import.meta.url);
+const yamlModule = require('yaml') as { defaultOptions?: Record<string, unknown> };
+yamlModule.defaultOptions ??= {};
 
 // Swagger configuration needs to handle both ESM and CJS environments
 // When bundled as CJS, __dirname is already available.
