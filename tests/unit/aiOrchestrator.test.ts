@@ -68,7 +68,7 @@ describe('AIOrchestrator', () => {
              const result = await aiOrchestrator.generateDocument(mockTemplate, mockProfile, 'ISO');
              
              expect(result.content).toBe('Claude Content');
-             expect(result.model).toBe('claude-sonnet-4');
+             expect(result.model).toBe('claude-sonnet-4-6');
              expect(circuitBreakers.anthropic.execute).toHaveBeenCalled();
         });
 
@@ -92,7 +92,7 @@ describe('AIOrchestrator', () => {
              const result = await aiOrchestrator.generateDocument(mockTemplate, mockProfile, 'ISO');
              
              expect(result.content).toBe('OpenAI Content');
-             expect(result.model).toBe('gpt-5.1');
+             expect(result.model).toBe('gpt-5.4');
         });
     });
 
@@ -113,7 +113,7 @@ describe('AIOrchestrator', () => {
             const result = await aiOrchestrator.generateContent({ prompt: 'test' });
 
             expect(result.result.content).toBe('Gemini Fallback');
-            expect(result.result.model).toBe('gemini-3-pro');
+            expect(result.result.model).toBe('gemini-3.1-pro-preview');
         });
     });
 
@@ -150,13 +150,13 @@ describe('AIOrchestrator', () => {
         it('selects Claude for Policies', () => {
             const mockTemplate = { category: 'Policy' } as any;
             const model = (aiOrchestrator as any).selectOptimalModel(mockTemplate, 'SOC 2');
-            expect(model).toBe('claude-sonnet-4');
+            expect(model).toBe('claude-sonnet-4-6');
         });
 
         it('selects OpenAI for technical documents', () => {
             const mockTemplate = { category: 'Technical Procedure' } as any;
             const model = (aiOrchestrator as any).selectOptimalModel(mockTemplate, 'NIST');
-            expect(model).toBe('gpt-5.1');
+            expect(model).toBe('gpt-5.4');
         });
     });
 
@@ -179,8 +179,9 @@ describe('AIOrchestrator', () => {
     describe('getAvailableModels', () => {
         it('returns the list of supported models', () => {
             const models = aiOrchestrator.getAvailableModels();
-            expect(models).toContain('gpt-5.1');
-            expect(models).toContain('claude-sonnet-4');
+            expect(models).toContain('gpt-5.4');
+            expect(models).toContain('claude-sonnet-4-6');
+            expect(models).toContain('gemini-3.1-pro-preview');
             expect(models).toContain('auto');
         });
     });
