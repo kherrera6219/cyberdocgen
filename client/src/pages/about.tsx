@@ -75,7 +75,7 @@ export default function About() {
               CyberDocGen was born from a simple observation: security compliance is too complex, too time-consuming, and too expensive for most organizations. We set out to change that.
             </p>
             <p className="mb-6">
-              By combining our expertise in cybersecurity, compliance frameworks, and artificial intelligence, we created a platform that automates the most tedious aspects of compliance work. Our multi-model AI system leverages GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro to generate documentation that's tailored to each organization's unique context.
+              By combining our expertise in cybersecurity, compliance frameworks, and artificial intelligence, we created a platform that automates the most tedious aspects of compliance work. Our multi-model AI system leverages GPT-5.4, Claude Sonnet 4.6, and Gemini 3.1 Pro Preview to generate documentation that's tailored to each organization's unique context.
             </p>
             <p>
               Today, CyberDocGen is in beta, helping organizations streamline their compliance journey. We're continuously improving our platform based on user feedback and are committed to making enterprise-grade compliance accessible to everyone.

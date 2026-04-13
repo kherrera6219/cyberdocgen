@@ -22,7 +22,7 @@ The backend is an enterprise-grade Node.js server built with Express and TypeScr
 ### Key Features
 
 - **RESTful API** - Comprehensive API endpoints for all features
-- **AI Integration** - OpenAI GPT-5.1, Anthropic Claude Opus 4.5, and Google Gemini 3.0 Pro integration
+- **AI Integration** - OpenAI GPT-5.4, Anthropic Claude Sonnet 4.6, and Google Gemini 3.1 Pro Preview integration
 - **Enterprise Authentication** - Multi-factor authentication and session management
 - **Database Management** - PostgreSQL with Drizzle ORM
 - **Security** - Rate limiting, encryption, audit logging, threat detection
@@ -71,7 +71,7 @@ server/
 │
 ├── services/                 # Business logic (23 services)
 │   ├── aiOrchestrator.ts            # Multi-model AI orchestration
-│   ├── openai.ts                    # OpenAI GPT-5.1 integration
+│   ├── openai.ts                    # OpenAI GPT-5.4 integration
 │   ├── anthropic.ts                 # Anthropic Claude integration
 │   ├── documentGeneration.ts        # Document generation
 │   ├── documentAnalysis.ts          # Document analysis
@@ -192,17 +192,18 @@ app.use(session({
 GET  /health              System health check
 GET  /metrics             Performance metrics
 GET  /api/ai/health       AI services health
-GET  /api/test/openai     OpenAI API test
 ```
 
 ### Authentication
 
 ```
-POST /api/auth/login      User login
-POST /api/auth/logout     User logout
-POST /api/auth/signup     User registration
-GET  /api/auth/me         Current user
-POST /api/auth/verify-mfa Verify MFA token
+GET  /api/login                  Replit OIDC login
+GET  /api/logout                 Replit OIDC logout
+GET  /api/auth/user             Current user
+POST /api/auth/temp-login       Temporary quick-access login
+POST /api/auth/temp-logout      Temporary quick-access logout
+POST /api/enterprise-auth/login Enterprise login
+POST /api/enterprise-auth/signup Enterprise signup
 ```
 
 ### Organizations
@@ -210,11 +211,6 @@ POST /api/auth/verify-mfa Verify MFA token
 ```
 GET    /api/organizations              List organizations
 POST   /api/organizations              Create organization
-GET    /api/organizations/:id          Get organization
-PUT    /api/organizations/:id          Update organization
-DELETE /api/organizations/:id          Delete organization
-POST   /api/organizations/:id/members  Add member
-DELETE /api/organizations/:id/members/:userId  Remove member
 ```
 
 ### Documents
@@ -225,8 +221,7 @@ POST   /api/documents                 Create document
 GET    /api/documents/:id             Get document
 PUT    /api/documents/:id             Update document
 DELETE /api/documents/:id             Delete document
-POST   /api/documents/:id/generate    Generate with AI
-POST   /api/documents/:id/analyze     Analyze document
+POST   /api/documents/generate        Generate with AI
 GET    /api/documents/:id/versions    Get versions
 ```
 
@@ -244,36 +239,39 @@ PUT  /api/company-profiles/:id      Update profile
 
 ```
 GET  /api/audit-trail               Get audit logs
-POST /api/audit-trail               Create log entry
 GET  /api/audit-trail/:id           Get log entry
 ```
 
 ### MFA
 
 ```
-POST /api/mfa/setup                 Setup MFA
-POST /api/mfa/verify                Verify MFA token
-POST /api/mfa/disable               Disable MFA
-GET  /api/mfa/backup-codes          Get backup codes
+GET    /api/auth/mfa/status         Get MFA status
+POST   /api/auth/mfa/setup/totp     Setup TOTP MFA
+POST   /api/auth/mfa/verify/totp    Verify TOTP MFA
+POST   /api/auth/mfa/backup-codes   Generate backup codes
+DELETE /api/auth/mfa/disable        Disable MFA
 ```
 
 ### Cloud Integrations
 
 ```
-GET    /api/cloud-integrations           List integrations
-POST   /api/cloud-integrations/google    Connect Google Drive
-POST   /api/cloud-integrations/microsoft Connect OneDrive
-DELETE /api/cloud-integrations/:id       Disconnect
-POST   /api/cloud-integrations/:id/sync  Sync files
+GET    /api/cloud/integrations           List integrations
+GET    /api/cloud/auth/google            Connect Google Drive
+GET    /api/cloud/auth/microsoft         Connect OneDrive
+DELETE /api/cloud/integrations/:id       Disconnect
+POST   /api/cloud/sync/:id               Sync files
 ```
 
 ### Admin
 
 ```
-GET    /api/admin/users               List all users
-DELETE /api/admin/users/:id           Delete user
+GET    /api/admin/oauth-settings      OAuth provider settings
+POST   /api/admin/oauth-settings      Update OAuth settings
+GET    /api/admin/pdf-defaults        PDF defaults
+POST   /api/admin/pdf-defaults        Update PDF defaults
+GET    /api/admin/cloud-integrations  Admin integration visibility
+GET    /api/admin/monitoring          Monitoring dashboard data
 GET    /api/admin/stats               System statistics
-POST   /api/admin/settings            Update settings
 ```
 
 See [OPENAPI.md](../docs/OPENAPI.md) for complete API documentation.
@@ -290,7 +288,7 @@ import { generateWithAI } from './services/aiOrchestrator';
 const result = await generateWithAI({
   prompt: 'Generate ISO 27001 policy',
   framework: 'ISO27001',
-  preferredModel: 'gpt-5.1'
+  preferredModel: 'gpt-5.4'
 });
 ```
 
@@ -302,7 +300,7 @@ const result = await generateWithAI({
 
 ### OpenAI Service (`openai.ts`)
 
-OpenAI GPT-5.1 integration:
+OpenAI GPT-5.4 integration:
 
 ```typescript
 import { generateDocument } from './services/openai';
@@ -316,7 +314,7 @@ const document = await generateDocument({
 
 ### Anthropic Service (`anthropic.ts`)
 
-Anthropic Claude Opus 4.5 integration for complex reasoning:
+Anthropic Claude Sonnet 4.6 integration for complex reasoning:
 
 ```typescript
 import { analyzeCompliance } from './services/anthropic';
@@ -402,7 +400,7 @@ import { trackPerformance } from './services/performanceService';
 
 await trackPerformance('document_generation', duration, {
   framework: 'ISO27001',
-  model: 'gpt-5.1'
+  model: 'gpt-5.4'
 });
 ```
 

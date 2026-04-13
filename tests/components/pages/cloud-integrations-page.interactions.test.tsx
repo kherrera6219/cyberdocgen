@@ -146,9 +146,7 @@ describe("CloudIntegrations page interactions", () => {
     await user.click(screen.getAllByRole("button", { name: /disconnect/i })[0]!);
     await user.click(screen.getByRole("button", { name: /^sign$/i }));
 
-    expect(apiRequestMock).toHaveBeenCalledWith("/api/cloud/sync", "POST", {
-      integrationId: "integration-google",
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith("/api/cloud/sync/integration-google", "POST");
     expect(apiRequestMock).toHaveBeenCalledWith("/api/cloud/integrations/integration-google", "DELETE");
     expect(apiRequestMock).toHaveBeenCalledWith("/api/cloud/adobe/sign", "POST", {
       documentId: "file-1",

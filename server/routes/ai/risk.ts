@@ -49,7 +49,7 @@ export function registerRiskRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'risk_assessment',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       prompt: JSON.stringify({ companyProfile, frameworks, includeDocuments }),
       expectedResponseTokens: 1200,
     });
@@ -74,7 +74,7 @@ export function registerRiskRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'risk_assessment',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       prompt: JSON.stringify({ companyProfile, frameworks, existingDocuments }),
       response: JSON.stringify(assessment),
       purposeDescription: 'Assess organizational compliance risk',
@@ -84,7 +84,7 @@ export function registerRiskRoutes(router: Router) {
     });
     await aiMetadataAuditService.record({
       actionType: 'risk_assessment',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       userId,
       organizationId,
       requestId,
@@ -126,7 +126,7 @@ export function registerRiskRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'threat_analysis',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       prompt: JSON.stringify({ industry, companySize, frameworks }),
       expectedResponseTokens: 1200,
     });
@@ -145,7 +145,7 @@ export function registerRiskRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'threat_analysis',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       prompt: JSON.stringify({ industry, companySize, frameworks }),
       response: JSON.stringify(threatAnalysis),
       purposeDescription: 'Analyze threat landscape for organization context',
@@ -155,7 +155,7 @@ export function registerRiskRoutes(router: Router) {
     });
     await aiMetadataAuditService.record({
       actionType: 'threat_analysis',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       userId,
       organizationId,
       requestId,

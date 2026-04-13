@@ -12,9 +12,9 @@ import { PublicFooter, PublicHeader } from "@/components/layout/PublicHeader";
 
 export function Landing() {
   const aiModels = [
-    { name: "GPT-5.1", provider: "OpenAI", icon: Brain },
-    { name: "Claude Opus 4.5", provider: "Anthropic", icon: Sparkles },
-    { name: "Gemini 3.0 Pro", provider: "Google", icon: Cpu },
+    { name: "GPT-5.4", provider: "OpenAI", icon: Brain },
+    { name: "Claude Sonnet 4.6", provider: "Anthropic", icon: Sparkles },
+    { name: "Gemini 3.1 Pro Preview", provider: "Google", icon: Cpu },
   ];
 
   return (
@@ -28,7 +28,7 @@ export function Landing() {
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
               <Sparkles className="h-4 w-4" />
-              <span>Now in Beta - Powered by GPT-5.1, Claude Opus 4.5 & Gemini 3.0</span>
+              <span>Now in Beta - Powered by GPT-5.4, Claude Sonnet 4.6 & Gemini 3.0</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight px-2">

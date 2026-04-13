@@ -424,7 +424,7 @@ Generate a comprehensive ${documentType} that addresses the specific requirement
   ): Promise<string> {
     const anthropic = this.getAnthropic();
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: settings.maxTokens,
       temperature: settings.temperature,
       messages: [{ role: 'user', content: prompt }]
@@ -442,7 +442,7 @@ Generate a comprehensive ${documentType} that addresses the specific requirement
   ): Promise<string> {
     const openai = this.getOpenAI();
     const response = await openai.chat.completions.create({
-      model: 'gpt-5.1',
+      model: 'gpt-5.4',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: settings.maxTokens,
       temperature: settings.temperature

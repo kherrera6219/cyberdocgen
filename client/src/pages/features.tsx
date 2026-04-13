@@ -21,8 +21,8 @@ export default function Features() {
     {
       icon: Bot,
       title: "AI-Powered Document Generation",
-      description: "Generate comprehensive compliance documents in minutes using advanced AI. Our multi-model system leverages GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro to create tailored policies, procedures, and assessments.",
-      highlights: ["Multi-model AI (GPT-5.1, Claude, Gemini)", "Context-aware content", "Multiple document types", "Automatic formatting"],
+      description: "Generate comprehensive compliance documents in minutes using advanced AI. Our multi-model system leverages GPT-5.4, Claude Sonnet 4.6, and Gemini 3.1 Pro Preview to create tailored policies, procedures, and assessments.",
+      highlights: ["Multi-model AI (GPT-5.4, Claude, Gemini)", "Context-aware content", "Multiple document types", "Automatic formatting"],
       image: aiDocGenImage
     },
     {
@@ -111,9 +111,9 @@ export default function Features() {
           </div>
           <div className="flex flex-wrap justify-center gap-6">
             {[
-              { name: "GPT-5.1", provider: "OpenAI", icon: Brain },
-              { name: "Claude Opus 4.5", provider: "Anthropic", icon: Sparkles },
-              { name: "Gemini 3.0 Pro", provider: "Google", icon: Cpu },
+              { name: "GPT-5.4", provider: "OpenAI", icon: Brain },
+              { name: "Claude Sonnet 4.6", provider: "Anthropic", icon: Sparkles },
+              { name: "Gemini 3.1 Pro Preview", provider: "Google", icon: Cpu },
             ].map((model) => (
               <div key={model.name} className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
                 <model.icon className="h-6 w-6 text-white" />

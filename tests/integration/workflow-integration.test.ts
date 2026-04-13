@@ -61,7 +61,7 @@ describe('Workflow Integration Tests', () => {
         updatedAt: new Date(),
         description: 'Main security policy',
         aiGenerated: true,
-        aiModel: 'claude-3-5-sonnet',
+        aiModel: 'claude-sonnet-4-6',
       });
 
       const doc2 = await storage.createDocument({
@@ -76,7 +76,7 @@ describe('Workflow Integration Tests', () => {
         updatedAt: new Date(),
         description: 'Access control procedures',
         aiGenerated: true,
-        aiModel: 'claude-3-5-sonnet',
+        aiModel: 'claude-sonnet-4-6',
       });
 
       expect(doc1.id).toBeDefined();
@@ -389,7 +389,7 @@ describe('Workflow Integration Tests', () => {
           content: 'AI generated content',
           version: '1.0',
           aiGenerated: true,
-          aiModel: 'claude-3-5-sonnet',
+          aiModel: 'claude-sonnet-4-6',
           createdAt: new Date(),
           updatedAt: new Date(),
         }),
@@ -415,7 +415,7 @@ describe('Workflow Integration Tests', () => {
 
       expect(aiDocs.length).toBe(1);
       expect(manualDocs.length).toBe(1);
-      expect(aiDocs[0].aiModel).toBe('claude-3-5-sonnet');
+      expect(aiDocs[0].aiModel).toBe('claude-sonnet-4-6');
     });
   });
 

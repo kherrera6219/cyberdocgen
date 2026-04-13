@@ -25,7 +25,7 @@ This guide provides detailed instructions for setting up your development enviro
    ```
    Download from [nodejs.org](https://nodejs.org/)
 
-2. **PostgreSQL** (v16 or higher)
+2. **PostgreSQL** (v16 or higher, optional for local SQLite mode)
    ```bash
    psql --version  # Should be 16.x or higher
    ```
@@ -133,14 +133,16 @@ Desktop packaging note:
 #### AI Service Keys
 
 ```bash
-# OpenAI API key for GPT-5.1
+# OpenAI API key for GPT-5.4
 OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Anthropic API key for Claude Opus 4.5
+# Anthropic API key for Claude Sonnet 4.6
 ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Google AI API key for Gemini 3.0 Pro
-GOOGLE_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Google AI API key for Gemini 3.1 Pro Preview
+GOOGLE_GENERATIVE_AI_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Optional fallback alias if you already use the legacy variable name
+GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 **Get API Keys:**
@@ -199,8 +201,8 @@ REPLIT_DB_URL=your-replit-db-url
 Create a `.env` file with all required variables:
 
 ```bash
-# Database
-DATABASE_URL=postgresql://postgres:password@localhost:5432/cyberdocgen
+# Database (leave blank to use local SQLite automatically)
+DATABASE_URL=
 
 # Security
 SESSION_SECRET=your-generated-session-secret-here
@@ -210,7 +212,8 @@ DATA_INTEGRITY_SECRET=your-generated-data-integrity-secret-here
 # AI Services
 OPENAI_API_KEY=sk-proj-your-key-here
 ANTHROPIC_API_KEY=sk-ant-your-key-here
-GOOGLE_API_KEY=AIza-your-key-here
+GOOGLE_GENERATIVE_AI_KEY=AIza-your-key-here
+# GEMINI_API_KEY=AIza-your-key-here
 
 # Application
 NODE_ENV=development
@@ -350,10 +353,7 @@ psql $DATABASE_URL
 # Start server
 npm run dev
 
-# Test OpenAI (in another terminal)
-curl http://localhost:5000/api/test/openai
-
-# Test Anthropic
+# Test AI service health (in another terminal)
 curl http://localhost:5000/api/ai/health
 ```
 

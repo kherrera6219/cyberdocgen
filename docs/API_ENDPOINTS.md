@@ -1,6 +1,6 @@
 # API Endpoint Reference
 
-All endpoints are prefixed with `/api` unless noted otherwise. Authentication is required for all routes except `/health`, `/api/auth/*`, and `/api/enterprise-auth/*`.
+All endpoints are prefixed with `/api` unless noted otherwise. Authentication is required for most routes except `/health`, `/api/login`, `/api/callback`, `/api/logout`, selected `/api/auth/*` helpers, and `/api/enterprise-auth/*`.
 
 **Base URL:** `http://localhost:5000` (development)
 
@@ -30,33 +30,37 @@ All endpoints are prefixed with `/api` unless noted otherwise. Authentication is
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/auth/login` | No | Email/password login |
-| POST | `/api/auth/logout` | No | Destroy session |
+| GET | `/api/login` | No | Replit OIDC login redirect |
+| GET | `/api/callback` | No | Replit OIDC callback |
+| GET | `/api/logout` | No | Destroy session / logout |
 | GET | `/api/auth/user` | Yes | Current user profile |
-| POST | `/api/auth/register` | No | Register new account |
-| POST | `/api/auth/forgot-password` | No | Send password reset email |
-| POST | `/api/auth/reset-password` | No | Reset password with token |
+| POST | `/api/auth/temp-login` | No | Temporary quick-access login when enabled |
+| POST | `/api/auth/temp-logout` | No | Temporary quick-access logout when enabled |
 
 ### Enterprise Auth (Replit OAuth / SAML / Entra ID)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/login` | No | Replit OAuth redirect |
-| GET | `/api/callback` | No | Replit OAuth callback |
-| POST | `/api/enterprise-auth/register` | No | Enterprise signup |
+| POST | `/api/enterprise-auth/signup` | No | Enterprise signup |
 | POST | `/api/enterprise-auth/login` | No | Enterprise login |
+| POST | `/api/enterprise-auth/verify-email` | No | Send email verification |
 | GET | `/api/enterprise-auth/verify-email` | No | Email verification |
-| POST | `/api/enterprise-auth/resend-verification` | No | Resend verification email |
+| POST | `/api/enterprise-auth/forgot-password` | No | Send password reset email |
+| POST | `/api/enterprise-auth/reset-password` | No | Reset password with token |
+| POST | `/api/enterprise-auth/logout` | No | Enterprise logout |
 
 ### MFA
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/mfa/setup` | Yes | Begin TOTP setup |
-| POST | `/api/mfa/verify-setup` | Yes | Confirm TOTP enrollment |
-| POST | `/api/mfa/verify` | Yes | Verify TOTP code |
-| POST | `/api/mfa/disable` | Yes | Disable MFA |
-| POST | `/api/mfa/backup-codes` | Yes | Generate backup codes |
+| GET | `/api/auth/mfa/status` | Yes | Get MFA status |
+| POST | `/api/auth/mfa/setup/totp` | Yes | Begin TOTP setup |
+| POST | `/api/auth/mfa/verify/totp` | Yes | Verify TOTP code |
+| POST | `/api/auth/mfa/setup/sms` | Yes | Begin SMS setup |
+| POST | `/api/auth/mfa/verify/sms` | Yes | Verify SMS code |
+| POST | `/api/auth/mfa/challenge` | Yes | Trigger MFA challenge |
+| POST | `/api/auth/mfa/backup-codes` | Yes | Generate backup codes |
+| DELETE | `/api/auth/mfa/disable` | Yes | Disable MFA |
 
 ---
 
@@ -100,10 +104,12 @@ All endpoints are prefixed with `/api` unless noted otherwise. Authentication is
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/ai/generate` | Yes | Generate compliance document |
-| GET | `/api/ai/generate/:jobId/status` | Yes | Poll generation status |
+| POST | `/api/ai/generate-compliance-docs` | Yes | Generate compliance documents |
+| GET | `/api/ai/generation-jobs/:id` | Yes | Poll generation job status |
 | POST | `/api/ai/chat` | Yes | Compliance chatbot |
-| POST | `/api/ai/chat/multimodal` | Yes | Multimodal chat (image+text) |
+| POST | `/api/ai/multimodal-chat` | Yes | Multimodal chat (image+text) |
+| POST | `/api/ai/analyze-document` | Yes | Analyze document content |
+| POST | `/api/ai/risk-assessment` | Yes | AI-powered risk assessment |
 
 ---
 
@@ -114,7 +120,8 @@ All endpoints are prefixed with `/api` unless noted otherwise. Authentication is
 | POST | `/api/analytics/risk-assessment` | Yes | AI-powered risk assessment |
 | POST | `/api/analytics/compliance-analysis` | Yes | AI compliance gap analysis |
 | POST | `/api/analytics/analyze-compliance-gaps` | Yes | Rule-based gap analysis |
-| POST | `/api/analytics/document-quality` | Yes | Score document quality |
+| POST | `/api/analytics/analyze-document-quality` | Yes | Score document quality |
+| POST | `/api/analytics/compliance-chat` | Yes | Analytics-scoped compliance chat |
 
 ---
 
@@ -182,11 +189,12 @@ All endpoints are prefixed with `/api` unless noted otherwise. Authentication is
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/integrations` | Yes | List user integrations |
-| POST | `/api/integrations/google` | Yes | Add Google Drive |
-| POST | `/api/integrations/microsoft` | Yes | Add OneDrive |
-| DELETE | `/api/integrations/:id` | Yes | Remove integration |
-| POST | `/api/integrations/:id/sync` | Yes | Trigger manual sync |
+| GET | `/api/cloud/integrations` | Yes | List user integrations |
+| GET | `/api/cloud/auth/google` | Yes | Start Google Drive OAuth |
+| GET | `/api/cloud/auth/microsoft` | Yes | Start OneDrive OAuth |
+| DELETE | `/api/cloud/integrations/:integrationId` | Yes | Remove integration |
+| POST | `/api/cloud/sync/:integrationId` | Yes | Trigger manual sync |
+| GET | `/api/cloud/files` | Yes | List imported cloud files |
 
 ---
 
@@ -207,5 +215,5 @@ All endpoints are prefixed with `/api` unless noted otherwise. Authentication is
 
 ## Interactive Documentation
 
-Swagger UI is available at `/api-docs` when the server is running.
-Download the raw OpenAPI spec at `/api-docs.json`.
+Swagger UI is available at `/api-docs` only when `ENABLE_SWAGGER=true`.
+Download the raw OpenAPI spec at `/api-docs.json` only when Swagger is enabled.

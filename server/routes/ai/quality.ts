@@ -41,7 +41,7 @@ export function registerQualityRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'quality_score',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       prompt: content,
       expectedResponseTokens: 800,
     });
@@ -82,7 +82,7 @@ export function registerQualityRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'quality_score',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       prompt: sanitizedContent,
       response: JSON.stringify(qualityScore),
       purposeDescription: `Quality score document for ${framework}`,
@@ -92,7 +92,7 @@ export function registerQualityRoutes(router: Router) {
     });
     await aiMetadataAuditService.record({
       actionType: 'quality_score',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       userId,
       organizationId,
       requestId,
@@ -135,7 +135,7 @@ export function registerQualityRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'framework_alignment',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       prompt: content,
       expectedResponseTokens: 700,
     });
@@ -175,7 +175,7 @@ export function registerQualityRoutes(router: Router) {
       userId,
       organizationId,
       actionType: 'framework_alignment',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       prompt: sanitizedContent,
       response: JSON.stringify(alignment),
       purposeDescription: `Framework alignment for ${framework}`,
@@ -185,7 +185,7 @@ export function registerQualityRoutes(router: Router) {
     });
     await aiMetadataAuditService.record({
       actionType: 'framework_alignment',
-      model: 'claude-sonnet-4',
+      model: 'claude-sonnet-4-6',
       userId,
       organizationId,
       requestId,

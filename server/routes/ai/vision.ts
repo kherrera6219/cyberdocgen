@@ -83,7 +83,7 @@ export function registerVisionRoutes(router: Router) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error("Image analysis failed", { error: errorMessage, userId });
 
-      if (errorMessage.includes('GOOGLE_API_KEY')) {
+      if (errorMessage.includes('GOOGLE_GENERATIVE_AI_KEY') || errorMessage.includes('GEMINI_API_KEY')) {
         throw new AppError("Image analysis service is temporarily unavailable. Please try again later.", 503);
       } else if (errorMessage.includes('Invalid') || errorMessage.includes('format')) {
         throw new ValidationError("Invalid image format. Please upload a valid image file.");

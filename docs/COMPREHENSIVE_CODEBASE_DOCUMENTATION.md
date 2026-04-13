@@ -1,6 +1,6 @@
 # CyberDocGen - Comprehensive Codebase Documentation
 
-**Generated:** December 24, 2025
+**Generated:** April 12, 2026
 **Analysis Version:** 2.0
 **Status:** Complete Codebase Analysis & Duplicate Code Identification
 
@@ -27,10 +27,10 @@
 - **1,000+ TypeScript files** across frontend and backend
 - **37 specialized service modules** handling compliance and AI operations
 - **100+ pre-built compliance templates** across 4 major frameworks
-- **Multi-model AI integration** (GPT-5.1, Claude Opus 4.5, Gemini 3.0 Pro)
+- **Multi-model AI integration** (GPT-5.4, Claude Sonnet 4.6, Gemini 3.1 Pro Preview)
 - **Enterprise-ready architecture** with multi-tenancy, RBAC, MFA, and audit trails
 - **5,000-7,000+ lines of duplicate code** identified for consolidation
-- **498/498 tests passing** (100% pass rate)
+- **Validation tracked via repo test scripts** (`npm run test:run`, `npm run test:coverage`)
 
 ### Key Statistics
 
@@ -41,7 +41,7 @@
 | Backend Routes | 26 modules |
 | Business Services | 37 services |
 | Database Tables | 40+ |
-| Test Coverage | 498 tests (100% passing) |
+| Test Coverage | See current test and coverage scripts |
 | Duplicate Code | ~5,000-7,000 lines |
 | Largest Service File | `openai.ts` (112 KB) |
 | Template Library | `documentTemplates.ts` (494 KB) |
@@ -338,7 +338,7 @@ class AIOrchestrator {
 ```
 
 **Key Features:**
-- Multi-model coordination (GPT-5.1, Claude Opus 4.5, Gemini 3.0)
+- Multi-model coordination (GPT-5.4, Claude Sonnet 4.6, Gemini 3.1 Pro Preview)
 - Automatic fallback on model failure
 - Quality scoring and validation
 - Batch processing with progress updates
@@ -960,7 +960,7 @@ export function validateAIApiKeys(): AIApiKeyStatus {
   return {
     openai: !!process.env.OPENAI_API_KEY,
     anthropic: !!process.env.ANTHROPIC_API_KEY,
-    gemini: !!process.env.GOOGLE_API_KEY,
+    gemini: !!(process.env.GOOGLE_GENERATIVE_AI_KEY || process.env.GEMINI_API_KEY),
   };
 }
 
@@ -1158,5 +1158,5 @@ By following the phased refactoring approach outlined above, the codebase can be
 ---
 
 **Document Version:** 2.0
-**Last Updated:** December 24, 2025
+**Last Updated:** April 12, 2026
 **Analyst:** Claude Code AI Agent

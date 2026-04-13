@@ -22,15 +22,17 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) to ensure a wel
 ### Prerequisites
 
 - Node.js 20 or higher
-- PostgreSQL 16
-- npm or yarn package manager
+- npm package manager
 - Git
+- PostgreSQL 16 or higher if you want full cloud-mode parity locally
+
+If `DATABASE_URL` is left unset, CyberDocGen can use local SQLite for day-to-day development.
 
 ### Setting Up Your Development Environment
 
 1. **Fork and Clone the Repository**
    ```bash
-   git clone https://github.com/your-username/cyberdocgen.git
+   git clone https://github.com/kherrera6219/cyberdocgen.git
    cd cyberdocgen
    ```
 
@@ -281,7 +283,7 @@ Update documentation when:
 
 **DO NOT** create public issues for security vulnerabilities.
 
-Instead, email security concerns to the maintainers with:
+Follow the private disclosure guidance in [SECURITY.md](SECURITY.md). Include:
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -301,13 +303,12 @@ Instead, email security concerns to the maintainers with:
 ## Getting Help
 
 - Check existing [documentation](docs/)
+- Review [SUPPORT.md](SUPPORT.md)
 - Search [existing issues](https://github.com/kherrera6219/cyberdocgen/issues)
-- Ask questions in discussions
-- Join our community chat (if available)
 
 ## License
 
-By contributing to CyberDocGen, you agree that your contributions will be licensed under the MIT License.
+By contributing to CyberDocGen, you agree that your contributions will be licensed under the repository's [PolyForm Noncommercial License 1.0.0](LICENSE).
 
 ---
 

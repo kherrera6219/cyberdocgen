@@ -42,7 +42,7 @@ This document tracks CyberDocGen's compliance with the EU Artificial Intelligenc
 
 ## General-Purpose AI Requirements
 
-If using models classified as GPAI (e.g., GPT-5.1, Claude Opus 4.5):
+If using models classified as GPAI (e.g., GPT-5.4, Claude Sonnet 4.6):
 
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
@@ -99,9 +99,9 @@ CyberDocGen does **not** meet GPAI systemic risk thresholds:
 
 | Provider | Model | EU AI Act Compliance | Documentation |
 |----------|-------|---------------------|---------------|
-| OpenAI | GPT-5.1 | Compliant | [Link to docs] |
-| Anthropic | Claude Opus 4.5 | Compliant | [Link to docs] |
-| Google | Gemini 3.0 Pro | Compliant | [Link to docs] |
+| OpenAI | GPT-5.4 | Compliant | [Link to docs] |
+| Anthropic | Claude Sonnet 4.6 | Compliant | [Link to docs] |
+| Google | Gemini 3.1 Pro Preview | Compliant | [Link to docs] |
 
 **All AI providers are US-based with EU data processing agreements.**
 

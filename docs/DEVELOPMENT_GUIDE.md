@@ -26,9 +26,9 @@ CyberDocGen is an enterprise-grade compliance management platform with AI-powere
 - **Passport.js 0.7** - Authentication middleware
 
 ### AI Integration
-- **OpenAI SDK 5.23** - GPT-5.1 (latest flagship model)
-- **Anthropic SDK 0.70** - Claude Opus 4.5 (latest reasoning model)
-- **Google GenAI 1.30** - Gemini 3.0 Pro (latest multimodal model)
+- **OpenAI SDK 5.23** - GPT-5.4 (latest flagship model)
+- **Anthropic SDK 0.70** - Claude Sonnet 4.6 (latest reasoning model)
+- **Google GenAI 1.30** - Gemini 3.1 Pro Preview (latest multimodal model)
 - **Multi-Model Orchestration** - Intelligent routing with automatic fallback
 - **AI Guardrails** - Safety checks, PII detection, prompt injection prevention
 
@@ -170,7 +170,7 @@ npm run check
 npm test
 
 # Run with coverage
-npm test -- --coverage
+npm run test:coverage
 
 # Run specific test file
 npm test tests/unit/validation.test.ts
@@ -183,9 +183,6 @@ npm test -- --watch
 ```bash
 # Run ESLint
 npm run lint
-
-# Format code with Prettier (if configured)
-npm run format
 ```
 
 ### Security
@@ -303,9 +300,10 @@ See [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) for detailed setup instructions
 - `DATABASE_URL` - PostgreSQL connection string
 - `SESSION_SECRET` - Session encryption key (32+ chars)
 - `ENCRYPTION_KEY` - Data encryption key (32-byte hex)
-- `OPENAI_API_KEY` - GPT-5.1 API key
-- `ANTHROPIC_API_KEY` - Claude Opus 4.5 API key
-- `GOOGLE_API_KEY` - Gemini 3.0 Pro API key
+- `OPENAI_API_KEY` - GPT-5.4 API key
+- `ANTHROPIC_API_KEY` - Claude Sonnet 4.6 API key
+- `GOOGLE_GENERATIVE_AI_KEY` - Preferred Gemini 3.1 Pro Preview API key
+- `GEMINI_API_KEY` - Backward-compatible Gemini API key alias
 
 ## Testing Strategy
 
@@ -368,9 +366,9 @@ await auditService.log({
 
 ### Multi-Model AI Orchestration
 The `aiOrchestrator` service intelligently routes requests to the best available model:
-- GPT-5.1 for general document generation
-- Claude Opus 4.5 for complex reasoning
-- Gemini 3.0 Pro for multimodal analysis
+- GPT-5.4 for general document generation
+- Claude Sonnet 4.6 for complex reasoning
+- Gemini 3.1 Pro Preview for multimodal analysis
 - Automatic fallback if primary model unavailable
 
 ### Threat Detection

@@ -48,6 +48,8 @@ DATA_INTEGRITY_SECRET=your-random-secret-here
 # AI Providers (at least one required for document generation)
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
+GOOGLE_GENERATIVE_AI_KEY=AIza...
+# Optional fallback alias if you already use the legacy variable name
 GEMINI_API_KEY=AIza...
 ```
 
@@ -76,7 +78,7 @@ The application starts at **http://localhost:5000**.
 
 - Frontend: http://localhost:5000
 - API: http://localhost:5000/api
-- API Docs (Swagger UI): http://localhost:5000/api-docs
+- API Docs (Swagger UI): http://localhost:5000/api-docs (only when `ENABLE_SWAGGER=true`)
 - Health check: http://localhost:5000/health
 
 ---
@@ -116,17 +118,16 @@ docker compose -f docker-compose.prod.yml up
 
 ```bash
 # Unit + integration tests (Vitest)
-npm test
+npm run test:run
 
 # Watch mode
-npm run test:watch
+npm test -- --watch
 
 # Coverage report
 npm run test:coverage
 
-# E2E tests (Playwright — requires running server)
-npm run dev &
-npx playwright test
+# E2E tests (Playwright)
+npm run test:e2e
 ```
 
 ---
@@ -139,6 +140,6 @@ npx playwright test
 | SQLite WAL lock errors | Delete `local.db-shm` and `local.db-wal` |
 | AI calls return 401 | Verify API keys in `.env` |
 | CSRF errors on login | Clear browser cookies and retry |
-| Build fails with TS errors | Run `npm run typecheck` to see specific errors |
+| Build fails with TS errors | Run `npm run check` to see specific errors |
 
 For more detail, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) and [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md).

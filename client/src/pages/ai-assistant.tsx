@@ -616,7 +616,7 @@ export default function AIAssistant() {
 
   const getAgentIcon = (agentId: string) => {
     switch (agentId) {
-      case "gemini-3-pro":
+      case "gemini-3.1-pro-preview":
         return <Sparkles className="h-4 w-4 text-blue-500" />;
       case "compliance-assistant":
         return <Shield className="h-4 w-4" />;
@@ -644,17 +644,17 @@ export default function AIAssistant() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  // Add Gemini Pro to the list of agents
+  // Add Gemini 3.1 Pro Preview to the list of agents when MCP hasn't registered it yet
   const allAgents = useMemo(() => (
-    agents.some((agent) => agent.id === 'gemini-3-pro')
+    agents.some((agent) => agent.id === 'gemini-3.1-pro-preview')
       ? agents
       : [
           ...agents,
           {
-            id: 'gemini-3-pro',
-            name: 'Gemini 3 Pro',
-            description: 'Powered by Google Gemini 3.0 Pro for advanced reasoning.',
-            model: 'gemini-3-pro',
+            id: 'gemini-3.1-pro-preview',
+            name: 'Gemini 3.1 Pro Preview',
+            description: 'Powered by Google Gemini 3.1 Pro Preview for advanced reasoning.',
+            model: 'gemini-3.1-pro-preview',
             tools: [],
             capabilities: ['Advanced Reasoning', 'Content Generation']
           }

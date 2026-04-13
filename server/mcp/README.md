@@ -41,7 +41,7 @@ The MCP system provides a robust framework for:
 Manages AI agents with multi-model support and tool calling capabilities.
 
 **Features:**
-- Multiple AI model support (GPT-5.1, Claude Opus 4.5, Gemini 3.0 Pro)
+- Multiple AI model support (GPT-5.4, Claude Sonnet 4.6, Gemini 3.1 Pro Preview)
 - Automatic tool calling and execution
 - Conversation history management
 - Iterative reasoning with max iterations control
@@ -87,31 +87,31 @@ Tools that interact with external services:
 ### 5. Predefined Agents
 
 #### Compliance Assistant
-- **Model**: GPT-5.1
+- **Model**: GPT-5.4
 - **Purpose**: General compliance guidance and analysis
 - **Tools**: 7 tools including gap analysis, document search, web search
 - **Best for**: Compliance questions, gap analysis, quality assessment
 
 #### Document Generator
-- **Model**: Claude Opus 4.5
+- **Model**: Claude Sonnet 4.6
 - **Purpose**: Generate high-quality compliance documents
 - **Tools**: 5 tools including document generation, quality analysis
 - **Best for**: Creating policies, procedures, and compliance documentation
 
 #### Risk Assessment Specialist
-- **Model**: GPT-5.1
+- **Model**: GPT-5.4
 - **Purpose**: Organizational risk assessment and threat analysis
 - **Tools**: 6 tools including risk assessment, threat intelligence
 - **Best for**: Risk analysis, threat modeling, control assessment
 
 #### Data Extraction Agent
-- **Model**: Claude Opus 4.5
+- **Model**: Claude Sonnet 4.6
 - **Purpose**: Extract structured data from documents
 - **Tools**: 4 tools including document search, URL fetching
 - **Best for**: Data parsing, information extraction, content analysis
 
 #### Compliance Chatbot
-- **Model**: GPT-5.1
+- **Model**: GPT-5.4
 - **Purpose**: Interactive chat for compliance questions
 - **Tools**: 6 tools including search, documentation, updates
 - **Best for**: Quick answers, guidance, regulatory updates
@@ -213,7 +213,7 @@ GET /api/mcp/agents
       "id": "compliance-assistant",
       "name": "Compliance Assistant",
       "description": "Expert assistant for...",
-      "model": "gpt-5.1",
+      "model": "gpt-5.4",
       "capabilities": ["compliance_analysis", "gap_analysis"],
       "availableTools": ["get_company_profile", ...]
     }
@@ -261,7 +261,7 @@ Content-Type: application/json
       }
     ],
     "metadata": {
-      "model": "gpt-5.1",
+      "model": "gpt-5.4",
       "iterations": 2,
       "tokensUsed": 1250
     }
@@ -486,7 +486,7 @@ const myAgent: AgentConfig = {
   id: 'my-agent',
   name: 'My Custom Agent',
   description: 'Agent description',
-  model: 'gpt-5.1',
+  model: 'gpt-5.4',
   tools: ['tool1', 'tool2'],
   systemPrompt: 'You are an expert in...',
   temperature: 0.7,

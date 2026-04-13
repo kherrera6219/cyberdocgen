@@ -150,9 +150,9 @@ describe('MCP Core Unit Tests', () => {
       (aiOrchestrator.healthCheck as any).mockResolvedValue({
         status: 'healthy',
         models: {
-          'gpt-5.1': true,
-          'claude-sonnet-4': true,
-          'gemini-3-pro': true,
+          'gpt-5.4': true,
+          'claude-sonnet-4-6': true,
+          'gemini-3.1-pro-preview': true,
         },
       });
       const result = await checkAIServiceHealth();

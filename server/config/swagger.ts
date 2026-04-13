@@ -2,7 +2,7 @@
  * OpenAPI 3.1 Specification Configuration
  *
  * Automatically generates API documentation from JSDoc comments and route files.
- * Access the interactive documentation at /api-docs
+ * Interactive docs are served only when ENABLE_SWAGGER=true.
  */
 
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -39,7 +39,7 @@ gap analysis, AI-powered document generation, and enterprise security features.
 
 - 🔐 **Secure Authentication** - OAuth 2.0, MFA, Enterprise SSO
 - 📄 **Document Management** - Create, update, and organize compliance documents
-- 🤖 **AI-Powered Analysis** - GPT-4 powered gap analysis and document generation
+- 🤖 **AI-Powered Analysis** - GPT-5.4 powered gap analysis and document generation
 - ☁️ **Cloud Integration** - Google Drive and OneDrive sync
 - 📊 **Analytics** - Comprehensive metrics and reporting
 - 🔍 **Audit Trail** - Complete audit logging for compliance
@@ -49,7 +49,7 @@ gap analysis, AI-powered document generation, and enterprise security features.
 Most endpoints require authentication. Use the \`/api/auth\` endpoints to obtain
 a session cookie, then include it in subsequent requests.
 
-For enterprise users, SSO is available via \`/api/auth/enterprise\`.
+For enterprise users, authentication flows are available via \`/api/login\` and \`/api/enterprise-auth/*\`.
 
 ### Multi-Factor Authentication (MFA)
 
@@ -180,7 +180,7 @@ Common HTTP status codes:
           type: 'apiKey',
           in: 'cookie',
           name: 'connect.sid',
-          description: 'Session cookie obtained from /api/auth/login',
+          description: 'Session cookie obtained from /api/login or /api/enterprise-auth/login',
         },
         csrfToken: {
           type: 'apiKey',

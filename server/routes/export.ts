@@ -208,7 +208,7 @@ Create a professional, enterprise-ready document that meets the latest 2025 comp
 Format with clear headings, numbered sections, and actionable guidance.`;
     
     const response = await openai.chat.completions.create({
-      model: "gpt-5.1",
+      model: "gpt-5.4",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: `Generate a detailed ${documentType} document for ${framework} compliance.` }

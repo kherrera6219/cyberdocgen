@@ -95,7 +95,7 @@ export default function CloudIntegrations() {
   // Sync files mutation
   const syncFilesMutation = useMutation({
     mutationFn: async (integrationId: string) => {
-      return apiRequest('/api/cloud/sync', 'POST', { integrationId });
+      return apiRequest(`/api/cloud/sync/${integrationId}`, 'POST');
     },
     onSuccess: () => {
       toast({

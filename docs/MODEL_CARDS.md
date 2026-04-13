@@ -6,12 +6,12 @@ This document provides model cards for the AI models integrated into CyberDocGen
 
 ---
 
-## Model Card: GPT-5.1 (OpenAI)
+## Model Card: GPT-5.4 (OpenAI)
 
 ### Model Overview
 | Field | Value |
 |-------|-------|
-| **Model Name** | GPT-5.1 |
+| **Model Name** | GPT-5.4 |
 | **Provider** | OpenAI |
 | **Model Type** | Large Language Model |
 | **Use Case in CyberDocGen** | Document generation, compliance analysis, chatbot |
@@ -43,19 +43,19 @@ This document provides model cards for the AI models integrated into CyberDocGen
 ### CyberDocGen Integration
 ```typescript
 // Usage in AI orchestrator
-model: "gpt-5.1"
+model: "gpt-5.4"
 temperature: 0.3  // More deterministic for compliance
 maxTokens: 4000
 ```
 
 ---
 
-## Model Card: Claude Opus 4.5 (Anthropic)
+## Model Card: Claude Sonnet 4.6 (Anthropic)
 
 ### Model Overview
 | Field | Value |
 |-------|-------|
-| **Model Name** | Claude Opus 4.5 |
+| **Model Name** | Claude Sonnet 4.6 |
 | **Provider** | Anthropic |
 | **Model Type** | Large Language Model |
 | **Use Case in CyberDocGen** | Complex analysis, document review, reasoning tasks |
@@ -87,19 +87,19 @@ maxTokens: 4000
 ### CyberDocGen Integration
 ```typescript
 // Usage for complex analysis
-model: "claude-opus-4.5"
+model: "claude-sonnet-4-6"
 temperature: 0.2  // Highly deterministic
 maxTokens: 8000   // Allow detailed analysis
 ```
 
 ---
 
-## Model Card: Gemini 3.0 Pro (Google)
+## Model Card: Gemini 3.1 Pro Preview (Google)
 
 ### Model Overview
 | Field | Value |
 |-------|-------|
-| **Model Name** | Gemini 3.0 Pro |
+| **Model Name** | Gemini 3.1 Pro Preview |
 | **Provider** | Google DeepMind |
 | **Model Type** | Multimodal LLM |
 | **Use Case in CyberDocGen** | Document processing, fallback model |
@@ -130,7 +130,7 @@ maxTokens: 8000   // Allow detailed analysis
 ### CyberDocGen Integration
 ```typescript
 // Usage as fallback
-model: "gemini-3.0-pro"
+model: "gemini-3.1-pro-preview"
 temperature: 0.3
 maxTokens: 4000
 // Used when primary models unavailable
@@ -154,10 +154,10 @@ CyberDocGen uses intelligent model routing:
          │
     ┌────┴─────────────────────────────┐
     │                                  │
-┌───▼───┐    ┌───────────┐    ┌───────▼───────┐
-│ GPT-5.1│    │Claude Opus│    │ Gemini 3.0 Pro│
-│        │    │   4.5     │    │   (Fallback)  │
-└───┬───┘    └─────┬─────┘    └───────────────┘
+┌───▼───┐    ┌────────────────────┐    ┌──────────────────────────┐
+│ GPT-5.4│    │ Claude Sonnet 4.6 │    │ Gemini 3.1 Pro Preview  │
+│        │    │                    │    │       (Fallback)        │
+└───┬───┘    └─────────┬──────────┘    └──────────────────────────┘
     │              │
     │  Complex?    │
     │    ─────────►│
@@ -224,5 +224,5 @@ All models go through:
 ---
 
 **Document Owner**: AI Engineering Team  
-**Last Updated**: January 2026  
+**Last Updated**: April 2026  
 **Review Schedule**: Quarterly (or on model updates)

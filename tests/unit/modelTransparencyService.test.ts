@@ -67,15 +67,15 @@ describe("ModelTransparencyService", () => {
       {
         id: "card-1",
         modelProvider: "openai",
-        modelName: "gpt-5.1",
-        modelVersion: "2024-08-06",
+        modelName: "gpt-5.4",
+        modelVersion: "2026-03-05",
       },
     ]);
 
     const result = await modelTransparencyService.upsertModelCard({
       modelProvider: "openai",
-      modelName: "gpt-5.1",
-      modelVersion: "2024-08-06",
+      modelName: "gpt-5.4",
+      modelVersion: "2026-03-05",
       description: "Updated card",
       intendedUse: "Testing",
       limitations: "None",
@@ -98,15 +98,15 @@ describe("ModelTransparencyService", () => {
       {
         id: "card-2",
         modelProvider: "anthropic",
-        modelName: "claude-3-5-sonnet",
-        modelVersion: "20241022",
+        modelName: "claude-sonnet-4-6",
+        modelVersion: "2026-02-17",
       },
     ]);
 
     const result = await modelTransparencyService.upsertModelCard({
       modelProvider: "anthropic",
-      modelName: "claude-3-5-sonnet",
-      modelVersion: "20241022",
+      modelName: "claude-sonnet-4-6",
+      modelVersion: "2026-02-17",
       description: "New card",
       intendedUse: "Compliance automation",
       limitations: "Review required",
@@ -127,7 +127,7 @@ describe("ModelTransparencyService", () => {
       throw new Error("database unavailable");
     });
 
-    const result = await modelTransparencyService.getModelCard("openai", "gpt-5.1");
+    const result = await modelTransparencyService.getModelCard("openai", "gpt-5.4");
 
     expect(result).toBeNull();
     expect(logger.error).toHaveBeenCalledWith(
@@ -151,7 +151,7 @@ describe("ModelTransparencyService", () => {
       userId: "user-1",
       actionType: "generate_document",
       modelProvider: "openai",
-      modelName: "gpt-5.1",
+      modelName: "gpt-5.4",
       purposeDescription: "Generate a policy",
       aiContribution: "assisted",
       userConsented: true,
@@ -184,7 +184,7 @@ describe("ModelTransparencyService", () => {
       userId: "user-2",
       actionType: "risk_assessment",
       modelProvider: "anthropic",
-      modelName: "claude-3-5-sonnet",
+      modelName: "claude-sonnet-4-6",
       purposeDescription: "Assess risk",
       aiContribution: "partial",
     });

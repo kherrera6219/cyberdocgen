@@ -35,9 +35,9 @@ describe('Landing Page', () => {
     it('renders AI models section', () => {
         render(<Landing />);
         expect(screen.getByText(/Powered by Leading AI Models/i)).toBeTruthy();
-        expect(screen.getByText('GPT-5.1')).toBeTruthy();
-        expect(screen.getByText('Claude Opus 4.5')).toBeTruthy();
-        expect(screen.getByText('Gemini 3.0 Pro')).toBeTruthy();
+        expect(screen.getByText('GPT-5.4')).toBeTruthy();
+        expect(screen.getByText('Claude Sonnet 4.6')).toBeTruthy();
+        expect(screen.getByText('Gemini 3.1 Pro Preview')).toBeTruthy();
     });
 
     it('renders features grid', () => {

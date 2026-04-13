@@ -121,7 +121,7 @@ Focus on:
 
     try {
       const response = await getAnthropicClient().messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 3000,
         messages: [{
           role: "user",
@@ -173,7 +173,7 @@ Include:
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-5.4",
         messages: [{ role: "user", content: threatPrompt }],
         response_format: { type: "json_object" },
         max_tokens: 2000
@@ -224,7 +224,7 @@ Base assessment on:
 
     try {
       const response = await getAnthropicClient().messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 1500,
         messages: [{
           role: "user",
@@ -298,7 +298,7 @@ Prioritize by impact, feasibility, and cost-effectiveness.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-5.4",
         messages: [{ role: "user", content: roadmapPrompt }],
         response_format: { type: "json_object" },
         max_tokens: 2000

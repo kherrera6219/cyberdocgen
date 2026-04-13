@@ -1,6 +1,6 @@
 import { logger } from "../utils/logger";
 
-export type GovernedModel = "gpt-5.1" | "claude-sonnet-4" | "gemini-3-pro";
+export type GovernedModel = "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.1-pro-preview";
 
 export interface ModelCatalogEntry {
   routeModel: GovernedModel;
@@ -13,30 +13,30 @@ export interface ModelCatalogEntry {
 }
 
 const MODEL_CATALOG: Record<GovernedModel, ModelCatalogEntry> = {
-  "gpt-5.1": {
-    routeModel: "gpt-5.1",
+  "gpt-5.4": {
+    routeModel: "gpt-5.4",
     provider: "openai",
-    apiModel: "gpt-5.1",
-    version: "2025-08",
-    releasedAt: "2025-08-01",
+    apiModel: "gpt-5.4",
+    version: "2026-03",
+    releasedAt: "2026-03-05",
     inputCostPerMillionUsd: 5,
     outputCostPerMillionUsd: 15,
   },
-  "claude-sonnet-4": {
-    routeModel: "claude-sonnet-4",
+  "claude-sonnet-4-6": {
+    routeModel: "claude-sonnet-4-6",
     provider: "anthropic",
-    apiModel: "claude-sonnet-4-20250514",
-    version: "2025-05-14",
-    releasedAt: "2025-05-14",
+    apiModel: "claude-sonnet-4-6",
+    version: "2026-02-17",
+    releasedAt: "2026-02-17",
     inputCostPerMillionUsd: 3,
     outputCostPerMillionUsd: 15,
   },
-  "gemini-3-pro": {
-    routeModel: "gemini-3-pro",
+  "gemini-3.1-pro-preview": {
+    routeModel: "gemini-3.1-pro-preview",
     provider: "google",
-    apiModel: "gemini-2.0-flash",
-    version: "2.0-flash",
-    releasedAt: "2024-12-11",
+    apiModel: "gemini-3.1-pro-preview",
+    version: "2026-02-preview",
+    releasedAt: "2026-02-19",
     inputCostPerMillionUsd: 0.35,
     outputCostPerMillionUsd: 1.5,
   },

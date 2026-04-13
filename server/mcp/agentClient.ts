@@ -113,11 +113,11 @@ export class AgentClient {
 
     // Execute based on model type
     let response: AgentResponse;
-    if (agent.model === 'gpt-5.1') {
+    if (agent.model === 'gpt-5.4') {
       response = await this.executeOpenAI(agent, request, context, tools);
-    } else if (agent.model === 'claude-sonnet-4') {
+    } else if (agent.model === 'claude-sonnet-4-6') {
       response = await this.executeAnthropic(agent, request, context, tools);
-    } else if (agent.model === 'gemini-3-pro' || agent.model === 'gemini-3.0-pro') {
+    } else if (agent.model === 'gemini-3.1-pro-preview') {
       response = await this.executeGemini(agent, request, context);
     } else {
       throw new Error(`Unsupported model: ${agent.model}`);
@@ -205,7 +205,7 @@ export class AgentClient {
         iteration++;
 
         const response = await getOpenAIClient().chat.completions.create({
-          model: 'gpt-5.1',
+          model: 'gpt-5.4',
           messages,
           tools: tools.length > 0 ? tools : undefined,
           tool_choice: tools.length > 0 ? 'auto' : undefined,
@@ -258,7 +258,7 @@ export class AgentClient {
             content: message.content || '',
             toolCalls,
             metadata: {
-              model: 'gpt-5.1',
+              model: 'gpt-5.4',
               iterations: iteration,
               tokensUsed: response.usage?.total_tokens,
               attachmentCount: request.attachments?.length || 0,
@@ -274,7 +274,7 @@ export class AgentClient {
         content: 'Maximum iterations reached. Task may be incomplete.',
         toolCalls,
         metadata: {
-          model: 'gpt-5.1',
+          model: 'gpt-5.4',
           iterations: iteration,
           maxIterationsReached: true,
           attachmentCount: request.attachments?.length || 0,
@@ -325,7 +325,7 @@ export class AgentClient {
         iteration++;
 
         const response = await getAnthropicClient().messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: agent.maxTokens || 4000,
           system: agent.systemPrompt,
           messages: messages as any,
@@ -394,7 +394,7 @@ export class AgentClient {
             content: finalContent,
             toolCalls,
             metadata: {
-              model: 'claude-sonnet-4',
+              model: 'claude-sonnet-4-6',
               iterations: iteration,
               tokensUsed: response.usage.input_tokens + response.usage.output_tokens,
               attachmentCount: request.attachments?.length || 0,
@@ -410,7 +410,7 @@ export class AgentClient {
         content: 'Maximum iterations reached. Task may be incomplete.',
         toolCalls,
         metadata: {
-          model: 'claude-sonnet-4',
+          model: 'claude-sonnet-4-6',
           iterations: iteration,
           maxIterationsReached: true,
           attachmentCount: request.attachments?.length || 0,
@@ -469,7 +469,7 @@ export class AgentClient {
         content,
         toolCalls: [],
         metadata: {
-          model: 'gemini-3-pro',
+          model: 'gemini-3.1-pro-preview',
           iterations: 1,
           attachmentCount: request.attachments?.length || 0,
           toolsDisabled: true,
@@ -611,10 +611,7 @@ export class AgentClient {
     }
   }
 
-  private toGovernedModel(model: AgentConfig["model"]): "gpt-5.1" | "claude-sonnet-4" | "gemini-3-pro" {
-    if (model === "gemini-3.0-pro") {
-      return "gemini-3-pro";
-    }
+  private toGovernedModel(model: AgentConfig["model"]): "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.1-pro-preview" {
     return model;
   }
 

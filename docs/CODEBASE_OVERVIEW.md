@@ -1,8 +1,8 @@
 # CyberDocGen - Complete Codebase Overview
 
-**Last Updated:** December 24, 2025
-**Version:** 1.0.0 (Production Ready)
-**Status:** ✅ 100% Core Features Complete
+**Last Updated:** April 12, 2026
+**Version:** 2.4.0
+**Status:** Active production-candidate branch documentation
 
 > **📊 New Documentation Available:**
 > - **[Comprehensive Codebase Documentation](COMPREHENSIVE_CODEBASE_DOCUMENTATION.md)** - Detailed analysis of all components, services, and duplicate code patterns
@@ -34,7 +34,7 @@
 - **Type**: Full-stack TypeScript monorepo
 - **Architecture**: Multi-tier (Client → API → Services → Database)
 - **Deployment**: Production-ready with zero critical issues
-- **Testing**: 498/498 tests passing (100%)
+- **Testing**: Validated through the repo test scripts (`npm run test:run`, `npm run test:coverage`)
 - **Security**: Zero vulnerabilities, enterprise-grade security
 - **Performance**: 86% bundle size reduction, optimized for production
 
@@ -72,9 +72,9 @@
 
 | Provider | Model | Purpose |
 |----------|-------|---------|
-| **OpenAI** | GPT-5.1 | Document generation, content analysis (Flagship) |
-| **Anthropic** | Claude Opus 4.5 | Complex reasoning, risk assessment (Latest) |
-| **Google** | Gemini 3.0 Pro | Multimodal analysis, compliance review (Latest) |
+| **OpenAI** | GPT-5.4 | Document generation, content analysis (Flagship) |
+| **Anthropic** | Claude Sonnet 4.6 | Complex reasoning, risk assessment (Latest) |
+| **Google** | Gemini 3.1 Pro Preview | Multimodal analysis, compliance review (Latest) |
 
 ### Infrastructure
 
@@ -108,7 +108,7 @@
 | Metric | Value | Status |
 |--------|-------|--------|
 | **TypeScript Errors** | 0 | ✅ |
-| **Test Pass Rate** | 100% (498/498) | ✅ |
+| **Test Pass Rate** | See current `npm run test:run` output | ✅ |
 | **Security Vulnerabilities** | 0 | ✅ |
 | **Bundle Size (Largest)** | 154 KB | ✅ (86% reduction) |
 | **Code Splitting** | 40+ routes | ✅ |
@@ -199,8 +199,8 @@ cyberdocgen/
 │   ├── services/                   # 36 Business Logic Services
 │   │   ├── AI Services/
 │   │   │   ├── aiOrchestrator.ts   # Multi-model orchestration (18.8 KB)
-│   │   │   ├── openai.ts           # GPT-5.1 integration (112 KB)
-│   │   │   ├── anthropic.ts        # Claude Opus 4.5 (9 KB)
+│   │   │   ├── openai.ts           # GPT-5.4 integration (112 KB)
+│   │   │   ├── anthropic.ts        # Claude Sonnet 4.6 (9 KB)
 │   │   │   ├── aiGuardrailsService.ts # AI safety (17 KB)
 │   │   │   ├── aiFineTuningService.ts # Model fine-tuning (16 KB)
 │   │   │   ├── chatbot.ts          # Compliance chatbot (12 KB)
@@ -441,12 +441,12 @@ cyberdocgen/
 
 #### AI Services (8)
 - **aiOrchestrator.ts** - Multi-model coordination and intelligent routing
-- **openai.ts** - GPT-5.1 integration (latest flagship model, Nov 2025)
-- **anthropic.ts** - Claude Opus 4.5 integration (latest reasoning model)
+- **openai.ts** - GPT-5.4 integration (latest flagship model, Nov 2025)
+- **anthropic.ts** - Claude Sonnet 4.6 integration (latest reasoning model)
 - **aiGuardrailsService.ts** - Prompt injection detection, PII redaction
 - **aiFineTuningService.ts** - Custom model training
 - **chatbot.ts** - Context-aware compliance chatbot
-- **geminiVision.ts** - Google Gemini 3.0 Pro integration
+- **geminiVision.ts** - Google Gemini 3.1 Pro Preview integration
 - **aiClients.ts** - AI client configuration
 
 #### Document Services (5)
@@ -575,7 +575,7 @@ POST   /api/auth/temp-login           - Temporary demo login
 POST   /api/auth/temp-logout          - Logout
 GET    /api/auth/user                 - Get current user
 GET    /api/csrf-token                - CSRF token
-POST   /api/auth/enterprise/*         - Enterprise authentication
+POST   /api/enterprise-auth/*         - Enterprise auth flows
 POST   /api/auth/mfa/*                - MFA operations
 ```
 
@@ -583,7 +583,6 @@ POST   /api/auth/mfa/*                - MFA operations
 ```
 GET    /api/organizations             - List organizations
 POST   /api/organizations             - Create organization
-GET    /api/organizations/:id         - Get organization
 GET    /api/company-profiles          - List profiles
 POST   /api/company-profiles          - Create profile
 GET    /api/company-profiles/:id      - Get profile
@@ -597,16 +596,16 @@ POST   /api/documents                 - Create document
 GET    /api/documents/:id             - Get document
 PUT    /api/documents/:id             - Update document
 DELETE /api/documents/:id             - Delete document
-GET    /api/documents/:id/history     - Version history
+GET    /api/documents/:id/versions    - Version history
 POST   /api/documents/generate        - Generate document
 ```
 
 ### AI Operations
 ```
 POST   /api/ai/chat                   - Chat with AI assistant
-POST   /api/ai/generate               - Generate content
-POST   /api/ai/analyze                - Analyze document
-POST   /api/ai/gap-analysis           - Compliance gap analysis
+POST   /api/ai/generate-compliance-docs - Generate compliance content
+POST   /api/ai/analyze-document       - Analyze document
+POST   /api/ai/risk-assessment        - AI risk assessment
 GET    /api/ai/health                 - AI service health
 GET    /api/ai/stats                  - AI usage statistics
 ```
@@ -614,11 +613,10 @@ GET    /api/ai/stats                  - AI usage statistics
 ### Compliance & Analytics
 ```
 GET    /api/gap-analysis              - Gap analysis reports
-POST   /api/gap-analysis              - Create analysis
-GET    /api/analytics/gap-analysis/:framework - Framework gap analysis
-GET    /api/analytics/compliance-trends - Compliance trends
+POST   /api/gap-analysis/generate     - Create analysis job
+POST   /api/analytics/risk-assessment - Risk assessment
+POST   /api/analytics/compliance-analysis - Compliance analysis
 GET    /api/frameworks                - List frameworks
-GET    /api/frameworks/:id/controls   - Framework controls
 ```
 
 ### Controls & Evidence
@@ -642,8 +640,8 @@ GET    /api/auditor/export            - Export audit reports
 ```
 GET    /health                        - Health check
 GET    /metrics                       - Prometheus metrics
-GET    /api-docs                      - Swagger UI (dev only)
-GET    /api-docs.json                 - OpenAPI spec
+GET    /api-docs                      - Swagger UI (when ENABLE_SWAGGER=true)
+GET    /api-docs.json                 - OpenAPI spec (when ENABLE_SWAGGER=true)
 ```
 
 ---
@@ -651,7 +649,7 @@ GET    /api-docs.json                 - OpenAPI spec
 ## Key Features
 
 ### AI-Powered Capabilities
-- **Multi-Model Orchestration**: GPT-5.1, Claude Opus 4.5, Gemini 3.0 Pro
+- **Multi-Model Orchestration**: GPT-5.4, Claude Sonnet 4.6, Gemini 3.1 Pro Preview
 - **Intelligent Document Generation**: Framework-specific templates
 - **Document Analysis**: Quality scoring and recommendations
 - **Compliance Gap Analysis**: Automated gap identification
@@ -722,13 +720,13 @@ npm run check        # TypeScript type checking
 npm test             # Run test suite
 npm test -- --watch  # Watch mode
 npm run db:push      # Apply database changes
-npm run db:studio    # Open Drizzle Studio
+npm run test:coverage # Coverage report
 ```
 
 ### Development Best Practices
 
 1. **Type Safety**: Use TypeScript throughout, avoid `any` types
-2. **Testing**: Write tests for new features, maintain 100% pass rate
+2. **Testing**: Write tests for new features and keep the main validation suite green
 3. **Security**: Follow OWASP guidelines, use validation
 4. **Documentation**: Update docs with code changes
 5. **Code Review**: Submit PRs for all changes
@@ -781,6 +779,6 @@ NODE_ENV=production npm start
 
 ---
 
-**Last Updated:** December 20, 2025
+**Last Updated:** April 12, 2026
 **Maintainer:** CyberDocGen Team
 **License:** MIT

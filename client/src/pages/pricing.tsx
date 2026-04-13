@@ -66,7 +66,7 @@ export default function Pricing() {
     },
     {
       question: "What AI models are included?",
-      answer: "All plans include access to GPT-5.1, Claude Opus 4.5, and Gemini 3.0 Pro with intelligent model routing."
+      answer: "All plans include access to GPT-5.4, Claude Sonnet 4.6, and Gemini 3.1 Pro Preview with intelligent model routing."
     },
     {
       question: "Can I export my data?",
@@ -187,7 +187,7 @@ export default function Pricing() {
                   { feature: "Team members", starter: "5", pro: "20", enterprise: "Unlimited" },
                   { feature: "Compliance frameworks", starter: "1", pro: "3", enterprise: "Unlimited" },
                   { feature: "AI generations/month", starter: "50", pro: "500", enterprise: "Unlimited" },
-                  { feature: "AI Models (GPT-5.1, Claude, Gemini)", starter: "Yes", pro: "Yes", enterprise: "Yes" },
+                  { feature: "AI Models (GPT-5.4, Claude, Gemini)", starter: "Yes", pro: "Yes", enterprise: "Yes" },
                   { feature: "Document storage", starter: "10 GB", pro: "100 GB", enterprise: "Unlimited" },
                   { feature: "Gap analysis", starter: "Basic", pro: "Advanced", enterprise: "Full suite" },
                   { feature: "Approval workflows", starter: "-", pro: "Yes", enterprise: "Yes" },

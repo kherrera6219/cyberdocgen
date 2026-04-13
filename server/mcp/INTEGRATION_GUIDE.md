@@ -144,7 +144,7 @@ const response = await mcpChatbot.processMessage(
 ## Agent Capabilities
 
 ### 1. Compliance Assistant
-**Model:** GPT-5.1
+**Model:** GPT-5.4
 **Tools:** 10 tools
 **Best for:**
 - Answering compliance questions
@@ -162,7 +162,7 @@ const response = await agentClient.execute({
 ```
 
 ### 2. Document Generator
-**Model:** Claude Opus 4.5
+**Model:** Claude Sonnet 4.6
 **Tools:** 9 tools
 **Best for:**
 - Creating policies and procedures
@@ -183,7 +183,7 @@ const response = await agentClient.execute({
 ```
 
 ### 3. Risk Assessment Specialist
-**Model:** GPT-4o
+**Model:** GPT-5.4
 **Tools:** 9 tools
 **Best for:**
 - Risk assessments
@@ -201,7 +201,7 @@ const response = await agentClient.execute({
 ```
 
 ### 4. Data Extraction Agent
-**Model:** Claude Sonnet 4
+**Model:** Claude Sonnet 4.6
 **Tools:** 4 tools
 **Best for:**
 - Extracting data from documents
@@ -218,7 +218,7 @@ const response = await agentClient.execute({
 ```
 
 ### 5. Compliance Chatbot
-**Model:** GPT-4o
+**Model:** GPT-5.4
 **Tools:** 10 tools
 **Best for:**
 - Quick answers
@@ -389,7 +389,7 @@ const customAgent: AgentConfig = {
   id: 'my-custom-agent',
   name: 'Custom Compliance Agent',
   description: 'Specialized agent for industry-specific compliance',
-  model: 'gpt-5.1',
+  model: 'gpt-5.4',
   tools: [
     'get_company_profile',
     'get_documents',

@@ -51,7 +51,7 @@ function registerPredefinedAgents(): void {
     id: 'compliance-assistant',
     name: 'Compliance Assistant',
     description: 'Expert assistant for compliance documentation, gap analysis, and framework implementation',
-    model: 'gpt-5.1',
+    model: 'gpt-5.4',
     tools: [
       'get_company_profile',
       'get_documents',
@@ -94,7 +94,7 @@ Always:
     id: 'document-generator',
     name: 'Document Generator',
     description: 'Specialized agent for generating compliance documents, policies, and procedures',
-    model: 'claude-sonnet-4',
+    model: 'claude-sonnet-4-6',
     tools: [
       'get_company_profile',
       'generate_document',
@@ -135,7 +135,7 @@ Always:
     id: 'risk-assessment',
     name: 'Risk Assessment Specialist',
     description: 'Expert in organizational risk assessment and threat analysis',
-    model: 'gpt-5.1',
+    model: 'gpt-5.4',
     tools: [
       'get_company_profile',
       'perform_risk_assessment',
@@ -181,7 +181,7 @@ Always:
     id: 'data-extractor',
     name: 'Data Extraction Agent',
     description: 'Specialized in extracting structured data from documents and external sources',
-    model: 'claude-sonnet-4',
+    model: 'claude-sonnet-4-6',
     tools: [
       'get_documents',
       'search_documents',
@@ -222,7 +222,7 @@ Always:
     id: 'compliance-chat',
     name: 'Compliance Chatbot',
     description: 'Interactive chatbot for answering compliance questions and providing guidance',
-    model: 'gpt-5.1',
+    model: 'gpt-5.4',
     tools: [
       'get_documents',
       'search_documents',
@@ -266,12 +266,12 @@ Always:
 
   // Direct Gemini Chat Agent
   const geminiDirect: AgentConfig = {
-    id: 'gemini-3-pro',
-    name: 'Gemini 3 Pro',
-    description: 'Direct Google Gemini conversational agent for fast drafting and brainstorming',
-    model: 'gemini-3-pro',
+    id: 'gemini-3.1-pro-preview',
+    name: 'Gemini 3.1 Pro Preview',
+    description: 'Direct Google Gemini conversational agent for fast drafting, reasoning, and brainstorming',
+    model: 'gemini-3.1-pro-preview',
     tools: [],
-    systemPrompt: `You are Gemini 3 Pro operating as an enterprise compliance assistant.
+    systemPrompt: `You are Gemini 3.1 Pro Preview operating as an enterprise compliance assistant.
 
 Your role is to:
 - Provide concise, accurate compliance guidance

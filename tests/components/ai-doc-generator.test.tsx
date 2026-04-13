@@ -649,7 +649,7 @@ describe('AI Document Generator Page', () => {
           status: 'draft',
           content: 'Policy content...',
           aiGenerated: true,
-          aiModel: 'claude-3-5-sonnet',
+          aiModel: 'claude-sonnet-4-6',
         },
       ];
 

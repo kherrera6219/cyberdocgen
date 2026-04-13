@@ -64,7 +64,7 @@ Focus on cybersecurity, data protection, and compliance aspects.`;
 
     try {
       const response = await getAnthropicClient().messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 2000,
         messages: [{
           role: "user",
@@ -109,7 +109,7 @@ Only include fields with actual values found in the document.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-5.4",
         messages: [{ role: "user", content: extractionPrompt }],
         response_format: { type: "json_object" },
         max_tokens: 1000
@@ -192,7 +192,7 @@ Keep the response focused and actionable.`;
 
     try {
       const response = await getAnthropicClient().messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 1500,
         messages: [{
           role: "user",

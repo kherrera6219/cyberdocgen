@@ -49,17 +49,14 @@ Our testing strategy follows these principles:
 
 - **Vitest** - Fast unit test framework (Vite-native)
 
-### Current Baseline (February 9, 2026 - 80% Global Gate)
+### Current Baseline
 
-Latest validated run:
+Use the current scripts in `package.json` as the source of truth:
 
-- `npm run test:coverage`: **PASS** (160 files, 1516 passing, 4 skipped; 80/80/80/80 thresholds satisfied)
-
-Global coverage snapshot:
-
-- Statements/Lines: **85.40%**
-- Functions: **81.47%**
-- Branches: **80.14%**
+- `npm run test:run` - non-watch test run used for local verification and CI
+- `npm test -- --watch` - interactive watch mode
+- `npm run test:coverage` - coverage run with threshold enforcement
+- `npm run test:e2e` - Playwright end-to-end suite
 
 Coverage infrastructure and newest additions:
 
@@ -153,7 +150,7 @@ tests/
 ### Run All Tests
 
 ```bash
-npm test
+npm run test:run
 ```
 
 ### Run Tests in Watch Mode
@@ -171,7 +168,7 @@ npm test tests/unit/validation.test.ts
 ### Run Tests with Coverage
 
 ```bash
-npm test -- --coverage
+npm run test:coverage
 ```
 
 ### Run Tests by Pattern
@@ -590,7 +587,7 @@ npm test -- --coverage
 
 Current enforced global gate:
 - **Statements**: 80%
-- **Branches**: 80%
+- **Branches**: 78%
 - **Functions**: 80%
 - **Lines**: 80%
 
@@ -646,7 +643,7 @@ jobs:
           node-version: '20'
       - run: npm ci
       - run: npm run check
-      - run: npm test -- --coverage
+      - run: npm run test:coverage
       - uses: codecov/codecov-action@v3
 ```
 

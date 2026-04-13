@@ -1,5 +1,7 @@
 # CyberDocGen Architecture Documentation
 
+See [DIAGRAMS.md](DIAGRAMS.md) for rendered system, deployment, AI, and evidence-flow diagrams.
+
 ## System Overview
 
 CyberDocGen is an enterprise-grade compliance management platform that leverages multiple AI models to automate compliance workflows. The system is built with modern web technologies and designed for scalability, security, and performance. It supports ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev 5 frameworks with comprehensive document generation, gap analysis, and risk assessment capabilities.
@@ -27,7 +29,7 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
   - Query timeout configuration (10s connection, 30s idle)
   - Graceful shutdown with proper cleanup
 - **Authentication**: Enterprise authentication with MFA support
-- **AI Integration**: Multi-model orchestration (OpenAI GPT-5.4, Anthropic Claude 4.6 Sonnet, Google Gemini 3.1 Pro)
+- **AI Integration**: Multi-model orchestration (OpenAI GPT-5.4, Anthropic Claude Sonnet 4.6, Google Gemini 3.1 Pro Preview)
 - **Storage**: Cloud object storage for document assets (Google Cloud Storage)
 - **Route Modules**: 27 organized API route modules
 - **Business Services**: 37 specialized service modules
@@ -51,8 +53,8 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 The system implements intelligent model selection based on task requirements with automatic fallback:
 
 - **OpenAI GPT-5.4**: Document generation, content analysis (latest flagship model, March 2026)
-- **Anthropic Claude 4.6 Sonnet**: Complex reasoning, profile integration (latest reasoning model, March 2026)
-- **Google Gemini 3.1 Pro**: Multimodal analysis, compliance review (latest multimodal model, March 2026)
+- **Anthropic Claude Sonnet 4.6**: Complex reasoning, profile integration (latest reasoning model, March 2026)
+- **Google Gemini 3.1 Pro Preview**: Multimodal analysis, compliance review (latest multimodal model, March 2026)
 - **Automatic Fallback**: Graceful degradation when models are unavailable with health checking
 - **Load Balancing**: Intelligent distribution across available models
 
@@ -218,8 +220,8 @@ CyberDocGen implements the Model Context Protocol to enable programmatic access 
 
 **AI Services**:
 - `aiOrchestrator`: Multi-model coordination with intelligent routing
-- `openai`: GPT-5.1 integration and management
-- `anthropic`: Claude Opus 4.5 integration
+- `openai`: GPT-5.4 integration and management
+- `anthropic`: Claude Sonnet 4.6 integration
 - `aiGuardrailsService`: Safety checks and PII protection
 - `aiFineTuningService`: Custom model training capabilities
 - `aiModels`: Model configuration and management

@@ -69,14 +69,14 @@ export class ComplianceChatbot {
         userId,
         organizationId,
         actionType: "chat_response",
-        model: "claude-sonnet-4",
+        model: "claude-sonnet-4-6",
         prompt: message,
         expectedResponseTokens: 1500,
       });
       if (!budgetCheck.allowed) {
         await aiMetadataAuditService.record({
           actionType: "chat_response",
-          model: "claude-sonnet-4",
+          model: "claude-sonnet-4-6",
           userId,
           organizationId,
           requestId,
@@ -115,7 +115,7 @@ export class ComplianceChatbot {
         });
         await aiMetadataAuditService.record({
           actionType: "chat_response",
-          model: "claude-sonnet-4",
+          model: "claude-sonnet-4-6",
           userId,
           organizationId,
           requestId,
@@ -177,7 +177,7 @@ export class ComplianceChatbot {
       if (!outputCheck.allowed && outputCheck.action === 'blocked') {
         await aiMetadataAuditService.record({
           actionType: "chat_response",
-          model: response.model || "claude-sonnet-4",
+          model: response.model || "claude-sonnet-4-6",
           userId,
           organizationId,
           requestId,
@@ -227,7 +227,7 @@ export class ComplianceChatbot {
         userId,
         organizationId,
         actionType: "chat_response",
-        model: response.model || "claude-sonnet-4",
+        model: response.model || "claude-sonnet-4-6",
         prompt: sanitizedMessage,
         response: response.content,
         purposeDescription: "Interactive compliance chat guidance",
@@ -238,7 +238,7 @@ export class ComplianceChatbot {
       const outputClassification = aiOutputClassificationService.classify(response.content);
       await aiMetadataAuditService.record({
         actionType: "chat_response",
-        model: response.model || "claude-sonnet-4",
+        model: response.model || "claude-sonnet-4-6",
         userId,
         organizationId,
         requestId,
@@ -318,7 +318,7 @@ Format your response as JSON with:
     try {
       // Use Anthropic for complex reasoning and analysis
       const response = await getAnthropicClient().messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 1500,
         messages: [
           { role: "user", content: `${systemPrompt}\n\n${userPrompt}` }
@@ -336,7 +336,7 @@ Format your response as JSON with:
           sources: Array.isArray(parsed.sources) ? parsed.sources : relevantDocs.map(doc => doc.metadata.filename),
           suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
           followUpQuestions: Array.isArray(parsed.followUpQuestions) ? parsed.followUpQuestions : [],
-          model: "claude-sonnet-4",
+          model: "claude-sonnet-4-6",
         };
       } catch {
         // Fallback to structured parsing
@@ -373,7 +373,7 @@ Provide a helpful, actionable response.`;
 
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-5.4",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1000
       });
@@ -386,7 +386,7 @@ Provide a helpful, actionable response.`;
         sources: relevantDocs.map(doc => doc.metadata.filename),
         suggestions: ["Review your current compliance documentation", "Consider updating your policies"],
         followUpQuestions: ["What specific compliance areas need attention?", "How can I improve my security posture?"],
-        model: "gpt-5.1",
+        model: "gpt-5.4",
       };
     } catch (error) {
       logger.error("Fallback response failed:", error);
@@ -447,7 +447,7 @@ Provide a helpful, actionable response.`;
       sources: relevantDocs.map(doc => doc.metadata.filename),
       suggestions: ["Consider reviewing related documentation", "Implement recommended controls"],
       followUpQuestions: ["What are the next steps?", "How can I verify compliance?"],
-      model: "claude-sonnet-4",
+      model: "claude-sonnet-4-6",
     };
   }
 
@@ -457,7 +457,7 @@ Provide a helpful, actionable response.`;
   async generateConversationTitle(firstMessage: string): Promise<string> {
     try {
       const response = await getOpenAIClient().chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-5.4",
         messages: [{
           role: "user",
           content: `Generate a concise title (3-6 words) for a compliance conversation that starts with: "${firstMessage}"`

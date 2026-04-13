@@ -32,7 +32,7 @@ export function registerAnalyticsRoutes(router: Router) {
       userId,
       requestId,
       modelProvider: 'anthropic',
-      modelName: 'claude-sonnet-4-20250514',
+      modelName: 'claude-sonnet-4-6',
       ipAddress: req.ip
     });
 
@@ -52,7 +52,7 @@ export function registerAnalyticsRoutes(router: Router) {
     const systemPrompt = `You are a cybersecurity risk analyst. Analyze the company profile and provide a comprehensive risk assessment with specific recommendations.`;
     
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 2000,
       system: systemPrompt,
       messages: [{
@@ -68,7 +68,7 @@ export function registerAnalyticsRoutes(router: Router) {
       success: true,
       data: {
         riskAssessment: analysisText,
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         usage: response.usage
       }
     });
@@ -199,7 +199,7 @@ export function registerAnalyticsRoutes(router: Router) {
       userId,
       requestId,
       modelProvider: 'anthropic',
-      modelName: 'claude-sonnet-4-20250514',
+      modelName: 'claude-sonnet-4-6',
       ipAddress: req.ip
     });
 
@@ -218,7 +218,7 @@ export function registerAnalyticsRoutes(router: Router) {
     const anthropic = getAnthropicClient();
     
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1500,
       messages: [{
         role: "user",
@@ -233,7 +233,7 @@ export function registerAnalyticsRoutes(router: Router) {
       success: true,
       data: {
         qualityAnalysis: qualityText,
-        model: "claude-sonnet-4-20250514"
+        model: "claude-sonnet-4-6"
       }
     });
   }));
@@ -248,7 +248,7 @@ export function registerAnalyticsRoutes(router: Router) {
       userId,
       requestId,
       modelProvider: 'anthropic',
-      modelName: 'claude-sonnet-4-20250514',
+      modelName: 'claude-sonnet-4-6',
       ipAddress: req.ip
     });
 
@@ -269,7 +269,7 @@ export function registerAnalyticsRoutes(router: Router) {
     const systemPrompt = `You are an expert ${framework || 'compliance'} compliance advisor. Answer questions clearly and provide actionable guidance. Context: ${context || 'General compliance inquiry'}`;
     
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1000,
       system: systemPrompt,
       messages: [{
@@ -285,7 +285,7 @@ export function registerAnalyticsRoutes(router: Router) {
       success: true,
       data: {
         reply: replyText,
-        model: "claude-sonnet-4-20250514"
+        model: "claude-sonnet-4-6"
       }
     });
   }));

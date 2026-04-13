@@ -351,12 +351,12 @@ class ModelTransparencyService {
     const defaultCards: CreateModelCardInput[] = [
       {
         modelProvider: "openai",
-        modelName: "gpt-5.1",
-        modelVersion: "2024-08-06",
-        description: "GPT-4o is OpenAI's most advanced multimodal model, capable of processing text and images.",
+        modelName: "gpt-5.4",
+        modelVersion: "2026-03-05",
+        description: "GPT-5.4 is OpenAI's frontier model for complex professional work, reasoning, and coding assistance.",
         intendedUse: "Enterprise compliance document generation, analysis, and risk assessment.",
         limitations: "May occasionally produce incorrect information. Should be reviewed by compliance professionals for critical use cases.",
-        trainingData: "Trained on diverse internet text data up to October 2023.",
+        trainingData: "Trained on diverse data with a published knowledge cutoff from August 2025.",
         performanceMetrics: {
           accuracy: 0.92,
           latencyMs: 2000,
@@ -373,9 +373,9 @@ class ModelTransparencyService {
       },
       {
         modelProvider: "anthropic",
-        modelName: "claude-3-5-sonnet",
-        modelVersion: "20241022",
-        description: "Claude 3.5 Sonnet is Anthropic's balanced model offering strong performance with enhanced safety features.",
+        modelName: "claude-sonnet-4-6",
+        modelVersion: "2026-02-17",
+        description: "Claude Sonnet 4.6 is Anthropic's current long-context reasoning model for policy analysis and compliance review.",
         intendedUse: "Enterprise compliance analysis, document review, and policy generation with strong safety guarantees.",
         limitations: "May decline to answer questions about harmful or regulated content. Best suited for professional and compliance use cases.",
         trainingData: "Trained with Constitutional AI principles on diverse text data.",
