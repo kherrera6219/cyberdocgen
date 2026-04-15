@@ -50,7 +50,7 @@
     "db:validate-parity": "tsx scripts/validate-schema-parity.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.70.1",
+    "@anthropic-ai/sdk": "^0.89.0",
     "@google-cloud/error-reporting": "^3.0.0",
     "@google-cloud/logging-winston": "^6.0.1",
     "@google-cloud/storage": "^7.19.0",
