@@ -63,7 +63,7 @@
     "@neondatabase/serverless": "^0.10.4",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.68.0",
-    "@opentelemetry/resources": "^2.4.0",
+    "@opentelemetry/resources": "^2.6.1",
     "@opentelemetry/sdk-node": "^0.210.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
