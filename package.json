@@ -195,7 +195,7 @@
     "@types/jest-axe": "^3.5.9",
     "@types/jsdom": "^27.0.0",
     "@types/multer": "^2.0.0",
-    "@types/node": "^20.19.26",
+    "@types/node": "^20.19.39",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
     "@types/pdf-parse": "^1.1.5",
