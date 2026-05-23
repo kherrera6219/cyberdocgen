@@ -349,46 +349,6 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-
-    startupLogger.info('Server startup sequence initiated successfully', {
-      logPath: startupLogger.getLogPath(),
-      port: currentServerPort
-    });
-
-  } catch (error) {
-    const errorDetails = {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      type: error instanceof Error ? error.constructor.name : typeof error
-    };
-
-    startupLogger.error('CRITICAL: Exception during server startup', errorDetails);
-    
-    dialog.showErrorBox(
-      'Startup Error', 
-      `Failed to start backend server: ${errorDetails.message}\n\nLog file: ${startupLogger.getLogPath()}`
-    );
-  }
-}
-
-/**
- * Create the main application window
- */
-function createWindow() {
-  const windowState = loadWindowState();
-
-  mainWindow = new BrowserWindow({
-    x: windowState.x,
-    y: windowState.y,
-    width: windowState.width,
-    height: windowState.height,
-    minWidth: 1024,
-    minHeight: 768,
-    title: 'CyberDocGen',
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
       preload: path.join(__dirname, 'preload.js'),
       // Security: Content Security Policy
       webSecurity: true,
