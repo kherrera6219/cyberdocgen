@@ -27,9 +27,7 @@ export default function Header() {
     return email?.split('@')[0]?.slice(0, 2)?.toUpperCase() || 'U';
   };
 
-  const getInitials = (email?: string) => {
-    return email?.split('@')[0]?.slice(0, 2)?.toUpperCase() || 'U';
-  };
+
 
   const getUserName = (email?: string) => {
     return email?.split('@')[0] || 'User';

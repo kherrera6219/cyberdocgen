@@ -10,7 +10,7 @@ import { registerSqliteCompatibilityFunctions } from "./utils/sqliteCompatibilit
 
 const isLocalMode = runtimeIsLocalMode();
 
-let pool: any = null;
+const pool: any = null;
 let db: any = null;
 let localSqlite: BetterSqliteDatabase | null = null;
 let localDbPath: string | null = null;

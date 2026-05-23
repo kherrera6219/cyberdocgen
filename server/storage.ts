@@ -1107,7 +1107,7 @@ export class MemStorage implements IStorage {
     const newStatus: FrameworkControlStatus = {
       id: randomUUID(),
       organizationId,
-      framework: framework as FrameworkControlStatus["framework"],
+      framework: framework,
       controlId,
       status: updates.status ?? "not_started",
       evidenceStatus: updates.evidenceStatus ?? "none",
@@ -2137,7 +2137,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(frameworkControlStatuses.organizationId, organizationId),
-          eq(frameworkControlStatuses.framework, framework as FrameworkControlStatus["framework"])
+          eq(frameworkControlStatuses.framework, framework)
         )
       );
   }
@@ -2154,7 +2154,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(frameworkControlStatuses.organizationId, organizationId),
-          eq(frameworkControlStatuses.framework, framework as FrameworkControlStatus["framework"]),
+          eq(frameworkControlStatuses.framework, framework),
           eq(frameworkControlStatuses.controlId, controlId)
         )
       );
@@ -2179,7 +2179,7 @@ export class DatabaseStorage implements IStorage {
       .insert(frameworkControlStatuses)
       .values({
         organizationId,
-        framework: framework as FrameworkControlStatus["framework"],
+        framework: framework,
         controlId,
         status: updates.status ?? "not_started",
         evidenceStatus: updates.evidenceStatus ?? "none",

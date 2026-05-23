@@ -170,16 +170,16 @@ export class RepositoryFindingsService {
       if (filters.framework) {
         conditions.push(eq(repositoryFindings.framework, filters.framework));
       }
-      if (filters.status && validStatuses.includes(filters.status as RepositoryFinding['status'])) {
-        conditions.push(eq(repositoryFindings.status, filters.status as RepositoryFinding['status']));
+      if (filters.status && validStatuses.includes(filters.status as any)) {
+        conditions.push(eq(repositoryFindings.status, filters.status as any));
       }
       if (
         filters.confidenceLevel &&
-        validConfidenceLevels.includes(filters.confidenceLevel as RepositoryFinding['confidenceLevel'])
+        validConfidenceLevels.includes(filters.confidenceLevel as any)
       ) {
         conditions.push(eq(
           repositoryFindings.confidenceLevel,
-          filters.confidenceLevel as RepositoryFinding['confidenceLevel']
+          filters.confidenceLevel as any
         ));
       }
       if (filters.signalType) {
