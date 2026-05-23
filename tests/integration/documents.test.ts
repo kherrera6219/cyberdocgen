@@ -246,7 +246,7 @@ describe('Documents Routes', () => {
         it('generates a single document using AI orchestrator', async () => {
             (multiTenantMock.getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: true });
             (storage.getCompanyProfile as any).mockResolvedValue({ id: 'cp-1' });
-            (aiOrchestrator.generateDocument as any).mockResolvedValue({ content: 'AI Content', model: 'gpt-4' });
+            (aiOrchestrator.generateDocument as any).mockResolvedValue({ content: 'AI Content', model: 'gpt-5.4' });
             (storage.createDocument as any).mockResolvedValue({ id: 'doc-ai' });
 
             const response = await request(app)

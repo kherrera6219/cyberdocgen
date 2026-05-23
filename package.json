@@ -7,7 +7,7 @@
   "main": "dist/electron/main.js",
   "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
-    "dev": "cross-env DEPLOYMENT_MODE=cloud NODE_ENV=development tsx server/index.ts",
+    "dev": "cross-env DEPLOYMENT_MODE=local NODE_ENV=development tsx server/index.ts",
     "build": "vite build && node scripts/build-server.js",
     "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
@@ -22,7 +22,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "prepare": "node -e \"const fs=require('fs');const p='node_modules/husky/bin.js';if(fs.existsSync(p)){require('child_process').execFileSync(process.execPath,[p],{stdio:'inherit'});}else{console.log('husky not installed; skipping prepare');}\"",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5000 && electron .\"",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5231 && electron .\"",
     "electron:build": "esbuild electron/main.ts electron/preload.ts --platform=node --bundle --format=esm --packages=external --outdir=dist/electron",
     "electron:rebuild-native": "electron-rebuild -f -o better-sqlite3 --build-from-source",
     "electron:install-app-deps": "electron-builder install-app-deps",

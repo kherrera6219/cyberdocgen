@@ -114,7 +114,7 @@ export function FrameworkGenerationCards({
         {/* Additional Frameworks Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* FedRAMP Card */}
-          <Card className="border border-gray-200">
+          <Card className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:border-primary/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
@@ -142,7 +142,7 @@ export function FrameworkGenerationCards({
           </Card>
 
           {/* NIST Card */}
-          <Card className="border border-gray-200">
+          <Card className="border border-gray-200 dark:border-gray-700 dark:bg-gray-800 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:border-primary/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">

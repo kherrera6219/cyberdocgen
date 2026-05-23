@@ -16,7 +16,8 @@ import {
   Plus,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  FolderOpen
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
@@ -152,11 +153,45 @@ export default function Documents() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Add New Document</DialogTitle>
-                    <DialogDescription>Fill in the details below to create a new document.</DialogDescription>
+                    <DialogDescription>Create a new compliance document manually or start from a template.</DialogDescription>
                   </DialogHeader>
-                  {/* Placeholder for the actual form */}
-                  <div className="py-4">
-                    <p>Document creation form will go here.</p>
+                  <div className="py-4 space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Document Title</label>
+                      <Input placeholder="e.g., Information Security Policy" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Framework</label>
+                      <Select defaultValue="ISO27001">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Framework" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ISO27001">ISO 27001</SelectItem>
+                          <SelectItem value="SOC2">SOC 2 Type II</SelectItem>
+                          <SelectItem value="FedRAMP">FedRAMP</SelectItem>
+                          <SelectItem value="NIST">NIST 800-53</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Category</label>
+                      <Select defaultValue="policy">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="policy">Policy</SelectItem>
+                          <SelectItem value="procedure">Procedure</SelectItem>
+                          <SelectItem value="evidence">Evidence</SelectItem>
+                          <SelectItem value="plan">Plan</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline">Cancel</Button>
+                    <Button>Create Document</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -182,11 +217,25 @@ export default function Documents() {
 
         <CardContent className="p-0">
           {filteredDocuments.length === 0 ? (
-            <div className="px-4 sm:px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-              {documents.length === 0 
-                ? "No documents generated yet. Start by generating documents for your chosen framework."
-                : "No documents match your current filters."
-              }
+            <div className="px-4 sm:px-6 py-16 flex flex-col items-center justify-center text-center">
+              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                <FolderOpen className="w-10 h-10 text-primary/60" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                {documents.length === 0 ? "No documents yet" : "No matching documents"}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
+                {documents.length === 0 
+                  ? "Start building your compliance foundation by generating documents or uploading existing ones."
+                  : "Try adjusting your search terms or filters to find what you're looking for."
+                }
+              </p>
+              {documents.length === 0 && (
+                <Button onClick={() => window.location.href = '/'}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Generate Documents
+                </Button>
+              )}
             </div>
           ) : (
             <>

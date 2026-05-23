@@ -212,6 +212,7 @@ function App() {
           <TooltipProvider>
             <AppErrorHandler />
             <Toaster />
+            <KeyboardShortcuts />
             <AppContent />
           </TooltipProvider>
         </QueryClientProvider>
@@ -221,6 +222,7 @@ function App() {
 }
 
 import { NetworkBanner } from "./components/NetworkBanner";
+import { KeyboardShortcuts } from "@/components/ui/KeyboardShortcuts";
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();

@@ -16,7 +16,9 @@ vi.mock("wouter", () => ({
 describe("GlobalSearch interactions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    window.localStorage.clear();
+    if (typeof localStorage !== 'undefined') {
+      localStorage.clear();
+    }
   });
 
   it("searches results, navigates on select, and stores recent search", async () => {
@@ -58,14 +60,14 @@ describe("GlobalSearch interactions", () => {
       expect(setLocationMock).toHaveBeenCalledWith("/workspace?doc=doc-1");
     });
 
-    expect(JSON.parse(window.localStorage.getItem("recentSearches") || "[]")).toContain(
+    expect(JSON.parse(localStorage.getItem("recentSearches") || "[]")).toContain(
       "access"
     );
   });
 
   it("shows and clears recent searches", async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem("recentSearches", JSON.stringify(["audit", "profile"]));
+    localStorage.setItem("recentSearches", JSON.stringify(["audit", "profile"]));
 
     renderWithProviders(<GlobalSearch />);
 
@@ -75,7 +77,7 @@ describe("GlobalSearch interactions", () => {
     expect(screen.getByText("profile")).toBeInTheDocument();
 
     await user.click(screen.getByText(/clear recent searches/i));
-    expect(window.localStorage.getItem("recentSearches")).toBeNull();
+    expect(localStorage.getItem("recentSearches")).toBeNull();
   });
 
   it("opens dialog with keyboard shortcut", async () => {

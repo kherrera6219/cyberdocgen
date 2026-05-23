@@ -66,7 +66,7 @@ export function registerAnalysisRoutes(router: Router) {
       userId,
       requestId,
       modelProvider: 'openai',
-      modelName: 'gpt-4o-mini',
+      modelName: 'gpt-5-mini',
       ipAddress: req.ip
     });
 
@@ -221,7 +221,7 @@ export function registerAnalysisRoutes(router: Router) {
       userId,
       requestId,
       modelProvider: 'openai',
-      modelName: 'gpt-4o-mini',
+      modelName: 'gpt-5-mini',
       ipAddress: req.ip
     });
 

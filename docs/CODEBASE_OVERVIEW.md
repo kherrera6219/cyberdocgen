@@ -27,7 +27,7 @@
 
 ## Executive Summary
 
-**CyberDocGen** is a production-ready, enterprise-grade compliance management platform with AI-powered capabilities. It automates the generation, analysis, and management of compliance documentation for multiple frameworks including ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev 5.
+**CyberDocGen** is a production-ready, enterprise-grade compliance management platform with AI-powered capabilities. It is currently deployed as a **Local-First Windows Desktop Application** using SQLite and Electron, ensuring that all data remains secure and isolated on the user's local machine. It automates the generation, analysis, and management of compliance documentation for multiple frameworks including ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev 5.
 
 ### Key Characteristics
 
@@ -50,7 +50,7 @@
 | **TypeScript** | 5.9 | Type-safe development |
 | **Vite** | 6.4 | Lightning-fast build tool |
 | **Tailwind CSS** | 3.4 | Utility-first styling |
-| **Radix UI** | Latest | Accessible component primitives (51+ components) |
+| **Radix UI** | Latest | Accessible component primitives (52+ components) |
 | **TanStack Query** | Latest | Server state management |
 | **React Hook Form** | Latest | Performant form handling |
 | **Zod** | Latest | TypeScript-first schema validation |
@@ -78,9 +78,9 @@
 
 ### Infrastructure
 
-- **Database**: Neon Serverless PostgreSQL
-- **Storage**: Google Cloud Storage (via Replit Object Storage)
-- **Deployment**: Replit Deployments
+- **Database**: Local SQLite (via `better-sqlite3`)
+- **Storage**: Local file system (AppData folder)
+- **Deployment**: Windows Desktop Installer (.exe built with Electron builder)
 - **Logging**: Winston structured logging
 - **Testing**: Vitest + Testing Library
 
@@ -92,11 +92,11 @@
 
 | Category | Count | Details |
 |----------|-------|---------|
-| **Frontend Pages** | 41 | Fully implemented page components |
+| **Frontend Pages** | 43 | Fully implemented page components |
 | **UI Components** | 93+ | Organized by feature/domain |
-| **Custom Hooks** | 6 | Specialized React hooks |
-| **Backend Routes** | 26 | API route modules |
-| **Services** | 36 | Business logic services |
+| **Custom Hooks** | 9 | Specialized React hooks |
+| **Backend Routes** | 32 | API route modules |
+| **Services** | 61 | Business logic services |
 | **Middleware** | 4 | Express middleware modules |
 | **Database Tables** | 40+ | Multi-tenant schema |
 | **Schema Lines** | 1,670+ | Database schema definition |
@@ -122,7 +122,7 @@
 cyberdocgen/
 ├── client/                          # React Frontend Application
 │   ├── src/
-│   │   ├── pages/                  # 41 Page Components
+│   │   ├── pages/                  # 43 Page Components
 │   │   │   ├── landing.tsx         # Landing page
 │   │   │   ├── dashboard.tsx       # Main dashboard
 │   │   │   ├── documents.tsx       # Document management
@@ -152,7 +152,7 @@ cyberdocgen/
 │   │   │   ├── collaboration/      # Collaboration features
 │   │   │   └── notifications/      # Notification system
 │   │   │
-│   │   ├── hooks/                  # 6 Custom Hooks
+│   │   ├── hooks/                  # 9 Custom Hooks
 │   │   │   ├── useAuth.ts
 │   │   │   ├── use-toast.ts
 │   │   │   ├── use-mobile.tsx
@@ -171,7 +171,7 @@ cyberdocgen/
 │   ├── index.ts                    # Server Entry Point
 │   ├── routes.ts                   # API Routes Aggregation
 │   │
-│   ├── routes/                     # 25 API Route Modules
+│   ├── routes/                     # 32 API Route Modules
 │   │   ├── organizations.ts        # Multi-tenant management
 │   │   ├── companyProfiles.ts      # Company data
 │   │   ├── documents.ts            # Document CRUD
@@ -196,7 +196,7 @@ cyberdocgen/
 │   │   ├── auditTrail.ts           # Audit logging
 │   │   └── ... (25 total modules)
 │   │
-│   ├── services/                   # 36 Business Logic Services
+│   ├── services/                   # 61 Business Logic Services
 │   │   ├── AI Services/
 │   │   │   ├── aiOrchestrator.ts   # Multi-model orchestration (18.8 KB)
 │   │   │   ├── openai.ts           # GPT-5.4 integration (112 KB)
@@ -313,7 +313,7 @@ cyberdocgen/
 
 ## Frontend Architecture
 
-### Pages Overview (41 Total)
+### Pages Overview (43 Total)
 
 #### Core Pages
 - **landing.tsx** - Marketing landing page
@@ -402,7 +402,7 @@ cyberdocgen/
 
 ## Backend Architecture
 
-### Route Modules (25 Total)
+### Route Modules (32 Total)
 
 #### Core Routes
 1. **organizations.ts** - Multi-tenant organization management
@@ -657,14 +657,11 @@ GET    /api-docs.json                 - OpenAPI spec (when ENABLE_SWAGGER=true)
 - **Compliance Chatbot**: Context-aware Q&A
 - **AI Guardrails**: Prompt injection detection, PII redaction
 
-### Enterprise Features
-- **Multi-Factor Authentication**: TOTP-based with backup codes
-- **Organization Management**: Multi-tenant architecture
-- **Cloud Integrations**: Google Drive, OneDrive OAuth
-- **Audit Trails**: Immutable logs with tamper detection
-- **Version Control**: Complete document history
-- **Session Risk Scoring**: Adaptive authentication
-- **Model Context Protocol**: Claude Code integration
+### Desktop & Enterprise Features
+- **Native Desktop App**: Built on Electron with a custom frameless window UI, persistent status bar, and global file dropzones
+- **Local-First Storage**: SQLite database for isolated, offline operations
+- **Keyboard Shortcuts**: Built-in global shortcuts (e.g. `Ctrl+/`)
+- **Model Context Protocol**: MCP server integration for agent workflows
 
 ### Compliance Management
 - **Frameworks**: ISO 27001:2022, SOC 2, FedRAMP, NIST 800-53 Rev 5

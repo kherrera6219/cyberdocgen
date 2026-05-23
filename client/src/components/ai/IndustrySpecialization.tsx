@@ -440,7 +440,7 @@ export function IndustrySpecialization() {
                       <div className="flex justify-between">
                         <span>Preferred Model:</span>
                         <Badge variant={industryConfig.configuration.modelPreferences.preferred === 'anthropic' ? 'default' : 'secondary'}>
-                          {industryConfig.configuration.modelPreferences.preferred === 'anthropic' ? 'Claude' : 'GPT-4'}
+                          {industryConfig.configuration.modelPreferences.preferred === 'anthropic' ? 'Claude' : 'GPT-5.4'}
                         </Badge>
                       </div>
                       <div className="flex justify-between">
@@ -499,7 +499,7 @@ export function IndustrySpecialization() {
 
                     <div className="flex items-center justify-between">
                       <Badge variant={industry.modelPreferences.preferred === 'anthropic' ? 'default' : 'secondary'}>
-                        {industry.modelPreferences.preferred === 'anthropic' ? 'Claude' : 'GPT-4'}
+                        {industry.modelPreferences.preferred === 'anthropic' ? 'Claude' : 'GPT-5.4'}
                       </Badge>
                       <div className="text-xs text-muted-foreground">
                         {industry.complianceRequirements.length} requirements

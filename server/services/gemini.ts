@@ -3,7 +3,7 @@ import { getGeminiClient as getSharedGeminiClient, resetAIClients } from "./aiCl
 
 // Gemini model IDs — verified March 2026
 // Primary:  gemini-3.1-pro-preview — replaces deprecated 3.0-pro (shut down Mar 9, 2026)
-// Fallback: gemini-2.0-flash       — stable GA, fast and cost-effective
+// Fallback: gemini-3.1-flash-lite-preview       — stable GA, fast and cost-effective
 const GEMINI_PRO_MODEL = "gemini-3.1-pro-preview";
 const GEMINI_FLASH_MODEL = "gemini-3.1-flash-lite-preview";
 

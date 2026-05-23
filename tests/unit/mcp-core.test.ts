@@ -110,7 +110,7 @@ describe('MCP Core Unit Tests', () => {
     });
 
     it('generateWithExistingService should wrap aiOrchestrator', async () => {
-      (aiOrchestrator.generateDocument as any).mockResolvedValue({ qualityScore: 85, model: 'gpt-4' });
+      (aiOrchestrator.generateDocument as any).mockResolvedValue({ qualityScore: 85, model: 'gpt-5.4' });
       const result = await generateWithExistingService({}, {}, 'NIST');
       expect(result.success).toBe(true);
       expect(result.metadata!.qualityScore).toBe(85);

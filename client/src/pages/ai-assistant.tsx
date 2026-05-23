@@ -856,7 +856,7 @@ export default function AIAssistant() {
                 {attachments.length > 0 && (
                   <div className="grid gap-2 md:grid-cols-2">
                     {attachments.map((attachment) => (
-                      <div key={attachment.id} className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2">
+                      <div key={attachment.id} className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2 animate-in fade-in zoom-in duration-300 hover:bg-muted/60 transition-colors">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             {getFileIcon(attachment.type)}
@@ -898,7 +898,7 @@ export default function AIAssistant() {
                   onChange={(event) => setInputMessage(event.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ask me anything about compliance..."
-                  className="min-h-[110px] resize-y"
+                  className="min-h-[110px] resize-y focus-visible:ring-2 focus-visible:ring-primary/50 transition-all duration-300"
                   disabled={executeAgentMutation.isPending}
                   data-testid="textarea-message"
                 />

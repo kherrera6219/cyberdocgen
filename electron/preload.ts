@@ -50,6 +50,10 @@ const electronAPI = {
     onRendererEvent('update-download-progress', callback),
   onUpdateDownloaded: (callback: (info: unknown) => void) => onRendererEvent('update-downloaded', callback),
   onUpdateError: (callback: (message: string) => void) => onRendererEvent('update-error', callback),
+  // Window controls
+  minimizeWindow: () => ipcRenderer.send('window-minimize'),
+  maximizeWindow: () => ipcRenderer.send('window-maximize'),
+  closeWindow: () => ipcRenderer.send('window-close'),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

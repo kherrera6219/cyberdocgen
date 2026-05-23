@@ -7,7 +7,7 @@
   ; - Windows progress page during file copy
   DetailPrint "Standard installer wizard enabled: directory chooser + install progress page"
 
-  ; Show an explicit completion notification for interactive installs removed to prevent blocking.
-  DetailPrint "Installation complete."
+  IfSilent skip_install_message
+  MessageBox MB_OK "Installation is complete."
 skip_install_message:
 !macroend

@@ -66,3 +66,12 @@
 | SEC-01 | Resolve remaining `npm audit` advisories without regressions | DONE | `npm audit --omit=dev` and full `npm audit` now both report `0` vulnerabilities |
 | STORE-01 | Complete Microsoft Partner Center submission actions (identity/listing/upload/certification) | EXTERNAL | Requires Partner Center account operations outside repo automation |
 | FB-01 | Complete Firebase project/secrets/deploy track | EXTERNAL | Requires Firebase project setup and operator-managed secrets/deployment |
+
+## UI/UX Deep Review Findings
+
+The following items were identified during the deep component review and need to be implemented to achieve a premium, state-of-the-art desktop feel:
+
+- [x] **Micro-Animations:** Add subtle hover effects (`hover:-translate-y-1 hover:shadow-lg hover:border-primary/50`) to interactive components like `FrameworkGenerationCards` and `RecentDocuments`.
+- [x] **Empty States:** Replace plain text empty states (e.g., in `documents.tsx` and `RecentDocuments`) with visually appealing placeholder components featuring scaled icons, bold headers, and clear Call-to-Action buttons.
+- [x] **Placeholder Forms:** Build out the "New Document" placeholder dialog in `documents.tsx` with a proper polished form (`<Input>`, `<Select>`, `<Textarea>`).
+- [x] **AI Assistant Polish:** Add a glowing focus ring to the chat input (`focus-within:ring-2 focus-within:ring-primary/50`) and smooth removal transitions to attachment pills.

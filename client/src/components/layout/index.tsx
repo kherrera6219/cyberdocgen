@@ -2,12 +2,15 @@ import React, { ReactNode } from "react";
 import Sidebar from "./sidebar";
 import Header from "./header";
 import MobileNavigation from "./mobile-navigation";
+
 import { OfflineIndicator } from "./offline-indicator";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { TempUserBanner } from "@/components/TemporaryLoginDialog";
 import { LocalModeBanner } from "@/components/local-mode/LocalModeBanner";
 import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { SkipNavigation } from "@/components/SkipNavigation";
+import { StatusBar } from "./StatusBar";
+import { GlobalDropzone } from "./GlobalDropzone";
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,7 +20,8 @@ export default function Layout({ children }: LayoutProps) {
   const { isOnline } = useOnlineStatus();
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 transition-colors relative">
+      <GlobalDropzone />
       <SkipNavigation />
       <LocalModeBanner />
       <TempUserBanner />
@@ -46,6 +50,7 @@ export default function Layout({ children }: LayoutProps) {
           <MobileNavigation />
         </div>
       </div>
+      <StatusBar />
     </div>
   );
 }

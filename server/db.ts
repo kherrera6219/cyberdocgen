@@ -1,9 +1,6 @@
-import { Pool, neonConfig } from "@neondatabase/serverless";
 import * as schema from "@shared/schema";
-import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
 import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
 import BetterSqlite3, { type Database as BetterSqliteDatabase } from "better-sqlite3";
-import ws from "ws";
 import path from "path";
 import fs from "fs";
 import { logger } from "./utils/logger";
@@ -11,11 +8,9 @@ import { getRuntimeConfig, isLocalMode as runtimeIsLocalMode } from "./config/ru
 import { createIntegrityEnvelope, verifyIntegrityEnvelope, type IntegrityEnvelope } from "./utils/dataIntegrity";
 import { registerSqliteCompatibilityFunctions } from "./utils/sqliteCompatibility";
 
-neonConfig.webSocketConstructor = ws;
-
 const isLocalMode = runtimeIsLocalMode();
 
-let pool: Pool | null = null;
+let pool: any = null;
 let db: any = null;
 let localSqlite: BetterSqliteDatabase | null = null;
 let localDbPath: string | null = null;
@@ -172,41 +167,10 @@ async function queueLocalDatabaseOperation<T>(operation: () => Promise<T>): Prom
   return run;
 }
 
-if (isLocalMode) {
-  try {
-    initializeLocalSqliteConnection();
-  } catch (error) {
-    logger.error("Failed to initialize SQLite", { error });
-  }
-} else {
-  // In cloud mode, require DATABASE_URL
-  if (!process.env.DATABASE_URL) {
-    logger.warn("DATABASE_URL is not set. Database initialization may fail.");
-  } else {
-    // Connection pool configuration with timeouts and error handling
-    const poolConfig = {
-      connectionString: process.env.DATABASE_URL,
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 10000, // Return error after 10 seconds if connection cannot be established
-    };
-
-    pool = new Pool(poolConfig);
-
-    // Connection pool error handling
-    pool.on("error", (err) => {
-      logger.error("Unexpected database pool error", { error: err.message, stack: err.stack });
-    });
-
-    pool.on("connect", () => {
-      logger.debug("New database connection established");
-    });
-
-    pool.on("remove", () => {
-      logger.debug("Database connection removed from pool");
-    });
-    db = drizzleNeon({ client: pool, schema });
-  }
+try {
+  initializeLocalSqliteConnection();
+} catch (error) {
+  logger.error("Failed to initialize SQLite", { error });
 }
 
 /**
@@ -235,37 +199,17 @@ export { pool, db };
  * Test database connection health
  */
 export async function testDatabaseConnection(): Promise<boolean> {
-  if (!pool) {
-    // In local mode, if db is initialized, we assume it's working (file-based)
-    return !!db;
-  }
-
-  try {
-    const client = await pool.connect();
-    await client.query("SELECT 1");
-    client.release();
-    logger.info("Database connection test successful");
-    return true;
-  } catch (error) {
-    logger.error("Database connection test failed", {
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-    return false;
-  }
+  return !!db;
 }
 
 /**
  * Get database connection pool metrics
  */
 export function getPoolMetrics() {
-  if (!pool) {
-    return { totalCount: 0, idleCount: 0, waitingCount: 0 };
-  }
-
   return {
-    totalCount: pool.totalCount,
-    idleCount: pool.idleCount,
-    waitingCount: pool.waitingCount,
+    totalCount: 1,
+    idleCount: 0,
+    waitingCount: 0,
   };
 }
 
@@ -306,31 +250,15 @@ export async function executeWithRetry<T>(
  * Gracefully close database connections
  */
 export async function closeDatabaseConnections(): Promise<void> {
-  if (!pool) {
-    if (localSqlite && localSqlite.open) {
-      localSqlite.close();
-      localSqlite = null;
-      db = null;
-      logger.info("SQLite connection closed gracefully");
-    }
-    return;
-  }
-
-  try {
-    await pool.end();
-    pool = null;
-    logger.info("Database connections closed gracefully");
-  } catch (error) {
-    logger.error("Error closing database connections", {
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+  if (localSqlite && localSqlite.open) {
+    localSqlite.close();
+    localSqlite = null;
+    db = null;
+    logger.info("SQLite connection closed gracefully");
   }
 }
 
 export function getLocalDatabasePath(): string {
-  if (!isLocalMode) {
-    throw new Error('Local database path is only available in local mode');
-  }
   if (localDbPath) {
     return localDbPath;
   }
@@ -339,10 +267,6 @@ export function getLocalDatabasePath(): string {
 }
 
 export async function backupLocalDatabase(destinationPath: string): Promise<string> {
-  if (!isLocalMode) {
-    throw new Error('Local database backup is only available in local mode');
-  }
-
   return queueLocalDatabaseOperation(async () => {
     const resolvedDestination = path.resolve(destinationPath);
     const destinationDir = path.dirname(resolvedDestination);
@@ -368,10 +292,6 @@ export async function backupLocalDatabase(destinationPath: string): Promise<stri
 }
 
 export async function restoreLocalDatabase(sourcePath: string): Promise<void> {
-  if (!isLocalMode) {
-    throw new Error('Local database restore is only available in local mode');
-  }
-
   await queueLocalDatabaseOperation(async () => {
     const resolvedSourcePath = path.resolve(sourcePath);
     if (!fs.existsSync(resolvedSourcePath)) {
@@ -406,10 +326,6 @@ export async function restoreLocalDatabase(sourcePath: string): Promise<void> {
 }
 
 export async function runLocalDatabaseMaintenance(): Promise<void> {
-  if (!isLocalMode) {
-    throw new Error('Local database maintenance is only available in local mode');
-  }
-
   await queueLocalDatabaseOperation(async () => {
     if (!localSqlite || !localSqlite.open) {
       initializeLocalSqliteConnection();

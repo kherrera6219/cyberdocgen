@@ -22,6 +22,7 @@ win:
   icon: build/icon.ico
 nsis:
   oneClick: false
+  runAfterFinish: true
   allowToChangeInstallationDirectory: true
   installerHeaderIcon: build/icon.ico
   uninstallerIcon: build/icon.ico

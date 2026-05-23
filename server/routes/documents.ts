@@ -265,7 +265,7 @@ Category: ${category}`;
       documentType: "text",
       status: "draft",
       aiGenerated: true,
-      aiModel: "gpt-4",
+      aiModel: "gpt-5.4",
       generationPrompt: `Generate a ${category} document for ${framework} compliance`
     });
 

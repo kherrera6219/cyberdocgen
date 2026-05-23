@@ -54,7 +54,7 @@ const mockDocuments = [
     tags: ["security", "policy", "iso27001"],
     fileSize: 2048000,
     aiGenerated: true,
-    aiModel: "gpt-4",
+    aiModel: "gpt-5.4",
     generationPrompt: "Generate an ISO 27001 compliant information security policy",
     updatedAt: "2024-08-10T00:00:00.000Z",
   },

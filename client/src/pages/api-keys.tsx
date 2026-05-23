@@ -44,7 +44,7 @@ const AI_PROVIDERS: AIProvider[] = [
   {
     id: 'OPENAI',
     name: 'OpenAI',
-    description: 'GPT-4, GPT-3.5, and other models for document generation',
+    description: 'GPT-5.4, GPT-3.5, and other models for document generation',
     signupUrl: 'https://platform.openai.com/signup',
     docsUrl: 'https://platform.openai.com/docs/api-reference',
     keyFormat: 'Starts with sk-...',

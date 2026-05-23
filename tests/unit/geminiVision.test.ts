@@ -35,7 +35,7 @@ describe('geminiVision', () => {
             expect(result.confidence).toBe(85);
             expect(mockGenerateContent).toHaveBeenCalledWith(
                 expect.objectContaining({
-                     model: 'gemini-2.0-flash'
+                     model: 'gemini-3.1-flash-lite-preview'
                 })
             );
         });

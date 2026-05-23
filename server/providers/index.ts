@@ -34,14 +34,8 @@ export async function createProviders(): Promise<Providers> {
  */
 async function createDbProvider() {
   const config = getRuntimeConfig();
-  
-  if (config.database.type === 'sqlite') {
-    const { SqliteDbProvider } = await import('./db/sqlite');
-    return new SqliteDbProvider(config.database.filePath!, config.database.migrationsPath);
-  }
-  
-  const { PostgresDbProvider } = await import('./db/postgres');
-  return new PostgresDbProvider(config.database.connection!, config.database.migrationsPath);
+  const { SqliteDbProvider } = await import('./db/sqlite');
+  return new SqliteDbProvider(config.database.filePath || 'local-data/cyberdocgen.db', config.database.migrationsPath);
 }
 
 /**

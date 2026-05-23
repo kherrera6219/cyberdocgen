@@ -11,13 +11,13 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 ### Frontend Architecture
 - **Framework**: React 18.3 with TypeScript 5.9
 - **Build Tool**: Vite 6.4 for fast development and optimized production builds
-- **UI Library**: Radix UI primitives (51+ components) with shadcn/ui components
+- **UI Library**: Radix UI primitives (52+ components) with shadcn/ui components
 - **Styling**: Tailwind CSS 3.4 with custom design tokens
 - **State Management**: TanStack React Query for server state, React Hook Form + Zod for forms
 - **Routing**: Wouter for lightweight client-side routing
-- **Pages**: 41 fully implemented page components
+- **Pages**: 43 fully implemented page components
 - **Components**: 93+ organized, reusable UI components
-- **Custom Hooks**: 6 specialized React hooks
+- **Custom Hooks**: 9 specialized React hooks
 - **Performance**: 86% bundle size reduction with code splitting (40+ lazy-loaded routes)
 
 ### Backend Architecture
@@ -31,8 +31,8 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 - **Authentication**: Enterprise authentication with MFA support
 - **AI Integration**: Multi-model orchestration (OpenAI GPT-5.4, Anthropic Claude Sonnet 4.6, Google Gemini 3.1 Pro Preview)
 - **Storage**: Cloud object storage for document assets (Google Cloud Storage)
-- **Route Modules**: 27 organized API route modules
-- **Business Services**: 37 specialized service modules
+- **Route Modules**: 32 organized API route modules
+- **Business Services**: 61 specialized service modules
 - **Middleware Stack**: 10-layer security and monitoring middleware
 
 ### Database Design

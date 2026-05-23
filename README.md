@@ -1,11 +1,11 @@
 # CyberDocGen
 
-Production-focused compliance documentation platform for two deployment targets:
+Production-focused compliance documentation platform, currently deployed as a **Local-First Windows Desktop Application**.
 
-- Cloud SaaS: multi-tenant web app with PostgreSQL, cloud storage, and enterprise authentication
-- Windows desktop: local-first app with SQLite, local file storage, and desktop-safe secret handling
+- **Phase 1 (Current)**: Windows desktop local-first app using Electron, SQLite, local file storage, and a custom frameless window UI.
+- **Phase 2 (Future)**: Cloud SaaS multi-tenant web app with PostgreSQL and enterprise authentication.
 
-CyberDocGen helps teams generate, review, score, and manage compliance documentation and evidence for ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev. 5. The platform routes AI workloads across `gpt-5.4`, `claude-sonnet-4-6`, and `gemini-3.1-pro-preview`, exposes an MCP server for agent workflows, and includes release-validation tooling for both cloud and Windows delivery paths.
+CyberDocGen helps teams generate, review, score, and manage compliance documentation and evidence for ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev. 5. The platform routes AI workloads across `gpt-5.4`, `claude-sonnet-4-6`, and `gemini-3.1-pro-preview`, and is packaged as a sleek, native desktop application.
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
@@ -17,18 +17,17 @@ CyberDocGen helps teams generate, review, score, and manage compliance documenta
 ## What It Does
 
 - Generates and analyzes compliance documentation with multi-model AI orchestration and guardrails
-- Runs cloud-integrated evidence collection across Google Drive, OneDrive, SharePoint, Jira, Notion, and web snapshots
-- Supports enterprise auth, MFA, RBAC, audit logging, and multi-tenant organization boundaries in cloud mode
-- Supports Windows local mode with SQLite, local file storage, Windows Credential Manager, and auth bypass for offline desktop use
+- Runs as a self-contained local application with SQLite, native Windows installer (NSIS), and desktop shortcuts
+- Features a premium desktop experience with a custom frameless window, persistent status bar, global drag-and-drop file ingestion, and keyboard shortcuts (`Ctrl+/`)
+- Secures data locally without requiring cloud synchronization
 - Exposes MCP tools for agent-driven document generation, analysis, risk scoring, and compliance workflows
-- Ships with validation scripts for TypeScript, linting, tests, cloud readiness, Windows packaging, and release evidence
 
 ## Deployment Modes
 
 | Mode | Primary Use | Auth | Data Layer | Storage | Default Runtime |
 | --- | --- | --- | --- | --- | --- |
-| Cloud | Multi-tenant SaaS | Replit OIDC + enterprise auth flows | PostgreSQL via Neon | Cloud object storage | `npm run dev` / `npm start` |
-| Local | Windows desktop app | Local bypass provider | SQLite | Local filesystem | Electron-packaged desktop build |
+| **Local (Active)** | Windows desktop app | Local bypass provider | SQLite | Local filesystem | Electron-packaged `.exe` |
+| Cloud (Future) | Multi-tenant SaaS | Enterprise auth flows | PostgreSQL | Cloud object storage | `npm run dev` |
 
 Source of truth for mode behavior lives in [server/config/runtime.ts](server/config/runtime.ts).
 

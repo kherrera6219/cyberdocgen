@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PWAInstallPrompt } from '../../client/src/components/PWAInstallPrompt';
 import * as serviceWorkerLib from '../../client/src/lib/serviceWorker';
@@ -29,6 +29,7 @@ describe('PWAInstallPrompt', () => {
     });
 
     afterEach(() => {
+        cleanup();
         localStorage.clear();
     });
 
@@ -71,7 +72,7 @@ describe('PWAInstallPrompt', () => {
         (serviceWorkerLib.showInstallPrompt as any).mockResolvedValue(true);
         render(<PWAInstallPrompt />);
         
-        const installBtn = screen.getByText('Install');
+        const installBtn = screen.getByRole('button', { name: /install application/i });
         fireEvent.click(installBtn);
         
         expect(serviceWorkerLib.showInstallPrompt).toHaveBeenCalled();

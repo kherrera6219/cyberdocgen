@@ -20,6 +20,9 @@ declare global {
     onUpdateDownloadProgress(callback: (progress: unknown) => void): () => void;
     onUpdateDownloaded(callback: (info: unknown) => void): () => void;
     onUpdateError(callback: (message: string) => void): () => void;
+    minimizeWindow(): void;
+    maximizeWindow(): void;
+    closeWindow(): void;
   }
 
   interface Window {
