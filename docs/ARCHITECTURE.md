@@ -15,8 +15,8 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 - **Styling**: Tailwind CSS 3.4 with custom design tokens
 - **State Management**: TanStack React Query for server state, React Hook Form + Zod for forms
 - **Routing**: Wouter for lightweight client-side routing
-- **Pages**: 43 fully implemented page components
-- **Components**: 93+ organized, reusable UI components
+- **Pages**: 43 fully implemented page components (refactored for modularity)
+- **Components**: 100+ organized, reusable UI components (extracted out of monolithic pages)
 - **Custom Hooks**: 9 specialized React hooks
 - **Performance**: 86% bundle size reduction with code splitting (40+ lazy-loaded routes)
 
@@ -28,6 +28,7 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
   - Health checks and connection testing on startup
   - Query timeout configuration (10s connection, 30s idle)
   - Graceful shutdown with proper cleanup
+- **Storage Layer**: Domain-Driven Design using the **Repository Pattern** and a **Composition Facade** (`server/storage.ts` orchestrates 15 independent domain repositories).
 - **Authentication**: Enterprise authentication with MFA support
 - **AI Integration**: Multi-model orchestration (OpenAI GPT-5.4, Anthropic Claude Sonnet 4.6, Google Gemini 3.1 Pro Preview)
 - **Storage**: Cloud object storage for document assets (Google Cloud Storage)

@@ -1,0 +1,71 @@
+import { db } from "../db";
+import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
+import { randomUUID } from "crypto";
+import { 
+  users, organizations, userOrganizations, companyProfiles, documents, generationJobs,
+  gapAnalysisReports, gapAnalysisFindings, remediationRecommendations, complianceMaturityAssessments,
+  auditLogs, documentVersions, auditTrail, contactMessages, documentApprovals, roles,
+  roleAssignments, frameworkControlStatuses, notifications, userInvitations, userSessions,
+  User, UpsertUser, InsertUser, Organization, InsertOrganization, UserOrganization, InsertUserOrganization,
+  CompanyProfile, InsertCompanyProfile, Document, InsertDocument, GenerationJob, InsertGenerationJob,
+  GapAnalysisReport, InsertGapAnalysisReport, GapAnalysisFinding, InsertGapAnalysisFinding,
+  RemediationRecommendation, InsertRemediationRecommendation, ComplianceMaturityAssessment,
+  InsertComplianceMaturityAssessment, InsertAuditTrail, AuditTrail, ContactMessage, InsertContactMessage,
+  DocumentApproval, InsertDocumentApproval, UserInvitation, InsertUserInvitation, UserSession,
+  InsertUserSession, Role, RoleAssignment, FrameworkControlStatus, InsertFrameworkControlStatus,
+  Notification, InsertNotification, AuditLog, InsertAuditLog, DocumentVersion, InsertDocumentVersion
+} from "@shared/schema";
+import { computeAuditSignature } from "../utils/auditSignature";
+import { buildAuditSignableData, coerceLocalDateValue, coerceLocalBooleanValue, normalizeLocalUserWriteValues, UserFilters, PaginationParams, PaginatedResult } from "./utils";
+
+export function createCompanyProfilesRepository(dbClient: typeof db) {
+  return {
+    async getCompanyProfile(id: string): Promise<CompanyProfile | undefined> {
+        const [profile] = await dbClient.select().from(companyProfiles).where(eq(companyProfiles.id, id));
+        return profile || undefined;
+      },
+
+    async getCompanyProfiles(organizationId?: string): Promise<CompanyProfile[]> {
+        const DEFAULT_LIMIT = 1000; // Prevent memory exhaustion
+        if (organizationId) {
+          return await db
+            .select()
+            .from(companyProfiles)
+            .where(eq(companyProfiles.organizationId, organizationId))
+            .orderBy(desc(companyProfiles.updatedAt))
+            .limit(DEFAULT_LIMIT);
+        }
+        return await dbClient.select().from(companyProfiles).orderBy(desc(companyProfiles.updatedAt)).limit(DEFAULT_LIMIT);
+      },
+
+    async createCompanyProfile(insertProfile: InsertCompanyProfile): Promise<CompanyProfile> {
+        const [profile] = await db
+          .insert(companyProfiles)
+          .values([insertProfile])
+          .returning();
+        return profile;
+      },
+
+    async updateCompanyProfile(id: string, updateData: Partial<InsertCompanyProfile>): Promise<CompanyProfile | undefined> {
+        const updateValues = {
+          ...updateData,
+          updatedAt: new Date(),
+          // Ensure array fields are properly handled
+          cloudInfrastructure: Array.isArray(updateData.cloudInfrastructure) ? updateData.cloudInfrastructure : undefined,
+        };
+        
+        // Remove undefined values to prevent database errors
+        const cleanUpdateValues = Object.fromEntries(
+          Object.entries(updateValues).filter(([, value]) => value !== undefined)
+        );
+        
+        const [profile] = await db
+          .update(companyProfiles)
+          .set(cleanUpdateValues)
+          .where(eq(companyProfiles.id, id))
+          .returning();
+        return profile || undefined;
+      },
+
+  };
+}
