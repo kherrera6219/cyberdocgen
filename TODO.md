@@ -11,6 +11,14 @@
 - **UI UX:** Fixed installation progress hang by removing blocking MessageBox calls in main process.
 - **AI Parity:** Refreshed model IDs for GPT-4o, Claude 3.5 Sonnet, and Gemini 1.5 Pro.
 
+## Production Readiness Findings (May 2026)
+
+Following the final Local-First architecture migration and UI/UX deep review, the application is production-ready. The following minor polish items were identified for future sprints:
+
+- [ ] **Lint Cleanups:** Remove 8 minor `@typescript-eslint/no-unnecessary-type-assertion` warnings in `server/storage.ts` and `server/services/repositoryFindingsService.ts`.
+- [ ] **CI Node ABI Mismatch:** Pin Node to v20 or update C++ SQLite bindings to support Node v26 headers in terminal-only test runners.
+- [ ] **Release Signing:** Complete WIN-02 (Authenticode pipeline integration) for SmartScreen suppression.
+
 ## Current Validation Evidence (2026-02-20)
 
 - `npm run check` -> PASS
