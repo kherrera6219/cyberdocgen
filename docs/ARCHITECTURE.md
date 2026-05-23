@@ -17,6 +17,7 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 - **Routing**: Wouter for lightweight client-side routing
 - **Pages**: 43 fully implemented page components (refactored for modularity)
 - **Components**: 100+ organized, reusable UI components (extracted out of monolithic pages)
+- **Data Layers**: Static compliance datasets (FedRAMP, NIST, SOC2, ISO27001) decoupled into `client/src/data/frameworks/`
 - **Custom Hooks**: 9 specialized React hooks
 - **Performance**: 86% bundle size reduction with code splitting (40+ lazy-loaded routes)
 
