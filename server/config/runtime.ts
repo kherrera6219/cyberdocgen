@@ -3,7 +3,7 @@
  * 
  * Centralized configuration for dual-mode deployment:
  * - CLOUD mode: Multi-tenant web app (PostgreSQL, cloud storage, SSO)
- * - LOCAL mode: Windows 11 desktop app (SQLite, local filesystem, no login)
+ * - LOCAL mode: Windows 11 desktop app (PGlite embedded Postgres + pgvector, local filesystem, no login)
  * 
  * This is the ONLY module that should directly read DEPLOYMENT_MODE.
  * All feature code should use the exported functions instead.
@@ -24,9 +24,10 @@ export interface RuntimeConfig {
     baseUrl: string;
   };
   database: {
-    type: 'postgres' | 'sqlite';
+    type: 'postgres' | 'sqlite' | 'pglite';
     connection?: string; // Postgres connection string
-    filePath?: string;   // SQLite file path
+    filePath?: string;   // SQLite file path (legacy)
+    dataDir?: string;    // PGlite data directory
     migrationsPath?: string;
   };
   storage: {
@@ -179,8 +180,8 @@ function buildLocalModeConfig(): RuntimeConfig {
       baseUrl: `http://${host}:${port}`,
     },
     database: {
-      type: 'sqlite',
-      filePath: path.join(userDataPath, 'cyberdocgen.db'),
+      type: 'pglite',
+      dataDir: path.join(userDataPath, 'pgdata'),
       migrationsPath,
     },
     storage: {

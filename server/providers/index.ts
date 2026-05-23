@@ -34,6 +34,14 @@ export async function createProviders(): Promise<Providers> {
  */
 async function createDbProvider() {
   const config = getRuntimeConfig();
+
+  if (config.database.type === 'pglite') {
+    const { PgliteDbProvider } = await import('./db/pglite');
+    const dataDir = config.database.dataDir || 'local-data/pgdata';
+    return new PgliteDbProvider(dataDir, config.database.migrationsPath);
+  }
+
+  // Legacy SQLite fallback (or if explicitly configured)
   const { SqliteDbProvider } = await import('./db/sqlite');
   return new SqliteDbProvider(config.database.filePath || 'local-data/cyberdocgen.db', config.database.migrationsPath);
 }

@@ -194,16 +194,6 @@ router.get('/cloud-integrations', isAuthenticated, secureHandler(async (req: Mul
   await checkAdmin(req);
   const integrations = await db.query.cloudIntegrations.findMany({
     orderBy: [cloudIntegrations.createdAt],
-    with: {
-      user: {
-        columns: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-    },
   });
 
   // Remove sensitive data before sending
@@ -216,7 +206,7 @@ router.get('/cloud-integrations', isAuthenticated, secureHandler(async (req: Mul
     lastSyncAt: integration.lastSyncAt,
     syncStatus: integration.syncStatus,
     createdAt: integration.createdAt,
-    user: integration.user,
+    userId: integration.userId,
   }));
 
   res.json({

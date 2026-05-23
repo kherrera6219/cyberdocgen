@@ -51,6 +51,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.1",
+    "@electric-sql/pglite": "^0.4.5",
+    "@electric-sql/pglite-sync": "^0.5.5",
     "@google-cloud/error-reporting": "^3.0.0",
     "@google-cloud/logging-winston": "^6.0.1",
     "@google-cloud/storage": "^7.19.0",
@@ -60,7 +62,6 @@
     "@hookform/resolvers": "^5.2.2",
     "@jridgewell/trace-mapping": "^0.3.31",
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "@neondatabase/serverless": "^0.10.4",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.68.0",
     "@opentelemetry/resources": "^2.4.0",
@@ -110,7 +111,6 @@
     "adm-zip": "^0.5.16",
     "axios": "^1.15.0",
     "bcrypt": "^6.0.0",
-    "better-sqlite3": "^12.6.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -152,7 +152,6 @@
     "passport-local": "^1.0.0",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
-    "postgres": "^3.4.8",
     "prettier-plugin-organize-imports": "^4.2.0",
     "react": "18.3.1",
     "react-day-picker": "^8.10.1",
@@ -274,6 +273,6 @@
     "bufferutil": "^4.0.9"
   },
   "engines": {
-    "node": "^20.0.0"
+    "node": ">=20.0.0"
   }
 }

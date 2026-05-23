@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Repository Analysis Service
  * 
  * Orchestrates the complete repository analysis workflow:
@@ -183,7 +183,7 @@ export class RepoAnalysisService {
       });
 
       // Execute analysis asynchronously (don't await)
-      this.executeAnalysis(run.id, snapshot.extractedPath, organizationId, userId)
+      this.executeAnalysis(run.id, snapshot.extractedPath ?? ``, organizationId, userId)
         .catch(error => {
           logger.error('Analysis execution failed', {
             runId: run.id,
@@ -600,3 +600,4 @@ export class RepoAnalysisService {
 }
 
 export const repoAnalysisService = new RepoAnalysisService();
+

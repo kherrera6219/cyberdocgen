@@ -43,40 +43,6 @@ export function registerAuditorRoutes(app: Router) {
    *       200:
    *         description: List of documents for audit
    *       401:
-   *         description: Unauthorized
-   */
-  router.get('/documents', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-    const { status, framework, limit = 50, offset = 0 } = req.query;
-    const organizationId = req.organizationId!;
-
-    // Build query with optional filters
-    let query = db.select({ documents }).from(documents)
-      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id));
-
-    // Apply organization filter
-    let whereClause = eq(companyProfiles.organizationId, organizationId);
-
-    // Apply tags/framework if provided
-    if (status) {
-      whereClause = and(whereClause, eq(documents.status, status as string)) as any;
-    }
-    if (framework) {
-      whereClause = and(whereClause, eq(documents.framework, framework as string)) as any;
-    }
-
-    query = query.where(whereClause);
-
-    // Get documents with pagination
-    const documentsList = await query
-      .orderBy(desc(documents.updatedAt))
-      .limit(parseInt(limit as string, 10))
-      .offset(parseInt(offset as string, 10))
-      .then(results => results.map(r => r.documents));
-
-    // Get total count
-    const [{ total }] = await db
-      .select({ total: count() })
-      .from(documents)
       .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
       .where(eq(companyProfiles.organizationId, organizationId));
 
@@ -246,7 +212,7 @@ export function registerAuditorRoutes(app: Router) {
         documentId: approval.documentId,
         status: approval.status,
         requestedBy: approval.requestedBy,
-        approvedBy: approval.approvedBy || '',
+        approvedAt: approval.approvedAt ? new Date(approval.approvedAt).toISOString() : '',
         createdAt: approval.createdAt ? new Date(approval.createdAt).toISOString() : '',
       }));
 

@@ -1,4 +1,4 @@
-import { db } from "../db";
+﻿import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -46,14 +46,14 @@ export function createSessionsRepository(dbClient: typeof db) {
         const result = await dbClient.update(userSessions)
           .set({ isActive: false })
           .where(eq(userSessions.id, sessionId));
-        return (result.rowCount ?? 0) > 0;
+        return (result.affectedRows ?? 0) > 0;
       },
 
     async terminateAllUserSessions(userId: string): Promise<number> {
         const result = await dbClient.update(userSessions)
           .set({ isActive: false })
           .where(eq(userSessions.userId, userId));
-        return result.rowCount ?? 0;
+        return result.affectedRows ?? 0;
       },
 
     async updateSessionActivity(sessionId: string): Promise<UserSession | undefined> {
@@ -67,8 +67,9 @@ export function createSessionsRepository(dbClient: typeof db) {
     async cleanupExpiredSessions(): Promise<number> {
         const now = new Date();
         const result = await dbClient.delete(userSessions).where(lt(userSessions.expiresAt, now));
-        return result.rowCount ?? 0;
+        return result.affectedRows ?? 0;
       },
 
   };
 }
+

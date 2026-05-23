@@ -1,11 +1,17 @@
 import { defineConfig } from "drizzle-kit";
+import path from "path";
+import os from "os";
 
+const localAppData = process.env.LOCALAPPDATA?.trim();
+const pgDataDir = localAppData
+  ? path.resolve(localAppData, 'CyberDocGen', 'pgdata')
+  : path.resolve(os.homedir(), '.cyberdocgen', 'pgdata');
 
 export default defineConfig({
-  out: "./server/migrations/sqlite",
+  out: "./server/migrations/pglite",
   schema: "./shared/schema.ts",
-  dialect: "sqlite",
+  dialect: "postgresql",
   dbCredentials: {
-    url: "local-data/cyberdocgen.db",
+    url: `file:${pgDataDir}`,
   },
 });

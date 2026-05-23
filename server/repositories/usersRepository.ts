@@ -1,4 +1,4 @@
-import { db } from "../db";
+﻿import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -144,7 +144,7 @@ export function createUsersRepository(dbClient: typeof db) {
 
     async deleteUser(id: string): Promise<boolean> {
         const result = await dbClient.delete(users).where(eq(users.id, id));
-        return (result.rowCount ?? 0) > 0;
+        return (result.affectedRows ?? 0) > 0;
       },
 
     async suspendUser(id: string, _reason?: string): Promise<User | undefined> {
@@ -184,10 +184,11 @@ export function createUsersRepository(dbClient: typeof db) {
             .update(users)
             .set({ ...updates, updatedAt: new Date() })
             .where(eq(users.id, id));
-          if ((result.rowCount ?? 0) > 0) updated++;
+          if ((result.affectedRows ?? 0) > 0) updated++;
         }
         return updated;
       },
 
   };
 }
+

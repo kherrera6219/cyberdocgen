@@ -1,4 +1,4 @@
-import { db } from "../db";
+﻿import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -106,8 +106,9 @@ export function createOrganizationsRepository(dbClient: typeof db) {
             eq(userOrganizations.userId, userId),
             eq(userOrganizations.organizationId, organizationId)
           ));
-        return (result.rowCount ?? 0) > 0;
+        return (result.affectedRows ?? 0) > 0;
       },
 
   };
 }
+

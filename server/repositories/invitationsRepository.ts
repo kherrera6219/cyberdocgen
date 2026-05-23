@@ -1,4 +1,4 @@
-import { db } from "../db";
+﻿import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -56,7 +56,7 @@ export function createInvitationsRepository(dbClient: typeof db) {
         const result = await dbClient.update(userInvitations)
           .set({ status: 'revoked' })
           .where(eq(userInvitations.id, id));
-        return (result.rowCount ?? 0) > 0;
+        return (result.affectedRows ?? 0) > 0;
       },
 
     async acceptInvitation(token: string, userId: string): Promise<UserInvitation | undefined> {
@@ -78,3 +78,4 @@ export function createInvitationsRepository(dbClient: typeof db) {
 
   };
 }
+

@@ -30,13 +30,10 @@ export function createNotificationsRepository(dbClient: typeof db) {
       },
 
     async getUnreadNotificationCount(userId: string): Promise<number> {
-        const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
-        const unreadFlag = isLocalSqliteMode ? 0 : false;
-    
         const [result] = await db
           .select({ count: count() })
           .from(notifications)
-          .where(and(eq(notifications.userId, userId), eq(notifications.isRead, unreadFlag as any)));
+          .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
         return result?.count ?? 0;
       },
 
@@ -64,35 +61,29 @@ export function createNotificationsRepository(dbClient: typeof db) {
       },
 
     async markNotificationAsRead(id: string, userId: string): Promise<Notification | undefined> {
-        const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
-        const readFlag = isLocalSqliteMode ? 1 : true;
-    
         const [notification] = await db
           .update(notifications)
-          .set({ isRead: readFlag as any })
+          .set({ isRead: true })
           .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
           .returning();
         return notification || undefined;
       },
 
     async markAllNotificationsAsRead(userId: string): Promise<number> {
-        const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
-        const readFlag = isLocalSqliteMode ? 1 : true;
-        const unreadFlag = isLocalSqliteMode ? 0 : false;
-    
         const result = await db
           .update(notifications)
-          .set({ isRead: readFlag as any })
-          .where(and(eq(notifications.userId, userId), eq(notifications.isRead, unreadFlag as any)));
-        return (result).rowCount ?? 0;
+          .set({ isRead: true })
+          .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+        return (result as any)?.affectedRows ?? 0;
       },
 
     async deleteNotification(id: string, userId: string): Promise<boolean> {
         const result = await db
           .delete(notifications)
           .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
-        return (result).rowCount > 0;
+        return ((result as any)?.affectedRows ?? 0) > 0;
       },
 
   };
 }
+

@@ -10,6 +10,18 @@
  * - SHA-256 integrity verification
  * - Read-only extraction
  */
+/**
+ * Repository Parser Service
+ * 
+ * Handles secure extraction, indexing, and analysis of uploaded repository ZIP files.
+ * Implements production-grade security controls:
+ * - Path traversal prevention
+ * - Zip bomb protection
+ * - File type validation
+ * - Size limits
+ * - SHA-256 integrity verification
+ * - Read-only extraction
+ */
 
 import path from 'path';
 import fs from 'fs/promises';
@@ -19,6 +31,7 @@ import AdmZip from 'adm-zip';
 import { logger } from '../utils/logger';
 import { AppError, ValidationError } from '../utils/errorHandling';
 import { auditService } from './auditService';
+import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import {
   repositorySnapshots,
@@ -180,7 +193,7 @@ export class RepoParserService {
           status: 'indexed',
           updatedAt: new Date(),
         })
-        .where({ id: snapshot.id });
+        .where(eq(repositorySnapshots.id, snapshot.id));
 
       logger.info('Repository extracted successfully', {
         snapshotId: snapshot.id,
@@ -420,7 +433,7 @@ export class RepoParserService {
       // Update snapshot with manifest hash
       await db.update(repositorySnapshots)
         .set({ manifestHash: manifest.manifestHash })
-        .where({ id: snapshotId });
+        .where(eq(repositorySnapshots.id, snapshotId));
 
       logger.info('File manifest generated', {
         snapshotId,
@@ -719,7 +732,7 @@ export class RepoParserService {
         detectedFrameworks: result.frameworks,
         detectedInfraTools: result.infraTools,
       })
-      .where({ id: snapshotId });
+      .where(eq(repositorySnapshots.id, snapshotId));
 
     logger.info('Technologies detected', { snapshotId, ...result });
 
@@ -766,3 +779,4 @@ export class RepoParserService {
 }
 
 export const repoParserService = new RepoParserService();
+

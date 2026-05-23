@@ -1,4 +1,4 @@
-import { drive_v3, drive } from '@googleapis/drive';
+﻿import { drive_v3, drive } from '@googleapis/drive';
 import { OAuth2Client } from 'google-auth-library';
 import { Client, AuthenticationProvider } from '@microsoft/microsoft-graph-client';
 import axios from 'axios';
@@ -636,7 +636,7 @@ export class CloudIntegrationService {
           eq(cloudIntegrations.userId, userId)
         ));
 
-      if (result.rowCount === 0) {
+      if (result.affectedRows === 0) {
         return false;
       }
 
@@ -687,3 +687,4 @@ export class CloudIntegrationService {
 }
 
 export const cloudIntegrationService = new CloudIntegrationService();
+

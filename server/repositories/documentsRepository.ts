@@ -1,4 +1,4 @@
-import { db } from "../db";
+﻿import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -81,7 +81,7 @@ export function createDocumentsRepository(dbClient: typeof db) {
 
     async deleteDocument(id: string): Promise<boolean> {
         const result = await dbClient.delete(documents).where(eq(documents.id, id));
-        return (result.rowCount ?? 0) > 0;
+        return (result.affectedRows ?? 0) > 0;
       },
 
     async getDocumentVersions(documentId: string): Promise<DocumentVersion[]> {
@@ -123,8 +123,9 @@ export function createDocumentsRepository(dbClient: typeof db) {
               eq(documentVersions.versionNumber, versionNumber)
             )
           );
-        return (result.rowCount ?? 0) > 0;
+        return (result.affectedRows ?? 0) > 0;
       },
 
   };
 }
+

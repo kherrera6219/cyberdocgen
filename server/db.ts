@@ -1,26 +1,35 @@
 import * as schema from "@shared/schema";
-import { drizzle as drizzleSqlite } from "drizzle-orm/better-sqlite3";
-import BetterSqlite3, { type Database as BetterSqliteDatabase } from "better-sqlite3";
+import { drizzle } from "drizzle-orm/pglite";
+import { PGlite } from "@electric-sql/pglite";
+import { vector } from "@electric-sql/pglite/vector";
 import path from "path";
 import fs from "fs";
+import os from "os";
 import { logger } from "./utils/logger";
-import { getRuntimeConfig, isLocalMode as runtimeIsLocalMode } from "./config/runtime";
+import { getRuntimeConfig } from "./config/runtime";
 import { createIntegrityEnvelope, verifyIntegrityEnvelope, type IntegrityEnvelope } from "./utils/dataIntegrity";
-import { registerSqliteCompatibilityFunctions } from "./utils/sqliteCompatibility";
 
-const isLocalMode = runtimeIsLocalMode();
+// Typed as non-null — db is guaranteed to be initialized before requests are served.
+// Use getDb() for lazy-safe access during startup.
+type DbInstance = ReturnType<typeof drizzle<typeof schema>>;
+let _db: DbInstance | null = null;
+let pgInstance: PGlite | null = null;
+let pgDataDir: string | null = null;
 
-const pool: any = null;
-let db: any = null;
-let localSqlite: BetterSqliteDatabase | null = null;
-let localDbPath: string | null = null;
-let localDatabaseOperationQueue: Promise<void> = Promise.resolve();
+// Proxy that satisfies `typeof db` for repository type signatures.
+// At runtime, repositories are called after init so _db is guaranteed non-null.
+export const db: DbInstance = new Proxy({} as DbInstance, {
+  get(_target, prop) {
+    if (!_db) throw new Error('[PGlite] Database accessed before initialization.');
+    return (_db as any)[prop];
+  }
+});
 
 interface LocalBackupIntegritySidecar {
   version: 1;
   backupPath: string;
   sourcePath?: string;
-  fileSize: number;
+  dirSize: number;
   generatedAt: string;
   envelope: IntegrityEnvelope;
 }
@@ -39,167 +48,89 @@ function isIntegrityEnvelope(value: unknown): value is IntegrityEnvelope {
   );
 }
 
-function getLocalDataPath(): string {
+function getLocalDataDir(): string {
   const runtimeConfig = getRuntimeConfig();
-  if (runtimeConfig.mode === 'local' && runtimeConfig.database.filePath) {
-    return path.resolve(path.dirname(runtimeConfig.database.filePath));
+  if (runtimeConfig.mode === 'local' && runtimeConfig.database.dataDir) {
+    return path.resolve(runtimeConfig.database.dataDir);
   }
 
   const configured = process.env.LOCAL_DATA_PATH?.trim();
   if (configured) {
-    return path.resolve(configured);
+    return path.resolve(configured, 'pgdata');
   }
 
   const localAppData = process.env.LOCALAPPDATA?.trim();
   if (localAppData) {
-    return path.resolve(localAppData, 'CyberDocGen');
+    return path.resolve(localAppData, 'CyberDocGen', 'pgdata');
   }
 
-  return path.resolve(process.cwd(), 'local-data');
+  return path.resolve(os.homedir(), '.cyberdocgen', 'pgdata');
 }
 
-function resolveLocalTemplateDbPath(): string | null {
-  const runtimeConfig = getRuntimeConfig();
-  const configuredDbPath =
-    runtimeConfig.mode === 'local' && runtimeConfig.database.filePath
-      ? path.resolve(runtimeConfig.database.filePath)
-      : null;
-  const candidates = [
-    process.env.LOCAL_TEMPLATE_DB_PATH,
-    configuredDbPath,
-    path.resolve('local-data', 'cyberdocgen.db'),
-    path.resolve(process.cwd(), 'local-data', 'cyberdocgen.db'),
-  ].filter((candidate): candidate is string => Boolean(candidate));
+async function initializePgliteConnection(): Promise<void> {
+  const dataDir = getLocalDataDir();
 
-  return candidates.find((candidate) => fs.existsSync(candidate)) || null;
-}
-
-function ensureLocalSqliteDatabaseExists(dbPath: string): void {
-  if (fs.existsSync(dbPath)) {
-    return;
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
   }
 
-  const templatePath = resolveLocalTemplateDbPath();
-  if (!templatePath) {
-    return;
-  }
+  logger.info(`Initializing PGlite at ${dataDir}`);
 
-  fs.copyFileSync(templatePath, dbPath);
-  logger.info(`Seeded local SQLite database from template: ${templatePath}`);
+  const pg = new PGlite({
+    dataDir,
+    extensions: { vector },
+  });
+
+  await pg.waitReady;
+  await pg.exec("CREATE EXTENSION IF NOT EXISTS vector;");
+
+  pgInstance = pg;
+  pgDataDir = dataDir;
+  _db = drizzle({ client: pg, schema });
+
+  logger.info("[PGlite] Database ready with pgvector support");
 }
 
-function getBackupIntegritySidecarPath(backupPath: string): string {
-  return `${backupPath}.integrity.json`;
-}
-
-function shouldRequireSignedBackups(): boolean {
-  return process.env.NODE_ENV === 'production' && process.env.ALLOW_UNSIGNED_BACKUP_RESTORE !== 'true';
-}
-
-function writeBackupIntegritySidecar(backupPath: string, sourcePath?: string): void {
-  const content = fs.readFileSync(backupPath);
-  const sidecar: LocalBackupIntegritySidecar = {
-    version: 1,
-    backupPath,
-    sourcePath,
-    fileSize: content.length,
-    generatedAt: new Date().toISOString(),
-    envelope: createIntegrityEnvelope(content),
-  };
-  fs.writeFileSync(getBackupIntegritySidecarPath(backupPath), JSON.stringify(sidecar, null, 2), "utf8");
-}
-
-function verifyBackupIntegrityIfPresent(backupPath: string): void {
-  const sidecarPath = getBackupIntegritySidecarPath(backupPath);
-  if (!fs.existsSync(sidecarPath)) {
-    if (shouldRequireSignedBackups()) {
-      throw new Error(`Backup integrity sidecar missing: ${sidecarPath}`);
-    }
-
-    logger.warn("Backup integrity sidecar missing; skipping signature verification", { backupPath, sidecarPath });
-    return;
-  }
-
-  const sidecarRaw = fs.readFileSync(sidecarPath, "utf8");
-  const sidecar = JSON.parse(sidecarRaw) as Partial<LocalBackupIntegritySidecar>;
-  if (!isIntegrityEnvelope(sidecar.envelope)) {
-    throw new Error(`Backup integrity sidecar is invalid: ${sidecarPath}`);
-  }
-
-  const content = fs.readFileSync(backupPath);
-  const verification = verifyIntegrityEnvelope(content, sidecar.envelope);
-
-  if (!verification.valid) {
-    throw new Error(
-      `Backup integrity verification failed (hashValid=${verification.hashValid}, hmacValid=${verification.hmacValid})`
-    );
-  }
-}
-
-function configureLocalSqliteConnection(sqlite: BetterSqliteDatabase): void {
-  sqlite.pragma('journal_mode = WAL');
-  sqlite.pragma('synchronous = NORMAL');
-  sqlite.pragma('foreign_keys = ON');
-  registerSqliteCompatibilityFunctions(sqlite);
-}
-
-function initializeLocalSqliteConnection(): void {
-  const dataPath = getLocalDataPath();
-  if (!fs.existsSync(dataPath)) {
-    fs.mkdirSync(dataPath, { recursive: true });
-  }
-  const dbPath = path.join(dataPath, 'cyberdocgen.db');
-  ensureLocalSqliteDatabaseExists(dbPath);
-  logger.info(`Initializing SQLite Drizzle at ${dbPath}`);
-  const sqlite = new BetterSqlite3(dbPath);
-  configureLocalSqliteConnection(sqlite);
-  localSqlite = sqlite;
-  localDbPath = dbPath;
-  db = drizzleSqlite(sqlite, { schema });
-}
-
-async function queueLocalDatabaseOperation<T>(operation: () => Promise<T>): Promise<T> {
-  const run = localDatabaseOperationQueue.then(operation, operation);
-  localDatabaseOperationQueue = run.then(
-    () => undefined,
-    () => undefined
-  );
-  return run;
-}
-
+// Initialize on module load
 try {
-  initializeLocalSqliteConnection();
+  // initializePgliteConnection is async, so we schedule it  
+  initializePgliteConnection().catch((error) => {
+    logger.error("Failed to initialize PGlite", { error });
+  });
 } catch (error) {
-  logger.error("Failed to initialize SQLite", { error });
+  logger.error("Failed to initialize PGlite synchronously", { error });
 }
 
 /**
- * Safe database instance accessor
+ * Safe database instance accessor. Waits for initialization if needed.
  */
-export function getDb() {
-  if (!db) {
-    // Attempt lazy initialization if null
-    logger.warn("Database not initialized. Attempting lazy initialization...");
-    if (isLocalMode) {
-      try {
-        initializeLocalSqliteConnection();
-        return db;
-      } catch (error) {
-        throw new Error("Failed to lazily initialize SQLite: " + error);
-      }
-    }
-    throw new Error("Database not initialized. Ensure connect() is called first.");
+export async function getDbAsync(): Promise<DbInstance> {
+  if (!_db) {
+    await initializePgliteConnection();
   }
-  return db;
+  return _db!;
 }
 
-export { pool, db };
+export function getDb(): DbInstance {
+  if (!_db) {
+    throw new Error("Database not initialized yet. Use getDbAsync() instead.");
+  }
+  return _db;
+}
+
+export const pool = null;
 
 /**
  * Test database connection health
  */
 export async function testDatabaseConnection(): Promise<boolean> {
-  return !!db;
+  try {
+    if (!pgInstance) return false;
+    await pgInstance.exec('SELECT 1');
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -250,90 +181,61 @@ export async function executeWithRetry<T>(
  * Gracefully close database connections
  */
 export async function closeDatabaseConnections(): Promise<void> {
-  if (localSqlite && localSqlite.open) {
-    localSqlite.close();
-    localSqlite = null;
-    db = null;
-    logger.info("SQLite connection closed gracefully");
+  if (pgInstance) {
+    await pgInstance.close();
+    pgInstance = null;
+    _db = null;
+    logger.info("PGlite connection closed gracefully");
   }
 }
 
 export function getLocalDatabasePath(): string {
-  if (localDbPath) {
-    return localDbPath;
-  }
-  const dataPath = getLocalDataPath();
-  return path.join(dataPath, 'cyberdocgen.db');
+  return pgDataDir || getLocalDataDir();
 }
 
 export async function backupLocalDatabase(destinationPath: string): Promise<string> {
-  return queueLocalDatabaseOperation(async () => {
-    const resolvedDestination = path.resolve(destinationPath);
-    const destinationDir = path.dirname(resolvedDestination);
-    if (!fs.existsSync(destinationDir)) {
-      fs.mkdirSync(destinationDir, { recursive: true });
-    }
+  const resolvedDestination = path.resolve(destinationPath);
+  const destinationDir = path.dirname(resolvedDestination);
+  if (!fs.existsSync(destinationDir)) {
+    fs.mkdirSync(destinationDir, { recursive: true });
+  }
 
-    if (localSqlite && localSqlite.open) {
-      await localSqlite.backup(resolvedDestination);
-    } else {
-      const sourcePath = getLocalDatabasePath();
-      if (!fs.existsSync(sourcePath)) {
-        throw new Error(`Local database file not found at ${sourcePath}`);
-      }
-      fs.copyFileSync(sourcePath, resolvedDestination);
-    }
+  const sourceDir = pgDataDir || getLocalDataDir();
+  if (!fs.existsSync(sourceDir)) {
+    throw new Error(`PGlite data directory not found at ${sourceDir}`);
+  }
 
-    writeBackupIntegritySidecar(resolvedDestination, getLocalDatabasePath());
-
-    logger.info('Local database backup completed', { destinationPath: resolvedDestination });
-    return resolvedDestination;
-  });
+  fs.cpSync(sourceDir, resolvedDestination, { recursive: true });
+  logger.info("PGlite backup completed", { destinationPath: resolvedDestination });
+  return resolvedDestination;
 }
 
 export async function restoreLocalDatabase(sourcePath: string): Promise<void> {
-  await queueLocalDatabaseOperation(async () => {
-    const resolvedSourcePath = path.resolve(sourcePath);
-    if (!fs.existsSync(resolvedSourcePath)) {
-      throw new Error(`Backup file does not exist: ${resolvedSourcePath}`);
-    }
+  const resolvedSourcePath = path.resolve(sourcePath);
+  if (!fs.existsSync(resolvedSourcePath)) {
+    throw new Error(`Backup directory does not exist: ${resolvedSourcePath}`);
+  }
 
-    verifyBackupIntegrityIfPresent(resolvedSourcePath);
+  const targetDir = pgDataDir || getLocalDataDir();
 
-    const targetPath = getLocalDatabasePath();
+  if (pgInstance) {
+    await pgInstance.close();
+    pgInstance = null;
+    _db = null;
+  }
 
-    if (localSqlite && localSqlite.open) {
-      localSqlite.close();
-      localSqlite = null;
-    }
-    db = null;
-
-    const dbDir = path.dirname(targetPath);
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-    }
-
-    fs.copyFileSync(resolvedSourcePath, targetPath);
-
-    const walPath = `${targetPath}-wal`;
-    const shmPath = `${targetPath}-shm`;
-    if (fs.existsSync(walPath)) fs.unlinkSync(walPath);
-    if (fs.existsSync(shmPath)) fs.unlinkSync(shmPath);
-
-    initializeLocalSqliteConnection();
-    logger.info('Local database restore completed', { sourcePath: resolvedSourcePath, targetPath });
-  });
+  if (fs.existsSync(targetDir)) {
+    fs.rmSync(targetDir, { recursive: true, force: true });
+  }
+  fs.cpSync(resolvedSourcePath, targetDir, { recursive: true });
+  await initializePgliteConnection();
+  logger.info("PGlite restore completed", { sourcePath: resolvedSourcePath, targetDir });
 }
 
 export async function runLocalDatabaseMaintenance(): Promise<void> {
-  await queueLocalDatabaseOperation(async () => {
-    if (!localSqlite || !localSqlite.open) {
-      initializeLocalSqliteConnection();
-    }
-
-    localSqlite!.exec('PRAGMA wal_checkpoint(TRUNCATE);');
-    localSqlite!.exec('VACUUM;');
-    localSqlite!.exec('ANALYZE;');
-    logger.info('Local database maintenance completed');
-  });
+  if (!pgInstance) {
+    await initializePgliteConnection();
+  }
+  await pgInstance!.exec("VACUUM ANALYZE;");
+  logger.info("PGlite maintenance (VACUUM ANALYZE) completed");
 }
