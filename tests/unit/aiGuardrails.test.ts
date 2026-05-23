@@ -15,7 +15,31 @@ import { aiGuardrailsService, type GuardrailCheckResult } from '../../server/ser
 import { db } from '../../server/db';
 
 // Mock dependencies
-vi.mock('../../server/db');
+vi.mock('../../server/db', () => {
+  const mockInsert = vi.fn().mockReturnValue({
+    values: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue([{ id: 'log-123' }]),
+  });
+  const mockSelect = vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    offset: vi.fn().mockReturnThis(),
+  });
+  const mockUpdate = vi.fn().mockReturnValue({
+    set: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue([{ id: 'log-123' }]),
+  });
+  return {
+    db: {
+      insert: mockInsert,
+      select: mockSelect,
+      update: mockUpdate,
+    },
+  };
+});
 vi.mock('../../server/utils/logger');
 
 describe('AIGuardrailsService', () => {

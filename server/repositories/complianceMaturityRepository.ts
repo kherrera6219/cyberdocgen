@@ -1,30 +1,56 @@
 import { db } from "../db";
-import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
-import { randomUUID } from "crypto";
+import { eq, and, desc } from "drizzle-orm";
 import { 
-  users, organizations, userOrganizations, companyProfiles, documents, generationJobs,
-  gapAnalysisReports, gapAnalysisFindings, remediationRecommendations, complianceMaturityAssessments,
-  auditLogs, documentVersions, auditTrail, contactMessages, documentApprovals, roles,
-  roleAssignments, frameworkControlStatuses, notifications, userInvitations, userSessions,
-  User, UpsertUser, InsertUser, Organization, InsertOrganization, UserOrganization, InsertUserOrganization,
-  CompanyProfile, InsertCompanyProfile, Document, InsertDocument, GenerationJob, InsertGenerationJob,
-  GapAnalysisReport, InsertGapAnalysisReport, GapAnalysisFinding, InsertGapAnalysisFinding,
-  RemediationRecommendation, InsertRemediationRecommendation, ComplianceMaturityAssessment,
-  InsertComplianceMaturityAssessment, InsertAuditTrail, AuditTrail, ContactMessage, InsertContactMessage,
-  DocumentApproval, InsertDocumentApproval, UserInvitation, InsertUserInvitation, UserSession,
-  InsertUserSession, Role, RoleAssignment, FrameworkControlStatus, InsertFrameworkControlStatus,
-  Notification, InsertNotification, AuditLog, InsertAuditLog, DocumentVersion, InsertDocumentVersion
+  complianceMaturityAssessments,
+  type ComplianceMaturityAssessment,
+  type InsertComplianceMaturityAssessment
 } from "@shared/schema";
-import { computeAuditSignature } from "../utils/auditSignature";
-import { buildAuditSignableData, coerceLocalDateValue, coerceLocalBooleanValue, normalizeLocalUserWriteValues, UserFilters, PaginationParams, PaginatedResult } from "./utils";
 
 export function createComplianceMaturityRepository(dbClient: typeof db) {
   return {
     async createComplianceMaturityAssessment(assessment: InsertComplianceMaturityAssessment): Promise<ComplianceMaturityAssessment> {
-        const [newAssessment] = await db
-          .insert(complianceMaturityAssessments)
-          .values(assessment)
+        const inputOverallScore = (assessment as any).overallScore ?? (assessment as any).score ?? 3;
+        const inputMaturityLevel = assessment.maturityLevel;
+        
+        let maturityLevel: number = 3;
+        if (typeof inputMaturityLevel === 'string') {
+          const map: Record<string, number> = {
+            'Initial': 1,
+            'Developing': 2,
+            'Defined': 3,
+            'Managed': 4,
+            'Optimizing': 5
+          };
+          maturityLevel = map[inputMaturityLevel] ?? parseInt(inputMaturityLevel, 10) ?? 3;
+        } else if (typeof inputMaturityLevel === 'number') {
+          maturityLevel = inputMaturityLevel;
+        }
+
+        const assessmentData = assessment.assessmentData ?? {
+          categoryScores: (assessment as any).categoryScores,
+          overallScore: inputOverallScore,
+          maturityLevelString: inputMaturityLevel,
+        };
+        const framework = (assessment.framework ? assessment.framework.toLowerCase() : 'soc2') as any;
+        
+        const [newAssessment] = await dbClient.insert(complianceMaturityAssessments)
+          .values({ ...assessment, maturityLevel, assessmentData, framework })
           .returning();
+
+        if (newAssessment) {
+          const mapBack: Record<number, string> = {
+            1: 'Initial',
+            2: 'Developing',
+            3: 'Defined',
+            4: 'Managed',
+            5: 'Optimizing'
+          };
+          return {
+            ...newAssessment,
+            maturityLevel: mapBack[newAssessment.maturityLevel] ?? newAssessment.maturityLevel as any,
+            overallScore: (newAssessment.assessmentData as any)?.overallScore ?? newAssessment.maturityLevel,
+          } as any;
+        }
         return newAssessment;
       },
 
@@ -32,17 +58,31 @@ export function createComplianceMaturityRepository(dbClient: typeof db) {
         organizationId: string,
         framework: ComplianceMaturityAssessment["framework"]
       ): Promise<ComplianceMaturityAssessment | undefined> {
-        const [assessment] = await db
-          .select()
+        const normalizedFramework = (framework ? framework.toLowerCase() : 'soc2') as any;
+        const [assessment] = await dbClient.select()
           .from(complianceMaturityAssessments)
           .where(
             and(
               eq(complianceMaturityAssessments.organizationId, organizationId),
-              eq(complianceMaturityAssessments.framework, framework)
+              eq(complianceMaturityAssessments.framework, normalizedFramework)
             )
           )
           .orderBy(desc(complianceMaturityAssessments.createdAt));
     
+        if (assessment) {
+          const mapBack: Record<number, string> = {
+            1: 'Initial',
+            2: 'Developing',
+            3: 'Defined',
+            4: 'Managed',
+            5: 'Optimizing'
+          };
+          return {
+            ...assessment,
+            maturityLevel: mapBack[assessment.maturityLevel] ?? assessment.maturityLevel as any,
+            overallScore: (assessment.assessmentData as any)?.overallScore ?? assessment.maturityLevel,
+          } as any;
+        }
         return assessment || undefined;
       },
 

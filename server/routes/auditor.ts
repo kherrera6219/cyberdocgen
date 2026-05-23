@@ -43,8 +43,35 @@ export function registerAuditorRoutes(app: Router) {
    *       200:
    *         description: List of documents for audit
    *       401:
+   *         description: Unauthorized
+   */
+  router.get('/documents', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const { limit = '10', offset = '0', status, framework } = req.query;
+    const organizationId = req.organizationId!;
+
+    const conditions = [eq(companyProfiles.organizationId, organizationId)];
+    if (status) {
+      conditions.push(eq(documents.status, status as string));
+    }
+    if (framework) {
+      conditions.push(eq(documents.framework, framework as string));
+    }
+
+    const documentsList = await db
+      .select({ documents })
+      .from(documents)
       .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
-      .where(eq(companyProfiles.organizationId, organizationId));
+      .where(and(...conditions))
+      .orderBy(desc(documents.updatedAt))
+      .limit(parseInt(limit as string, 10))
+      .offset(parseInt(offset as string, 10))
+      .then(results => results.map(r => r.documents));
+
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(documents)
+      .innerJoin(companyProfiles, eq(documents.companyProfileId, companyProfiles.id))
+      .where(and(...conditions));
 
     res.json({
       success: true,

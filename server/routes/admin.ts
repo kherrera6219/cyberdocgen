@@ -1,6 +1,6 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, desc } from 'drizzle-orm';
 import { db } from '../db';
 import { cloudIntegrations, users } from '@shared/schema';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
@@ -192,22 +192,27 @@ router.post('/pdf-defaults', isAuthenticated, validateInput(pdfDefaultsSchema), 
  */
 router.get('/cloud-integrations', isAuthenticated, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
   await checkAdmin(req);
-  const integrations = await db.query.cloudIntegrations.findMany({
-    orderBy: [cloudIntegrations.createdAt],
-  });
-
-  // Remove sensitive data before sending
-  const data = integrations.map(integration => ({
-    id: integration.id,
-    provider: integration.provider,
-    displayName: integration.displayName,
-    email: integration.email,
-    isActive: integration.isActive,
-    lastSyncAt: integration.lastSyncAt,
-    syncStatus: integration.syncStatus,
-    createdAt: integration.createdAt,
-    userId: integration.userId,
-  }));
+  const data = await db
+    .select({
+      id: cloudIntegrations.id,
+      provider: cloudIntegrations.provider,
+      displayName: cloudIntegrations.displayName,
+      email: cloudIntegrations.email,
+      isActive: cloudIntegrations.isActive,
+      lastSyncAt: cloudIntegrations.lastSyncAt,
+      syncStatus: cloudIntegrations.syncStatus,
+      createdAt: cloudIntegrations.createdAt,
+      userId: cloudIntegrations.userId,
+      user: {
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      },
+    })
+    .from(cloudIntegrations)
+    .innerJoin(users, eq(cloudIntegrations.userId, users.id))
+    .orderBy(desc(cloudIntegrations.createdAt));
 
   res.json({
     success: true,

@@ -11,7 +11,18 @@ const cloudIntegrationsFindFirstMock = vi.hoisted(() => vi.fn());
 const auditLogsFindManyMock = vi.hoisted(() => vi.fn());
 const dbDeleteWhereMock = vi.hoisted(() => vi.fn());
 const dbDeleteMock = vi.hoisted(() => vi.fn(() => ({ where: dbDeleteWhereMock })));
-const dbSelectFromMock = vi.hoisted(() => vi.fn());
+const selectResults = vi.hoisted(() => [] as any[]);
+const selectChain = vi.hoisted(() => {
+  const chain: any = {
+    innerJoin: vi.fn(() => chain),
+    orderBy: vi.fn(() => chain),
+    then: (resolve: any, reject?: any) =>
+      Promise.resolve(selectResults.shift() ?? []).then(resolve, reject),
+  };
+  return chain;
+});
+
+const dbSelectFromMock = vi.hoisted(() => vi.fn(() => selectChain));
 const dbSelectMock = vi.hoisted(() => vi.fn(() => ({ from: dbSelectFromMock })));
 
 const getOAuthSettingsForUIMock = vi.hoisted(() => vi.fn());
@@ -142,7 +153,28 @@ describe("admin routes", () => {
     });
     auditLogsFindManyMock.mockResolvedValue([{ id: "audit-1" }]);
 
-    dbSelectFromMock.mockResolvedValue([
+    selectResults.length = 0;
+    // For GET /api/admin/cloud-integrations select query
+    selectResults.push([
+      {
+        id: "integration-1",
+        provider: "google_drive",
+        displayName: "Google Drive",
+        email: "team@example.com",
+        isActive: true,
+        syncStatus: "active",
+        createdAt: "2025-01-01T00:00:00.000Z",
+        userId: "user-2",
+        user: {
+          id: "user-2",
+          email: "user-2@example.com",
+          firstName: "User",
+          lastName: "Two",
+        },
+      },
+    ]);
+    // For GET /api/admin/stats select query
+    selectResults.push([
       { fileType: "pdf", isSecurityLocked: true },
       { fileType: "docx", isSecurityLocked: false },
       { fileType: "xlsx", isSecurityLocked: true },

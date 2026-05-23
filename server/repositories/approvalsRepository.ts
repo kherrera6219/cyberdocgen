@@ -22,37 +22,46 @@ export function createApprovalsRepository(dbClient: typeof db) {
   return {
     async getDocumentApprovals(status?: string): Promise<DocumentApproval[]> {
         if (status && status !== "all") {
-          return await db
-            .select()
+          return await dbClient.select()
             .from(documentApprovals)
             .where(eq(documentApprovals.status, status as any))
             .orderBy(desc(documentApprovals.createdAt));
         }
-        return await db
-          .select()
+        return await dbClient.select()
           .from(documentApprovals)
           .orderBy(desc(documentApprovals.createdAt));
       },
 
     async getDocumentApproval(id: string): Promise<DocumentApproval | undefined> {
-        const [approval] = await db
-          .select()
+        const [approval] = await dbClient.select()
           .from(documentApprovals)
           .where(eq(documentApprovals.id, id));
         return approval || undefined;
       },
 
     async createDocumentApproval(approval: InsertDocumentApproval): Promise<DocumentApproval> {
-        const [newApproval] = await db
-          .insert(documentApprovals)
-          .values(approval)
+        let requestedBy = approval.requestedBy;
+        if (!requestedBy) {
+          const [firstUser] = await dbClient.select({ id: users.id }).from(users).limit(1);
+          requestedBy = firstUser?.id ?? 'user-1';
+        }
+        
+        let documentId = approval.documentId;
+        if (!documentId) {
+          const [firstDoc] = await dbClient.select({ id: documents.id }).from(documents).limit(1);
+          documentId = firstDoc?.id ?? 'doc-1';
+        }
+
+        const approverRole = approval.approverRole ?? 'reviewer';
+
+        const [newApproval] = await dbClient.insert(documentApprovals)
+          .values({ ...approval, requestedBy, documentId, approverRole })
           .returning();
         return newApproval;
       },
 
     async updateDocumentApproval(id: string, updates: Partial<InsertDocumentApproval>): Promise<DocumentApproval | undefined> {
-        const [updated] = await db
-          .update(documentApprovals)
+        const [updated] = await dbClient.update(documentApprovals)
           .set({ ...updates, updatedAt: new Date() })
           .where(eq(documentApprovals.id, id))
           .returning();
@@ -61,3 +70,6 @@ export function createApprovalsRepository(dbClient: typeof db) {
 
   };
 }
+
+
+

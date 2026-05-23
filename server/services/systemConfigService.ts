@@ -1,4 +1,4 @@
-﻿import { eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { systemConfigurations } from '@shared/schema';
 import { encryptionService, DataClassification } from './encryption';
@@ -302,7 +302,7 @@ export class SystemConfigService {
       const result = await db.delete(systemConfigurations)
         .where(eq(systemConfigurations.configKey, configKey));
 
-      if (result.affectedRows === 0) {
+      if (((result as any).rowCount ?? 0) === 0) {
         return false;
       }
 

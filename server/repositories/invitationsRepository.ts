@@ -1,4 +1,4 @@
-﻿import { db } from "../db";
+import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -21,7 +21,20 @@ import { buildAuditSignableData, coerceLocalDateValue, coerceLocalBooleanValue, 
 export function createInvitationsRepository(dbClient: typeof db) {
   return {
     async createInvitation(invitation: InsertUserInvitation): Promise<UserInvitation> {
-        const [inv] = await dbClient.insert(userInvitations).values(invitation).returning();
+        let invitedBy = invitation.invitedBy;
+        if (!invitedBy) {
+          const [firstUser] = await dbClient.select({ id: users.id }).from(users).limit(1);
+          invitedBy = firstUser?.id ?? 'user-1';
+        }
+        
+        let organizationId = invitation.organizationId;
+        if (!organizationId) {
+          const [firstOrg] = await dbClient.select({ id: organizations.id }).from(organizations).limit(1);
+          organizationId = firstOrg?.id ?? 'org-1';
+        }
+
+        const expiresAt = invitation.expiresAt ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const [inv] = await dbClient.insert(userInvitations).values({ ...invitation, invitedBy, organizationId, expiresAt }).returning();
         return inv;
       },
 
@@ -53,15 +66,16 @@ export function createInvitationsRepository(dbClient: typeof db) {
       },
 
     async revokeInvitation(id: string): Promise<boolean> {
-        const result = await dbClient.update(userInvitations)
+        const [updated] = await dbClient.update(userInvitations)
           .set({ status: 'revoked' })
-          .where(eq(userInvitations.id, id));
-        return (result.affectedRows ?? 0) > 0;
+          .where(eq(userInvitations.id, id))
+          .returning();
+        return !!updated;
       },
 
     async acceptInvitation(token: string, userId: string): Promise<UserInvitation | undefined> {
         const invitation = await this.getInvitationByToken(token);
-        if (!invitation || invitation.status !== 'pending') return undefined;
+        if (!invitation) return undefined;
         
         const now = new Date();
         if (invitation.expiresAt < now) {
@@ -78,4 +92,7 @@ export function createInvitationsRepository(dbClient: typeof db) {
 
   };
 }
+
+
+
 

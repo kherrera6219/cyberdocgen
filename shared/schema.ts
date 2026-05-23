@@ -987,7 +987,7 @@ export const insertSystemConfigurationSchema = cis(systemConfigurations).omit({
 });
 
 // Type exports
-export type User = typeof users.$inferSelect;
+export type User = typeof users.$inferSelect & { organizationId?: string };
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
 export type PasskeyCredential = typeof passkeyCredentials.$inferSelect;
@@ -1155,8 +1155,8 @@ export type InsertFrameworkControlStatus = z.infer<typeof insertFrameworkControl
 export type FrameworkControlStatus = typeof frameworkControlStatuses.$inferSelect;
 export type FineTuningMetric = typeof fineTuningMetrics.$inferSelect;
 export type InsertFineTuningMetric = typeof fineTuningMetrics.$inferInsert;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type UpsertUser = z.infer<typeof upsertUserSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema> & { organizationId?: string };
+export type UpsertUser = z.infer<typeof upsertUserSchema> & { organizationId?: string };
 
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -1173,8 +1173,8 @@ export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type CompanyProfile = typeof companyProfiles.$inferSelect;
 export type InsertCompanyProfile = z.infer<typeof insertCompanyProfileSchema>;
 
-export type Document = typeof documents.$inferSelect;
-export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect & { organizationId?: string };
+export type InsertDocument = z.infer<typeof insertDocumentSchema> & { organizationId?: string };
 
 export type DocumentTemplate = typeof documentTemplates.$inferSelect;
 export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;

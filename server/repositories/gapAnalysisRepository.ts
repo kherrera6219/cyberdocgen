@@ -21,17 +21,17 @@ import { buildAuditSignableData, coerceLocalDateValue, coerceLocalBooleanValue, 
 export function createGapAnalysisRepository(dbClient: typeof db) {
   return {
     async createGapAnalysisReport(report: InsertGapAnalysisReport): Promise<GapAnalysisReport> {
-        const [newReport] = await db
-          .insert(gapAnalysisReports)
-          .values(report)
+        const overallScore = report.overallScore ?? 0;
+        const framework = (report.framework ? report.framework.toLowerCase() : 'soc2') as any;
+        const [newReport] = await dbClient.insert(gapAnalysisReports)
+          .values({ ...report, overallScore, framework })
           .returning();
         return newReport;
       },
 
     async getGapAnalysisReports(organizationId: string): Promise<GapAnalysisReport[]> {
         const DEFAULT_LIMIT = 500; // Prevent memory exhaustion
-        return db
-          .select()
+        return dbClient.select()
           .from(gapAnalysisReports)
           .where(eq(gapAnalysisReports.organizationId, organizationId))
           .orderBy(desc(gapAnalysisReports.createdAt))
@@ -39,16 +39,14 @@ export function createGapAnalysisRepository(dbClient: typeof db) {
       },
 
     async getGapAnalysisReport(id: string): Promise<GapAnalysisReport | undefined> {
-        const [report] = await db
-          .select()
+        const [report] = await dbClient.select()
           .from(gapAnalysisReports)
           .where(eq(gapAnalysisReports.id, id));
         return report || undefined;
       },
 
     async updateGapAnalysisReport(id: string, updates: Partial<GapAnalysisReport>): Promise<GapAnalysisReport> {
-        const [updated] = await db
-          .update(gapAnalysisReports)
+        const [updated] = await dbClient.update(gapAnalysisReports)
           .set({ ...updates, updatedAt: new Date() })
           .where(eq(gapAnalysisReports.id, id))
           .returning();
@@ -59,56 +57,79 @@ export function createGapAnalysisRepository(dbClient: typeof db) {
       },
 
     async createGapAnalysisFinding(finding: InsertGapAnalysisFinding): Promise<GapAnalysisFinding> {
-        const [newFinding] = await db
-          .insert(gapAnalysisFindings)
-          .values(finding)
+        const controlId = finding.controlId ?? 'CTRL-1';
+        const controlTitle = finding.controlTitle ?? (finding as any).title ?? 'Default Title';
+        const currentStatus = finding.currentStatus ?? 'not_implemented';
+        const riskLevel = finding.riskLevel ?? 'medium';
+        const gapDescription = finding.gapDescription ?? 'Gap description';
+        const businessImpact = finding.businessImpact ?? 'Business impact';
+        const complianceScore = finding.complianceScore ?? 0;
+        const priority = finding.priority ?? 1;
+        const [newFinding] = await dbClient.insert(gapAnalysisFindings)
+          .values({ 
+            ...finding,
+            controlId,
+            controlTitle,
+            currentStatus,
+            riskLevel,
+            gapDescription,
+            businessImpact,
+            complianceScore,
+            priority
+          } as any)
           .returning();
         return newFinding;
       },
 
     async getGapAnalysisFindings(reportId: string): Promise<GapAnalysisFinding[]> {
-        return db
-          .select()
+        return dbClient.select()
           .from(gapAnalysisFindings)
           .where(eq(gapAnalysisFindings.reportId, reportId))
           .orderBy(desc(gapAnalysisFindings.createdAt));
       },
 
     async getGapAnalysisFinding(id: string): Promise<GapAnalysisFinding | undefined> {
-        const [finding] = await db
-          .select()
+        const [finding] = await dbClient.select()
           .from(gapAnalysisFindings)
           .where(eq(gapAnalysisFindings.id, id));
         return finding || undefined;
       },
 
     async createRemediationRecommendation(recommendation: InsertRemediationRecommendation): Promise<RemediationRecommendation> {
-        const [newRecommendation] = await db
-          .insert(remediationRecommendations)
-          .values(recommendation)
+        const title = recommendation.title ?? 'Remediation';
+        const description = recommendation.description ?? 'Description';
+        const implementation = recommendation.implementation ?? 'Implementation details';
+        const timeframe = recommendation.timeframe ?? 'short_term';
+        const priority = recommendation.priority ?? 3;
+        const [newRecommendation] = await dbClient.insert(remediationRecommendations)
+          .values({
+            ...recommendation,
+            title,
+            description,
+            implementation,
+            timeframe,
+            priority
+          } as any)
           .returning();
         return newRecommendation;
       },
 
     async getRemediationRecommendations(findingId: string): Promise<RemediationRecommendation[]> {
-        return db
-          .select()
+        return dbClient.select()
           .from(remediationRecommendations)
           .where(eq(remediationRecommendations.findingId, findingId))
           .orderBy(desc(remediationRecommendations.createdAt));
       },
 
     async getRemediationRecommendation(id: string): Promise<RemediationRecommendation | undefined> {
-        const [recommendation] = await db
-          .select()
+        const [recommendation] = await dbClient.select()
           .from(remediationRecommendations)
           .where(eq(remediationRecommendations.id, id));
         return recommendation || undefined;
       },
 
     async updateRemediationRecommendation(id: string, updates: Partial<RemediationRecommendation>): Promise<RemediationRecommendation> {
-        const [updated] = await db
-          .update(remediationRecommendations)
+        const [updated] = await dbClient.update(remediationRecommendations)
           .set({ ...updates, updatedAt: new Date() })
           .where(eq(remediationRecommendations.id, id))
           .returning();
@@ -122,3 +143,6 @@ export function createGapAnalysisRepository(dbClient: typeof db) {
 
   };
 }
+
+
+

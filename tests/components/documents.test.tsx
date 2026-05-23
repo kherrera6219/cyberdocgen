@@ -252,7 +252,7 @@ describe('Documents Page', () => {
       renderDocuments();
 
       await waitFor(() => {
-        expect(screen.getByText(/No documents generated yet/i)).toBeInTheDocument();
+        expect(screen.getByText(/No documents yet/i)).toBeInTheDocument();
       });
     });
 
@@ -269,7 +269,7 @@ describe('Documents Page', () => {
       await user.type(searchInput, 'nonexistent document');
 
       await waitFor(() => {
-        expect(screen.getByText(/No documents match your current filters/i)).toBeInTheDocument();
+        expect(screen.getByText(/No matching documents/i)).toBeInTheDocument();
       });
     });
   });
@@ -573,7 +573,7 @@ describe('Documents Page', () => {
 
       await waitFor(() => {
         expect(screen.getAllByText('Add New Document').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('Fill in the details below to create a new document.').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Create a new compliance document manually or start from a template.').length).toBeGreaterThan(0);
       });
     });
   });
@@ -691,7 +691,7 @@ describe('Documents Page', () => {
       renderDocuments();
 
       await waitFor(() => {
-        expect(screen.getByText(/No documents generated yet/i)).toBeInTheDocument();
+        expect(screen.getByText(/No documents yet/i)).toBeInTheDocument();
       });
     });
 

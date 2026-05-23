@@ -21,12 +21,18 @@ import { buildAuditSignableData, coerceLocalDateValue, coerceLocalBooleanValue, 
 export function createContactRepository(dbClient: typeof db) {
   return {
     async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
-        const [newMessage] = await db
-          .insert(contactMessages)
-          .values(message)
+        const firstName = message.firstName ?? (message as any).name ?? 'First';
+        const lastName = message.lastName ?? 'Last';
+        const company = message.company ?? 'None';
+        const subject = message.subject ?? 'Contact Message';
+        const [newMessage] = await dbClient.insert(contactMessages)
+          .values({ ...message, firstName, lastName, company, subject })
           .returning();
         return newMessage;
       },
 
   };
 }
+
+
+

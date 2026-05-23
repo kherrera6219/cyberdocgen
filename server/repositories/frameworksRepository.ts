@@ -1,4 +1,4 @@
-import { db } from "../db";
+﻿import { db } from "../db";
 import { eq, and, desc } from "drizzle-orm";
 import {
   documents, frameworkControlStatuses,
@@ -12,8 +12,7 @@ export function createFrameworksRepository(dbClient: typeof db) {
 
   return {
     async getDocumentsByFramework(framework: string): Promise<Document[]> {
-      return await db
-        .select()
+      return await dbClient.select()
         .from(documents)
         .where(eq(documents.framework, framework as any))
         .orderBy(desc(documents.updatedAt))
@@ -21,8 +20,7 @@ export function createFrameworksRepository(dbClient: typeof db) {
     },
 
     async getFrameworkControlStatuses(organizationId: string, framework: string): Promise<FrameworkControlStatus[]> {
-      return await db
-        .select()
+      return await dbClient.select()
         .from(frameworkControlStatuses)
         .where(
           and(
@@ -38,8 +36,7 @@ export function createFrameworksRepository(dbClient: typeof db) {
       controlId: string,
       updates: Partial<InsertFrameworkControlStatus>
     ): Promise<FrameworkControlStatus> {
-      const [existing] = await db
-        .select()
+      const [existing] = await dbClient.select()
         .from(frameworkControlStatuses)
         .where(
           and(
@@ -57,16 +54,14 @@ export function createFrameworksRepository(dbClient: typeof db) {
       if (updates.updatedBy !== undefined) filteredUpdates.updatedBy = updates.updatedBy;
 
       if (existing) {
-        const [updated] = await db
-          .update(frameworkControlStatuses)
+        const [updated] = await dbClient.update(frameworkControlStatuses)
           .set(filteredUpdates)
           .where(eq(frameworkControlStatuses.id, existing.id))
           .returning();
         return updated;
       }
 
-      const [newStatus] = await db
-        .insert(frameworkControlStatuses)
+      const [newStatus] = await dbClient.insert(frameworkControlStatuses)
         .values({
           organizationId,
           framework: framework as FrameworkEnum,
@@ -81,3 +76,6 @@ export function createFrameworksRepository(dbClient: typeof db) {
     },
   };
 }
+
+
+

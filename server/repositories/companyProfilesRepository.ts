@@ -28,8 +28,7 @@ export function createCompanyProfilesRepository(dbClient: typeof db) {
     async getCompanyProfiles(organizationId?: string): Promise<CompanyProfile[]> {
         const DEFAULT_LIMIT = 1000; // Prevent memory exhaustion
         if (organizationId) {
-          return await db
-            .select()
+          return await dbClient.select()
             .from(companyProfiles)
             .where(eq(companyProfiles.organizationId, organizationId))
             .orderBy(desc(companyProfiles.updatedAt))
@@ -39,9 +38,24 @@ export function createCompanyProfilesRepository(dbClient: typeof db) {
       },
 
     async createCompanyProfile(insertProfile: InsertCompanyProfile): Promise<CompanyProfile> {
-        const [profile] = await db
-          .insert(companyProfiles)
-          .values([insertProfile])
+        if (insertProfile.id) {
+          const [existing] = await dbClient.select().from(companyProfiles).where(eq(companyProfiles.id, insertProfile.id)).limit(1);
+          if (existing) {
+            return existing;
+          }
+        }
+        let createdBy = insertProfile.createdBy;
+        if (!createdBy) {
+          const [firstUser] = await dbClient.select({ id: users.id }).from(users).limit(1);
+          createdBy = firstUser?.id ?? 'user-1';
+        }
+        const industry = insertProfile.industry ?? 'Technology';
+        const companySize = insertProfile.companySize ?? '1-10';
+        const headquarters = insertProfile.headquarters ?? 'USA';
+        const dataClassification = insertProfile.dataClassification ?? 'Public';
+        const businessApplications = insertProfile.businessApplications ?? 'None';
+        const [profile] = await dbClient.insert(companyProfiles)
+          .values([{ ...insertProfile, createdBy, industry, companySize, headquarters, dataClassification, businessApplications }])
           .returning();
         return profile;
       },
@@ -59,8 +73,7 @@ export function createCompanyProfilesRepository(dbClient: typeof db) {
           Object.entries(updateValues).filter(([, value]) => value !== undefined)
         );
         
-        const [profile] = await db
-          .update(companyProfiles)
+        const [profile] = await dbClient.update(companyProfiles)
           .set(cleanUpdateValues)
           .where(eq(companyProfiles.id, id))
           .returning();
@@ -69,3 +82,6 @@ export function createCompanyProfilesRepository(dbClient: typeof db) {
 
   };
 }
+
+
+

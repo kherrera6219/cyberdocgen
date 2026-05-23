@@ -1,4 +1,4 @@
-﻿import { db } from "../db";
+import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -43,17 +43,24 @@ export function createSessionsRepository(dbClient: typeof db) {
       },
 
     async terminateSession(sessionId: string): Promise<boolean> {
-        const result = await dbClient.update(userSessions)
+        const [updated] = await dbClient.update(userSessions)
           .set({ isActive: false })
-          .where(eq(userSessions.id, sessionId));
-        return (result.affectedRows ?? 0) > 0;
+          .where(eq(userSessions.id, sessionId))
+          .returning();
+        return !!updated;
       },
 
     async terminateAllUserSessions(userId: string): Promise<number> {
-        const result = await dbClient.update(userSessions)
+        const updated = await dbClient.update(userSessions)
           .set({ isActive: false })
-          .where(eq(userSessions.userId, userId));
-        return result.affectedRows ?? 0;
+          .where(
+            and(
+              eq(userSessions.userId, userId),
+              eq(userSessions.isActive, true)
+            )
+          )
+          .returning();
+        return updated.length;
       },
 
     async updateSessionActivity(sessionId: string): Promise<UserSession | undefined> {
@@ -66,10 +73,13 @@ export function createSessionsRepository(dbClient: typeof db) {
 
     async cleanupExpiredSessions(): Promise<number> {
         const now = new Date();
-        const result = await dbClient.delete(userSessions).where(lt(userSessions.expiresAt, now));
-        return result.affectedRows ?? 0;
+        const deleted = await dbClient.delete(userSessions)
+          .where(lt(userSessions.expiresAt, now))
+          .returning();
+        return deleted.length;
       },
 
   };
 }
+
 

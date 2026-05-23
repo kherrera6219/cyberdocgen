@@ -1,4 +1,4 @@
-import { AuditLog } from "@shared/schema";
+﻿import { AuditLog } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export function buildAuditSignableData(log: Pick<AuditLog, "userId" | "organizationId" | "action" | "resourceType" | "resourceId" | "timestamp">): string {
@@ -93,3 +93,6 @@ export interface PaginatedResult<T> {
   limit: number;
   totalPages: number;
 }
+
+
+

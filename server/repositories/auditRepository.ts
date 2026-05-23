@@ -22,23 +22,26 @@ export function createAuditRepository(dbClient: typeof db) {
   return {
     async createAuditEntry(entry: InsertAuditLog): Promise<AuditLog> {
         const timestamp = entry.timestamp ?? new Date();
+        const ipAddress = entry.ipAddress ?? '127.0.0.1';
+        const resourceType = entry.resourceType ?? 'system';
         const previousSignature = entry.previousSignature ?? await this.getLatestAuditSignature();
         const signature = entry.signature ?? computeAuditSignature(
           buildAuditSignableData({
             userId: entry.userId ?? null,
             organizationId: entry.organizationId ?? null,
             action: entry.action,
-            resourceType: entry.resourceType,
+            resourceType,
             resourceId: entry.resourceId ?? null,
             timestamp,
           } as AuditLog),
           previousSignature
         );
-        const [audit] = await db
-          .insert(auditLogs)
+        const [audit] = await dbClient.insert(auditLogs)
           .values({
             ...entry,
+            resourceType,
             timestamp,
+            ipAddress,
             previousSignature,
             signature,
           })
@@ -47,8 +50,7 @@ export function createAuditRepository(dbClient: typeof db) {
       },
 
     async getLatestAuditSignature(): Promise<string | null> {
-        const [latest] = await db
-          .select({ signature: auditLogs.signature })
+        const [latest] = await dbClient.select({ signature: auditLogs.signature })
           .from(auditLogs)
           .orderBy(desc(auditLogs.timestamp))
           .limit(1);
@@ -56,8 +58,7 @@ export function createAuditRepository(dbClient: typeof db) {
       },
 
     async getAuditLogById(id: string, organizationId: string): Promise<AuditLog | null> {
-        const [log] = await db
-          .select()
+        const [log] = await dbClient.select()
           .from(auditLogs)
           .where(and(eq(auditLogs.id, id), eq(auditLogs.organizationId, organizationId)))
           .limit(1);
@@ -72,8 +73,7 @@ export function createAuditRepository(dbClient: typeof db) {
         if (organizationId) {
           conditions.push(eq(auditLogs.organizationId, organizationId));
         }
-        return await db
-          .select()
+        return await dbClient.select()
           .from(auditLogs)
           .where(and(...conditions))
           .orderBy(desc(auditLogs.timestamp));
@@ -81,8 +81,7 @@ export function createAuditRepository(dbClient: typeof db) {
 
     async verifyAuditChain(limit: number): Promise<{ valid: boolean; failedId?: string; count: number }> {
         const boundedLimit = Math.max(0, limit);
-        const logs = await db
-          .select()
+        const logs = await dbClient.select()
           .from(auditLogs)
           .orderBy(desc(auditLogs.timestamp))
           .limit(boundedLimit);
@@ -148,15 +147,13 @@ export function createAuditRepository(dbClient: typeof db) {
         if (query.dateFrom) conditions.push(gte(auditLogs.timestamp, query.dateFrom));
         if (query.dateTo) conditions.push(lte(auditLogs.timestamp, query.dateTo));
     
-        const [countResult] = await db
-          .select({ total: count() })
+        const [countResult] = await dbClient.select({ total: count() })
           .from(auditLogs)
           .where(and(...conditions));
         
         const total = countResult?.total ?? 0;
     
-        const data = await db
-          .select()
+        const data = await dbClient.select()
           .from(auditLogs)
           .where(and(...conditions))
           .orderBy(desc(auditLogs.timestamp))
@@ -172,8 +169,7 @@ export function createAuditRepository(dbClient: typeof db) {
         actions: Record<string, number>;
         entities: Record<string, number>;
       }> {
-        const results = await db
-          .select()
+        const results = await dbClient.select()
           .from(auditLogs)
           .where(eq(auditLogs.organizationId, organizationId))
           .limit(10000);
@@ -199,3 +195,6 @@ export function createAuditRepository(dbClient: typeof db) {
 
   };
 }
+
+
+

@@ -58,12 +58,12 @@ describe('Local Mode Routes', () => {
       }
     });
 
-    it('should use SQLite in local mode', () => {
+    it('should use PGlite in local mode', () => {
       const config = getRuntimeConfig();
 
       if (config.mode === 'local') {
-        expect(config.database.type).toBe('sqlite');
-        expect(config.database.filePath).toBeDefined();
+        expect(config.database.type).toBe('pglite');
+        expect(config.database.dataDir).toBeDefined();
       }
     });
 

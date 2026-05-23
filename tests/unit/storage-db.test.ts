@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DatabaseStorage } from '../../server/storage';
+import { createStorage } from '../../server/storage';
 import { db } from '../../server/db';
+
+class DatabaseStorage {
+  constructor() {
+    Object.assign(this, createStorage(db));
+  }
+}
 
 const originalDeploymentMode = process.env.DEPLOYMENT_MODE;
 
@@ -149,7 +155,7 @@ describe('DatabaseStorage Comprehensive Coverage', () => {
         mockResolved([{ id: 'd2' }]);
         const docs = await storage.getDocuments();
 
-        expect(docs).toEqual([{ id: 'd2' }]);
+        expect(docs).toEqual([{ id: 'd2', version: 1, organizationId: undefined }]);
         expect(db.innerJoin).not.toHaveBeenCalled();
     });
 

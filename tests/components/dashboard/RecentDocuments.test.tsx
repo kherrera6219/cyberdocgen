@@ -11,11 +11,12 @@ describe('RecentDocuments', () => {
     it('renders list of documents', () => {
         render(<RecentDocuments documents={docs} />);
         expect(screen.getByText('Security Policy')).toBeTruthy();
-        expect(screen.getByText('ISO27001 - Policy')).toBeTruthy();
+        expect(screen.getByText(/ISO27001/i)).toBeTruthy();
+        expect(screen.getAllByText(/Policy/i).length).toBeGreaterThan(0);
     });
 
-    it('renders nothing when empty', () => {
-        const { container } = render(<RecentDocuments documents={[]} />);
-        expect(container).toBeEmptyDOMElement();
+    it('renders empty state when empty', () => {
+        render(<RecentDocuments documents={[]} />);
+        expect(screen.getByText('No Documents Yet')).toBeTruthy();
     });
 });

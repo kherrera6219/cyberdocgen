@@ -28,8 +28,7 @@ export function createGenerationJobsRepository(dbClient: typeof db) {
     async getGenerationJobs(organizationId?: string): Promise<GenerationJob[]> {
         const DEFAULT_LIMIT = 500; // Prevent memory exhaustion
         if (organizationId) {
-          return await db
-            .select()
+          return await dbClient.select()
             .from(generationJobs)
             .innerJoin(companyProfiles, eq(generationJobs.companyProfileId, companyProfiles.id))
             .where(eq(companyProfiles.organizationId, organizationId))
@@ -42,8 +41,7 @@ export function createGenerationJobsRepository(dbClient: typeof db) {
 
     async getGenerationJobsByCompanyProfile(companyProfileId: string): Promise<GenerationJob[]> {
         const DEFAULT_LIMIT = 200; // Prevent memory exhaustion
-        return await db
-          .select()
+        return await dbClient.select()
           .from(generationJobs)
           .where(eq(generationJobs.companyProfileId, companyProfileId))
           .orderBy(desc(generationJobs.createdAt))
@@ -51,16 +49,20 @@ export function createGenerationJobsRepository(dbClient: typeof db) {
       },
 
     async createGenerationJob(insertJob: InsertGenerationJob): Promise<GenerationJob> {
-        const [job] = await db
-          .insert(generationJobs)
-          .values([insertJob])
+        let createdBy = insertJob.createdBy;
+        if (!createdBy) {
+          const [firstUser] = await dbClient.select({ id: users.id }).from(users).limit(1);
+          createdBy = firstUser?.id ?? 'user-1';
+        }
+        const framework = insertJob.framework ?? 'ISO27001';
+        const [job] = await dbClient.insert(generationJobs)
+          .values([{ ...insertJob, createdBy, framework }])
           .returning();
         return job;
       },
 
     async updateGenerationJob(id: string, updateData: Partial<InsertGenerationJob>): Promise<GenerationJob | undefined> {
-        const [job] = await db
-          .update(generationJobs)
+        const [job] = await dbClient.update(generationJobs)
           .set({ ...updateData, updatedAt: new Date() })
           .where(eq(generationJobs.id, id))
           .returning();
@@ -69,3 +71,6 @@ export function createGenerationJobsRepository(dbClient: typeof db) {
 
   };
 }
+
+
+

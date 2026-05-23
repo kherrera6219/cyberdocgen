@@ -5,8 +5,42 @@ import type { InsertUser, InsertOrganization, InsertCompanyProfile } from '../..
 describe('Storage Layer Tests', () => {
   let storage: MemStorage;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     storage = new MemStorage();
+    // Seed default records to satisfy foreign key constraints across storage layer tests
+    await storage.createUser({
+      id: 'user-1',
+      email: 'user-1@example.com',
+      firstName: 'User One',
+      role: 'user',
+    } as any);
+    await storage.createOrganization({
+      id: 'org-1',
+      name: 'Org One',
+      slug: 'org-1',
+    } as any);
+    await storage.createCompanyProfile({
+      id: 'cp-1',
+      organizationId: 'org-1',
+      createdBy: 'user-1',
+      companyName: 'Test Company',
+      industry: 'Technology',
+      companySize: '51-200',
+      headquarters: 'San Francisco, CA',
+      dataClassification: 'Confidential',
+      businessApplications: 'Web applications, mobile apps',
+      cloudInfrastructure: ['AWS', 'Azure'],
+      complianceFrameworks: ['SOC2', 'ISO27001']
+    } as any);
+    await storage.createDocument({
+      id: 'doc-1',
+      companyProfileId: 'cp-1',
+      createdBy: 'user-1',
+      title: 'Document One',
+      framework: 'SOC2',
+      category: 'policy',
+      content: 'Initial document content',
+    } as any);
   });
 
   describe('User Operations', () => {
@@ -325,6 +359,8 @@ describe('Storage Layer Tests', () => {
 
   describe('Notifications, Versions, and Audit Operations', () => {
     it('covers framework status, notifications, document versions, and audit queries', async () => {
+
+
       const status = await storage.updateFrameworkControlStatus(
         'org-1',
         'SOC2',

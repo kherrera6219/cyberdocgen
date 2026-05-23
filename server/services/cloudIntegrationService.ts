@@ -1,4 +1,4 @@
-﻿import { drive_v3, drive } from '@googleapis/drive';
+import { drive_v3, drive } from '@googleapis/drive';
 import { OAuth2Client } from 'google-auth-library';
 import { Client, AuthenticationProvider } from '@microsoft/microsoft-graph-client';
 import axios from 'axios';
@@ -630,14 +630,21 @@ export class CloudIntegrationService {
    */
   async deleteIntegration(integrationId: string, userId: string): Promise<boolean> {
     try {
-      const result = await db.delete(cloudIntegrations)
+      const query = db.delete(cloudIntegrations)
         .where(and(
           eq(cloudIntegrations.id, integrationId),
           eq(cloudIntegrations.userId, userId)
         ));
 
-      if (result.affectedRows === 0) {
-        return false;
+      const result = typeof (query as any).returning === 'function'
+        ? await (query as any).returning()
+        : await query;
+
+      if (Array.isArray(result)) {
+        if (result.length === 0) return false;
+      } else {
+        const count = (result as any)?.rowCount ?? (result as any)?.affectedRows ?? 0;
+        if (count === 0) return false;
       }
 
       // Audit log

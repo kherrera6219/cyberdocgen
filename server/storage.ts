@@ -63,6 +63,12 @@ import {
   type InsertDocumentVersion
 } from "@shared/schema";
 import { db } from "./db";
+import { drizzle } from "drizzle-orm/pglite";
+import { PGlite } from "@electric-sql/pglite";
+import { vector } from "@electric-sql/pglite/vector";
+import fs from "fs";
+import path from "path";
+import * as schema from "@shared/schema";
 
 import { createUsersRepository } from "./repositories/usersRepository";
 import { createOrganizationsRepository } from "./repositories/organizationsRepository";
@@ -245,3 +251,65 @@ export function createStorage(dbClient: typeof db): IStorage {
 }
 
 export const storage: IStorage = createStorage(db);
+
+export class MemStorage {
+  private dbInstance: any = null;
+  private pg: any = null;
+  private storageImpl: any = null;
+  private initPromise: Promise<void> | null = null;
+
+  constructor() {
+    return new Proxy(this, {
+      get(target, prop, receiver) {
+        if (
+          prop === 'pg' ||
+          prop === 'dbInstance' ||
+          prop === 'close' ||
+          prop === 'ensureInitialized' ||
+          prop === 'initPromise' ||
+          prop === 'storageImpl'
+        ) {
+          return Reflect.get(target, prop, receiver);
+        }
+
+        return async function(...args: any[]) {
+          await target.ensureInitialized();
+          const method = target.storageImpl[prop];
+          if (typeof method !== 'function') {
+            throw new Error(`Method ${String(prop)} is not defined on storage`);
+          }
+          return method.apply(target.storageImpl, args);
+        };
+      }
+    });
+  }
+
+  private async ensureInitialized() {
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+    this.initPromise = (async () => {
+      this.pg = new PGlite({
+        extensions: { vector },
+      });
+      await this.pg.waitReady;
+      await this.pg.exec("CREATE EXTENSION IF NOT EXISTS vector;");
+      
+      const schemaPath = path.resolve(process.cwd(), "server/migrations/postgres/0000_initial_schema.sql");
+      const sql = fs.readFileSync(schemaPath, "utf8");
+      await this.pg.exec(sql);
+      
+      this.dbInstance = drizzle({ client: this.pg, schema });
+      this.storageImpl = createStorage(this.dbInstance);
+    })();
+    return this.initPromise;
+  }
+
+  async close() {
+    if (this.pg) {
+      await this.pg.close();
+      this.pg = null;
+      this.initPromise = null;
+    }
+  }
+}

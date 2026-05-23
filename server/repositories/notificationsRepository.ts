@@ -21,8 +21,7 @@ import { buildAuditSignableData, coerceLocalDateValue, coerceLocalBooleanValue, 
 export function createNotificationsRepository(dbClient: typeof db) {
   return {
     async getNotifications(userId: string, limit: number = 50): Promise<Notification[]> {
-        return db
-          .select()
+        return dbClient.select()
           .from(notifications)
           .where(eq(notifications.userId, userId))
           .orderBy(desc(notifications.createdAt))
@@ -30,8 +29,7 @@ export function createNotificationsRepository(dbClient: typeof db) {
       },
 
     async getUnreadNotificationCount(userId: string): Promise<number> {
-        const [result] = await db
-          .select({ count: count() })
+        const [result] = await dbClient.select({ count: count() })
           .from(notifications)
           .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
         return result?.count ?? 0;
@@ -53,16 +51,14 @@ export function createNotificationsRepository(dbClient: typeof db) {
             })()
           : notification;
     
-        const [newNotification] = await db
-          .insert(notifications)
+        const [newNotification] = await dbClient.insert(notifications)
           .values(normalizedNotificationData)
           .returning();
         return newNotification;
       },
 
     async markNotificationAsRead(id: string, userId: string): Promise<Notification | undefined> {
-        const [notification] = await db
-          .update(notifications)
+        const [notification] = await dbClient.update(notifications)
           .set({ isRead: true })
           .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
           .returning();
@@ -70,20 +66,27 @@ export function createNotificationsRepository(dbClient: typeof db) {
       },
 
     async markAllNotificationsAsRead(userId: string): Promise<number> {
-        const result = await db
-          .update(notifications)
+        const result = await dbClient.update(notifications)
           .set({ isRead: true })
-          .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
-        return (result as any)?.affectedRows ?? 0;
+          .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)))
+          .returning();
+        if (Array.isArray(result)) {
+          return result.length;
+        }
+        return (result as any)?.rowCount ?? 0;
       },
 
     async deleteNotification(id: string, userId: string): Promise<boolean> {
-        const result = await db
-          .delete(notifications)
-          .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
-        return ((result as any)?.affectedRows ?? 0) > 0;
+        const result = await dbClient.delete(notifications)
+          .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
+          .returning();
+        if (Array.isArray(result)) {
+          return result.length > 0;
+        }
+        return ((result as any)?.rowCount ?? 0) > 0;
       },
 
   };
 }
+
 

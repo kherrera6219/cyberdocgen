@@ -26,6 +26,19 @@ describe('Workflow Integration Tests', () => {
       organizationId: testOrg.id,
       createdAt: new Date(),
     });
+
+    // Seed default company profile to satisfy foreign key constraints for document creation
+    await storage.createCompanyProfile({
+      id: 'cp-1',
+      organizationId: testOrg.id,
+      createdBy: testUser.id,
+      companyName: 'Acme Test Corp',
+      industry: 'Technology',
+      companySize: '51-200',
+      headquarters: 'San Francisco, CA',
+      dataClassification: 'Confidential',
+      businessApplications: 'Web applications, CRM',
+    });
   });
 
   describe('Complete Document Generation Workflow', () => {

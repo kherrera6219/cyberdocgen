@@ -1,4 +1,4 @@
-import { db } from "../db";
+﻿import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -21,8 +21,7 @@ import { buildAuditSignableData, coerceLocalDateValue, coerceLocalBooleanValue, 
 export function createRolesRepository(dbClient: typeof db) {
   return {
     async updateUserOrganizationRole(userId: string, organizationId: string, role: string): Promise<UserOrganization | undefined> {
-        const [userOrg] = await db
-          .update(userOrganizations)
+        const [userOrg] = await dbClient.update(userOrganizations)
           .set({ role })
           .where(and(
             eq(userOrganizations.userId, userId),
@@ -33,8 +32,7 @@ export function createRolesRepository(dbClient: typeof db) {
       },
 
     async getUserRoleAssignments(userId: string): Promise<Array<RoleAssignment & { role: Role | null }>> {
-        const results = await db
-          .select({
+        const results = await dbClient.select({
             id: roleAssignments.id,
             userId: roleAssignments.userId,
             roleId: roleAssignments.roleId,
@@ -52,3 +50,6 @@ export function createRolesRepository(dbClient: typeof db) {
 
   };
 }
+
+
+

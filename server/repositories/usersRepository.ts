@@ -1,4 +1,4 @@
-﻿import { db } from "../db";
+import { db } from "../db";
 import { eq, and, desc, like, or, sql, asc, count, ilike, lt, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { 
@@ -22,41 +22,106 @@ export function createUsersRepository(dbClient: typeof db) {
   return {
     async getUser(id: string): Promise<User | undefined> {
         const [user] = await dbClient.select().from(users).where(eq(users.id, id));
-        return user || undefined;
+        if (!user) return undefined;
+        
+        const [membership] = await dbClient.select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id))
+          .limit(1);
+
+        return {
+          ...user,
+          organizationId: membership?.organizationId ?? undefined
+        };
       },
 
     async getUserByEmail(email: string): Promise<User | undefined> {
         const [user] = await dbClient.select().from(users).where(eq(users.email, email));
-        return user || undefined;
+        if (!user) return undefined;
+
+        const [membership] = await dbClient.select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id))
+          .limit(1);
+
+        return {
+          ...user,
+          organizationId: membership?.organizationId ?? undefined
+        };
       },
 
     async createUser(insertUser: InsertUser): Promise<User> {
+        const { organizationId, ...cleanInsertUser } = insertUser as any;
+        
+        if (cleanInsertUser.id) {
+          const [existing] = await dbClient.select().from(users).where(eq(users.id, cleanInsertUser.id)).limit(1);
+          if (existing) {
+            return {
+              ...existing,
+              organizationId: organizationId ?? undefined
+            };
+          }
+        }
         const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
         const normalizedInsertData = isLocalSqliteMode
-          ? normalizeLocalUserWriteValues(insertUser as Record<string, unknown>)
-          : insertUser;
+          ? normalizeLocalUserWriteValues(cleanInsertUser as Record<string, unknown>)
+          : cleanInsertUser;
     
-        const [user] = await db
-          .insert(users)
+        const [user] = await dbClient.insert(users)
           .values(normalizedInsertData)
           .returning();
-        return user;
+          
+        if (organizationId) {
+          await dbClient.insert(userOrganizations)
+            .values({
+              userId: user.id,
+              organizationId,
+              role: insertUser.role === 'org_admin' ? 'admin' : 'member'
+            })
+            .onConflictDoNothing();
+        }
+
+        return {
+          ...user,
+          organizationId: organizationId ?? undefined
+        };
       },
 
     async updateUser(id: string, updateData: Partial<InsertUser>): Promise<User | undefined> {
-        const [user] = await db
-          .update(users)
-          .set({ ...updateData, updatedAt: new Date() })
+        const { organizationId, ...cleanUpdateData } = updateData as any;
+        
+        const [user] = await dbClient.update(users)
+          .set({ ...cleanUpdateData, updatedAt: new Date() })
           .where(eq(users.id, id))
           .returning();
-        return user || undefined;
+        if (!user) return undefined;
+
+        if (organizationId) {
+          await dbClient.insert(userOrganizations)
+            .values({
+              userId: user.id,
+              organizationId,
+              role: cleanUpdateData.role === 'org_admin' ? 'admin' : 'member'
+            })
+            .onConflictDoUpdate({
+              target: [userOrganizations.userId, userOrganizations.organizationId],
+              set: { role: cleanUpdateData.role === 'org_admin' ? 'admin' : 'member' }
+            });
+        }
+
+        return {
+          ...user,
+          organizationId: organizationId ?? undefined
+        };
       },
 
     async upsertUser(userData: UpsertUser): Promise<User> {
+        const { organizationId, ...cleanUserData } = userData as any;
+        
         const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
         const normalizedUserData = isLocalSqliteMode
-          ? normalizeLocalUserWriteValues(userData as Record<string, unknown>)
-          : userData;
+          ? normalizeLocalUserWriteValues(cleanUserData as Record<string, unknown>)
+          : cleanUserData;
     
         const conflictSet = { ...(normalizedUserData as Record<string, unknown>) };
         // Preserve original creation time on upsert updates.
@@ -65,15 +130,28 @@ export function createUsersRepository(dbClient: typeof db) {
           ? (coerceLocalDateValue(conflictSet.updatedAt) ?? new Date())
           : sql`CURRENT_TIMESTAMP`;
     
-        const [user] = await db
-          .insert(users)
+        const [user] = await dbClient.insert(users)
           .values(normalizedUserData)
           .onConflictDoUpdate({
             target: users.id,
             set: conflictSet as any,
           })
           .returning();
-        return user;
+
+        if (organizationId) {
+          await dbClient.insert(userOrganizations)
+            .values({
+              userId: user.id,
+              organizationId,
+              role: cleanUserData.role === 'org_admin' ? 'admin' : 'member'
+            })
+            .onConflictDoNothing();
+        }
+        
+        return {
+          ...user,
+          organizationId: organizationId ?? undefined
+        };
       },
 
     async getAllUsers(filters?: UserFilters, pagination?: PaginationParams): Promise<PaginatedResult<User>> {
@@ -110,8 +188,7 @@ export function createUsersRepository(dbClient: typeof db) {
     
         const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
         
-        const [totalResult] = await db
-          .select({ count: count() })
+        const [totalResult] = await dbClient.select({ count: count() })
           .from(users)
           .where(whereClause);
         
@@ -143,13 +220,12 @@ export function createUsersRepository(dbClient: typeof db) {
       },
 
     async deleteUser(id: string): Promise<boolean> {
-        const result = await dbClient.delete(users).where(eq(users.id, id));
-        return (result.affectedRows ?? 0) > 0;
+        const [deleted] = await dbClient.delete(users).where(eq(users.id, id)).returning();
+        return !!deleted;
       },
 
     async suspendUser(id: string, _reason?: string): Promise<User | undefined> {
-        const [user] = await db
-          .update(users)
+        const [user] = await dbClient.update(users)
           .set({ 
             accountStatus: 'suspended', 
             isActive: false,
@@ -161,8 +237,7 @@ export function createUsersRepository(dbClient: typeof db) {
       },
 
     async reactivateUser(id: string): Promise<User | undefined> {
-        const [user] = await db
-          .update(users)
+        const [user] = await dbClient.update(users)
           .set({ 
             accountStatus: 'active', 
             isActive: true,
@@ -180,15 +255,18 @@ export function createUsersRepository(dbClient: typeof db) {
         
         let updated = 0;
         for (const id of ids) {
-          const result = await db
-            .update(users)
+          const rows = await dbClient.update(users)
             .set({ ...updates, updatedAt: new Date() })
-            .where(eq(users.id, id));
-          if ((result.affectedRows ?? 0) > 0) updated++;
+            .where(eq(users.id, id))
+            .returning();
+          if (rows.length > 0) updated++;
         }
         return updated;
       },
 
   };
 }
+
+
+
 
