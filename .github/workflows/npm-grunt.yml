@@ -1,17 +1,25 @@
-name: Node Smoke Matrix
+name: Node.js Smoke Matrix
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
   pull_request:
-    branches: ["main"]
+    branches: [main]
+
+# Cancel superseded runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   smoke:
+    name: Build (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node-version: [20.x, 22.x]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,8 +29,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      # Skip native compilation — this job validates the JS/TS build
+      # pipeline works across Node LTS releases, not native addon ABI compat.
+      - name: Install dependencies (skip native compilation)
+        run: npm ci --ignore-scripts
 
-      - name: Build
+      - name: Build Vite client + Express bundle
         run: npm run build
+        env:
+          NODE_ENV: production

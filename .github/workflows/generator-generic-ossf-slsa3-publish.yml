@@ -1,24 +1,19 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: SLSA Provenance
 
-# This workflow lets you generate SLSA provenance file for your project.
-# The generation satisfies level 3 for the provenance requirements - see https://slsa.dev/spec/v0.1/requirements
-# The project is an initiative of the OpenSSF (openssf.org) and is developed at
-# https://github.com/slsa-framework/slsa-github-generator.
-# The provenance file can be verified using https://github.com/slsa-framework/slsa-verifier.
-# For more information about SLSA and how it improves the supply-chain, visit slsa.dev.
-
-name: SLSA generic generator
 on:
   workflow_dispatch:
   release:
     types: [created]
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Build Release Artifacts
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       digests: ${{ steps.hash.outputs.digests }}
 
@@ -28,47 +23,61 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
-      - name: Install dependencies
+      # System deps needed to compile better-sqlite3 / keytar
+      - name: Install system build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            python3 make g++ libsecret-1-dev
+
+      - name: Install Node dependencies
         run: npm ci
 
       - name: Build application
         run: npm run build
+        env:
+          NODE_ENV: production
 
       - name: Create release archive
         run: |
-          cd dist
-          tar -czvf ../cyberdocgen-release.tar.gz .
-          cd ..
+          tar -czvf cyberdocgen-release.tar.gz dist/
+          echo "Release archive size: $(du -sh cyberdocgen-release.tar.gz)"
 
-      - name: Generate SBOM
-        run: npx @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cdx.json
+      - name: Generate CycloneDX SBOM
+        run: |
+          npx --yes @cyclonedx/cyclonedx-npm \
+            --output-format JSON \
+            --output-file sbom.cdx.json \
+            --package-lock-only 2>/dev/null || \
+          npx --yes @cyclonedx/cyclonedx-npm \
+            --output-format JSON \
+            --output-file sbom.cdx.json
 
-      - name: Generate subject for provenance
+      - name: Generate subject hashes for provenance
         id: hash
         run: |
           set -euo pipefail
-          # Generate hashes for release artifacts
           echo "digests=$(sha256sum cyberdocgen-release.tar.gz sbom.cdx.json | base64 -w0)" >> "${GITHUB_OUTPUT}"
 
-      - name: Upload build artifacts
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-artifacts
+          name: release-artifacts-${{ github.ref_name }}
           path: |
             cyberdocgen-release.tar.gz
             sbom.cdx.json
+          retention-days: 90
 
   provenance:
     needs: [build]
     permissions:
-      actions: read   # To read the workflow path.
-      id-token: write # To sign the provenance.
-      contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
       base64-subjects: "${{ needs.build.outputs.digests }}"
-      upload-assets: true # Optional: Upload to a new release
-
+      upload-assets: true
