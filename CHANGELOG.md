@@ -9,13 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Personnel Sign-Off Portal & E-Signatures (Phase 1)**: Legally binding, offline-first policy acknowledgments logged with unique SHA256-HMAC signature envelopes and type-in name verifications.
+- **Winston Log Capping & Disk Telemetry (Phase 1)**: Integrated `winston` and `winston-daily-rotate-file` logs limited to 10MB each (max 5 archives) and background C-Drive space warning alerts if free space < 10GB.
+- **Identity Provider & HRIS Sync Configurations (Phase 1)**: Self-contained directory-syncing configurators for Okta, Entra ID, Gusto, Rippling, including automatic db user provisioning and terminated employee access revocation triggers.
+- **Zero-Knowledge Embeddings & Agent Memory (Phase 1)**: Pure offline-first 1536-dimension deterministic dense vector embeddings generator and episodic agent long-term memory queries in local PGlite pgvector.
+- **SQL-Based Task Queue (Phase 1)**: Asynchronous multi-agent message queue in PGlite utilizing the `agent_message_inbox` table.
+- **Glassmorphic Employee attestation portal UI (Phase 1)**: Renders scrolling policy document views, dynamic AI takeaways, e-attestation checkboxes, and cryptographic seal receipt badges.
 - **Evidence Pipeline (CODE-01)**: Implemented real text extraction (PDF, DOCX, XLSX, TXT) using pdf-parse and mammoth.
 - **AI Profile Merge**: Ingested compliance documents now intelligently merge findings into the Company Profile using Claude 4.6 Sonnet with strict Zod validation.
-- **Evidence-to-Control Mapping (CODE-02)**: Added new \`evidenceControlMappings\` schema and API routes for linking evidence to framework controls (SOC2, ISO27001).
+- **Evidence-to-Control Mapping (CODE-02)**: Added new `evidenceControlMappings` schema and API routes for linking evidence to framework controls (SOC2, ISO27001).
 - **Integration Tests**: Added end-to-end integration tests for Evidence Mappings API.
 
 ### Changed
-- **AI Models**: Pushed multi-model orchestrator to production March 2026 models (\`gpt-5.4\`, \`claude-sonnet-4-6\`, \`gemini-3.1-pro-preview\`).
+- **AI Models**: Pushed multi-model orchestrator to production March 2026 models (`gpt-5.4`, `claude-sonnet-4-6`, `gemini-3.1-pro-preview`).
 - **Security**: Hardened ingestion pipeline with 50MB file size limits and sanitized filenames.
 - **Rate Limits**: Synchronized rate limits with enterprise documentation (1000/15m general, 50/1h AI).
 - **Type Safety**: Removed pervasive \`as any\` casts around db insert/update payloads to enhance correctness.
