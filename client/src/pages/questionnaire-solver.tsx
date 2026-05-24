@@ -157,8 +157,7 @@ export default function QuestionnaireSolverPage() {
     queryFn: () => apiRequest("/api/questionnaire-solver").then((r) => r.data ?? r),
     enabled: !!organizationId,
     refetchInterval: (query) => {
-      // Auto-refresh while any job is actively processing
-      const jobs = query.state.data as SolverJob[] | undefined;
+      const jobs = query.state.data;
       const hasActive = jobs?.some((j) =>
         j.status === "pending" || j.status === "processing"
       );

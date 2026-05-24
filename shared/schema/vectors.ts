@@ -10,8 +10,7 @@
  *   - OpenAI text-embedding-3-large: 3072
  */
 
-import { pgTable, text, integer, timestamp, index } from "drizzle-orm/pg-core";
-import { vector } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, index, vector } from "drizzle-orm/pg-core";
 import crypto from "crypto";
 
 // Vector embedding dimensions for OpenAI text-embedding-3-small

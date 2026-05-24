@@ -57,7 +57,7 @@ export default function DigitalTwin() {
     queryKey: ["/api/digital-twin/status", activeAuditId],
     enabled: Boolean(activeAuditId),
     refetchInterval: (query) => {
-      const data = query.state.data as MockAudit | undefined;
+      const data = query.state.data;
       return data && (data.status === "pending" || data.status === "running") ? 1500 : false;
     }
   });
