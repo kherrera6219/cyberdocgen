@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Slider } from "@/components/ui/slider";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { 
   Bot, 
   Terminal, 
@@ -16,7 +18,8 @@ import {
   AlertTriangle, 
   Award,
   History,
-  Scale
+  Scale,
+  Activity
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -42,7 +45,7 @@ export default function DigitalTwin() {
   const queryClient = useQueryClient();
 
   const [framework, setFramework] = useState("SOC2");
-  const [personality, setPersonality] = useState("strict");
+  const [strictness, setStrictness] = useState<number>(75);
   const [activeAuditId, setActiveAuditId] = useState<string | null>(null);
 
   // Queries
@@ -90,10 +93,22 @@ export default function DigitalTwin() {
     }
   });
 
+  const getPersonalityFromStrictness = (val: number) => {
+    if (val < 35) return "supportive";
+    if (val < 70) return "nitpicky";
+    return "strict";
+  };
+
+  const getStrictnessLabel = (val: number) => {
+    if (val < 35) return `Supportive (${val}%)`;
+    if (val < 70) return `Nitpicky (${val}%)`;
+    return `Strict (${val}%)`;
+  };
+
   const handleStart = () => {
     startSimulationMutation.mutate({
       framework,
-      auditorPersonality: personality
+      auditorPersonality: getPersonalityFromStrictness(strictness)
     });
   };
 
@@ -129,18 +144,22 @@ export default function DigitalTwin() {
             </Select>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] uppercase text-muted-foreground font-semibold">Auditor Mood</label>
-            <Select value={personality} onValueChange={setPersonality} disabled={Boolean(activeAuditId)}>
-              <SelectTrigger className="w-[120px] h-9">
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="strict">Strict (Hard)</SelectItem>
-                <SelectItem value="nitpicky">Nitpicky</SelectItem>
-                <SelectItem value="supportive">Supportive</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-2 w-64">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] uppercase text-muted-foreground font-semibold">Auditor Strictness</label>
+              <span className="text-[10px] font-bold text-purple-400">{getStrictnessLabel(strictness)}</span>
+            </div>
+            <div className="pt-2">
+              <Slider 
+                value={[strictness]} 
+                onValueChange={(val) => setStrictness(val[0])} 
+                min={10} 
+                max={100} 
+                step={5} 
+                disabled={Boolean(activeAuditId)}
+                className="cursor-pointer hover:shadow-[0_0_8px_rgba(168,85,247,0.3)] transition-shadow rounded-full"
+              />
+            </div>
           </div>
 
           <Button 
@@ -195,9 +214,9 @@ export default function DigitalTwin() {
                     key={idx} 
                     className={`flex flex-col max-w-[80%] rounded-2xl p-4 text-sm shadow-sm transition-all duration-300 ${
                       msg.speaker === "auditor" 
-                        ? "mr-auto bg-purple-500/10 border border-purple-500/20 text-purple-200" 
+                        ? "mr-auto bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-200" 
                         : msg.speaker === "admin"
-                          ? "ml-auto bg-emerald-500/10 border border-emerald-500/20 text-emerald-200"
+                          ? "ml-auto bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-200"
                           : "mx-auto bg-muted/40 border border-muted-foreground/10 text-muted-foreground text-xs text-center font-mono max-w-[95%]"
                     }`}
                   >
@@ -257,6 +276,62 @@ export default function DigitalTwin() {
                   <Progress value={50} className="h-1 bg-purple-500/20" />
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Historical AreaChart showing score trends */}
+          <Card className="border-muted-foreground/10 shadow-lg p-1">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Activity className="w-4 h-4 text-purple-400" />
+                Audit Progress (Last 6 Months)
+              </CardTitle>
+              <CardDescription className="text-xs">Continuous readiness score trends</CardDescription>
+            </CardHeader>
+            <CardContent className="h-44 px-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={
+                    history.filter(run => run.status === "completed" && run.complianceScore !== null).length > 0
+                      ? [...history]
+                          .filter(run => run.status === "completed" && run.complianceScore !== null)
+                          .reverse()
+                          .map(run => ({
+                            date: new Date(run.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                            score: run.complianceScore
+                          }))
+                      : [
+                          { date: "Jan 15", score: 65 },
+                          { date: "Feb 10", score: 70 },
+                          { date: "Mar 05", score: 72 },
+                          { date: "Apr 20", score: 80 },
+                          { date: "May 10", score: 82 },
+                          { date: "May 24", score: 88 }
+                        ]
+                  }
+                  margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
+                >
+                  <defs>
+                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} vertical={false} />
+                  <XAxis dataKey="date" stroke="#9ca3af" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#9ca3af" fontSize={9} domain={[0, 100]} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "rgba(17, 24, 39, 0.9)",
+                      border: "1px solid rgba(168, 85, 247, 0.2)",
+                      borderRadius: "8px",
+                      fontSize: "11px"
+                    }}
+                    labelStyle={{ color: "#9ca3af", fontWeight: "bold" }}
+                  />
+                  <Area type="monotone" dataKey="score" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#colorScore)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 

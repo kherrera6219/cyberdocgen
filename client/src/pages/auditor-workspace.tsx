@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { 
   Select,
   SelectContent,
@@ -30,7 +31,14 @@ import {
   Search,
   CheckCircle2,
   Lock,
-  AlertCircle
+  AlertCircle,
+  Grid,
+  MessageSquare,
+  Send,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Building
 } from "lucide-react";
 import type { Document } from "@shared/schema";
 
@@ -61,6 +69,86 @@ export default function AuditorWorkspace() {
   const [activeTab, setActiveTab] = useState("documents");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFramework, setSelectedFramework] = useState<string>("all");
+
+  const [selectedDocForQA, setSelectedDocForQA] = useState<Document | null>(null);
+  const [qaRole, setQaRole] = useState<'auditor' | 'admin'>('auditor');
+  const [qaInput, setQaInput] = useState("");
+
+  const [qaComments, setQaComments] = useState<Record<string, { role: 'auditor' | 'admin'; text: string; time: string }[]>>(() => {
+    try {
+      const saved = localStorage.getItem("auditor_qa_comments");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const saveComments = (newComments: Record<string, { role: 'auditor' | 'admin'; text: string; time: string }[]>) => {
+    setQaComments(newComments);
+    localStorage.setItem("auditor_qa_comments", JSON.stringify(newComments));
+  };
+
+  const handleAddComment = () => {
+    if (!selectedDocForQA || !qaInput.trim()) return;
+    const docId = String(selectedDocForQA.id);
+    const existing = qaComments[docId] || [];
+    const updated = [
+      ...existing,
+      {
+        role: qaRole,
+        text: qaInput.trim(),
+        time: new Date().toISOString()
+      }
+    ];
+    saveComments({
+      ...qaComments,
+      [docId]: updated
+    });
+    setQaInput("");
+  };
+
+  const matrixMappings = [
+    {
+      docName: "Backup, Restore & Disaster Recovery Policy",
+      category: "Backup",
+      iso: { badge: "A.12.3.1", desc: "Data & System Backup Management" },
+      soc2: { badge: "CC6.8", desc: "Disaster Recovery & Redundancy" },
+      fedramp: { badge: "CP-9", desc: "Information System Backup" },
+      nist: { badge: "PR.DS-11", desc: "Data Backups & Retention" }
+    },
+    {
+      docName: "Access Control, Identity & MFA Standard",
+      category: "Access Control",
+      iso: { badge: "A.9.1.1", desc: "Access Control Policy Framework" },
+      soc2: { badge: "CC6.1", desc: "Logical Access Control & Entitlements" },
+      fedramp: { badge: "AC-2", desc: "Account Management & Control" },
+      nist: { badge: "PR.AC-1", desc: "Access Control Policies" }
+    },
+    {
+      docName: "Incident Response Plan & Breach Protocol",
+      category: "Incident Management",
+      iso: { badge: "A.16.1.1", desc: "Information Security Incident Management" },
+      soc2: { badge: "CC7.3", desc: "Incident Containment & Remediation" },
+      fedramp: { badge: "IR-4", desc: "Incident Handling & Coordination" },
+      nist: { badge: "DE.AE-2", desc: "Detection Processes & Analysis" }
+    },
+    {
+      docName: "Continuous Telemetry Logging & Monitoring Policy",
+      category: "Auditing",
+      iso: { badge: "A.12.4.1", desc: "Event Logging & Audit Trails" },
+      soc2: { badge: "CC7.2", desc: "Continuous Security Telemetry Monitoring" },
+      fedramp: { badge: "AU-2", desc: "Event Logging Events" },
+      nist: { badge: "DE.CM-1", desc: "Security Monitoring Logs" }
+    },
+    {
+      docName: "Data Encryption Standard (AES-GCM & SSL)",
+      category: "Cryptography",
+      iso: { badge: "A.10.1.1", desc: "Cryptographic Controls Policy" },
+      soc2: { badge: "CC6.7", desc: "Transmission & Storage Protection" },
+      fedramp: { badge: "SC-28", desc: "Protection of Information at Rest" },
+      nist: { badge: "PR.DS-2", desc: "Data in Transit & at Rest Protection" }
+    }
+  ];
 
   const { data: documents = [], isLoading: isLoadingDocuments, error: documentsError } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
@@ -208,6 +296,10 @@ export default function AuditorWorkspace() {
             <FileText className="w-4 h-4 mr-1" />
             Documents
           </TabsTrigger>
+          <TabsTrigger value="matrix" data-testid="tab-matrix">
+            <Grid className="w-4 h-4 mr-1" />
+            Control Cross-Map
+          </TabsTrigger>
           <TabsTrigger value="audit-trail" data-testid="tab-audit-trail">
             <Clock className="w-4 h-4 mr-1" />
             Audit Trail
@@ -316,6 +408,15 @@ export default function AuditorWorkspace() {
                             >
                               <Download className="w-4 h-4" />
                             </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setSelectedDocForQA(doc)}
+                              className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+                              aria-label={`Open Q&A for ${doc.title}`}
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -323,6 +424,97 @@ export default function AuditorWorkspace() {
                   </TableBody>
                 </Table>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="matrix" className="mt-4">
+          <Card className="border-muted-foreground/10 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-500" />
+                Unified Cross-Framework Mapping Matrix
+              </CardTitle>
+              <CardDescription>
+                Visual alignment of on-premises GRC evidence items mapping to controls overlapping SOC 2, ISO 27001, FedRAMP, and NIST CSF.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-72">Evidence Document</TableHead>
+                    <TableHead className="text-center font-bold text-blue-500 dark:text-blue-400">SOC 2 Type II</TableHead>
+                    <TableHead className="text-center font-bold text-purple-500 dark:text-purple-400">ISO 27001</TableHead>
+                    <TableHead className="text-center font-bold text-amber-500 dark:text-amber-400">FedRAMP (Low/Mod)</TableHead>
+                    <TableHead className="text-center font-bold text-emerald-500 dark:text-emerald-400">NIST CSF 2.0</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {matrixMappings.map((row, idx) => (
+                    <TableRow key={idx} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium">
+                        <div>
+                          <p className="text-sm font-semibold">{row.docName}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{row.category}</p>
+                        </div>
+                      </TableCell>
+                      
+                      {/* SOC 2 */}
+                      <TableCell className="text-center">
+                        <div className="group relative inline-block cursor-help">
+                          <Badge className="bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20 text-xs px-2 py-0.5 font-semibold hover:bg-blue-500 hover:text-white transition-all">
+                            {row.soc2.badge}
+                          </Badge>
+                          <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 rounded bg-gray-900 border border-blue-500/20 shadow-xl text-left text-[10px] text-gray-200">
+                            <span className="font-bold text-blue-400 block mb-0.5">{row.soc2.badge} Control Description:</span>
+                            {row.soc2.desc}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* ISO 27001 */}
+                      <TableCell className="text-center">
+                        <div className="group relative inline-block cursor-help">
+                          <Badge className="bg-purple-500/10 text-purple-500 dark:text-purple-400 border border-purple-500/20 text-xs px-2 py-0.5 font-semibold hover:bg-purple-500 hover:text-white transition-all">
+                            {row.iso.badge}
+                          </Badge>
+                          <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 rounded bg-gray-900 border border-purple-500/20 shadow-xl text-left text-[10px] text-gray-200">
+                            <span className="font-bold text-purple-400 block mb-0.5">{row.iso.badge} Annex A Control:</span>
+                            {row.iso.desc}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* FedRAMP */}
+                      <TableCell className="text-center">
+                        <div className="group relative inline-block cursor-help">
+                          <Badge className="bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20 text-xs px-2 py-0.5 font-semibold hover:bg-amber-500 hover:text-white transition-all">
+                            {row.fedramp.badge}
+                          </Badge>
+                          <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 rounded bg-gray-900 border border-amber-500/20 shadow-xl text-left text-[10px] text-gray-200">
+                            <span className="font-bold text-amber-400 block mb-0.5">{row.fedramp.badge} FedRAMP Control:</span>
+                            {row.fedramp.desc}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* NIST CSF */}
+                      <TableCell className="text-center">
+                        <div className="group relative inline-block cursor-help">
+                          <Badge className="bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20 text-xs px-2 py-0.5 font-semibold hover:bg-emerald-500 hover:text-white transition-all">
+                            {row.nist.badge}
+                          </Badge>
+                          <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block w-48 p-2 rounded bg-gray-900 border border-emerald-500/20 shadow-xl text-left text-[10px] text-gray-200">
+                            <span className="font-bold text-emerald-400 block mb-0.5">{row.nist.badge} NIST Control:</span>
+                            {row.nist.desc}
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
@@ -380,6 +572,105 @@ export default function AuditorWorkspace() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Auditor Q&A Thread Slide-out Drawer Sheet */}
+      <Sheet open={Boolean(selectedDocForQA)} onOpenChange={(open) => !open && setSelectedDocForQA(null)}>
+        <SheetContent side="right" className="w-[450px] p-6 flex flex-col h-full bg-slate-900 border-l border-muted-foreground/10 text-sans">
+          <SheetHeader className="border-b border-muted-foreground/10 pb-4">
+            <SheetTitle className="text-lg flex items-center gap-2 text-white">
+              <MessageSquare className="w-5 h-5 text-blue-400" />
+              Auditor Clarification Drawer
+            </SheetTitle>
+            <SheetDescription className="text-xs text-slate-400">
+              Direct threaded communication regarding compliance evidence documentation.
+            </SheetDescription>
+          </SheetHeader>
+
+          {selectedDocForQA && (
+            <div className="flex-1 flex flex-col min-h-0 space-y-4 pt-4">
+              {/* Target File details summary */}
+              <div className="p-3.5 bg-slate-800/50 rounded-xl border border-slate-700 space-y-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-400" />
+                  <span className="font-semibold text-slate-200 truncate block w-72">{selectedDocForQA.title}</span>
+                </div>
+                <div className="flex items-center justify-between text-slate-400">
+                  <span>Framework: <Badge variant="outline" className="text-[10px] text-slate-300 border-slate-700 py-0">{selectedDocForQA.framework}</Badge></span>
+                  <span>Version: v{selectedDocForQA.version}</span>
+                </div>
+              </div>
+
+              {/* Chat role selection bar */}
+              <div className="flex items-center justify-between bg-slate-800/40 p-2 rounded-lg border border-slate-700/50">
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">Posting As Role</span>
+                <div className="flex bg-slate-900 rounded-md p-1 border border-slate-700/50">
+                  <button 
+                    onClick={() => setQaRole('auditor')}
+                    className={`text-[10px] px-2 py-1 rounded font-semibold transition-all ${
+                      qaRole === 'auditor' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    🕵️ Auditor
+                  </button>
+                  <button 
+                    onClick={() => setQaRole('admin')}
+                    className={`text-[10px] px-2 py-1 rounded font-semibold transition-all ${
+                      qaRole === 'admin' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    🛡️ Admin
+                  </button>
+                </div>
+              </div>
+
+              {/* Thread Chat Area */}
+              <div className="flex-1 overflow-y-auto space-y-3.5 p-1 min-h-0">
+                {!(qaComments[String(selectedDocForQA.id)]?.length > 0) ? (
+                  <div className="flex flex-col items-center justify-center h-full text-slate-500 text-xs text-center space-y-2 py-10">
+                    <MessageSquare className="w-10 h-10 stroke-1 opacity-50" />
+                    <p>No questions or clarifications flagged yet.<br/>Type below to initiate the audit thread.</p>
+                  </div>
+                ) : (
+                  qaComments[String(selectedDocForQA.id)].map((c, index) => (
+                    <div 
+                      key={index} 
+                      className={`flex flex-col max-w-[85%] rounded-2xl p-3.5 text-xs shadow-sm transition-all duration-300 ${
+                        c.role === "auditor" 
+                          ? "mr-auto bg-blue-500/10 border border-blue-500/20 text-blue-200" 
+                          : "ml-auto bg-emerald-500/10 border border-emerald-500/20 text-emerald-200"
+                      }`}
+                    >
+                      <span className="text-[9px] font-bold uppercase mb-1 tracking-wider opacity-75">
+                        {c.role === "auditor" ? "🕵️ Auditor Query" : "🛡️ Admin Reply"}
+                      </span>
+                      <p className="whitespace-pre-wrap leading-relaxed">{c.text}</p>
+                      <span className="text-[8px] opacity-40 mt-1 self-end">{new Date(c.time).toLocaleTimeString()}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Thread Chat Input */}
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-800">
+                <Input 
+                  placeholder={qaRole === 'auditor' ? "Ask auditor clarification query..." : "Reply to auditor concern..."}
+                  value={qaInput}
+                  onChange={(e) => setQaInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+                  className="bg-slate-950 border-slate-700/80 text-white placeholder-slate-500 h-9 text-xs"
+                />
+                <Button 
+                  size="icon" 
+                  onClick={handleAddComment} 
+                  className={`h-9 w-9 shrink-0 ${qaRole === 'auditor' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-emerald-600 hover:bg-emerald-500'} text-white`}
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

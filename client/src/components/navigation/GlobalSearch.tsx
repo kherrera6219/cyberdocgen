@@ -154,6 +154,48 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
         url: '/audit-trail', 
         description: 'Activity logs and compliance tracking',
         keywords: ['audit', 'logs', 'activity', 'tracking', 'history']
+      },
+      {
+        name: 'AI Digital Twin',
+        url: '/digital-twin',
+        description: 'Stress-test compliance readiness with multi-agent simulation',
+        keywords: ['digital twin', 'simulation', 'auditor personality', 'debate', 'ai twin']
+      },
+      {
+        name: 'Trust Center',
+        url: '/trust-center',
+        description: 'Customer security portal with gated NDA document sharing',
+        keywords: ['trust center', 'portal', 'nda', 'certifications', 'documents', 'download']
+      },
+      {
+        name: 'Evidence Ingestion',
+        url: '/evidence-ingestion',
+        description: 'Upload evidence files and trigger AI screenshot vision audit',
+        keywords: ['evidence', 'upload', 'screenshot', 'vision audit', 'ingest']
+      },
+      {
+        name: 'Risk Register',
+        url: '/risk-register',
+        description: 'Manage security risks, mitigations, and hazard mappings',
+        keywords: ['risk', 'register', 'mitigation', 'hazard', 'security risks']
+      },
+      {
+        name: 'Gap Analysis',
+        url: '/gap-analysis',
+        description: 'Review framework controls gaps and automation readiness',
+        keywords: ['gap', 'analysis', 'readiness', 'controls', 'framework']
+      },
+      {
+        name: 'AI Questionnaire Solver',
+        url: '/questionnaire-solver',
+        description: 'Solve security questionnaires using local vector databases',
+        keywords: ['questionnaire', 'solver', 'vendor', 'rfp', 'ai solver']
+      },
+      {
+        name: 'Auditor Workspace',
+        url: '/auditor-workspace',
+        description: 'Secure read-only view and threaded Q&A comments for auditors',
+        keywords: ['auditor', 'workspace', 'qa', 'thread', 'comments', 'review']
       }
     ];
 

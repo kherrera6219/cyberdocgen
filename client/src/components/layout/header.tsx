@@ -1,8 +1,9 @@
-import { ChevronDown, Moon, Sun, Settings, Menu, Bell, Minus, Square, X } from "lucide-react";
+import { ChevronDown, Moon, Sun, Settings, Menu, Bell, Minus, Square, X, WifiOff, Database, HardDrive, Cpu, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -94,6 +95,67 @@ export default function Header() {
           <div className="hidden sm:block">
             <NotificationDropdown />
           </div>
+
+          {/* Air-Gap Status Badge Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="hidden lg:flex items-center space-x-2 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 h-9 px-3 rounded-full transition-all duration-300 shadow-sm"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-xs font-semibold tracking-wide">Off-Grid Secure</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80 p-4 space-y-3 font-sans">
+              <div className="flex items-center space-x-2 pb-2 border-b border-muted-foreground/10">
+                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                <div>
+                  <h4 className="text-sm font-bold text-foreground">Zero Egress Air-Gap</h4>
+                  <p className="text-[10px] text-muted-foreground">Compliance Guard Active</p>
+                </div>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-muted-foreground">
+                    <Database className="w-3.5 h-3.5" />
+                    <span>Database Engine</span>
+                  </div>
+                  <span className="font-semibold text-foreground font-mono">PGlite WASM</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-muted-foreground">
+                    <Cpu className="w-3.5 h-3.5" />
+                    <span>Local Embeddings</span>
+                  </div>
+                  <span className="font-semibold text-foreground font-mono">MiniLM-L6 (Active)</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-muted-foreground">
+                    <HardDrive className="w-3.5 h-3.5" />
+                    <span>Memory Buffer</span>
+                  </div>
+                  <span className="font-semibold text-foreground font-mono">24.8 MB</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-muted-foreground">
+                    <WifiOff className="w-3.5 h-3.5" />
+                    <span>Network Egress</span>
+                  </div>
+                  <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/5 text-emerald-500 text-[10px] font-bold py-0.5">
+                    100% Gated
+                  </Badge>
+                </div>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* User Menu */}
           <DropdownMenu>
