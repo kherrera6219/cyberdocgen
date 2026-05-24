@@ -73,6 +73,10 @@ const EvidenceIngestion = lazy(() => import("./pages/evidence-ingestion"));
 const ControlApprovals = lazy(() => import("./pages/control-approvals"));
 const AuditorWorkspace = lazy(() => import("./pages/auditor-workspace"));
 
+// Phase 3: Vendor GRC & AI Questionnaire Solver
+const VendorGrc = lazy(() => import("./pages/vendor-grc"));
+const QuestionnaireSolver = lazy(() => import("./pages/questionnaire-solver"));
+
 // Public pages
 const About = lazy(() => import("./pages/about"));
 const Features = lazy(() => import("./pages/features"));
@@ -171,6 +175,9 @@ function AuthenticatedRouter() {
         <BoundaryRoute path="/evidence-ingestion" component={EvidenceIngestion} />
         <BoundaryRoute path="/control-approvals" component={ControlApprovals} />
         <BoundaryRoute path="/auditor-workspace" component={AuditorWorkspace} />
+        {/* Phase 3: Vendor GRC & AI Questionnaire Solver */}
+        <BoundaryRoute path="/vendor-grc" component={VendorGrc} />
+        <BoundaryRoute path="/questionnaire-solver" component={QuestionnaireSolver} />
         <Route>
           <ErrorBoundary fallback={<RouteErrorFallback />}>
             <NotFound />

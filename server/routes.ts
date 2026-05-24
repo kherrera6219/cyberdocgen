@@ -810,6 +810,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: localModeRoutes } = await import('./routes/localMode');
   app.use('/api/local', localModeRoutes);
 
+  // Phase 3: Vendor GRC Routes - Third-party sub-processor inventory & risk scoring
+  const { default: vendorRoutes } = await import('./routes/vendors');
+  app.use('/api/vendors', vendorRoutes);
+
+  // Phase 3: AI Questionnaire Solver Routes - RAG-powered security questionnaire auto-fill
+  const { default: questionnaireRoutes } = await import('./routes/questionnaires');
+  app.use('/api/questionnaire-solver', questionnaireRoutes);
+
+  // Phase 3: LDAP / Active Directory Settings Routes - On-premises AD integration
+  const { default: ldapSettingsRoutes } = await import('./routes/ldapSettings');
+  app.use('/api/admin/ldap', ldapSettingsRoutes);
+
   // Global Error Handler (Must be last)
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

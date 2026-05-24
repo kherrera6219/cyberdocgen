@@ -2226,3 +2226,149 @@ export const insertAgentStateSchema = cis(agentStateStore).omit({
 export type InsertAgentState = z.infer<typeof insertAgentStateSchema>;
 export type AgentState = typeof agentStateStore.$inferSelect;
 
+// ==========================================
+// Phase 3: GRC Update Plan Tables
+// ==========================================
+
+// Third-party Vendors for Phase 3
+export const vendors = pgTable("vendors", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  name: varchar("name").notNull(),
+  serviceDescription: text("service_description"),
+  dataClassification: varchar("data_classification").notNull().default("public"), // public, standard, confidential, restricted
+  securityStatus: varchar("security_status").notNull().default("pending"), // pending, approved, requires_review, rejected
+  lastAssessmentDate: timestamp("last_assessment_date"),
+  soc2Status: varchar("soc2_status").notNull().default("not_provided"), // reviewed, not_provided, na
+  iso27001Status: varchar("iso27001_status").notNull().default("not_provided"), // reviewed, not_provided, na
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const vendorsRelations = relations(vendors, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [vendors.organizationId],
+    references: [organizations.id],
+  }),
+  creator: one(users, {
+    fields: [vendors.createdBy],
+    references: [users.id],
+  }),
+  questionnaires: many(vendorQuestionnaires),
+}));
+
+export const insertVendorSchema = cis(vendors).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
+export type Vendor = typeof vendors.$inferSelect;
+
+
+// Vendor Security Questionnaires for Phase 3
+export const vendorQuestionnaires = pgTable("vendor_questionnaires", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  vendorId: varchar("vendor_id").references(() => vendors.id, { onDelete: 'cascade' }).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  status: varchar("status").notNull().default("draft"), // draft, dispatched, submitted, reviewed
+  score: integer("score"), // 0 to 100
+  questionsJson: jsonb("questions_json").notNull().default([]), // array of question & answer items
+  sentAt: timestamp("sent_at"),
+  receivedAt: timestamp("received_at"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const vendorQuestionnairesRelations = relations(vendorQuestionnaires, ({ one }) => ({
+  vendor: one(vendors, {
+    fields: [vendorQuestionnaires.vendorId],
+    references: [vendors.id],
+  }),
+  organization: one(organizations, {
+    fields: [vendorQuestionnaires.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const insertVendorQuestionnaireSchema = cis(vendorQuestionnaires).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVendorQuestionnaire = z.infer<typeof insertVendorQuestionnaireSchema>;
+export type VendorQuestionnaire = typeof vendorQuestionnaires.$inferSelect;
+
+
+// AI Security Questionnaire Solver Jobs for Phase 3
+export const questionnaireSolvers = pgTable("questionnaire_solvers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  fileName: varchar("file_name").notNull(),
+  status: varchar("status").notNull().default("pending"), // pending, processing, completed, failed
+  totalQuestionsCount: integer("total_questions_count").notNull().default(0),
+  completedQuestionsCount: integer("completed_questions_count").notNull().default(0),
+  averageConfidenceScore: decimal("average_confidence_score", { precision: 5, scale: 2 }).default("0.00"),
+  questionsData: jsonb("questions_data").notNull().default([]), // array of { question, response, confidence, citation }
+  filePath: varchar("file_path"),
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const questionnaireSolversRelations = relations(questionnaireSolvers, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [questionnaireSolvers.organizationId],
+    references: [organizations.id],
+  }),
+  creator: one(users, {
+    fields: [questionnaireSolvers.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const insertQuestionnaireSolverSchema = cis(questionnaireSolvers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertQuestionnaireSolver = z.infer<typeof insertQuestionnaireSolverSchema>;
+export type QuestionnaireSolver = typeof questionnaireSolvers.$inferSelect;
+
+
+// Agent Tool Execution logs (tamper-proof compliance ledger) for Phase 3
+export const agentToolLogs = pgTable("agent_tool_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  agentId: varchar("agent_id").notNull(),
+  agentName: varchar("agent_name").notNull(), // e.g. 'QuestionnaireSolver', 'CodeSyncAgent'
+  toolName: varchar("tool_name").notNull(), // e.g. 'readFile', 'dbQuery', 'githubPR'
+  inputs: jsonb("inputs").notNull().default({}),
+  outputs: jsonb("outputs").notNull().default({}),
+  status: varchar("status").notNull().default("success"), // success, error, denied
+  durationMs: integer("duration_ms").notNull().default(0),
+  ipAddress: varchar("ip_address"),
+  hmacSeal: varchar("hmac_seal").notNull(), // cryptographic integrity seal
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const agentToolLogsRelations = relations(agentToolLogs, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [agentToolLogs.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const insertAgentToolLogSchema = cis(agentToolLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAgentToolLog = z.infer<typeof insertAgentToolLogSchema>;
+export type AgentToolLog = typeof agentToolLogs.$inferSelect;
+

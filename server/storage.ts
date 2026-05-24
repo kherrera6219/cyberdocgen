@@ -66,7 +66,15 @@ import {
   type Risk,
   type InsertRisk,
   type AgentState,
-  type InsertAgentState
+  type InsertAgentState,
+  type Vendor,
+  type InsertVendor,
+  type VendorQuestionnaire,
+  type InsertVendorQuestionnaire,
+  type QuestionnaireSolver,
+  type InsertQuestionnaireSolver,
+  type AgentToolLog,
+  type InsertAgentToolLog
 } from "@shared/schema";
 import { db } from "./db";
 import { drizzle } from "drizzle-orm/pglite";
@@ -93,6 +101,9 @@ import { createInvitationsRepository } from "./repositories/invitationsRepositor
 import { createSessionsRepository } from "./repositories/sessionsRepository";
 import { createPolicyAcknowledgmentsRepository } from "./repositories/policyAcknowledgmentsRepository";
 import { createRisksRepository } from "./repositories/risksRepository";
+import { createVendorsRepository } from "./repositories/vendorsRepository";
+import { createQuestionnaireSolverRepository } from "./repositories/questionnaireSolverRepository";
+import { createAgentToolLogRepository } from "./repositories/agentToolLogRepository";
 import { UserFilters, PaginationParams, PaginatedResult } from "./repositories/utils";
 
 export interface IStorage {
@@ -261,6 +272,31 @@ export interface IStorage {
     organizationId: string;
   }): Promise<AgentState>;
   deleteAgentState(agentId: string): Promise<boolean>;
+
+  // Third-party Vendor operations
+  getVendor(id: string): Promise<Vendor | undefined>;
+  getVendors(organizationId: string): Promise<Vendor[]>;
+  createVendor(vendor: InsertVendor): Promise<Vendor>;
+  updateVendor(id: string, vendor: Partial<InsertVendor>): Promise<Vendor | undefined>;
+  deleteVendor(id: string): Promise<boolean>;
+
+  getVendorQuestionnaire(id: string): Promise<VendorQuestionnaire | undefined>;
+  getVendorQuestionnaires(vendorId: string): Promise<VendorQuestionnaire[]>;
+  createVendorQuestionnaire(questionnaire: InsertVendorQuestionnaire): Promise<VendorQuestionnaire>;
+  updateVendorQuestionnaire(id: string, questionnaire: Partial<InsertVendorQuestionnaire>): Promise<VendorQuestionnaire | undefined>;
+  deleteVendorQuestionnaire(id: string): Promise<boolean>;
+
+  // Questionnaire Solver operations
+  getQuestionnaireSolver(id: string): Promise<QuestionnaireSolver | undefined>;
+  getQuestionnaireSolvers(organizationId: string): Promise<QuestionnaireSolver[]>;
+  createQuestionnaireSolver(job: InsertQuestionnaireSolver): Promise<QuestionnaireSolver>;
+  updateQuestionnaireSolver(id: string, job: Partial<InsertQuestionnaireSolver>): Promise<QuestionnaireSolver | undefined>;
+  deleteQuestionnaireSolver(id: string): Promise<boolean>;
+
+  // Agent Tool Log operations
+  getAgentToolLogs(organizationId: string): Promise<AgentToolLog[]>;
+  getAgentToolLogsByAgent(agentId: string): Promise<AgentToolLog[]>;
+  createAgentToolLog(log: InsertAgentToolLog): Promise<AgentToolLog>;
 }
 
 export function createStorage(dbClient: typeof db): IStorage {
@@ -281,7 +317,10 @@ export function createStorage(dbClient: typeof db): IStorage {
     ...createInvitationsRepository(dbClient),
     ...createSessionsRepository(dbClient),
     ...createPolicyAcknowledgmentsRepository(dbClient),
-    ...createRisksRepository(dbClient)
+    ...createRisksRepository(dbClient),
+    ...createVendorsRepository(dbClient),
+    ...createQuestionnaireSolverRepository(dbClient),
+    ...createAgentToolLogRepository(dbClient)
   };
 }
 

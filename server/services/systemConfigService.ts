@@ -288,6 +288,73 @@ export class SystemConfigService {
     }
   }
 
+  // ─── Generic Config Accessors (used by LDAP, etc.) ─────────────────────────
+
+  /**
+   * Get a generic configuration value by key (unencrypted JSON stored in description field).
+   * Used for non-sensitive structured settings like LDAP config.
+   */
+  async get(configKey: string): Promise<Record<string, any> | null> {
+    try {
+      const config = await db.query.systemConfigurations.findFirst({
+        where: eq(systemConfigurations.configKey, `generic_${configKey}`),
+      });
+      if (!config || !config.isActive) return null;
+      // Store value in description (unencrypted for non-secret config)
+      if (config.description && config.description.startsWith('{')) {
+        return JSON.parse(config.description);
+      }
+      return null;
+    } catch (error: any) {
+      logger.error(`[SystemConfigService] Failed to get config '${configKey}':`, error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Set a generic configuration value by key.
+   */
+  async set(configKey: string, value: Record<string, any>): Promise<void> {
+    try {
+      const key = `generic_${configKey}`;
+      const json = JSON.stringify(value);
+      await db.insert(systemConfigurations)
+        .values({
+          configKey: key,
+          configType: 'custom',
+          configValueEncrypted: '{}',
+          description: json,
+          isActive: true,
+          createdBy: 'system',
+          updatedBy: 'system',
+        })
+        .onConflictDoUpdate({
+          target: systemConfigurations.configKey,
+          set: {
+            description: json,
+            updatedBy: 'system',
+            updatedAt: new Date(),
+          },
+        });
+    } catch (error: any) {
+      logger.error(`[SystemConfigService] Failed to set config '${configKey}':`, error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a generic configuration by key.
+   */
+  async delete(configKey: string): Promise<void> {
+    try {
+      await db.delete(systemConfigurations)
+        .where(eq(systemConfigurations.configKey, `generic_${configKey}`));
+    } catch (error: any) {
+      logger.error(`[SystemConfigService] Failed to delete config '${configKey}':`, error.message);
+      throw error;
+    }
+  }
+
   /**
    * Delete OAuth configuration
    */

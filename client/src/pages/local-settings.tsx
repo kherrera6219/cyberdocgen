@@ -11,7 +11,7 @@
  * - Redacted system diagnostics bundler
  */
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,8 +31,11 @@ import {
   Globe,
   FileArchive,
   Key,
-  ShieldAlert
+  ShieldAlert,
+  Users,
+  Server
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -76,6 +79,43 @@ export default function LocalSettingsPage() {
     queryKey: ['runtime-mode'],
     queryFn: () => apiRequest('/api/local/runtime/mode').then(res => res.data || res),
   });
+
+  // Fetch LDAP config
+  const { data: ldapConfig, refetch: refetchLdap } = useQuery<any>({
+    queryKey: ['ldap-config'],
+    queryFn: () => apiRequest('/api/admin/ldap').then(res => res.data || res),
+  });
+
+  // Derive LDAP form state from fetched config (avoids setState-in-effect)
+  const effectiveLdap = useMemo(() => {
+    const defaults = {
+      enabled: false,
+      url: '',
+      baseDn: '',
+      bindDn: '',
+      bindPassword: '',
+      userSearchFilter: '(sAMAccountName={{username}})',
+      tlsEnabled: false,
+      tlsCaCert: '',
+      syncInterval: 3600,
+    };
+    if (!ldapConfig?.configured) return defaults;
+    return {
+      ...defaults,
+      enabled: ldapConfig.enabled ?? false,
+      url: ldapConfig.url ?? '',
+      baseDn: ldapConfig.baseDn ?? '',
+      bindDn: ldapConfig.bindDn ?? '',
+      bindPassword: '',  // Never populated from server
+      userSearchFilter: ldapConfig.userSearchFilter ?? '(sAMAccountName={{username}})',
+      tlsEnabled: ldapConfig.tlsEnabled ?? false,
+    };
+  }, [ldapConfig]);
+
+  // Local LDAP overrides (user edits on top of fetched config)
+  const [ldapOverrides, setLdapOverrides] = useState<Record<string, any>>({});
+  const ldap = { ...effectiveLdap, ...ldapOverrides };
+  const updateLdap = (k: string, v: any) => setLdapOverrides(p => ({ ...p, [k]: v }));
 
   // Fetch database info
   const { data: dbInfo, isLoading: dbLoading, error: dbError } = useQuery<DatabaseInfo>({
@@ -338,11 +378,12 @@ export default function LocalSettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="storage">Storage</TabsTrigger>
           <TabsTrigger value="network">Network & Bindings</TabsTrigger>
+          <TabsTrigger value="ldap">Active Directory</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-6">
@@ -762,6 +803,163 @@ export default function LocalSettingsPage() {
                   </>
                 )}
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ldap" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-indigo-500" />
+                LDAP / Active Directory Integration
+              </CardTitle>
+              <CardDescription>
+                Connect to your on-premises Active Directory or LDAP server for centralized user authentication.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <input
+                  id="ldap-enabled"
+                  type="checkbox"
+                  checked={ldap.enabled}
+                  onChange={(e) => updateLdap('enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300"
+                />
+                <label htmlFor="ldap-enabled" className="text-sm font-semibold">
+                  Enable LDAP Authentication
+                </label>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500">LDAP Server URL</label>
+                  <Input
+                    id="ldap-url"
+                    value={ldap.url}
+                    onChange={(e) => updateLdap('url', e.target.value)}
+                    placeholder="ldap://corp.example.com:389"
+                    disabled={!ldap.enabled}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500">Base DN</label>
+                  <Input
+                    id="ldap-base-dn"
+                    value={ldap.baseDn}
+                    onChange={(e) => updateLdap('baseDn', e.target.value)}
+                    placeholder="DC=corp,DC=example,DC=com"
+                    disabled={!ldap.enabled}
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500">Bind DN (Service Account)</label>
+                  <Input
+                    id="ldap-bind-dn"
+                    value={ldap.bindDn}
+                    onChange={(e) => updateLdap('bindDn', e.target.value)}
+                    placeholder="CN=svc-grc,OU=Services,DC=corp,DC=example,DC=com"
+                    disabled={!ldap.enabled}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500">Bind Password</label>
+                  <Input
+                    id="ldap-bind-password"
+                    type="password"
+                    value={ldap.bindPassword}
+                    onChange={(e) => updateLdap('bindPassword', e.target.value)}
+                    placeholder={ldapConfig?.configured ? '(stored – leave blank to keep)' : 'Enter bind password'}
+                    disabled={!ldap.enabled}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-500">User Search Filter</label>
+                <Input
+                  id="ldap-search-filter"
+                  value={ldap.userSearchFilter}
+                  onChange={(e) => updateLdap('userSearchFilter', e.target.value)}
+                  placeholder="(sAMAccountName={{username}})"
+                  disabled={!ldap.enabled}
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  id="ldap-tls"
+                  type="checkbox"
+                  checked={ldap.tlsEnabled}
+                  onChange={(e) => updateLdap('tlsEnabled', e.target.checked)}
+                  disabled={!ldap.enabled}
+                  className="w-4 h-4 rounded border-gray-300"
+                />
+                <label htmlFor="ldap-tls" className="text-xs text-gray-500 font-semibold">
+                  Enforce TLS / LDAPS
+                </label>
+              </div>
+
+              {ldap.tlsEnabled && (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500">CA Certificate (PEM, optional)</label>
+                  <textarea
+                    id="ldap-ca-cert"
+                    value={ldap.tlsCaCert}
+                    onChange={(e) => updateLdap('tlsCaCert', e.target.value)}
+                    placeholder="-----BEGIN CERTIFICATE-----&#10;..."
+                    className="w-full h-24 p-3 font-mono text-[11px] rounded-lg border border-gray-300 dark:border-gray-800 dark:bg-slate-950 focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  id="ldap-save-btn"
+                  onClick={() => {
+                    apiRequest('/api/admin/ldap', 'POST', ldap)
+                      .then(() => { refetchLdap(); toast({ title: 'LDAP settings saved' }); })
+                      .catch(() => toast({ title: 'Error', description: 'Failed to save LDAP settings.', variant: 'destructive' }));
+                  }}
+                  className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold"
+                  disabled={!ldap.enabled && !ldapConfig?.configured}
+                >
+                  <Server className="h-4 w-4 mr-2" />
+                  Save LDAP Settings
+                </Button>
+
+                <Button
+                  id="ldap-test-btn"
+                  variant="outline"
+                  onClick={() => {
+                    apiRequest('/api/admin/ldap/test', 'POST')
+                      .then((res: any) => {
+                        const d = res.data || res;
+                        toast({
+                          title: d.success ? 'Connection successful ✓' : 'Connection failed',
+                          description: d.message,
+                          variant: d.success ? 'default' : 'destructive',
+                        });
+                      })
+                      .catch(() => toast({ title: 'Test error', variant: 'destructive' }));
+                  }}
+                  disabled={!ldapConfig?.configured}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Test Connection
+                </Button>
+              </div>
+
+              {ldapConfig?.configured && (
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5 mt-1">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  LDAP configuration is stored on this server.
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
