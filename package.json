@@ -65,7 +65,7 @@
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.68.0",
     "@opentelemetry/resources": "^2.4.0",
-    "@opentelemetry/sdk-node": "^0.210.0",
+    "@opentelemetry/sdk-node": "^0.218.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -126,7 +126,7 @@
     "embla-carousel-react": "^8.6.0",
     "eslint-plugin-security": "^3.0.1",
     "exceljs": "^4.4.0",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "express-rate-limit": "^8.0.1",
     "express-session": "^1.18.2",
     "firebase-admin": "^13.8.0",
@@ -168,7 +168,7 @@
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
     "wouter": "^3.7.1",
-    "ws": "^8.18.3",
+    "ws": "^8.21.0",
     "zod": "^3.25.76",
     "zod-validation-error": "^5.0.0"
   },
@@ -269,7 +269,11 @@
     "retry-request": "^8.0.2",
     "tar": "^7.5.9",
     "teeny-request": "^10.1.2",
-    "yaml": "^2.8.3"
+    "yaml": "^2.8.3",
+    "protobufjs": "^7.4.0",
+    "ws": "^8.21.0",
+    "qs": "^6.14.0",
+    "express": "^4.22.1"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.9"
