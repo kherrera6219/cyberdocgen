@@ -61,6 +61,8 @@ import { registerDashboardRoutes } from "./routes/dashboard";
 import { registerFrameworkControlStatusesRoutes } from "./routes/frameworkControlStatuses";
 import { registerClientErrorRoutes } from "./routes/clientErrors";
 import { registerDirectorySyncRoutes } from "./routes/directorySync";
+import { registerRisksRoutes } from "./routes/risks";
+import { registerNetworkSettingsRoutes } from "./routes/networkSettings";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -659,6 +661,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerOrganizationsRoutes(organizationsRouter);
   app.use('/api/organizations', organizationsRouter);
 
+  const risksRouter = Router();
+  registerRisksRoutes(risksRouter);
+  app.use('/api/risks', risksRouter);
+
   const companyProfilesRouter = Router();
   await registerCompanyProfilesRoutes(companyProfilesRouter);
   app.use('/api/company-profiles', companyProfilesRouter);
@@ -670,6 +676,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const directorySyncRouter = Router();
   await registerDirectorySyncRoutes(directorySyncRouter);
   app.use('/api/admin/directory-sync', directorySyncRouter);
+
+  const networkSettingsRouter = Router();
+  registerNetworkSettingsRoutes(networkSettingsRouter);
+  app.use('/api/admin/network-settings', networkSettingsRouter);
 
   const aiRouter = Router();
   await registerAIRoutes(aiRouter);

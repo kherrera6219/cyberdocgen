@@ -19,7 +19,7 @@ This master plan details the complete strategic roadmap to evolve **CyberDocGen*
                                       ▼
   ┌────────────────────────────────────────────────────────────────────────┐
   │ PHASE 2: Risk Register, Live Controls, Local Network & AI Policy Sync  │
-  │ Status: IN PROGRESS (Current Phase)                                    │
+  │ Status: COMPLETED (May 2026)                                           │
   │ - Interactive Risk Register Board (Inherent vs. Residual Treatment)    │
   │ - Continuous Control Tests Engine (Live DB/Backup Checks + Alerting)    │
   │ - Local Port/IP LAN Binding & TLS CA Certificate HTTPS Uploader        │
@@ -30,7 +30,7 @@ This master plan details the complete strategic roadmap to evolve **CyberDocGen*
                                       ▼
   ┌────────────────────────────────────────────────────────────────────────┐
   │ PHASE 3: AI Questionnaire Solver, Vendor GRC, LDAP & Autonomous PRs    │
-  │ Status: PLANNED                                                        │
+  │ Status: IN PROGRESS (Current Phase)                                    │
   │ - RAG-based Excel/CSV Questionnaire Auto-Filler (pgvector Citations)  │
   │ - Third-Party Vendor Risk Management & Security Report Vault           │
   │ - Active Directory / LDAP authentication integration configuration     │
@@ -81,29 +81,34 @@ This master plan details the complete strategic roadmap to evolve **CyberDocGen*
 ---
 
 ## Phase 2: Risk Register, Live Controls, Local Network & AI Policy Sync
-**Status**: `🚀 IN PROGRESS`
+**Status**: `✅ COMPLETED (May 2026)`
 
-### 📋 Technical Components
+### 📋 Delivered Technical Components
 
-1. **Interactive Risk Register**:
-   *   Create a board where admins catalog threats, calculate **Inherent Risk** (Likelihood × Impact), map them to mitigating controls, calculate **Residual Risk**, and track treatment plans.
+1. **Interactive Risk Register Board**:
+   *   Created `risks` table schema tracking risk factors, mitigation mapping, inherent vs. residual scores.
+   *   Built custom `risksRepository` logic computing inherent (likelihood * impact) and residual (inherent * mitigation) compliance scoring.
+   *   Designed a high-end glassmorphic Kanban Board UI complete with slide-over panels, score matrices, and control linking.
+
 2. **Continuous Control Tests Engine**:
-   *   Run scheduled checks locally (e.g., verifying database connection pools, backup directory snapshots, encryption keys integrity, log rotation integrity, and C-Drive free space limits).
-   *   Trigger priority alerts in `alertingService.ts` when a control check fails, alerting compliance administrators immediately.
-3. **Local Network & Binding Configurations**:
-   *   Add a panel allowing admins to switch host bindings between `127.0.0.1` (desktop isolation) and `0.0.0.0` (LAN sharing), customize the port number, and upload private CA certificates to enforce HTTPS over local connections.
-   *   Provide a **1-Click Diagnostic Bundler** that compiles host OS specs, recent log files, and database statistics into an encrypted `.zip` archive (automatically scrubbing secrets).
-4. **AI Code-to-Policy "Self-Healing" Sync Engine**:
-   *   Hook into the daily `codeSignalDetectorService.ts` scan cron job.
-   *   When the detector flags a technical system change, prompt the AI to write a proposed markdown policy diff.
-   *   Display the diff on an Admin Dashboard for 1-click approval and automatic versioning.
-5. **Durable Agent State Store**:
-   *   Deploy the `agent_state_store` table in PGlite to store step-by-step execution trajectory and variable registers of active compliance agents.
+   *   Implemented a resilient, modular backend engine checking database state, encryption keys, snapshots, Winston log cap, and local disk limits.
+   *   Wired failures directly to the centralized compliance `alertingService` for immediate operational response.
+
+3. **Local Network binding & HTTPS Security**:
+   *   Added secure, custom settings saving configurations locally at `%APPDATA%/CyberDocGen/settings/network.json` and SSL certs under the `/security/` subdirectory.
+   *   Enabled LAN-sharing toggles (127.0.0.1 vs 0.0.0.0) and private CA SSL upload options inside Admin Settings.
+
+4. **1-Click Redacted Diagnostic Bundler**:
+   *   Built a local diagnostic bundler gathering system specs, database stats, and Winston log streams into encrypted, secret-redacted support zip files.
+
+5. **AI Self-Healing Policy Sync Engine**:
+   *   Engineered a compliance diff engine translating code-level signal alerts into proposed Markdown policy adjustments.
+   *   Allowed compliance managers to review, reject, or approve proposals to commit a new version in `documentVersions` under full audit logging.
 
 ---
 
 ## Phase 3: AI Questionnaire Solver, Vendor GRC, LDAP & Autonomous PRs
-**Status**: `📅 PLANNED`
+**Status**: `🚀 IN PROGRESS`
 
 ### 📋 Technical Components
 1. **AI Security Questionnaire Solver**:

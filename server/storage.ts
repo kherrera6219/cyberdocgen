@@ -62,7 +62,11 @@ import {
   type DocumentVersion,
   type InsertDocumentVersion,
   type PolicyAcknowledgment,
-  type InsertPolicyAcknowledgment
+  type InsertPolicyAcknowledgment,
+  type Risk,
+  type InsertRisk,
+  type AgentState,
+  type InsertAgentState
 } from "@shared/schema";
 import { db } from "./db";
 import { drizzle } from "drizzle-orm/pglite";
@@ -88,6 +92,7 @@ import { createNotificationsRepository } from "./repositories/notificationsRepos
 import { createInvitationsRepository } from "./repositories/invitationsRepository";
 import { createSessionsRepository } from "./repositories/sessionsRepository";
 import { createPolicyAcknowledgmentsRepository } from "./repositories/policyAcknowledgmentsRepository";
+import { createRisksRepository } from "./repositories/risksRepository";
 import { UserFilters, PaginationParams, PaginatedResult } from "./repositories/utils";
 
 export interface IStorage {
@@ -237,6 +242,25 @@ export interface IStorage {
   getPolicyAcknowledgmentsByUser(userId: string): Promise<PolicyAcknowledgment[]>;
   getPolicyAcknowledgment(userId: string, documentId: string): Promise<PolicyAcknowledgment | undefined>;
   getPolicyAcknowledgmentsByDocument(documentId: string): Promise<PolicyAcknowledgment[]>;
+
+  // Risk catalog operations
+  createRisk(risk: InsertRisk): Promise<Risk>;
+  getRisk(id: string): Promise<Risk | undefined>;
+  getRisks(orgId: string): Promise<Risk[]>;
+  updateRisk(id: string, risk: Partial<InsertRisk>): Promise<Risk | undefined>;
+  deleteRisk(id: string): Promise<boolean>;
+
+  // Agent State Store operations
+  getAgentState(agentId: string): Promise<AgentState | undefined>;
+  saveAgentState(state: {
+    agentId: string;
+    agentName: string;
+    trajectory: any[];
+    variables: any;
+    status: string;
+    organizationId: string;
+  }): Promise<AgentState>;
+  deleteAgentState(agentId: string): Promise<boolean>;
 }
 
 export function createStorage(dbClient: typeof db): IStorage {
@@ -256,7 +280,8 @@ export function createStorage(dbClient: typeof db): IStorage {
     ...createNotificationsRepository(dbClient),
     ...createInvitationsRepository(dbClient),
     ...createSessionsRepository(dbClient),
-    ...createPolicyAcknowledgmentsRepository(dbClient)
+    ...createPolicyAcknowledgmentsRepository(dbClient),
+    ...createRisksRepository(dbClient)
   };
 }
 

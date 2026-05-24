@@ -13,6 +13,7 @@ import { logger } from '../utils/logger';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { networkSettingsManager } from './networkSettings';
 
 export type DeploymentMode = 'cloud' | 'local';
 
@@ -168,9 +169,10 @@ function buildLocalModeConfig(): RuntimeConfig {
   const userDataPath = resolveLocalDataPath();
   const migrationsPath = resolveLocalMigrationsPath();
   
-  // Allow env overrides for host/port even in local mode
-  const host = process.env.HOST || '127.0.0.1';
-  const port = parseInt(process.env.PORT || process.env.LOCAL_PORT || '5231', 10);
+  // Load persistent GRC local network configurations
+  const netSettings = networkSettingsManager.getSettings();
+  const host = process.env.HOST || netSettings.host || '127.0.0.1';
+  const port = parseInt(process.env.PORT || process.env.LOCAL_PORT || String(netSettings.port) || '5231', 10);
 
   return {
     mode: 'local',

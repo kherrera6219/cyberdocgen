@@ -18,6 +18,7 @@ import {
   Settings,
   Shield,
   ShieldCheck,
+  ShieldAlert,
   Target,
   Upload,
   User,
@@ -65,6 +66,7 @@ export const aiToolsNavItems: NavItem[] = [
 ];
 
 export const complianceNavItems: NavItem[] = [
+  { href: "/risk-register", icon: ShieldAlert, label: "Risk Register" },
   { href: "/gap-analysis", icon: Target, label: "Gap Analysis" },
   { href: "/repository-analysis", icon: Search, label: "Repository Analysis" },
   { href: "/control-approvals", icon: CheckSquare, label: "Control Approvals" },

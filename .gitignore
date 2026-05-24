@@ -48,3 +48,7 @@ gcloud-service-key.json
 keys.txt
 test-ai-keys.ts
 test-ai-keys-fast.ts
+
+# App logs and scratch files
+logs/
+scratch/

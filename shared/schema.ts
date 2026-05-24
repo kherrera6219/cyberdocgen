@@ -2148,3 +2148,81 @@ export const insertAgentMessageInboxSchema = cis(agentMessageInbox).omit({
 export type InsertAgentMessage = z.infer<typeof insertAgentMessageInboxSchema>;
 export type AgentMessage = typeof agentMessageInbox.$inferSelect;
 
+// Interactive Risk Register table for Phase 2
+export const risks = pgTable("risks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  category: varchar("category").notNull(), // e.g. 'Security', 'Compliance', 'Operational', 'Financial'
+  status: varchar("status").notNull().default("identified"), // 'identified', 'mitigated', 'accepted', 'transferred'
+  
+  // Risk assessment scoring
+  inherentLikelihood: integer("inherent_likelihood").notNull(), // 1 to 5
+  inherentImpact: integer("inherent_impact").notNull(), // 1 to 5
+  inherentScore: integer("inherent_score").notNull(), // likelihood * impact (1 to 25)
+  
+  residualLikelihood: integer("residual_likelihood").notNull(), // 1 to 5
+  residualImpact: integer("residual_impact").notNull(), // 1 to 5
+  residualScore: integer("residual_score").notNull(), // likelihood * impact (1 to 25)
+  
+  // Mitigating controls and treatment plans
+  mitigatingControls: jsonb("mitigating_controls").$type<string[]>().default([]), // Document IDs or control IDs mapping to documents
+  treatmentPlan: text("treatment_plan"),
+  
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const risksRelations = relations(risks, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [risks.organizationId],
+    references: [organizations.id],
+  }),
+  creator: one(users, {
+    fields: [risks.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const insertRiskSchema = cis(risks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertRisk = z.infer<typeof insertRiskSchema>;
+export type Risk = typeof risks.$inferSelect;
+
+// Durable Agent State Store for Phase 2
+export const agentStateStore = pgTable("agent_state_store", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id").notNull(), // unique identifier of the agent execution/conversation
+  agentName: varchar("agent_name").notNull(), // e.g. 'EvidenceAuditor', 'CodeSyncAgent'
+  trajectory: jsonb("trajectory").notNull().default([]), // step-by-step array of executed items
+  variables: jsonb("variables").notNull().default({}), // key-value registers
+  status: varchar("status").notNull().default("running"), // 'running', 'completed', 'failed', 'paused'
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  agentIdIdx: index("idx_agent_state_agent_id").on(table.agentId),
+}));
+
+export const agentStateStoreRelations = relations(agentStateStore, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [agentStateStore.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const insertAgentStateSchema = cis(agentStateStore).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAgentState = z.infer<typeof insertAgentStateSchema>;
+export type AgentState = typeof agentStateStore.$inferSelect;
+

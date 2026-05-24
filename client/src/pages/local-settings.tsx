@@ -7,6 +7,8 @@
  * - Backup and restore operations
  * - Storage statistics
  * - Maintenance operations
+ * - Network bindings & CA SSL uploads
+ * - Redacted system diagnostics bundler
  */
 
 import { useEffect, useState } from 'react';
@@ -25,7 +27,11 @@ import {
   Info,
   CheckCircle,
   XCircle,
-  Loader2
+  Loader2,
+  Globe,
+  FileArchive,
+  Key,
+  ShieldAlert
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -58,25 +64,49 @@ export default function LocalSettingsPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Network Settings and Diagnostics state
+  const [host, setHost] = useState('127.0.0.1');
+  const [port, setPort] = useState('5231');
+  const [sslEnabled, setSslEnabled] = useState(false);
+  const [certPem, setCertPem] = useState('');
+  const [keyPem, setKeyPem] = useState('');
+
   // Fetch runtime info
   const { data: runtime } = useQuery<RuntimeInfo>({
     queryKey: ['runtime-mode'],
-    queryFn: () => apiRequest('/api/local/runtime/mode'),
+    queryFn: () => apiRequest('/api/local/runtime/mode').then(res => res.data || res),
   });
 
   // Fetch database info
   const { data: dbInfo, isLoading: dbLoading, error: dbError } = useQuery<DatabaseInfo>({
     queryKey: ['db-info'],
-    queryFn: () => apiRequest('/api/local/db-info'),
+    queryFn: () => apiRequest('/api/local/db-info').then(res => res.data || res),
     enabled: runtime?.mode === 'local',
   });
 
   // Fetch storage info
   const { data: storageInfo, isLoading: storageLoading } = useQuery<StorageInfo>({
     queryKey: ['storage-info'],
-    queryFn: () => apiRequest('/api/local/storage-info'),
+    queryFn: () => apiRequest('/api/local/storage-info').then(res => res.data || res),
     enabled: runtime?.mode === 'local',
   });
+
+  // Fetch Network settings
+  const { data: netResponse, refetch: refetchNetwork } = useQuery<{ success: boolean; hasCert?: boolean; hasKey?: boolean; sslEnabled?: boolean; host?: string; port?: number }>({
+    queryKey: ['admin-network-settings'],
+    queryFn: () => apiRequest('/api/admin/network-settings').then(res => res.data),
+    enabled: runtime?.mode === 'local',
+  });
+
+  useEffect(() => {
+    if (netResponse) {
+      setTimeout(() => {
+        setHost(netResponse.host || '127.0.0.1');
+        setPort(String(netResponse.port || '5231'));
+        setSslEnabled(!!netResponse.sslEnabled);
+      }, 0);
+    }
+  }, [netResponse]);
 
   // Backup mutation
   const backupMutation = useMutation({
@@ -120,10 +150,10 @@ export default function LocalSettingsPage() {
   // Cleanup mutation
   const cleanupMutation = useMutation({
     mutationFn: () => apiRequest('/api/local/cleanup', 'POST'),
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: 'Success',
-        description: `Cleanup completed. Removed ${data.removedDirectories} empty directories.`,
+        description: `Cleanup completed. Removed ${data?.removedDirectories || 0} empty directories.`,
       });
       queryClient.invalidateQueries({ queryKey: ['storage-info'] });
     },
@@ -152,6 +182,59 @@ export default function LocalSettingsPage() {
         variant: 'destructive',
       });
     },
+  });
+
+  // Network Settings mutation
+  const saveNetworkMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/admin/network-settings', 'POST', {
+        host,
+        port: parseInt(port, 10),
+        sslEnabled,
+        certPem: certPem.trim() || undefined,
+        keyPem: keyPem.trim() || undefined
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Network configurations saved successfully',
+      });
+      refetchNetwork();
+      setCertPem('');
+      setKeyPem('');
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to save network settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Diagnostics bundle mutation
+  const diagnosticsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('/api/admin/network-settings/diagnostics/bundle', 'POST');
+      return res.data || res;
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: 'Compiled successfully',
+        description: 'Downloading diagnostics package...',
+      });
+      
+      // Trigger dynamic file download
+      window.location.href = `/api/admin/network-settings/diagnostics/download/${data.filename}`;
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to compile diagnostics: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: 'destructive',
+      });
+    }
   });
 
   useEffect(() => {
@@ -255,10 +338,11 @@ export default function LocalSettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="storage">Storage</TabsTrigger>
+          <TabsTrigger value="network">Network & Bindings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-6">
@@ -535,6 +619,149 @@ export default function LocalSettingsPage() {
                   Cleanup
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="network" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-blue-500" />
+                Network Binding & Host Configurations
+              </CardTitle>
+              <CardDescription>
+                Configure server listener ports and select host isolation modes for corporate LAN accessibility.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-gray-500">Host Binding Address</label>
+                  <select 
+                    value={host} 
+                    onChange={(e) => setHost(e.target.value)}
+                    className="w-full h-10 px-3 text-sm rounded-lg border border-gray-300 dark:border-gray-800 dark:bg-slate-950 focus:outline-none"
+                  >
+                    <option value="127.0.0.1">Private Desktop Isolation (127.0.0.1)</option>
+                    <option value="0.0.0.0">Corporate LAN Sharing (0.0.0.0)</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-gray-500">Server Binding Port</label>
+                  <input 
+                    type="number" 
+                    value={port} 
+                    onChange={(e) => setPort(e.target.value)}
+                    className="w-full h-10 px-3.5 text-sm rounded-lg border border-gray-300 dark:border-gray-800 dark:bg-slate-950 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-3.5 bg-blue-500/5 border border-blue-500/10 rounded-xl">
+                <Info className="h-5.5 w-5.5 text-blue-500 mt-0.5" />
+                <span className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+                  <strong>Network Warning:</strong> Binding the hostname to <code>0.0.0.0</code> exposes the local PGlite database and files to other devices on your local network. Enforce CA SSL validation keys to encrypt server traffic!
+                </span>
+              </div>
+
+              <div className="h-[1px] bg-gray-150 dark:bg-gray-850" />
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold flex items-center gap-1.5">
+                  <Key className="h-4 w-4 text-amber-500" /> Private CA SSL Certificate Uploader
+                </h3>
+                
+                <div className="flex items-center gap-2 cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={sslEnabled} 
+                    onChange={(e) => setSslEnabled(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 focus:ring-offset-0"
+                  />
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Enforce HTTPS Secure Connections</span>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-500">SSL Certificate (cert.pem)</label>
+                    <textarea 
+                      value={certPem} 
+                      onChange={(e) => setCertPem(e.target.value)}
+                      placeholder="-----BEGIN CERTIFICATE-----&#10;..."
+                      className="w-full h-24 p-3.5 font-mono text-[10px] rounded-lg border border-gray-300 dark:border-gray-800 dark:bg-slate-950 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-500">SSL Private Key (key.pem)</label>
+                    <textarea 
+                      value={keyPem} 
+                      onChange={(e) => setKeyPem(e.target.value)}
+                      placeholder="-----BEGIN PRIVATE KEY-----&#10;..."
+                      className="w-full h-24 p-3.5 font-mono text-[10px] rounded-lg border border-gray-300 dark:border-gray-800 dark:bg-slate-950 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 p-2 text-xs">
+                  <div>
+                    <span className="text-gray-400">Cert Stored Status:</span>{" "}
+                    {netResponse?.hasCert ? (
+                      <span className="text-emerald-500 font-semibold">Loaded ✓</span>
+                    ) : (
+                      <span className="text-amber-500 font-semibold">Not Uploaded !</span>
+                    )}
+                  </div>
+                  <div className="w-[1px] bg-gray-200 dark:bg-gray-850" />
+                  <div>
+                    <span className="text-gray-400">HTTPS Enforced:</span>{" "}
+                    {netResponse?.sslEnabled ? (
+                      <span className="text-emerald-500 font-semibold">Active ✓</span>
+                    ) : (
+                      <span className="text-gray-400 font-semibold">Inactive</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => saveNetworkMutation.mutate()}
+                disabled={saveNetworkMutation.isPending}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold h-10 rounded-xl"
+              >
+                {saveNetworkMutation.isPending ? "Saving Configurations..." : "Save Network Settings"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileArchive className="h-5 w-5 text-blue-500" />
+                1-Click Redacted Diagnostic Bundler
+              </CardTitle>
+              <CardDescription>
+                Generates a zip file containing host specifications, PGlite statistics, and recent Winston logs (all operational passwords and API keys redacted).
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => diagnosticsMutation.mutate()}
+                disabled={diagnosticsMutation.isPending}
+                className="w-full"
+                variant="outline"
+              >
+                {diagnosticsMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Compiling System Logs...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" /> Compile & Download Diagnostic Bundle (.zip)
+                  </>
+                )}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
