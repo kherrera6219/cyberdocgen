@@ -826,6 +826,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: gitPrRoutes } = await import('./routes/gitPr');
   app.use('/api/git-pr', gitPrRoutes);
 
+  // Phase 4: Gated Customer Trust Center Portal
+  const { registerTrustCenterRoutes } = await import('./routes/trustCenter');
+  registerTrustCenterRoutes(app);
+
+  // Phase 4: AI Auditor Digital Twin Mock Simulator
+  const { registerDigitalTwinRoutes } = await import('./routes/digitalTwin');
+  registerDigitalTwinRoutes(app);
+
   // Global Error Handler (Must be last)
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

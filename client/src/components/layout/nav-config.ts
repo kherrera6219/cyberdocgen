@@ -75,6 +75,8 @@ export const complianceNavItems: NavItem[] = [
   { href: "/questionnaire-solver", icon: FileQuestion, label: "AI Questionnaire Solver", badge: "AI", badgeColor: "bg-purple-500" },
   { href: "/control-approvals", icon: CheckSquare, label: "Control Approvals" },
   { href: "/auditor-workspace", icon: Eye, label: "Auditor Workspace" },
+  { href: "/trust-center", icon: ShieldCheck, label: "Trust Center", badge: "Gated", badgeColor: "bg-emerald-500" },
+  { href: "/digital-twin", icon: Bot, label: "AI Digital Twin", badge: "Twin", badgeColor: "bg-purple-500" },
   { href: "/audit-trail", icon: History, label: "Audit Trail" },
 ];
 

@@ -74,7 +74,15 @@ import {
   type QuestionnaireSolver,
   type InsertQuestionnaireSolver,
   type AgentToolLog,
-  type InsertAgentToolLog
+  type InsertAgentToolLog,
+  type EvidenceAnalysis,
+  type InsertEvidenceAnalysis,
+  type TrustCenterNda,
+  type InsertTrustCenterNda,
+  type TrustCenterDownload,
+  type InsertTrustCenterDownload,
+  type MockAudit,
+  type InsertMockAudit
 } from "@shared/schema";
 import { db } from "./db";
 import { drizzle } from "drizzle-orm/pglite";
@@ -104,6 +112,9 @@ import { createRisksRepository } from "./repositories/risksRepository";
 import { createVendorsRepository } from "./repositories/vendorsRepository";
 import { createQuestionnaireSolverRepository } from "./repositories/questionnaireSolverRepository";
 import { createAgentToolLogRepository } from "./repositories/agentToolLogRepository";
+import { createEvidenceAnalysisRepository } from "./repositories/evidenceAnalysisRepository";
+import { createTrustCenterRepository } from "./repositories/trustCenterRepository";
+import { createMockAuditRepository } from "./repositories/mockAuditRepository";
 import { UserFilters, PaginationParams, PaginatedResult } from "./repositories/utils";
 
 export interface IStorage {
@@ -297,6 +308,31 @@ export interface IStorage {
   getAgentToolLogs(organizationId: string): Promise<AgentToolLog[]>;
   getAgentToolLogsByAgent(agentId: string): Promise<AgentToolLog[]>;
   createAgentToolLog(log: InsertAgentToolLog): Promise<AgentToolLog>;
+
+  // Evidence screenshot analysis operations
+  getEvidenceAnalysis(id: string): Promise<EvidenceAnalysis | undefined>;
+  getEvidenceAnalysisByFile(evidenceId: string): Promise<EvidenceAnalysis | undefined>;
+  getEvidenceAnalyses(organizationId: string): Promise<EvidenceAnalysis[]>;
+  createEvidenceAnalysis(analysis: InsertEvidenceAnalysis): Promise<EvidenceAnalysis>;
+  updateEvidenceAnalysis(id: string, analysis: Partial<InsertEvidenceAnalysis>): Promise<EvidenceAnalysis | undefined>;
+  deleteEvidenceAnalysis(id: string): Promise<boolean>;
+
+  // Trust Center operations
+  getTrustCenterNda(id: string): Promise<TrustCenterNda | undefined>;
+  getTrustCenterNdaByEmail(organizationId: string, email: string): Promise<TrustCenterNda | undefined>;
+  getTrustCenterNdaHistory(organizationId: string): Promise<TrustCenterNda[]>;
+  createTrustCenterNda(nda: InsertTrustCenterNda): Promise<TrustCenterNda>;
+  updateTrustCenterNda(id: string, nda: Partial<InsertTrustCenterNda>): Promise<TrustCenterNda | undefined>;
+  createTrustCenterDownload(download: InsertTrustCenterDownload): Promise<TrustCenterDownload>;
+  getTrustCenterDownloads(ndaId: string): Promise<TrustCenterDownload[]>;
+  getTrustCenterDownloadsByOrg(organizationId: string): Promise<(TrustCenterDownload & { ndaEmail: string; ndaName: string; fileName: string })[]>;
+
+  // AI Auditor Digital Twin Mock Audit operations
+  getMockAudit(id: string): Promise<MockAudit | undefined>;
+  getMockAudits(organizationId: string): Promise<MockAudit[]>;
+  createMockAudit(audit: InsertMockAudit): Promise<MockAudit>;
+  updateMockAudit(id: string, audit: Partial<InsertMockAudit>): Promise<MockAudit | undefined>;
+  deleteMockAudit(id: string): Promise<boolean>;
 }
 
 export function createStorage(dbClient: typeof db): IStorage {
@@ -320,7 +356,10 @@ export function createStorage(dbClient: typeof db): IStorage {
     ...createRisksRepository(dbClient),
     ...createVendorsRepository(dbClient),
     ...createQuestionnaireSolverRepository(dbClient),
-    ...createAgentToolLogRepository(dbClient)
+    ...createAgentToolLogRepository(dbClient),
+    ...createEvidenceAnalysisRepository(dbClient),
+    ...createTrustCenterRepository(dbClient),
+    ...createMockAuditRepository(dbClient)
   };
 }
 

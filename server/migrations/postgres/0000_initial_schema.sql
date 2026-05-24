@@ -1053,4 +1053,60 @@ CREATE INDEX "idx_stakeholder_org" ON "stakeholders" USING btree ("organization_
 CREATE INDEX "idx_stakeholder_email" ON "stakeholders" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "idx_stakeholder_source" ON "stakeholders" USING btree ("source");--> statement-breakpoint
 CREATE INDEX "idx_system_config_key" ON "system_configurations" USING btree ("config_key");--> statement-breakpoint
-CREATE INDEX "idx_system_config_type" ON "system_configurations" USING btree ("config_type");
+CREATE INDEX "idx_system_config_type" ON "system_configurations" USING btree ("config_type");--> statement-breakpoint
+
+CREATE TABLE IF NOT EXISTS "evidence_analyses" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "evidence_id" varchar NOT NULL REFERENCES "cloud_files"("id") ON DELETE CASCADE,
+  "organization_id" varchar NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+  "verified" boolean NOT NULL DEFAULT false,
+  "confidence_score" integer NOT NULL DEFAULT 0,
+  "analysis_text" text NOT NULL,
+  "auditor_notes" text,
+  "reviewed_by" varchar REFERENCES "users"("id") ON DELETE SET NULL,
+  "reviewed_at" timestamp,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "updated_at" timestamp NOT NULL DEFAULT now()
+);--> statement-breakpoint
+CREATE INDEX "idx_evidence_analyses_evidence" ON "evidence_analyses" USING btree ("evidence_id");--> statement-breakpoint
+CREATE INDEX "idx_evidence_analyses_org" ON "evidence_analyses" USING btree ("organization_id");--> statement-breakpoint
+
+CREATE TABLE IF NOT EXISTS "trust_center_ndas" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "organization_id" varchar NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+  "full_name" varchar NOT NULL,
+  "email" varchar NOT NULL,
+  "company_name" varchar NOT NULL,
+  "signed_at" timestamp NOT NULL DEFAULT now(),
+  "signature_hash" varchar NOT NULL,
+  "status" varchar NOT NULL DEFAULT 'active'
+);--> statement-breakpoint
+CREATE INDEX "idx_trust_center_ndas_org" ON "trust_center_ndas" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "idx_trust_center_ndas_email" ON "trust_center_ndas" USING btree ("email");--> statement-breakpoint
+
+CREATE TABLE IF NOT EXISTS "trust_center_downloads" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "nda_id" varchar NOT NULL REFERENCES "trust_center_ndas"("id") ON DELETE CASCADE,
+  "file_id" varchar NOT NULL REFERENCES "cloud_files"("id") ON DELETE CASCADE,
+  "downloaded_at" timestamp NOT NULL DEFAULT now(),
+  "ip_address" varchar
+);--> statement-breakpoint
+CREATE INDEX "idx_trust_center_downloads_nda" ON "trust_center_downloads" USING btree ("nda_id");--> statement-breakpoint
+CREATE INDEX "idx_trust_center_downloads_file" ON "trust_center_downloads" USING btree ("file_id");--> statement-breakpoint
+
+CREATE TABLE IF NOT EXISTS "mock_audits" (
+  "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+  "organization_id" varchar NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+  "framework" varchar NOT NULL,
+  "status" varchar NOT NULL DEFAULT 'pending',
+  "auditor_personality" varchar NOT NULL DEFAULT 'strict',
+  "transcript" jsonb NOT NULL DEFAULT '[]'::jsonb,
+  "compliance_score" integer,
+  "report_markdown" text,
+  "created_by" varchar REFERENCES "users"("id") ON DELETE SET NULL,
+  "created_at" timestamp NOT NULL DEFAULT now(),
+  "updated_at" timestamp NOT NULL DEFAULT now()
+);--> statement-breakpoint
+CREATE INDEX "idx_mock_audits_org" ON "mock_audits" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "idx_mock_audits_framework" ON "mock_audits" USING btree ("framework");--> statement-breakpoint
+CREATE INDEX "idx_mock_audits_status" ON "mock_audits" USING btree ("status");

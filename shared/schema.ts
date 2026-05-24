@@ -2372,3 +2372,142 @@ export const insertAgentToolLogSchema = cis(agentToolLogs).omit({
 export type InsertAgentToolLog = z.infer<typeof insertAgentToolLogSchema>;
 export type AgentToolLog = typeof agentToolLogs.$inferSelect;
 
+
+// ==========================================
+// Phase 4: GRC Phased Plan Tables
+// ==========================================
+
+// Evidence screenshot analyses using Gemini Vision
+export const evidenceAnalyses = pgTable("evidence_analyses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  evidenceId: varchar("evidence_id").references(() => cloudFiles.id, { onDelete: 'cascade' }).notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  verified: boolean("verified").notNull().default(false),
+  confidenceScore: integer("confidence_score").notNull().default(0),
+  analysisText: text("analysis_text").notNull(),
+  auditorNotes: text("auditor_notes"),
+  reviewedBy: varchar("reviewed_by").references(() => users.id, { onDelete: 'set null' }),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const evidenceAnalysesRelations = relations(evidenceAnalyses, ({ one }) => ({
+  evidence: one(cloudFiles, {
+    fields: [evidenceAnalyses.evidenceId],
+    references: [cloudFiles.id],
+  }),
+  organization: one(organizations, {
+    fields: [evidenceAnalyses.organizationId],
+    references: [organizations.id],
+  }),
+  reviewer: one(users, {
+    fields: [evidenceAnalyses.reviewedBy],
+    references: [users.id],
+  }),
+}));
+
+export const insertEvidenceAnalysisSchema = cis(evidenceAnalyses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertEvidenceAnalysis = z.infer<typeof insertEvidenceAnalysisSchema>;
+export type EvidenceAnalysis = typeof evidenceAnalyses.$inferSelect;
+
+
+// Trust Center NDA signatures
+export const trustCenterNdas = pgTable("trust_center_ndas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  fullName: varchar("full_name").notNull(),
+  email: varchar("email").notNull(),
+  companyName: varchar("company_name").notNull(),
+  signedAt: timestamp("signed_at").defaultNow().notNull(),
+  signatureHash: varchar("signature_hash").notNull(),
+  status: varchar("status").notNull().default("active"), // 'active', 'revoked'
+});
+
+export const trustCenterNdasRelations = relations(trustCenterNdas, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [trustCenterNdas.organizationId],
+    references: [organizations.id],
+  }),
+  downloads: many(trustCenterDownloads),
+}));
+
+export const insertTrustCenterNdaSchema = cis(trustCenterNdas).omit({
+  id: true,
+  signedAt: true,
+});
+export type InsertTrustCenterNda = z.infer<typeof insertTrustCenterNdaSchema>;
+export type TrustCenterNda = typeof trustCenterNdas.$inferSelect;
+
+
+// Trust Center watermarked PDF secure downloads
+export const trustCenterDownloads = pgTable("trust_center_downloads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ndaId: varchar("nda_id").references(() => trustCenterNdas.id, { onDelete: 'cascade' }).notNull(),
+  fileId: varchar("file_id").references(() => cloudFiles.id, { onDelete: 'cascade' }).notNull(),
+  downloadedAt: timestamp("downloaded_at").defaultNow().notNull(),
+  ipAddress: varchar("ip_address"),
+});
+
+export const trustCenterDownloadsRelations = relations(trustCenterDownloads, ({ one }) => ({
+  nda: one(trustCenterNdas, {
+    fields: [trustCenterDownloads.ndaId],
+    references: [trustCenterNdas.id],
+  }),
+  file: one(cloudFiles, {
+    fields: [trustCenterDownloads.fileId],
+    references: [cloudFiles.id],
+  }),
+}));
+
+export const insertTrustCenterDownloadSchema = cis(trustCenterDownloads).omit({
+  id: true,
+  downloadedAt: true,
+});
+export type InsertTrustCenterDownload = z.infer<typeof insertTrustCenterDownloadSchema>;
+export type TrustCenterDownload = typeof trustCenterDownloads.$inferSelect;
+
+
+// AI Auditor Digital Twin Mock Audits
+export const mockAudits = pgTable("mock_audits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  framework: varchar("framework").notNull(), // 'SOC2', 'ISO27001', etc.
+  status: varchar("status").notNull().default("pending"), // 'pending', 'running', 'completed', 'failed'
+  auditorPersonality: varchar("auditor_personality").notNull().default("strict"), // 'strict', 'nitpicky', 'supportive'
+  transcript: jsonb("transcript").$type<{
+    speaker: "auditor" | "admin" | "system";
+    message: string;
+    timestamp: string;
+  }[]>().notNull().default([]),
+  complianceScore: integer("compliance_score"), // 0 to 100
+  reportMarkdown: text("report_markdown"),
+  createdBy: varchar("created_by").references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const mockAuditsRelations = relations(mockAudits, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [mockAudits.organizationId],
+    references: [organizations.id],
+  }),
+  creator: one(users, {
+    fields: [mockAudits.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const insertMockAuditSchema = cis(mockAudits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertMockAudit = z.infer<typeof insertMockAuditSchema>;
+export type MockAudit = typeof mockAudits.$inferSelect;
+
+

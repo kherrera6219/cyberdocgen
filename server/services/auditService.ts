@@ -136,6 +136,22 @@ export class AuditService {
         });
       }
 
+      // Trigger GRC Compliance Telemetry Engine
+      const { complianceTelemetryEngine } = await import('./complianceTelemetryEngine');
+      complianceTelemetryEngine.evaluateEvent({
+        id: auditRecord.id,
+        userId: auditRecord.userId,
+        organizationId: auditRecord.organizationId,
+        action: auditRecord.action,
+        resourceType: auditRecord.resourceType,
+        resourceId: auditRecord.resourceId,
+        riskLevel: auditRecord.riskLevel,
+        additionalContext: auditRecord.additionalContext,
+        timestamp: auditRecord.timestamp
+      }).catch((telemetryErr) => {
+        logger.error('[AuditService] Compliance Telemetry trigger failure:', telemetryErr);
+      });
+
     } catch (error: unknown) {
       const errMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to log audit event', { 

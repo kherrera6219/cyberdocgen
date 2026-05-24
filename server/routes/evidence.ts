@@ -1,8 +1,11 @@
 import { Router, Response, NextFunction } from 'express';
 import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { db } from '../db';
+import { storage } from '../storage';
 import { cloudFiles, evidenceControlMappings, insertEvidenceControlMappingSchema } from '@shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
+import fs from 'fs';
+import path from 'path';
 import { objectStorageService } from '../services/objectStorageService';
 import { auditService, AuditAction } from '../services/auditService';
 import { snapshotService } from '../services/snapshotService';
@@ -288,6 +291,80 @@ export function registerEvidenceRoutes(app: Router) {
     });
 
     res.json({ success: true, message: "Mapping deleted successfully" });
+  }));
+
+  // Trigger AI screenshot/evidence vision audit (Gemini Vision)
+  router.post('/:id/audit-vision', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response) => {
+    const organizationId = req.organizationId!;
+    const userId = getRequiredUserId(req);
+    const { id } = req.params;
+    const { framework, controlId, prompt } = req.body;
+
+    const fileRecord = await db.query.cloudFiles.findFirst({
+      where: and(
+        eq(cloudFiles.id, id),
+        eq(cloudFiles.organizationId, organizationId)
+      )
+    });
+
+    if (!fileRecord) {
+      throw new NotFoundError("Evidence file not found");
+    }
+
+    const fileExt = fileRecord.fileName.split('.').pop()?.toLowerCase();
+    const isImage = ['png', 'jpg', 'jpeg', 'webp'].includes(fileExt || '');
+    if (!isImage) {
+      throw new ValidationError("Evidence Vision auditing is only supported for image files (PNG, JPEG, WebP)");
+    }
+
+    // Load file buffer
+    let fileBuffer: Buffer;
+    const storageRes = await objectStorageService.downloadFileAsBytes(fileRecord.filePath);
+    if (storageRes.success && storageRes.data) {
+      fileBuffer = Buffer.isBuffer(storageRes.data) ? storageRes.data : Buffer.from(storageRes.data);
+    } else {
+      const localPath = path.resolve(process.cwd(), fileRecord.filePath);
+      if (fs.existsSync(localPath)) {
+        fileBuffer = await fs.promises.readFile(localPath);
+      } else {
+        const uploadsPath = path.resolve(process.cwd(), "uploads", path.basename(fileRecord.filePath));
+        if (fs.existsSync(uploadsPath)) {
+          fileBuffer = await fs.promises.readFile(uploadsPath);
+        } else {
+          throw new Error("Evidence screenshot file not found locally or in cloud storage");
+        }
+      }
+    }
+
+    const base64Image = fileBuffer.toString('base64');
+    
+    // Call Gemini Vision via geminiVision service
+    const { analyzeImage } = await import('../services/geminiVision');
+    const analysisResult = await analyzeImage(base64Image, {
+      prompt: prompt || `Verify that this screenshot shows compliance proof for control ${controlId || 'general'}.`,
+      framework: framework || 'SOC2',
+      analysisType: 'compliance'
+    });
+
+    // Check if the image proves the control
+    const isVerified = analysisResult.analysis.toLowerCase().includes('verify') || 
+                       analysisResult.analysis.toLowerCase().includes('compliant') || 
+                       !analysisResult.analysis.toLowerCase().includes('not compliant') && 
+                       !analysisResult.analysis.toLowerCase().includes('violation');
+
+    // Save evidence analysis report in database
+    const analysis = await storage.createEvidenceAnalysis({
+      evidenceId: id,
+      organizationId,
+      verified: isVerified,
+      confidenceScore: analysisResult.confidence || 85,
+      analysisText: analysisResult.analysis,
+      auditorNotes: analysisResult.complianceRelevance?.recommendations?.join('\n') || "Verification completed successfully.",
+      reviewedBy: userId,
+      reviewedAt: new Date()
+    });
+
+    res.status(201).json({ success: true, data: { analysis, isVerified, result: analysisResult } });
   }));
 
   app.use('/api/evidence', router);

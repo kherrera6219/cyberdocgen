@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ import {
   Loader2,
   Clock,
   Link as LinkIcon,
+  Sparkles,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { SnapshotManager } from "@/components/evidence/SnapshotManager";
@@ -182,6 +184,10 @@ export default function EvidenceIngestion() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [visionPrompt, setVisionPrompt] = useState("");
+  const [auditResult, setAuditResult] = useState<any>(null);
+
   const { data: evidenceRecords = [] } = useQuery<EvidenceListItem[]>({
     queryKey: ["/api/evidence", selectedSnapshotId],
     enabled: Boolean(selectedSnapshotId),
@@ -211,6 +217,38 @@ export default function EvidenceIngestion() {
       const response = await apiRequest("GET", `/api/evidence?snapshotId=${encodeURIComponent(snapshotId)}`);
       return normalizeEvidenceListResponse(response);
     },
+  });
+
+  const imageFiles = useMemo(() => {
+    return evidenceRecords.filter(r => 
+      r.mimeType.startsWith('image/') || 
+      ['png', 'jpg', 'jpeg', 'webp'].includes(r.fileName.split('.').pop()?.toLowerCase() || '')
+    );
+  }, [evidenceRecords]);
+
+  const visionAuditMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("POST", `/api/evidence/${id}/audit-vision`, {
+        framework: "SOC2",
+        controlId: "CC6.1",
+        prompt: visionPrompt || undefined
+      });
+      return response.json();
+    },
+    onSuccess: (res) => {
+      setAuditResult(res.data);
+      toast({
+        title: "AI Vision Audit Completed",
+        description: `Verdict: ${res.data.isVerified ? "Verified (Compliant)" : "Requires Action"}`
+      });
+    },
+    onError: (err) => {
+      toast({
+        title: "Vision Audit Failed",
+        description: err instanceof Error ? err.message : "Internal system error occurred.",
+        variant: "destructive"
+      });
+    }
   });
 
   const evidenceRecordById = useMemo(
@@ -480,6 +518,89 @@ export default function EvidenceIngestion() {
         </div>
 
         <div className="space-y-6">
+          {/* AI Vision Audit Card */}
+          {imageFiles.length > 0 && (
+            <Card className="border-purple-500/20 bg-gradient-to-b from-card to-background shadow-md">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  AI Screenshot Vision Auditor
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Run computer-vision checks against screenshot evidence to prove controls.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold uppercase text-muted-foreground">Select Image Evidence</label>
+                  <Select value={selectedImageId || ""} onValueChange={(val) => { setSelectedImageId(val); setAuditResult(null); }}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Choose screenshot..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {imageFiles.map((img) => (
+                        <SelectItem key={img.id} value={img.id} className="text-xs">
+                          {img.fileName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedImageId && (
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold uppercase text-muted-foreground">Custom Auditor Focus (Optional)</label>
+                      <Input 
+                        placeholder="e.g. Ensure AWS MFA badge is active" 
+                        value={visionPrompt} 
+                        onChange={(e) => setVisionPrompt(e.target.value)} 
+                        className="h-8 text-xs font-sans" 
+                      />
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="w-full text-xs bg-purple-600 hover:bg-purple-500 font-semibold"
+                      disabled={visionAuditMutation.isPending}
+                      onClick={() => visionAuditMutation.mutate(selectedImageId)}
+                    >
+                      {visionAuditMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-1.5 animate-spin" /> Auditing...
+                        </>
+                      ) : (
+                        "Trigger AI Vision Audit"
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {auditResult && (
+                  <div className="p-3 rounded-lg border border-muted-foreground/10 bg-muted/20 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-muted-foreground">Verdict:</span>
+                      {auditResult.isVerified ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] py-0">Verified (Pass)</Badge>
+                      ) : (
+                        <Badge variant="destructive" className="text-[10px] py-0">Needs Review</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-muted-foreground">Confidence:</span>
+                      <span className="font-mono text-purple-400">{auditResult.analysis.confidenceScore || auditResult.analysis.confidence || 85}%</span>
+                    </div>
+                    <div className="space-y-1 mt-1 pt-1 border-t border-muted-foreground/5 text-left">
+                      <span className="font-semibold text-muted-foreground block">Auditor Insights:</span>
+                      <p className="text-[10px] text-muted-foreground whitespace-pre-wrap leading-normal">
+                        {auditResult.analysis.analysisText || auditResult.analysis.analysis}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Guidelines</CardTitle>

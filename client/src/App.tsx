@@ -77,6 +77,10 @@ const AuditorWorkspace = lazy(() => import("./pages/auditor-workspace"));
 const VendorGrc = lazy(() => import("./pages/vendor-grc"));
 const QuestionnaireSolver = lazy(() => import("./pages/questionnaire-solver"));
 
+// Phase 4: Gated Trust Center & AI Digital Twin Simulator
+const TrustCenter = lazy(() => import("./pages/trust-center"));
+const DigitalTwin = lazy(() => import("./pages/digital-twin"));
+
 // Public pages
 const About = lazy(() => import("./pages/about"));
 const Features = lazy(() => import("./pages/features"));
@@ -178,6 +182,9 @@ function AuthenticatedRouter() {
         {/* Phase 3: Vendor GRC & AI Questionnaire Solver */}
         <BoundaryRoute path="/vendor-grc" component={VendorGrc} />
         <BoundaryRoute path="/questionnaire-solver" component={QuestionnaireSolver} />
+        {/* Phase 4: Gated Trust Center & AI Digital Twin Simulator */}
+        <BoundaryRoute path="/trust-center" component={TrustCenter} />
+        <BoundaryRoute path="/digital-twin" component={DigitalTwin} />
         <Route>
           <ErrorBoundary fallback={<RouteErrorFallback />}>
             <NotFound />
