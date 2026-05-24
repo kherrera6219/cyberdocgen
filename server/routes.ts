@@ -822,6 +822,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: ldapSettingsRoutes } = await import('./routes/ldapSettings');
   app.use('/api/admin/ldap', ldapSettingsRoutes);
 
+  // Phase 3: Autonomous Git PR Creator - AI-driven compliance fix generation
+  const { default: gitPrRoutes } = await import('./routes/gitPr');
+  app.use('/api/git-pr', gitPrRoutes);
+
   // Global Error Handler (Must be last)
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
