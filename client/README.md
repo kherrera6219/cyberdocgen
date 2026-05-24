@@ -557,6 +557,35 @@ export function MyComponent({ title, onSave }: Props) {
 - Log errors for debugging
 - Provide recovery options
 
+## Premium UI Design System & Styling Tokens
+
+CyberDocGen utilizes a custom, high-fidelity **Glassmorphic Design System** built on Radix UI primitives and custom HSL color maps:
+*   **Design Tokens**: Pre-configured tailwind extended tokens in `tailwind.config.ts` represent premium workspace palettes (deep HSL purples, emerald compliance, hot warning pinks).
+*   **Backdrop Blurs**: Heavy visual layouts leverage `backdrop-blur-md` overlays, harmony dark-mode shadows, and dynamic gradient borders (`from-purple-500/10 via-pink-500/5 to-transparent`) to feel modern, alive, and tactile.
+*   **Micro-Animations**: Uses customized framer-motion sweeps and spinners to highlight active processes (such as database sync runs or active security telemetry violations).
+
+---
+
+## Phase 4 Premium SPA UI Panels
+
+The client application includes advanced pages delivering Phase 4 capabilities:
+
+### 🛡️ Gated Customer Trust Center Portal (`pages/trust-center.tsx`)
+Displays public-facing compliance maturity:
+*   **Interactive Attestation Overlay**: Locks down secure downloads until the prospective buyer attests the NDA and inputs contact specs.
+*   **Watermark Preview Grid**: Renders an elegant layout of available documents, indicating download statuses, size specs, and lock icons.
+
+### 🤖 AI twin Simulator Dashboard (`pages/digital-twin.tsx`)
+Spins up mock audit debate loops:
+*   **Dialogue Stream Pane**: Dynamically streams conversational logs matching auditor vs admin arguments with individual profile avatars (🕵️ vs 🛡️).
+*   **Circular Progress Dial**: Integrates a dynamic SVG circular percentage progress loader scoring the organization's readiness score.
+*   **Report Exporter Pane**: Complete rich text markdown renderers containing gap evaluations and remediation checklists with a 1-click download hook.
+
+### 👁️ Ingestion vision Auditor (`pages/evidence-ingestion.tsx`)
+*   **Sparkles Action Trigger**: Includes a dedicated audit card option for screenshots, allowing managers to specify custom focuses (e.g. "verify Active Directory MFA setting is checked") and fetch Gemini verdicts with confidence meters.
+
+---
+
 ## Additional Resources
 
 - [React Documentation](https://react.dev/)

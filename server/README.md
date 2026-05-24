@@ -815,6 +815,69 @@ logger.info('Request processed', {
 });
 ```
 
+## Model Context Protocol (MCP) Tool Specifications
+
+CyberDocGen mounts a standardized **Model Context Protocol (MCP)** tool registry at the `/mcp` router endpoint. This allows AI agents to interact directly with internal compliance databases:
+
+| Tool Name | Parameters | Description |
+|---|---|---|
+| `generateDocument` | `templateId: string`, `organizationId: string`, `companyInfo: object` | Initiates multi-model document generation pipelines. |
+| `analyzeDocument` | `documentId: string`, `framework: string` | Runs quality analysis and flags security framework alignment scores. |
+| `runGapAnalysis` | `organizationId: string`, `framework: string` | Compares company profiles against standards to surface gaps. |
+| `assessRisk` | `riskId: string`, `inherentImpact: number`, `inherentLikelihood: number` | Re-evaluates risk matrix register records. |
+| `queryControlStatus`| `controlId: string`, `framework: string` | Looks up live implementation controls state. |
+| `searchEvidence` | `query: string`, `snapshotId?: string` | Scans the local pgvector RAG memory database. |
+| `exportDocuments` | `organizationId: string`, `framework: string` | Packages completed policies and logs for auditor review. |
+
+---
+
+## Security & Cryptographic Data Integrity
+
+### 🛡️ Cryptographic Integrity Envelopes
+To enforce tamper-proof security in local-first deployments, CyberDocGen implements **Integrity Envelopes** (`server/utils/dataIntegrity.ts`):
+*   **Backup Sealing**: Backup directories are hashed and sealed with a high-entropy `DATA_INTEGRITY_SECRET` using a SHA-256 HMAC sidecar.
+*   **Tampering Prevention**: During DB restoration, the recovery processor validates the envelope before mounting PGlite. If a single byte is altered, database bootloader blocks start-up immediately.
+
+### 📜 HMAC Audit Trail Ledgers
+Every security-relevant operation and agent tool execution is sealed:
+```typescript
+const seal = crypto
+  .createHmac("sha256", process.env.DATA_INTEGRITY_SECRET!)
+  .update(`${eventId}|${userId}|${action}|${timestamp}`)
+  .digest("hex");
+```
+Any mismatch in the HMAC seal during database auditing alerts security administrators immediately via telemetry logs.
+
+### 🔑 Automated Key Rotation
+Sensitive columns (passwords, OAuth tokens) are locked using **AES-256-GCM** at the repository layer. The `KeyRotationService` runs background sweeps to re-encrypt existing tables with new master keys dynamically, preventing brute-force database leaks.
+
+---
+
+## Disaster Recovery (DR) & Backup Policies
+
+### 💾 Embedded Database Clones
+To handle unexpected operating system shutdowns or VM crashes, CyberDocGen implements hot-backup directories:
+*   **WASM Hot Copies**: Copies PGlite database catalogs safely to `%APPDATA%/CyberDocGen/backups` at regular transaction boundaries.
+*   **Automatic Restore**: Upon start-up, if the active catalog directory is corrupted, the bootloader validates and restores the most recent cryptographically sealed backup.
+
+### 🧹 Database Vacuum & Maintenance
+To prevent WebAssembly filesystem fragmentation, a scheduled task invokes optimization scripts every 24 hours:
+```typescript
+await pgInstance.exec("VACUUM ANALYZE;");
+```
+This reclaims unused pages, updates index maps, and ensures latency remain under 5ms for local lookups.
+
+---
+
+## WASM Air-Gap / Off-Grid Architecture
+
+To ensure 100% data residency and absolute zero-egress compliance:
+1.  **In-Process SQL**: CyberDocGen uses PGlite, mounting full Postgres capabilities compiled directly to WASM inside the Node.js runtime process.
+2.  **Offline Embeddings**: RAG vector transformations execute locally via ONNX WebAssembly runtimes using `all-MiniLM-L6-v2`. No server data is transmitted to external providers.
+3.  **Local Vision fallbacks**: Image vision auditing utilizes standard local-first pre-processing to ensure off-grid resilience during isolated host executions.
+
+---
+
 ## Additional Resources
 
 - [Express Documentation](https://expressjs.com/)

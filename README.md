@@ -73,62 +73,42 @@ Unlike SaaS-based GRC tools that send your sensitive policies and evidence to th
 - Document watermarking, PDF encryption (AES-256), and digital signatures
 - Live control scoring with gap analysis and remediation recommendations
 
-### 🤖 AI Orchestration & Guardrails
-- Intelligent multi-provider routing across **OpenAI GPT-5**, **Anthropic Claude Sonnet 4.6**, and **Google Gemini**
-- Automatic fallback chain with latency-aware model selection
-- AI guardrails: output filtering, hallucination detection, PII redaction, and compliance-specific output validation
-- Full AI usage disclosure logs with HMAC-signed audit entries
-- MCP (Model Context Protocol) tool server for agent-driven document workflows
+### 👁️ Zero-Trust Multimodal Evidence Vision Auditor
+- **Gemini Vision Evidence Checks**: Inspect uploaded evidence files (screenshots of security panels, firewall rules, server configurations) utilizing computer vision.
+- **Automated Compliance Verification**: Verifies if visual controls are compliant, producing an audit verdict, confidence score, detailed auditor notes, and remediation insights stored in the database.
 
-### 🔒 Security-First Architecture
-- **AES-256-GCM** field-level encryption for sensitive data at rest
-- **HMAC-SHA256** tamper-proof audit ledger (every AI tool invocation is signed)
-- Role-Based Access Control (RBAC) with granular permission scopes
-- Session risk scoring with device fingerprinting
-- Rate limiting, CORS hardening, and Content Security Policy enforcement
-- Key rotation service with automated re-encryption
+### 🛡️ Gated Customer Trust Center Portal
+- **Attested Security Portal**: Showcase real-time compliance maturity, SOC 2/ISO certificates, and policy catalogs to prospective buyers via `client/src/pages/trust-center.tsx`.
+- **Cryptographically Sealed NDAs**: Force signing of NDAs attested with legally-binding SHA-256 HMAC-like hashes logged directly in the secure database.
+- **Watermarked & Locked Downloads**: Dynamic watermarking overlays (`RESTRICTED - FOR <BUYER> ONLY...`) and AES-256 password security locks applied automatically on the fly to downloaded documents. Logs buyer IP addresses for robust access catalogs.
 
-### 🏢 Enterprise Identity
-- **LDAP / Active Directory** integration for on-premises user authentication
-- Microsoft Entra ID and Google Workspace sync via Graph API / Directory API
-- Multi-factor authentication (TOTP/FIDO2) for cloud deployments
-- Stakeholder import from IdP with automatic role provisioning
+### 🤖 AI Auditor "Digital Twin" Simulator
+- **Multi-Agent GRC Debates**: Run background simulations in `services/digitalTwinService.ts` where a strict/nitpicky **AI Auditor Twin** challenges organizational controls, and an **AI Admin Twin** defends them using active policy documents.
+- **Readiness Scoring & Reporting**: Render live transcripts, circular compliance dial scores, and download complete mock-audit markdown reports with remediation roadmaps inside `client/src/pages/digital-twin.tsx`.
 
-### 📦 Vendor GRC
-- Third-party sub-processor inventory with automated risk scoring
-- Data classification tracking (Public → Restricted)
-- SOC 2 / ISO 27001 certification status management
-- Security questionnaire dispatch and review workflow
+### 🚨 Real-time GRC Compliance Telemetry Engine
+- **Transactional Policy Alarms**: Intercepts active operations in real-time. Automatically flags security policy violations (e.g. deleting framework documents, removing risk register items, or deleting PDF encryption settings).
+- **Incident Reports Auto-Drafting**: Auto-generates detailed Incident Reports inside the document store, raising alarms in `alertingService` and piping logs to the native **Windows Event Viewer (Application Log)** with graceful Winston rotators fallback.
 
-### 🤖 AI Questionnaire Solver
-- Upload vendor-sent security questionnaires as CSV or XLSX
-- RAG-powered auto-fill using your existing policy documents as the knowledge base
-- Confidence scoring per answer with policy citation
-- One-click export back to filled CSV for vendor submission
+### 🏢 Enterprise Identity & Active Directory Bindings
+- **LDAP / Active Directory Integration**: Robust on-premises AD binding (LDAP URL, Bind DN, search scopes) allowing corporate network teams to authenticate natively with domain credentials.
+- **Identity Sync Matrix**: Multi-provider sync (Okta, Microsoft Entra ID, Rippling, Gusto) via Directory APIs, executing access revocation reviews and automated user offboarding telemetry.
 
-### 📁 Repository Analysis
-- Upload source code archives (ZIP) for automated compliance analysis
-- Detects security controls in code: authentication, encryption, logging, secrets management
-- Framework-mapped findings (SOC 2 CC6.x, ISO 27001 A.8.x, NIST SI-*)
-- Generates audit-ready evidence documents directly from code artifacts
-- Autonomous Pull Request generation for compliance remediation
+### 🤖 RAG-Powered AI Questionnaire Solver
+- **Spreadsheet Question Answering**: Ingest custom security questionnaire spreadsheets (CSV, XLSX) sent by prospective clients.
+- **Local pgvector RAG**: Automatically answers questions by querying policy documents, active controls, and codebases, providing confidence scores and exact policy citations.
 
-### 👥 Personnel Portal
-- Employee policy acknowledgment with legally-binding HMAC signature envelopes
-- Training record management and completion tracking
-- Stakeholder directory synchronized from IdP or manually managed
+### 📁 Repository Analysis & Autonomous Remediation
+- **Secure Code Scan**: Inspect uploaded source code archives (ZIP) for visual control flows: authentication, key rotation, Winston log rotation caps, and field-level encryption.
+- **Autonomous Secure PR Generation**: Chat with the compliance assistant to generate exact secure fixes for codebase gaps, pushing a secure Pull Request straight to the GitHub/GitLab repository with 1-click.
 
-### 📊 Risk Register
-- Interactive risk assessment with 5×5 likelihood/impact matrix
-- Inherent vs. residual risk scoring with mitigation control mapping
-- Treatment plan authoring with deadline tracking
+### 👥 Personnel Portal & Risk Register
+- **Attestation Dashboard**: Employee policy acknowledgments cryptographically signed and sealed using secure SHA-256 HMAC signature receipts.
+- **Interactive Risk Kanban**: Drag-and-drop risk lanes mapping inherent (likelihood * impact) vs. residual (mitigation-reduced) scores inside a high-end glassmorphic register.
 
-### 🖥️ Native Windows Desktop
-- Packaged as a signed NSIS installer (`.exe`) with Electron shell
-- Frameless custom window with system tray integration
-- Persistent status bar, global drag-and-drop file ingestion
-- Keyboard shortcuts (`Ctrl+/` command palette)
-- Local SQLite via PGlite — zero infrastructure dependencies
+### 🖥️ Native Windows Desktop & Air-Gap Resilience
+- **Native Electron Shell**: Frameless custom desktop window with system tray and status bars.
+- **WASM Local-First Engine**: In-process PGlite WASM database (zero server dependency) with local MiniLM-L6-v2 ONNX sentence-transformer embeddings for 100% off-grid security.
 
 ---
 
