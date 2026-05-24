@@ -712,8 +712,8 @@ CyberDocGen follows a 4-phase development plan. See [docs/GRC_PHASED_UPDATE_PLAN
 |---|---|---|
 | **Phase 1: Personnel, Local Privacy, Identity Sync & Agent Foundations** | ✅ Complete | Personnel portal, policy acknowledgments, local DB, RBAC, agent state store, AI guardrails, MCP tools |
 | **Phase 2: Risk Register, Live Controls, Local Network & AI Policy Sync** | ✅ Complete | Interactive risk register, compliance maturity tracking, local network settings (bind/TLS), AI policy sync, control approvals, auditor workspace |
-| **Phase 3: AI Questionnaire Solver, Vendor GRC, LDAP & Autonomous PRs** | 🚀 In Progress | AI questionnaire solver (RAG), vendor inventory + risk scoring, LDAP/AD authentication, autonomous PR generation, agent tool audit ledger |
-| **Phase 4: Vision Auditing, Gated Trust Centers & AI Auditor Twins** | 📅 Planned | Computer vision evidence extraction, gated public trust center, AI auditor twin agents, continuous compliance monitoring |
+| **Phase 3: AI Questionnaire Solver, Vendor GRC, LDAP & Autonomous PRs** | ✅ Complete | AI questionnaire solver (RAG), vendor inventory + risk scoring, LDAP/AD authentication, autonomous PR generation, agent tool audit ledger |
+| **Phase 4: Vision Auditing, Gated Trust Centers & AI Auditor Twins** | ✅ Complete | Computer vision evidence extraction, gated public trust center, dynamic watermarking/encryption, AI auditor twin agents, compliance telemetry engine |
 
 ---
 
