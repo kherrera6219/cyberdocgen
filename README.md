@@ -2,8 +2,11 @@
 
 Production-focused compliance documentation platform, currently deployed as a **Local-First Windows Desktop Application**.
 
-- **Phase 1 (Current)**: Windows desktop local-first app using Electron, SQLite, local file storage, and a custom frameless window UI.
-- **Phase 2 (Future)**: Cloud SaaS multi-tenant web app with PostgreSQL and enterprise authentication.
+See the complete [GRC Master Phased Update Plan](docs/GRC_PHASED_UPDATE_PLAN.md) for the active product development roadmap:
+- **Phase 1: Personnel, Local Privacy, Identity Sync & Agent Foundations** — `✅ COMPLETED`
+- **Phase 2: Risk Register, Live Controls, Local Network & AI Policy Sync** — `🚀 IN PROGRESS`
+- **Phase 3: AI Questionnaire Solver, Vendor GRC, LDAP & Autonomous PRs** — `📅 PLANNED`
+- **Phase 4: Vision Auditing, Gated Trust Centers & AI Auditor Twins** — `📅 PLANNED`
 
 CyberDocGen helps teams generate, review, score, and manage compliance documentation and evidence for ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev. 5. The platform routes AI workloads across `gpt-5.4`, `claude-sonnet-4-6`, and `gemini-3.1-pro-preview`, and is packaged as a sleek, native desktop application.
 
