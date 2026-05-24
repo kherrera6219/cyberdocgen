@@ -75,6 +75,14 @@ export class AlertingService extends EventEmitter {
         threshold: 1,
         severity: 'critical',
         enabled: true
+      },
+      {
+        id: 'low_disk_space',
+        name: 'Low Disk Space Warning',
+        condition: 'low_disk_space_alert > threshold',
+        threshold: 0.5,
+        severity: 'high',
+        enabled: true
       }
     ];
 
@@ -91,7 +99,7 @@ export class AlertingService extends EventEmitter {
     this.metrics.set(key, value);
     
     // Immediate evaluation for critical metrics
-    if (['security_events', 'db_connection_failures'].includes(key)) {
+    if (['security_events', 'db_connection_failures', 'low_disk_space_alert'].includes(key)) {
       this.evaluateRules();
     }
   }
@@ -124,6 +132,9 @@ export class AlertingService extends EventEmitter {
     }
     if (condition.includes('security_events')) {
       return this.metrics.get('security_events') || 0;
+    }
+    if (condition.includes('low_disk_space_alert')) {
+      return this.metrics.get('low_disk_space_alert') || 0;
     }
     return null;
   }

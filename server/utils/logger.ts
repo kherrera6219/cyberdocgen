@@ -1,5 +1,35 @@
 import { Request } from "express";
 import crypto from 'crypto';
+import winston from 'winston';
+import 'winston-daily-rotate-file';
+import { exec } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+
+const logDir = process.env.LOCAL_DATA_PATH 
+  ? path.resolve(process.env.LOCAL_DATA_PATH, 'logs')
+  : path.resolve(process.cwd(), 'logs');
+
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+
+const winstonLogger = winston.createLogger({
+  level: 'debug',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.DailyRotateFile({
+      filename: path.join(logDir, 'cyberdocgen-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '10m',
+      maxFiles: '5',
+      zippedArchive: true
+    })
+  ]
+});
 
 export enum LogLevel {
   ERROR = "error",
@@ -181,6 +211,10 @@ class Logger {
       (global as any).__externalLogger.log(extLevel, scrubbedMessage, scrubbedMeta);
     }
 
+    // Write to winston rotating file log
+    const winstonLevel = level === LogLevel.DEBUG ? 'debug' : level === LogLevel.WARN ? 'warn' : level === LogLevel.ERROR ? 'error' : 'info';
+    winstonLogger.log(winstonLevel, scrubbedMessage, { meta: scrubbedMeta, requestId: req?.headers?.['x-request-id'] });
+
     switch (level) {
       case LogLevel.ERROR:
         console.error(coloredMessage);
@@ -249,6 +283,9 @@ class Logger {
       if ((global as any).__externalLogger) {
         (global as any).__externalLogger.error(scrubbedMessage, scrubbedMeta);
       }
+
+      // Write to winston rotating file log
+      winstonLogger.log('error', scrubbedMessage, { meta: scrubbedMeta, requestId: req?.headers?.['x-request-id'] });
 
       // Console output for errors
       const colorCode = '\x1b[31m'; // Red for errors
@@ -320,3 +357,61 @@ export const logger = new Logger();
 export const setExternalLogger = (extLogger: any) => {
   (global as any).__externalLogger = extLogger;
 };
+
+// Background disk telemetry space checking
+async function measureFreeDiskSpaceGB(): Promise<number> {
+  return new Promise((resolve) => {
+    const command = process.platform === 'win32'
+      ? 'powershell.exe -Command "Get-Volume -DriveLetter C | Select-Object -ExpandProperty SizeRemaining"'
+      : "df -B1 / | tail -n 1 | awk '{print $4}'";
+
+    exec(command, (error, stdout) => {
+      if (error) {
+        if (process.platform === 'win32') {
+          // Fallback to wmic
+          exec('wmic logicaldisk where "DeviceID=\'C:\'" get FreeSpace', (err, wmicStdout) => {
+            if (err) {
+              resolve(100);
+              return;
+            }
+            const lines = wmicStdout.split('\n').map(l => l.trim()).filter(Boolean);
+            const bytes = parseInt(lines[1], 10);
+            resolve(isNaN(bytes) ? 100 : bytes / (1024 * 1024 * 1024));
+          });
+          return;
+        }
+        resolve(100);
+        return;
+      }
+      const bytes = parseInt(stdout.trim(), 10);
+      resolve(isNaN(bytes) ? 100 : bytes / (1024 * 1024 * 1024));
+    });
+  });
+}
+
+const triggerAlert = async (freeGB: number) => {
+  try {
+    const { alertingService } = await import('../services/alertingService');
+    alertingService.updateMetric('low_disk_space_alert', freeGB < 10 ? 1 : 0);
+  } catch (error) {
+    console.error('Failed to report disk telemetry metric:', error);
+  }
+};
+
+const runDiskCheck = async () => {
+  const freeGB = await measureFreeDiskSpaceGB();
+  if (freeGB < 10) {
+    logger.warn(`SYSTEM WARNING: Low free disk space on C-Drive: ${freeGB.toFixed(2)} GB remaining.`, { freeGB });
+  }
+  await triggerAlert(freeGB);
+};
+
+// Start the check on server startup after a small delay
+setTimeout(() => {
+  runDiskCheck().catch(err => console.error('Failed to run startup disk check:', err));
+}, 5000);
+
+// Poll every 5 minutes
+setInterval(() => {
+  runDiskCheck().catch(err => console.error('Failed to run polling disk check:', err));
+}, 5 * 60 * 1000);

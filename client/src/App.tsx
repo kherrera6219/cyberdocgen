@@ -28,6 +28,7 @@ const DocumentWorkspace = lazy(() => import("./pages/document-workspace"));
 const DocumentVersions = lazy(() => import("./pages/document-versions"));
 const UserProfile = lazy(() => import("./pages/user-profile").then(m => ({ default: m.UserProfile })));
 const OrganizationSetup = lazy(() => import("./pages/organization-setup").then(m => ({ default: m.OrganizationSetup })));
+const EmployeePortal = lazy(() => import("./pages/employee-portal"));
 
 // Compliance framework pages
 const ISO27001Framework = lazy(() => import("./pages/iso27001-framework"));
@@ -138,6 +139,7 @@ function AuthenticatedRouter() {
         <BoundaryRoute path="/enhanced-profile" component={EnhancedCompanyProfile} />
         <BoundaryRoute path="/workspace" component={WorkspaceWrapper} />
         <BoundaryRoute path="/documents" component={Documents} />
+        <BoundaryRoute path="/employee-portal" component={EmployeePortal} />
         <BoundaryRoute path="/gap-analysis" component={GapAnalysis} />
         <BoundaryRoute path="/iso27001-framework" component={ISO27001Framework} />
         <BoundaryRoute path="/soc2-framework" component={SOC2Framework} />

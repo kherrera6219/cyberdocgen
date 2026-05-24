@@ -4,6 +4,7 @@ import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { insertDocumentSchema } from '@shared/schema';
 import { versionService } from '../services/versionService';
+import { encryptionService } from '../services/encryption';
 import type { AIModel } from '../services/aiOrchestrator';
 import { cache } from '../middleware/production';
 import { 
@@ -537,5 +538,112 @@ Category: ${category}`;
         totalVersions: versions.length
       }
     });
+  }));
+
+  /**
+   * @swagger
+   * /api/documents/{id}/acknowledge:
+   *   post:
+   *     summary: Acknowledge and cryptographically e-sign a compliance document/policy
+   *     tags: [Documents]
+   *     security:
+   *       - cookieAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       201:
+   *         description: Document acknowledged successfully
+   *       401:
+   *         description: Unauthorized
+   *       404:
+   *         description: Document not found
+   */
+  router.post('/:id/acknowledge', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const documentId = req.params.id;
+    const userId = getRequiredUserId(req);
+    const ipAddress = req.ip || '127.0.0.1';
+
+    // Validate document ownership
+    const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
+    if (!authorized || !document) {
+      logger.warn('Document acknowledgment access denied - cross-tenant attempt', {
+        documentId,
+        organizationId: req.organizationId,
+        userId,
+        ip: req.ip
+      });
+      throw new NotFoundError("Document not found");
+    }
+
+    // Check if already acknowledged
+    const existing = await storage.getPolicyAcknowledgment(userId, documentId);
+    if (existing) {
+      res.json({ success: true, data: existing, message: 'Policy already acknowledged' });
+      return;
+    }
+
+    const signedAt = new Date().toISOString();
+    const signatureEnvelope = await encryptionService.generateSignatureEnvelope(
+      userId,
+      documentId,
+      signedAt,
+      ipAddress
+    );
+
+    const ack = await storage.createPolicyAcknowledgment({
+      userId,
+      documentId,
+      signatureEnvelope,
+    });
+
+    logger.info('Policy e-signed and cryptographically sealed', {
+      userId,
+      documentId,
+      envelopeHash: signatureEnvelope.hash,
+    });
+
+    res.status(201).json({ success: true, data: ack });
+  }, { audit: { action: 'update', entityType: 'policy_acknowledgment' } }));
+
+  /**
+   * @swagger
+   * /api/documents/acknowledgments:
+   *   get:
+   *     summary: Retrieve policy acknowledgment and e-signature histories
+   *     tags: [Documents]
+   *     security:
+   *       - cookieAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: documentId
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Acknowledgments list retrieved successfully
+   *       401:
+   *         description: Unauthorized
+   */
+  router.get('/acknowledgments', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const documentId = req.query.documentId as string;
+
+    let data;
+    if (documentId) {
+      // Validate document ownership
+      const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
+      if (!authorized || !document) {
+        throw new NotFoundError("Document not found");
+      }
+      data = await storage.getPolicyAcknowledgmentsByDocument(documentId);
+    } else {
+      data = await storage.getPolicyAcknowledgmentsByUser(userId);
+    }
+
+    res.json({ success: true, data });
   }));
 }

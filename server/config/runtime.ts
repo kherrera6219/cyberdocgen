@@ -108,11 +108,11 @@ function resolveLocalMigrationsPath(): string | undefined {
   const executableDir = path.resolve(path.dirname(process.execPath));
   const cwd = path.resolve(process.cwd());
   const fallbackMigrationCandidates = [
-    path.resolve(cwd, 'dist', 'migrations', 'sqlite'),
-    path.resolve(cwd, 'server', 'migrations', 'sqlite'),
-    resolvedResourcesPath ? path.resolve(resolvedResourcesPath, 'app.asar.unpacked', 'dist', 'migrations', 'sqlite') : null,
-    resolvedResourcesPath ? path.resolve(resolvedResourcesPath, 'app', 'dist', 'migrations', 'sqlite') : null,
-    path.resolve(executableDir, 'dist', 'migrations', 'sqlite'),
+    path.resolve(cwd, 'dist', 'migrations', 'pglite'),
+    path.resolve(cwd, 'server', 'migrations', 'pglite'),
+    resolvedResourcesPath ? path.resolve(resolvedResourcesPath, 'app.asar.unpacked', 'dist', 'migrations', 'pglite') : null,
+    resolvedResourcesPath ? path.resolve(resolvedResourcesPath, 'app', 'dist', 'migrations', 'pglite') : null,
+    path.resolve(executableDir, 'dist', 'migrations', 'pglite'),
   ].filter((candidate): candidate is string => Boolean(candidate));
 
   return fallbackMigrationCandidates.find((candidate) => fs.existsSync(candidate));

@@ -186,6 +186,42 @@ export class EncryptionService {
     const hash = crypto.createHash('sha256').update(data).digest('hex');
     return hash;
   }
+
+  /**
+   * Generates a secure cryptographic envelope for e-signatures
+   */
+  async generateSignatureEnvelope(userId: string, documentId: string, signedAt: string, ipAddress: string): Promise<{
+    algorithm: string;
+    hash: string;
+    hmac: string;
+    ipAddress: string;
+  }> {
+    const payload = `${userId}:${documentId}:${signedAt}:${ipAddress}`;
+    const hash = crypto.createHash('sha256').update(payload).digest('hex');
+    const key = this.getEncryptionKey();
+    const hmac = crypto.createHmac('sha256', key).update(payload).digest('hex');
+
+    return {
+      algorithm: 'sha256-hmac',
+      hash,
+      hmac,
+      ipAddress,
+    };
+  }
+
+  /**
+   * Verifies the cryptographic integrity of a signature envelope
+   */
+  async verifySignatureEnvelope(userId: string, documentId: string, signedAt: string, envelope: {
+    algorithm: string;
+    hash: string;
+    hmac: string;
+    ipAddress: string;
+  }): Promise<boolean> {
+    if (envelope.algorithm !== 'sha256-hmac') return false;
+    const computed = await this.generateSignatureEnvelope(userId, documentId, signedAt, envelope.ipAddress);
+    return computed.hash === envelope.hash && computed.hmac === envelope.hmac;
+  }
 }
 
 export const encryptionService = new EncryptionService();

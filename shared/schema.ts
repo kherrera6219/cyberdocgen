@@ -2092,3 +2092,59 @@ export const insertEvidenceControlMappingSchema = cis(evidenceControlMappings).o
   updatedAt: true,
 });
 
+// Policy Acknowledgments for Phase 1 Personnel Portal
+export const policyAcknowledgments = pgTable("policy_acknowledgments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  documentId: varchar("document_id").references(() => documents.id, { onDelete: 'cascade' }).notNull(),
+  signedAt: timestamp("signed_at").defaultNow().notNull(),
+  signatureEnvelope: jsonb("signature_envelope").$type<{
+    algorithm: string;
+    hash: string;
+    hmac: string;
+    ipAddress: string;
+  }>().notNull(),
+});
+
+export const policyAcknowledgmentsRelations = relations(policyAcknowledgments, ({ one }) => ({
+  user: one(users, {
+    fields: [policyAcknowledgments.userId],
+    references: [users.id],
+  }),
+  document: one(documents, {
+    fields: [policyAcknowledgments.documentId],
+    references: [documents.id],
+  }),
+}));
+
+export const insertPolicyAcknowledgmentSchema = cis(policyAcknowledgments).omit({
+  id: true,
+  signedAt: true,
+});
+
+export type InsertPolicyAcknowledgment = z.infer<typeof insertPolicyAcknowledgmentSchema>;
+export type PolicyAcknowledgment = typeof policyAcknowledgments.$inferSelect;
+
+// SQL-Based Multi-Agent Message Queue (Inbox) for Phase 1 AI Agents
+export const agentMessageInbox = pgTable("agent_message_inbox", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  senderAgent: varchar("sender_agent").notNull(),
+  recipientAgent: varchar("recipient_agent").notNull(),
+  topic: varchar("topic").notNull(),
+  payload: jsonb("payload").notNull(),
+  priority: integer("priority").default(0),
+  status: varchar("status").default("queued"), // 'queued', 'processing', 'delivered', 'failed'
+  attempts: integer("attempts").default(0),
+  queuedAt: timestamp("queued_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+});
+
+export const insertAgentMessageInboxSchema = cis(agentMessageInbox).omit({
+  id: true,
+  queuedAt: true,
+  processedAt: true,
+});
+
+export type InsertAgentMessage = z.infer<typeof insertAgentMessageInboxSchema>;
+export type AgentMessage = typeof agentMessageInbox.$inferSelect;
+

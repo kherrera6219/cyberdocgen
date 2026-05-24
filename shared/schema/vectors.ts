@@ -79,3 +79,27 @@ export type DocumentEmbedding = typeof documentEmbeddings.$inferSelect;
 export type NewDocumentEmbedding = typeof documentEmbeddings.$inferInsert;
 export type ControlEmbedding = typeof controlEmbeddings.$inferSelect;
 export type NewControlEmbedding = typeof controlEmbeddings.$inferInsert;
+
+// Agent Long-Term Episodic Memory (pgvector table)
+export const agentMemory = pgTable(
+  "agent_memory",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id"),
+    memoryType: text("memory_type").notNull(), // 'successful_action', 'user_correction', 'self_reflection'
+    content: text("content").notNull(),
+    embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }), 
+    impactScore: text("impact_score"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("agent_memory_vector_idx").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops")
+    ),
+    index("agent_memory_org_idx").on(table.organizationId),
+  ]
+);
+
+export type AgentMemory = typeof agentMemory.$inferSelect;
+export type NewAgentMemory = typeof agentMemory.$inferInsert;

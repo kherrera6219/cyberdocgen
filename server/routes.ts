@@ -60,6 +60,7 @@ import { registerNotificationRoutes } from "./routes/notifications";
 import { registerDashboardRoutes } from "./routes/dashboard";
 import { registerFrameworkControlStatusesRoutes } from "./routes/frameworkControlStatuses";
 import { registerClientErrorRoutes } from "./routes/clientErrors";
+import { registerDirectorySyncRoutes } from "./routes/directorySync";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -665,6 +666,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const documentsRouter = Router();
   await registerDocumentsRoutes(documentsRouter);
   app.use('/api/documents', documentsRouter);
+
+  const directorySyncRouter = Router();
+  await registerDirectorySyncRoutes(directorySyncRouter);
+  app.use('/api/admin/directory-sync', directorySyncRouter);
 
   const aiRouter = Router();
   await registerAIRoutes(aiRouter);

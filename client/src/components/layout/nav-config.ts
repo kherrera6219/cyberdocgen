@@ -37,6 +37,7 @@ export interface NavItem {
 
 export const mainNavItems: NavItem[] = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/employee-portal", icon: ShieldCheck, label: "Employee Portal" },
   { href: "/profile", icon: Building, label: "Company Profile" },
   { href: "/storage", icon: Database, label: "Object Storage" },
   { href: "/ai-specialization", icon: Brain, label: "AI Specialization" },

@@ -60,7 +60,9 @@ import {
   type AuditLog,
   type InsertAuditLog,
   type DocumentVersion,
-  type InsertDocumentVersion
+  type InsertDocumentVersion,
+  type PolicyAcknowledgment,
+  type InsertPolicyAcknowledgment
 } from "@shared/schema";
 import { db } from "./db";
 import { drizzle } from "drizzle-orm/pglite";
@@ -85,6 +87,7 @@ import { createFrameworksRepository } from "./repositories/frameworksRepository"
 import { createNotificationsRepository } from "./repositories/notificationsRepository";
 import { createInvitationsRepository } from "./repositories/invitationsRepository";
 import { createSessionsRepository } from "./repositories/sessionsRepository";
+import { createPolicyAcknowledgmentsRepository } from "./repositories/policyAcknowledgmentsRepository";
 import { UserFilters, PaginationParams, PaginatedResult } from "./repositories/utils";
 
 export interface IStorage {
@@ -228,6 +231,12 @@ export interface IStorage {
     actions: Record<string, number>;
     entities: Record<string, number>;
   }>;
+
+  // Policy Acknowledgment operations
+  createPolicyAcknowledgment(ack: InsertPolicyAcknowledgment): Promise<PolicyAcknowledgment>;
+  getPolicyAcknowledgmentsByUser(userId: string): Promise<PolicyAcknowledgment[]>;
+  getPolicyAcknowledgment(userId: string, documentId: string): Promise<PolicyAcknowledgment | undefined>;
+  getPolicyAcknowledgmentsByDocument(documentId: string): Promise<PolicyAcknowledgment[]>;
 }
 
 export function createStorage(dbClient: typeof db): IStorage {
@@ -246,7 +255,8 @@ export function createStorage(dbClient: typeof db): IStorage {
     ...createFrameworksRepository(dbClient),
     ...createNotificationsRepository(dbClient),
     ...createInvitationsRepository(dbClient),
-    ...createSessionsRepository(dbClient)
+    ...createSessionsRepository(dbClient),
+    ...createPolicyAcknowledgmentsRepository(dbClient)
   };
 }
 
