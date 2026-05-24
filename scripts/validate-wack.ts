@@ -63,7 +63,7 @@ function fileContainsAll(filePath: string, patterns: string[]): boolean {
 }
 
 function isEnabledFlag(name: string): boolean {
-  // eslint-disable-next-line security/detect-object-injection
+   
   const value = process.env[name];
   if (!value) {
     return false;
@@ -79,7 +79,7 @@ function isSemver(version: string): boolean {
 }
 
 function getEnvValueInsensitive(name: string): string | undefined {
-  // eslint-disable-next-line security/detect-object-injection
+   
   const direct = process.env[name];
   if (typeof direct === 'string') {
     return direct;

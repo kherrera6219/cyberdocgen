@@ -1,4 +1,4 @@
-/* eslint-disable security/detect-object-injection */
+ 
 import fs from "node:fs";
 import path from "node:path";
 
