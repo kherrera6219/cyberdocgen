@@ -73,8 +73,8 @@ export class WindowsEventLogService {
 
     // Try Windows Event Viewer
     return new Promise<boolean>((resolve) => {
-      // Escape single quotes for PowerShell message parameter
-      const escapedMsg = formattedMessage.replace(/'/g, "''");
+      // Escape single quotes and double quotes for PowerShell message parameter
+      const escapedMsg = formattedMessage.replace(/'/g, "''").replace(/"/g, '\\"');
       const writeCommand = `powershell -Command "Write-EventLog -LogName 'Application' -Source '${this.eventSource}' -EventID ${eventId} -EntryType '${severity}' -Message '${escapedMsg}'"`;
 
       exec(writeCommand, (error, stdout, stderr) => {

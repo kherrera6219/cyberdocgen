@@ -51,6 +51,29 @@ describe("WindowsEventLogService", () => {
     Object.defineProperty(process, 'platform', { value: originalPlatform });
   });
 
+  it("escapes double quotes in formatted message and metadata for PowerShell", async () => {
+    const originalPlatform = process.platform;
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+
+    const service = new WindowsEventLogService();
+    (service as any).isWindows = true;
+
+    let executedCommand = "";
+    (exec as any).mockImplementation((cmd, cb) => {
+      executedCommand = cmd;
+      cb(null, "success", "");
+    });
+
+    const result = await service.logEvent(2002, "Information", 'Testing "double" quotes', { key: "value" });
+
+    expect(result).toBe(true);
+    expect(exec).toHaveBeenCalled();
+    expect(executedCommand).toContain('\\"double\\"');
+    expect(executedCommand).toContain('\\"key\\":\\"value\\"');
+
+    Object.defineProperty(process, 'platform', { value: originalPlatform });
+  });
+
   it("handles powershell log failure gracefully with fallback", async () => {
     const originalPlatform = process.platform;
     Object.defineProperty(process, 'platform', { value: 'win32' });

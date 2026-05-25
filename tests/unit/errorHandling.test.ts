@@ -4,6 +4,7 @@ import {
   createSuccessResponse, 
   secureHandler, 
   validateInput,
+  getClientIp,
   AppError,
   ValidationError,
   NotFoundError
@@ -76,6 +77,47 @@ describe('errorHandling', () => {
         data,
         requestId: 'req-123'
       });
+    });
+  });
+
+  describe('getClientIp', () => {
+    it('uses x-forwarded-for string if present', () => {
+      const req = {
+        headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' },
+        ip: '127.0.0.1'
+      } as any;
+      expect(getClientIp(req)).toBe('1.2.3.4');
+    });
+
+    it('uses first element if x-forwarded-for is an array', () => {
+      const req = {
+        headers: { 'x-forwarded-for': ['9.9.9.9', '8.8.8.8'] },
+        ip: '127.0.0.1'
+      } as any;
+      expect(getClientIp(req)).toBe('9.9.9.9');
+    });
+
+    it('falls back to x-real-ip if x-forwarded-for is missing', () => {
+      const req = {
+        headers: { 'x-real-ip': '5.5.5.5' },
+        ip: '127.0.0.1'
+      } as any;
+      expect(getClientIp(req)).toBe('5.5.5.5');
+    });
+
+    it('falls back to req.ip if all proxy headers are missing', () => {
+      const req = {
+        headers: {},
+        ip: '127.0.0.1'
+      } as any;
+      expect(getClientIp(req)).toBe('127.0.0.1');
+    });
+
+    it('returns unknown if req.ip and headers are all missing', () => {
+      const req = {
+        headers: {}
+      } as any;
+      expect(getClientIp(req)).toBe('unknown');
     });
   });
 

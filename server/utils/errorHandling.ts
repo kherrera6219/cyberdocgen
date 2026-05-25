@@ -114,6 +114,12 @@ export function createSuccessResponse<T>(
  * - Optional audit logging
  * - Consistent response format
  */
+export function getClientIp(req: Request): string {
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  const forwardedIp = Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor?.split(',')[0];
+  return forwardedIp?.trim() || (req.headers['x-real-ip'] as string) || req.ip || 'unknown';
+}
+
 export function secureHandler(
   fn: (req: Request, res: Response, next: NextFunction) => Promise<void>,
   options: SecureHandlerOptions = {}
@@ -136,7 +142,7 @@ export function secureHandler(
           entityType: options.audit.entityType,
           entityId,
           userId,
-          ipAddress: req.ip || 'unknown',
+          ipAddress: getClientIp(req),
           userAgent: req.get('User-Agent'),
           sessionId: req.sessionID,
           metadata: {
