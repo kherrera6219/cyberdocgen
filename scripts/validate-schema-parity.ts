@@ -132,7 +132,7 @@ function shouldFail(report: SchemaParityReport): boolean {
 }
 
 function main(): void {
-  const sqliteMigrationDir = path.resolve("server/migrations/sqlite");
+  const sqliteMigrationDir = path.resolve("server/migrations/pglite");
   const postgresMigrationDir = path.resolve("server/migrations/postgres");
 
   const report = buildParityReport(sqliteMigrationDir, postgresMigrationDir);
