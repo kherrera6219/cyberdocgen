@@ -18,7 +18,7 @@ CyberDocGen is an enterprise-grade compliance management platform with AI-powere
 - **Zod 3.25** - Runtime type validation
 
 ### Backend Stack
-- **Node.js 20** - JavaScript runtime
+- **Node.js 22** - JavaScript runtime
 - **Express 4.21** - Web framework
 - **TypeScript 5.9** - Type safety
 - **PostgreSQL 16** - Relational database (Neon serverless)

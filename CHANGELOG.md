@@ -5,6 +5,22 @@ All notable changes to CyberDocGen will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-05-24
+
+### Added
+- **Zero-Trust Multimodal Evidence Vision Auditor**: Direct image evidence ingestion with Gemini Vision audits, automated compliance verification verdicts, confidence meters, and visual insights.
+- **Gated Customer Trust Center**: Attested compliance status portal featuring cryptographically sealed NDA attestation forms (HMAC-SHA256) and secure dynamic watermarked, password-locked PDF downloads.
+- **AI Auditor Digital Twin debate Simulator**: 3-turn interactive compliance simulation challenging and defending GRC posture, with visual readiness scoring progress charts and complete downloadable mock-audit reports.
+- **Real-Time Telemetry Violation Engine**: Real-time screening for compliance policy breaches auto-drafting comprehensive incident reports.
+
+### Security & Hardening
+- **PowerShell CLI Shell-Escape Protection**: Hardened message parameter parsing to escape double quotes (`\"`), eliminating shell execution syntax crashes during Windows Event Viewer piping.
+- **Proxy-Aware Real Client IP Logging**: Implemented real client IP extraction via standard `x-forwarded-for` and `x-real-ip` headers, providing authentic audit trails for load-balancer VM/cloud deployments.
+- **Upgraded Node.js 22 LTS Runtime**: Migrated all Dockerfiles, CI workflows, and package engines to Node.js v22 to satisfy strict native ABI package compatibility rules.
+
+### Fixed
+- Achieved an absolute **0 errors, 0 warnings** clean linter and compilation state by refactoring duplicate imports, unused directives, and unnecessary typecasts.
+
 ## [Unreleased]
 
 ### Added

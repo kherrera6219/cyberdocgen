@@ -10,7 +10,7 @@
 
 [![CI Security Pipeline](https://github.com/kherrera6219/cyberdocgen/actions/workflows/ci.yml/badge.svg)](https://github.com/kherrera6219/cyberdocgen/actions/workflows/ci.yml)
 [![Docker Build](https://github.com/kherrera6219/cyberdocgen/actions/workflows/docker-build.yml/badge.svg)](https://github.com/kherrera6219/cyberdocgen/actions/workflows/docker-build.yml)
-[![Node.js](https://img.shields.io/badge/Node.js-20%20LTS-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22%20LTS-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![License: PolyForm NC](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue)](LICENSE)
@@ -204,7 +204,7 @@ Upload CSV/XLSX → Parse Questions → Local Embedding (all-MiniLM-L6-v2)
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Runtime** | Node.js 20 LTS | Server runtime |
+| **Runtime** | Node.js 22 LTS | Server runtime |
 | **Language** | TypeScript 5.9 | End-to-end type safety |
 | **Frontend** | React 18.3 + Vite 6.4 | SPA with HMR |
 | **UI Components** | Radix UI + shadcn/ui | Accessible primitives |
@@ -736,7 +736,7 @@ We welcome contributions from the security and compliance community. Before cont
 
 ### Development Requirements
 
-- Node.js 20 LTS
+- Node.js 22 LTS
 - At least one AI provider API key (OpenAI, Anthropic, or Google)
 - Familiarity with TypeScript, React, Drizzle ORM, and Express
 

@@ -36,7 +36,7 @@ To create distribution artifacts:
 - `win-unpacked/` executable folder (test/debug channel)
 
 ### Prerequisites
-- Node.js 20+
+- Node.js 22+
 - Git
 - Windows 10 or 11
 

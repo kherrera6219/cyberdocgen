@@ -15,8 +15,8 @@
 
 Following the final Local-First architecture migration and UI/UX deep review, the application is production-ready. The following minor polish items were identified for future sprints:
 
-- [ ] **Lint Cleanups:** Remove 8 minor `@typescript-eslint/no-unnecessary-type-assertion` warnings in `server/storage.ts` and `server/services/repositoryFindingsService.ts`.
-- [ ] **CI Node ABI Mismatch:** Pin Node to v20 or update C++ SQLite bindings to support Node v26 headers in terminal-only test runners.
+- [x] **Lint Cleanups:** Resolved duplicate imports, unused directives, and type assertions to achieve absolute 0 errors, 0 warnings.
+- [x] **CI Node ABI Mismatch:** Upgraded entire CI/CD runner and Docker environment to Node.js v22, satisfying native C++ SQLite headers and tool chain constraints.
 - [ ] **Release Signing:** Complete WIN-02 (Authenticode pipeline integration) for SmartScreen suppression.
 
 ## Current Validation Evidence (2026-02-20)

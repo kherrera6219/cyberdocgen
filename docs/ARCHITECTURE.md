@@ -22,7 +22,7 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 - **Performance**: 86% bundle size reduction with code splitting (40+ lazy-loaded routes)
 
 ### Backend Architecture
-- **Runtime**: Node.js 20 with Express.js 4.21 framework
+- **Runtime**: Node.js 22 with Express.js 4.21 framework
 - **Language**: TypeScript 5.9 for type safety
 - **Database**: PostgreSQL 16 with Drizzle ORM 0.39 (Neon serverless)
   - Connection pool with error handling and retry logic (3x exponential backoff)

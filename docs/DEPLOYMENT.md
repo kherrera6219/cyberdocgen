@@ -22,7 +22,7 @@ This guide covers both deployment configurations.
 ### Build Process
 
 #### Prerequisites
-- Node.js 20+
+- Node.js 22+
 - Windows 11 development machine
 - Application icon in `build/icon.ico` (multi-resolution: 16x16 to 256x256)
 
