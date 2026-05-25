@@ -15,6 +15,7 @@ files:
   - node_modules/**/*
 asar: true
 win:
+  publisherName: "Kevin Herrera"
   target:
     - nsis
   legalTrademarks: CyberDocGen
