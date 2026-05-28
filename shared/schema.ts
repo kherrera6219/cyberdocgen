@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, jsonb, timestamp, integer, boolean, index, unique, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, jsonb, timestamp, integer, boolean, index, unique, decimal, customType } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 // Cast to any required due to incompatibility between drizzle-zod 0.8.3 and zod 3.25.x (required by openai/anthropic SDKs)
 // TODO: Remove cast when drizzle-zod supports zod 3.25+
@@ -662,6 +662,63 @@ export const generationJobs = pgTable("generation_jobs", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+
+// ---------------------------------------------------------
+// PHASE 1: ADDITIONAL GRC MASTER PLAN TABLES
+// ---------------------------------------------------------
+
+// Agent Memory (Long-term episodic memory via pgvector)
+// NOTE: "vector" type is provided by pgvector, we use custom type definition for Drizzle
+const pgVector = customType<{ data: number[]; driverData: string }>({
+  dataType() {
+    return 'vector(1536)'; // OpenAI embeddings dimension
+  },
+  toDriver(value: number[]): string {
+    return JSON.stringify(value);
+  },
+  fromDriver(value: unknown): number[] {
+    return Array.isArray(value) ? value : JSON.parse(value as string);
+  },
+});
+
+export const agentMemory = pgTable("agent_memory", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id").notNull(),
+  organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
+  episodeSummary: text("episode_summary").notNull(),
+  embedding: pgVector("embedding"),
+  metadata: jsonb("metadata").$type<{
+    framework?: string;
+    documentId?: string;
+    successScore?: number;
+    actionsTaken?: string[];
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Enterprise IdP Configs (Okta, Entra ID, HRIS)
+export const enterpriseIdpConfigs = pgTable("enterprise_idp_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").references(() => organizations.id, { onDelete: 'cascade' }).notNull(),
+  providerType: varchar("provider_type").notNull(), // 'okta', 'entra_id', 'gusto', 'rippling'
+  domain: varchar("domain").notNull(),
+  clientIdEncrypted: text("client_id_encrypted").notNull(),
+  clientSecretEncrypted: text("client_secret_encrypted").notNull(),
+  syncSettings: jsonb("sync_settings").$type<{
+    autoProvision?: boolean;
+    autoDeprovision?: boolean;
+    syncIntervalMinutes?: number;
+    requiredGroups?: string[];
+  }>().default({}),
+  isActive: boolean("is_active").default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  orgProviderUnique: unique().on(table.organizationId, table.providerType)
+}));
+
+
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({
   userOrganizations: many(userOrganizations),
@@ -770,6 +827,22 @@ export const generationJobsRelations = relations(generationJobs, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+
+export const enterpriseIdpConfigsRelations = relations(enterpriseIdpConfigs, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [enterpriseIdpConfigs.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const agentMemoryRelations = relations(agentMemory, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [agentMemory.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 
 // Schema validations
 export const insertUserSchema = cis(users).omit({

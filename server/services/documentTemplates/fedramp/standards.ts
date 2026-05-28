@@ -351,4 +351,357 @@ All cryptographic modules must be FIPS validated per FedRAMP requirements.
       approval_date: { type: 'date', label: 'Approval Date', required: true }
     }
   }
+,
+  {
+    id: 'fedramp-sc-crypto',
+    title: 'FedRAMP SC - Cryptographic Protection',
+    description: 'FedRAMP policy for cryptographic controls.',
+    framework: 'FedRAMP',
+    category: 'SC - System and Communications',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# FedRAMP Cryptographic Protection Policy
+
+## 1. Purpose
+Define the use of FIPS-validated cryptography for protecting {{company_name}}'s systems.
+
+## 2. Requirements
+- Use FIPS 140-2 (or later) validated cryptographic modules.
+- Ensure all remote access and data transmission utilizes strong encryption.
+
+## 3. Codebase Telemetry
+*(Any codebase specific cryptography algorithms detected will be detailed in the generated document.)*
+
+**Approved By:** {{approved_by}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true }
+    }
+  }
+,
+  {
+    id: 'fedramp-ac-policy',
+    title: 'FedRAMP AC - Access Control Policy',
+    description: 'Manage access to systems and information.',
+    framework: 'FedRAMP',
+    category: 'AC - Access Control',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Access Control (AC) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for access control in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following AC controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline AC requirements.\n- **Continuous Monitoring**: Continually assess AC controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the AC standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-at-policy',
+    title: 'FedRAMP AT - Awareness and Training Policy',
+    description: 'Security awareness and role-based training.',
+    framework: 'FedRAMP',
+    category: 'AT - Awareness and Training',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Awareness and Training (AT) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for awareness and training in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following AT controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline AT requirements.\n- **Continuous Monitoring**: Continually assess AT controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the AT standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-au-policy',
+    title: 'FedRAMP AU - Audit and Accountability Policy',
+    description: 'System auditing and accountability tracking.',
+    framework: 'FedRAMP',
+    category: 'AU - Audit and Accountability',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Audit and Accountability (AU) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for audit and accountability in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following AU controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline AU requirements.\n- **Continuous Monitoring**: Continually assess AU controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the AU standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-ca-policy',
+    title: 'FedRAMP CA - Security Assessment and Authorization Policy',
+    description: 'Assess and monitor security controls.',
+    framework: 'FedRAMP',
+    category: 'CA - Security Assessment and Authorization',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Security Assessment and Authorization (CA) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for security assessment and authorization in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following CA controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline CA requirements.\n- **Continuous Monitoring**: Continually assess CA controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the CA standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-cm-policy',
+    title: 'FedRAMP CM - Configuration Management Policy',
+    description: 'Manage system baseline configurations.',
+    framework: 'FedRAMP',
+    category: 'CM - Configuration Management',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Configuration Management (CM) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for configuration management in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following CM controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline CM requirements.\n- **Continuous Monitoring**: Continually assess CM controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the CM standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-cp-policy',
+    title: 'FedRAMP CP - Contingency Planning Policy',
+    description: 'Plan for system recovery and continuity.',
+    framework: 'FedRAMP',
+    category: 'CP - Contingency Planning',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Contingency Planning (CP) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for contingency planning in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following CP controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline CP requirements.\n- **Continuous Monitoring**: Continually assess CP controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the CP standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-ia-policy',
+    title: 'FedRAMP IA - Identification and Authentication Policy',
+    description: 'Verify identity of users and devices.',
+    framework: 'FedRAMP',
+    category: 'IA - Identification and Authentication',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Identification and Authentication (IA) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for identification and authentication in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following IA controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline IA requirements.\n- **Continuous Monitoring**: Continually assess IA controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the IA standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-ir-policy',
+    title: 'FedRAMP IR - Incident Response Policy',
+    description: 'Detect, respond, and recover from incidents.',
+    framework: 'FedRAMP',
+    category: 'IR - Incident Response',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Incident Response (IR) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for incident response in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following IR controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline IR requirements.\n- **Continuous Monitoring**: Continually assess IR controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the IR standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-ma-policy',
+    title: 'FedRAMP MA - Maintenance Policy',
+    description: 'Perform timely system maintenance.',
+    framework: 'FedRAMP',
+    category: 'MA - Maintenance',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Maintenance (MA) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for maintenance in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following MA controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline MA requirements.\n- **Continuous Monitoring**: Continually assess MA controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the MA standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-mp-policy',
+    title: 'FedRAMP MP - Media Protection Policy',
+    description: 'Protect system media and physical storage.',
+    framework: 'FedRAMP',
+    category: 'MP - Media Protection',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Media Protection (MP) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for media protection in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following MP controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline MP requirements.\n- **Continuous Monitoring**: Continually assess MP controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the MP standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-pe-policy',
+    title: 'FedRAMP PE - Physical and Environmental Protection Policy',
+    description: 'Secure physical facilities and environment.',
+    framework: 'FedRAMP',
+    category: 'PE - Physical and Environmental Protection',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Physical and Environmental Protection (PE) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for physical and environmental protection in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following PE controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline PE requirements.\n- **Continuous Monitoring**: Continually assess PE controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the PE standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-pl-policy',
+    title: 'FedRAMP PL - Planning Policy',
+    description: 'Develop system security plans.',
+    framework: 'FedRAMP',
+    category: 'PL - Planning',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Planning (PL) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for planning in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following PL controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline PL requirements.\n- **Continuous Monitoring**: Continually assess PL controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the PL standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-ps-policy',
+    title: 'FedRAMP PS - Personnel Security Policy',
+    description: 'Screen and secure personnel access.',
+    framework: 'FedRAMP',
+    category: 'PS - Personnel Security',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Personnel Security (PS) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for personnel security in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following PS controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline PS requirements.\n- **Continuous Monitoring**: Continually assess PS controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the PS standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-ra-policy',
+    title: 'FedRAMP RA - Risk Assessment Policy',
+    description: 'Assess operational and organizational risk.',
+    framework: 'FedRAMP',
+    category: 'RA - Risk Assessment',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Risk Assessment (RA) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for risk assessment in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following RA controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline RA requirements.\n- **Continuous Monitoring**: Continually assess RA controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the RA standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-sa-policy',
+    title: 'FedRAMP SA - System and Services Acquisition Policy',
+    description: 'Secure system lifecycle and acquisition.',
+    framework: 'FedRAMP',
+    category: 'SA - System and Services Acquisition',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# System and Services Acquisition (SA) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for system and services acquisition in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following SA controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline SA requirements.\n- **Continuous Monitoring**: Continually assess SA controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the SA standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-si-policy',
+    title: 'FedRAMP SI - System and Information Integrity Policy',
+    description: 'Ensure data integrity and flaw remediation.',
+    framework: 'FedRAMP',
+    category: 'SI - System and Information Integrity',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# System and Information Integrity (SI) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for system and information integrity in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following SI controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline SI requirements.\n- **Continuous Monitoring**: Continually assess SI controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the SI standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  }
+,
+  {
+    id: 'fedramp-pm-policy',
+    title: 'FedRAMP PM - Program Management Policy',
+    description: 'Information security program management controls.',
+    framework: 'FedRAMP',
+    category: 'PM - Program Management',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Program Management (PM) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for program management in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following PM controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline PM requirements.\n- **Continuous Monitoring**: Continually assess PM controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the PM standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-pt-policy',
+    title: 'FedRAMP PT - Personally Identifiable Information Processing and Transparency Policy',
+    description: 'Privacy and transparency controls for PII.',
+    framework: 'FedRAMP',
+    category: 'PT - Personally Identifiable Information Processing and Transparency',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Personally Identifiable Information Processing and Transparency (PT) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for personally identifiable information processing and transparency in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following PT controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline PT requirements.\n- **Continuous Monitoring**: Continually assess PT controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the PT standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'fedramp-sr-policy',
+    title: 'FedRAMP SR - Supply Chain Risk Management Policy',
+    description: 'Controls to mitigate supply chain risks.',
+    framework: 'FedRAMP',
+    category: 'SR - Supply Chain Risk Management',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Supply Chain Risk Management (SR) Policy\n\n## 1. Purpose\nThe purpose of this policy is to establish controls for supply chain risk management in accordance with FedRAMP and NIST 800-53 requirements for {{company_name}}.\n\n## 2. Scope\nThis policy applies to all {{company_name}} personnel and information systems operating at the {{impact_level}} impact level.\n\n## 3. Policy Requirements\n{{company_name}} implements the following SR controls:\n- **Baseline Requirements**: Adhere to all {{impact_level}} baseline SR requirements.\n- **Continuous Monitoring**: Continually assess SR controls for effectiveness.\n- **Implementation**: Detailed procedures are maintained in the SR standard operating procedures.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      impact_level: { type: 'select', label: 'Impact Level', required: true, options: ['Low', 'Moderate', 'High'] },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  }
 ];

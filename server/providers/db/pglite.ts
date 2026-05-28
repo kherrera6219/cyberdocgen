@@ -64,6 +64,19 @@ export class PgliteDbProvider implements IDbProvider {
         logger.info(`[PgliteDbProvider] Created data directory: ${this.dataDir}`);
       }
 
+      // Attempt to reuse the global pgInstance from server/db.ts to avoid double connection lock errors
+      try {
+        const dbModule = await import('../../db');
+        await dbModule.getDbAsync();
+        if (dbModule.pgInstance) {
+          logger.info('[PgliteDbProvider] Reusing existing global pgInstance from db.ts');
+          this.pg = dbModule.pgInstance;
+          return this.createConnectionHandle();
+        }
+      } catch (dbError) {
+        logger.debug('[PgliteDbProvider] Could not reuse global pgInstance from db.ts, will instantiate new PGlite', { error: dbError });
+      }
+
       // Initialize PGlite with pgvector extension and persistent local storage
       this.pg = new PGlite({
         dataDir: this.dataDir,
@@ -79,7 +92,7 @@ export class PgliteDbProvider implements IDbProvider {
       logger.info(`[PgliteDbProvider] Connected to embedded PostgreSQL at ${this.dataDir}`);
       return this.createConnectionHandle();
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error) : String(error));
       logger.error('[PgliteDbProvider] Connection error', { error: message });
       throw error;
     }

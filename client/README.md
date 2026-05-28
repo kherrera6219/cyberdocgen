@@ -562,6 +562,7 @@ export function MyComponent({ title, onSave }: Props) {
 CyberDocGen utilizes a custom, high-fidelity **Glassmorphic Design System** built on Radix UI primitives and custom HSL color maps:
 *   **Design Tokens**: Pre-configured tailwind extended tokens in `tailwind.config.ts` represent premium workspace palettes (deep HSL purples, emerald compliance, hot warning pinks).
 *   **Backdrop Blurs**: Heavy visual layouts leverage `backdrop-blur-md` overlays, harmony dark-mode shadows, and dynamic gradient borders (`from-purple-500/10 via-pink-500/5 to-transparent`) to feel modern, alive, and tactile.
+*   **Unified Empty States**: A global `EmptyStateCard` drives consistent, premium missing-data views (Document Library, Risk Register, Vendor GRC) featuring custom iconography and actionable triggers.
 *   **Micro-Animations**: Uses customized framer-motion sweeps and spinners to highlight active processes (such as database sync runs or active security telemetry violations).
 
 ---

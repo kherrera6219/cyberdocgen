@@ -48,7 +48,7 @@ export function FrameworkGenerationCards({
 
               <div className="space-y-2">
                 <Button
-                  className="w-full bg-accent hover:bg-accent/90"
+                  className="w-full"
                   onClick={() => onGenerate("ISO27001")}
                   disabled={!profile || isGenerating}
                   data-testid="button-generate-iso27001"

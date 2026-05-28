@@ -24,11 +24,11 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 ### Backend Architecture
 - **Runtime**: Node.js 22 with Express.js 4.21 framework
 - **Language**: TypeScript 5.9 for type safety
-- **Database**: PostgreSQL 16 with Drizzle ORM 0.39 (Neon serverless)
-  - Connection pool with error handling and retry logic (3x exponential backoff)
-  - Health checks and connection testing on startup
-  - Query timeout configuration (10s connection, 30s idle)
-  - Graceful shutdown with proper cleanup
+- **Database**: Dual-engine architecture with Drizzle ORM 0.39
+  - **Local Mode**: Embedded PGlite (WASM) with local file storage for zero-dependency desktop execution
+  - **Server Mode**: PostgreSQL 16 (Neon Serverless) with connection pooling
+  - **Vector Search**: `pgvector` enabled for 1536-dimensional embeddings (RAG)
+  - Automatic migration execution and health checking on startup
 - **Storage Layer**: Domain-Driven Design using the **Repository Pattern** and a **Composition Facade** (`server/storage.ts` orchestrates 15 independent domain repositories).
 - **Authentication**: Enterprise authentication with MFA support
 - **AI Integration**: Multi-model orchestration (OpenAI GPT-5.4, Anthropic Claude Sonnet 4.6, Google Gemini 3.1 Pro Preview)
@@ -38,9 +38,10 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 - **Middleware Stack**: 10-layer security and monitoring middleware
 
 ### Database Design
-- **Primary Database**: PostgreSQL 16 (Neon serverless)
-- **ORM**: Drizzle ORM 0.39 with type-safe queries
-- **Connection Pool**: Configured with max 20 connections, automatic retry on failure
+- **Engines**: PGlite 0.4 (Local Embedded) and PostgreSQL 16 (Server)
+- **Vector Search**: `pgvector` extension used for semantic policy lookups
+- **ORM**: Drizzle ORM 0.39 with type-safe queries and schemas
+- **Connection Pool**: 20 max connections (Server mode) or direct WASM boundary (Local mode)
 - **Resilience**: Health checks, connection testing, graceful degradation
 - **Schema**: Multi-tenant with organization-based data isolation (40+ tables, 1,670+ lines)
 - **Migrations**: Automated through Drizzle Kit
@@ -129,10 +130,9 @@ The system implements intelligent model selection based on task requirements wit
 ## Deployment Architecture
 
 ### Environment Configuration
-- **Development**: Local development with hot reloading
-- **Production**: Replit Deployments with automatic scaling
-- **Database**: Neon serverless PostgreSQL
-- **Storage**: Google Cloud Storage via Replit Object Storage
+- **Local Desktop**: Embedded PGlite database, Windows Authenticode packaging, local MiniLM ONNX embeddings
+- **Server Deployment**: Remote PostgreSQL, Docker containerization
+- **Storage**: Local filesystem (Desktop) or Cloud Object Storage (Server)
 
 ### CI/CD Pipeline
 - **Build**: TypeScript compilation and bundling

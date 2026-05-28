@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(egressControlMiddleware({ 
     strictMode: true, 
     logBlocked: true,
-    bypassPaths: ['/api/webhooks']
+    bypassPaths: ['/api/webhooks', '/api/client-errors']
   }));
   app.use(validateRouteAccess);
   app.use(logRoutePerformance);

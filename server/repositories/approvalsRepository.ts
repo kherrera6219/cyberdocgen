@@ -31,6 +31,13 @@ export function createApprovalsRepository(dbClient: typeof db) {
           .from(documentApprovals)
           .orderBy(desc(documentApprovals.createdAt));
       },
+ 
+    async getDocumentApprovalsByDocumentId(documentId: string): Promise<DocumentApproval[]> {
+        return await dbClient.select()
+          .from(documentApprovals)
+          .where(eq(documentApprovals.documentId, documentId))
+          .orderBy(desc(documentApprovals.createdAt));
+      },
 
     async getDocumentApproval(id: string): Promise<DocumentApproval | undefined> {
         const [approval] = await dbClient.select()

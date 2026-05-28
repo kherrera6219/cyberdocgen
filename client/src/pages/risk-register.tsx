@@ -21,6 +21,7 @@ import {
   Activity, 
   Trash2 
 } from "lucide-react";
+import { EmptyStateCard } from "@/components/ui/loading-error-states";
 import type { Risk, Document } from "@shared/schema";
 
 interface ControlTestResult {
@@ -375,9 +376,22 @@ export default function RiskRegister() {
                     </Card>
                   ))}
                   {filteredRisks.length === 0 && (
-                    <div className="border border-dashed border-gray-200 dark:border-gray-800 rounded-lg p-6 text-center text-xs text-gray-400">
-                      Empty Lane
-                    </div>
+                    <EmptyStateCard
+                      className="border-dashed shadow-none bg-transparent"
+                      icon={<ShieldAlert className="w-4 h-4 text-gray-400" />}
+                      title={
+                        colStatus === "identified" ? "No Identified Threats" :
+                        colStatus === "mitigated" ? "No Mitigated Threats" :
+                        colStatus === "accepted" ? "No Accepted Risks" :
+                        "No Transferred Risks"
+                      }
+                      message={
+                        colStatus === "identified" ? "All clear. Log new threats or scan repositories to identify compliance gaps." :
+                        colStatus === "mitigated" ? "No threats mitigated yet. Link compliance policies to active risks to mitigate them." :
+                        colStatus === "accepted" ? "No risks have been formally accepted by an administrator." :
+                        "No risks have been transferred via SLA or insurance."
+                      }
+                    />
                   )}
                 </div>
               </div>
@@ -444,9 +458,12 @@ export default function RiskRegister() {
                   </div>
                 ))}
                 {controlTests.length === 0 && (
-                  <div className="text-center p-12 border border-dashed border-gray-250 dark:border-gray-850 rounded-xl text-sm text-gray-500">
-                    No control test metrics loaded. Click "Run Test Suite" to execute live environmental diagnostics.
-                  </div>
+                  <EmptyStateCard
+                    className="border-dashed shadow-none bg-transparent py-4"
+                    icon={<Activity className="w-8 h-8 text-gray-400" />}
+                    title="No Control Metrics"
+                    message="No control test metrics loaded. Click 'Run Test Suite' to execute live environmental diagnostics."
+                  />
                 )}
               </div>
             </CardContent>
@@ -489,9 +506,12 @@ export default function RiskRegister() {
                   </div>
                 ))}
                 {proposals.length === 0 && (
-                  <div className="text-center p-12 border border-dashed border-gray-250 dark:border-gray-850 rounded-xl text-sm text-gray-500">
-                    No pending self-healing policy proposals detected. Codebase scans are fully aligned with your compliance docs.
-                  </div>
+                  <EmptyStateCard
+                    className="border-dashed shadow-none bg-transparent py-4"
+                    icon={<Sparkles className="w-8 h-8 text-blue-400" />}
+                    title="Fully Aligned"
+                    message="No pending self-healing policy proposals detected. Codebase scans are fully aligned with your compliance docs."
+                  />
                 )}
               </div>
             </CardContent>

@@ -27,7 +27,7 @@ export default function Layout({ children }: LayoutProps) {
       <TempUserBanner />
       <div className="flex flex-1 min-h-0">
         {/* Desktop Sidebar - Hidden on mobile/tablet */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block h-full">
           <Sidebar />
         </div>
 
@@ -45,12 +45,12 @@ export default function Layout({ children }: LayoutProps) {
               {children}
             </div>
           </main>
+          <StatusBar />
 
           {/* Mobile Bottom Navigation - Hidden on desktop */}
           <MobileNavigation />
         </div>
       </div>
-      <StatusBar />
     </div>
   );
 }

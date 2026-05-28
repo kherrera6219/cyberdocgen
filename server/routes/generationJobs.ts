@@ -4,6 +4,11 @@ import { isAuthenticated, getRequiredUserId } from '../replitAuth';
 import { logger } from '../utils/logger';
 import { aiOrchestrator, type AIModel, type GenerationOptions } from '../services/aiOrchestrator';
 import { frameworkTemplates } from '../services/openai';
+import { repositoryFindingsService } from '../services/repositoryFindingsService';
+import { db } from '../db';
+import { repositorySnapshots } from '@shared/schema';
+import { eq, desc } from 'drizzle-orm';
+
 import { generationLimiter } from '../middleware/security';
 import { 
   secureHandler, 

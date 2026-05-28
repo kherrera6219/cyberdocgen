@@ -64,6 +64,8 @@ export const aiToolsNavItems: NavItem[] = [
   { href: "/ai-hub", icon: Zap, label: "AI Hub" },
   { href: "/ai-assistant", icon: Bot, label: "AI Assistant" },
   { href: "/ai-doc-generator", icon: Wand2, label: "AI Doc Generator" },
+  { href: "/questionnaire-solver", icon: FileQuestion, label: "AI Questionnaire Solver", badge: "AI", badgeColor: "bg-purple-500" },
+  { href: "/digital-twin", icon: Bot, label: "AI Digital Twin", badge: "Twin", badgeColor: "bg-purple-500" },
   { href: "/mcp-tools", icon: Wrench, label: "MCP Tools" },
 ];
 
@@ -72,11 +74,9 @@ export const complianceNavItems: NavItem[] = [
   { href: "/gap-analysis", icon: Target, label: "Gap Analysis" },
   { href: "/repository-analysis", icon: Search, label: "Repository Analysis" },
   { href: "/vendor-grc", icon: Store, label: "Vendor GRC", badge: "New", badgeColor: "bg-accent" },
-  { href: "/questionnaire-solver", icon: FileQuestion, label: "AI Questionnaire Solver", badge: "AI", badgeColor: "bg-purple-500" },
   { href: "/control-approvals", icon: CheckSquare, label: "Control Approvals" },
   { href: "/auditor-workspace", icon: Eye, label: "Auditor Workspace" },
   { href: "/trust-center", icon: ShieldCheck, label: "Trust Center", badge: "Gated", badgeColor: "bg-emerald-500" },
-  { href: "/digital-twin", icon: Bot, label: "AI Digital Twin", badge: "Twin", badgeColor: "bg-purple-500" },
   { href: "/audit-trail", icon: History, label: "Audit Trail" },
 ];
 

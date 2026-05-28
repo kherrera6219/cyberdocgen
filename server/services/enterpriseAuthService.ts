@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { eq, and, isNull } from 'drizzle-orm';
 import { db } from '../db';
 import { users, passwordResetTokens, emailVerificationTokens, passkeyCredentials, mfaSettings } from '@shared/schema';

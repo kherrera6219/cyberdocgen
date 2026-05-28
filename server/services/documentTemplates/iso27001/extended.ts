@@ -1326,4 +1326,134 @@ For each identified risk, one of the following treatments must be selected:
       plan_owner: { type: 'text', label: 'Plan Owner', required: true }
     }
   }
+,
+  {
+    id: 'iso27001-2022-a5',
+    title: 'A.5 Organizational Controls Policy',
+    description: 'ISO 27001:2022 Clause A.5 - Organizational controls covering policies, asset management, access control, and supplier relationships.',
+    framework: 'ISO27001',
+    category: 'A.5 Organizational Controls',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# A.5 Organizational Controls Policy
+
+## 1. Objective
+To outline the policy regarding organizational controls in accordance with ISO/IEC 27001:2022 Theme A.5. This consolidates policies for information security, asset management, access control, cryptography, and supplier relationships.
+
+## 2. Policy Statements
+- {{company_name}} ensures that all 37 organizational controls are evaluated and implemented according to the Statement of Applicability.
+- Information security policies and topic-specific policies are reviewed by management at planned intervals.
+- The lifecycle of all information assets, including provisioning, classification, handling, and secure disposal, shall be managed centrally.
+- Access to information systems shall be granted based on the principle of least privilege and business need.
+- Relationships with suppliers shall be managed securely throughout the supply chain.
+
+## 3. Applicability
+This policy applies to all employees, contractors, and third-party vendors operating within the scope of the {{company_name}} ISMS.
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'iso27001-2022-a6',
+    title: 'A.6 People Controls Policy',
+    description: 'ISO 27001:2022 Clause A.6 - People controls covering human resources security, screening, terms of employment, and awareness.',
+    framework: 'ISO27001',
+    category: 'A.6 People Controls',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# A.6 People Controls Policy
+
+## 1. Objective
+To establish guidelines for managing human resources securely before, during, and after employment in accordance with ISO/IEC 27001:2022 Theme A.6.
+
+## 2. Policy Statements
+- {{company_name}} ensures that all personnel (employees and contractors) are subject to background screening proportional to the business requirements.
+- Terms and conditions of employment shall state the personnel's and the organization's responsibilities for information security.
+- All personnel shall receive appropriate information security awareness, education, and training.
+- A formal disciplinary process is in place to handle security violations.
+- Upon termination or change of employment, access rights shall be revoked or adjusted in a timely manner.
+
+## 3. Applicability
+This policy applies to all prospective, current, and former personnel of {{company_name}}.
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'iso27001-2022-a7',
+    title: 'A.7 Physical Controls Policy',
+    description: 'ISO 27001:2022 Clause A.7 - Physical controls covering secure areas, physical entry, equipment security, and environmental threats.',
+    framework: 'ISO27001',
+    category: 'A.7 Physical Controls',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# A.7 Physical Controls Policy
+
+## 1. Objective
+To protect the organization's physical assets and facilities from unauthorized physical access, damage, and interference in accordance with ISO/IEC 27001:2022 Theme A.7.
+
+## 2. Policy Statements
+- Security perimeters shall be defined and used to protect areas that contain sensitive information and processing facilities.
+- Secure areas shall be protected by appropriate entry controls to ensure only authorized personnel are allowed access.
+- Physical protection against natural disasters, malicious attack, or accidents shall be designed and applied.
+- Equipment shall be sited and protected to reduce the risks from environmental threats and hazards.
+- Clear desk and clear screen rules shall be adopted for information processing facilities.
+
+## 3. Applicability
+This policy applies to all physical premises, facilities, and equipment owned or leased by {{company_name}}.
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'iso27001-2022-a8',
+    title: 'A.8 Technological Controls Policy',
+    description: 'ISO 27001:2022 Clause A.8 - Technological controls covering endpoint security, network security, cryptography, logging, and secure development.',
+    framework: 'ISO27001',
+    category: 'A.8 Technological Controls',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# A.8 Technological Controls Policy
+
+## 1. Objective
+To ensure proper technological safeguards are implemented to protect the confidentiality, integrity, and availability of information in accordance with ISO/IEC 27001:2022 Theme A.8.
+
+## 2. Policy Statements
+- {{company_name}} shall manage user endpoint devices to ensure they meet minimum security baselines, including MDM and anti-malware protections.
+- Networks shall be managed and controlled to protect information in systems and applications.
+- Cryptographic controls shall be used effectively to protect the confidentiality and authenticity of sensitive data.
+- System administrator and operator activities, as well as significant security events, shall be logged and monitored.
+- Secure coding and development practices shall be applied to the software development lifecycle (SDLC).
+- Information systems shall be protected against malware and other cyber threats.
+
+## 3. Applicability
+This policy applies to all IT infrastructure, applications, network components, and endpoints managed by {{company_name}}.
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  }
 ];

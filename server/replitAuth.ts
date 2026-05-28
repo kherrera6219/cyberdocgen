@@ -476,6 +476,48 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
         return next(new UnauthorizedError("Local mode endpoints are restricted to loopback access"));
       }
 
+      // Ensure session carries a local admin userId so downstream getUserId() works.
+      const session = req.session as any;
+      if (!session?.userId) {
+        const localAdminId = 'local-admin-001';
+        try {
+          const existingAdmin = await storage.getUser(localAdminId);
+          if (!existingAdmin) {
+            await storage.upsertUser({
+              id: localAdminId,
+              email: 'admin@local.cyberdocgen',
+              firstName: 'Local',
+              lastName: 'Admin',
+              profileImageUrl: null,
+            });
+            await storage.updateUser(localAdminId, { role: 'admin' });
+          }
+
+          // Ensure dev organization exists
+          const userOrgs = await storage.getUserOrganizations(localAdminId);
+          let activeOrgId: string;
+          if (userOrgs.length === 0) {
+            const localOrg = await storage.createOrganization({
+              name: 'Local Organization',
+              slug: 'local-org',
+            });
+            activeOrgId = localOrg.id;
+            await storage.addUserToOrganization({
+              userId: localAdminId,
+              organizationId: activeOrgId,
+              role: 'owner',
+            });
+          } else {
+            activeOrgId = userOrgs[0].organizationId;
+          }
+
+          session.userId = localAdminId;
+          session.organizationId = activeOrgId;
+        } catch (err) {
+          logger.warn('Local admin provisioning failed, session userId may be missing', { err });
+        }
+      }
+
       return next();
     }
 

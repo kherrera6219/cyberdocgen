@@ -36,7 +36,7 @@ export function createNotificationsRepository(dbClient: typeof db) {
       },
 
     async createNotification(notification: InsertNotification): Promise<Notification> {
-        const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+        const isLocalSqliteMode = false;
         const normalizedNotificationData = isLocalSqliteMode
           ? (() => {
               const source = notification as Record<string, unknown>;

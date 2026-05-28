@@ -228,12 +228,11 @@ export default function EvidenceIngestion() {
 
   const visionAuditMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest("POST", `/api/evidence/${id}/audit-vision`, {
+      return await apiRequest("POST", `/api/evidence/${id}/audit-vision`, {
         framework: "SOC2",
         controlId: "CC6.1",
         prompt: visionPrompt || undefined
       });
-      return response.json();
     },
     onSuccess: (res) => {
       setAuditResult(res.data);

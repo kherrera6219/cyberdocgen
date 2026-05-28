@@ -46,7 +46,11 @@ const CSRF_EXEMPT_PATHS = [
   '/api/enterprise-auth/logout',
   '/api/auth/replit',
   '/api/auth/temp-login',
-  '/api/auth/temp-logout'
+  '/api/auth/temp-logout',
+  // RUM / telemetry — uses sendBeacon which cannot send custom headers
+  '/api/health/metrics',
+  // Client-side error reporting — fire-and-forget, no session context required
+  '/api/client-errors',
 ];
 
 function isCsrfExemptPath(pathname: string): boolean {
@@ -418,8 +422,8 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     isProduction
       ? `script-src 'self' 'nonce-${nonce}' https://apis.google.com`
       : `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://replit.com`,
-    // Styles: unsafe-inline is retained for Tailwind/CSS-in-JS, but nonce is added for enhanced security
-    `style-src 'self' 'unsafe-inline' 'nonce-${nonce}' https://fonts.googleapis.com`,
+    // Styles: unsafe-inline is retained for Tailwind/CSS-in-JS
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     "img-src 'self' data: https:",
     isProduction
       ? "connect-src 'self' https://api.openai.com https://api.anthropic.com"

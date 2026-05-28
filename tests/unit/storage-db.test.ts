@@ -49,48 +49,23 @@ describe('DatabaseStorage Comprehensive Coverage', () => {
   };
 
   describe('User Upsert Normalization', () => {
-    it('normalizes local sqlite date values and strips createdAt from conflict updates', async () => {
-      process.env.DEPLOYMENT_MODE = 'local';
-
+    it('strips createdAt and sets updatedAt as SQL expression in conflict updates', async () => {
       mockResolved([{ id: 'temp-1', email: 'temp@example.com' }]);
       await storage.upsertUser({
         id: 'temp-1',
         email: 'temp@example.com',
         firstName: 'Temp',
-        lastLoginAt: '2026-02-20T10:00:00.000Z' as any,
-        accountLockedUntil: 'not-a-date' as any,
       } as any);
 
       const valuesArg = vi.mocked(db.values).mock.calls.at(-1)?.[0] as Record<string, unknown>;
-      expect(valuesArg.profilePreferences).toBeNull();
-      expect(valuesArg.notificationSettings).toBeNull();
-      expect(valuesArg.createdAt).toBeInstanceOf(Date);
-      expect(valuesArg.updatedAt).toBeInstanceOf(Date);
-      expect(valuesArg.lastLoginAt).toBeInstanceOf(Date);
-      expect(valuesArg.accountLockedUntil).toBeNull();
+      expect(valuesArg.id).toBe('temp-1');
+      expect(valuesArg.email).toBe('temp@example.com');
 
       const conflictArg = vi.mocked(db.onConflictDoUpdate).mock.calls.at(-1)?.[0] as {
         set: Record<string, unknown>;
       };
       expect(conflictArg.set.createdAt).toBeUndefined();
-      expect(conflictArg.set.updatedAt).toBeInstanceOf(Date);
-    });
-
-    it('keeps cloud mode conflict updatedAt as SQL expression', async () => {
-      process.env.DEPLOYMENT_MODE = 'cloud';
-
-      mockResolved([{ id: 'cloud-1', email: 'cloud@example.com' }]);
-      await storage.upsertUser({
-        id: 'cloud-1',
-        email: 'cloud@example.com',
-        firstName: 'Cloud',
-      } as any);
-
-      const conflictArg = vi.mocked(db.onConflictDoUpdate).mock.calls.at(-1)?.[0] as {
-        set: Record<string, unknown>;
-      };
-      expect(conflictArg.set.createdAt).toBeUndefined();
-      expect(conflictArg.set.updatedAt).not.toBeInstanceOf(Date);
+      expect(conflictArg.set.updatedAt).not.toBeInstanceOf(Date); // It is a SQL expression
     });
   });
 

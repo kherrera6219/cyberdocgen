@@ -681,7 +681,12 @@ async function validateWACK() {
   logger.info('✓ Windows packaging validation passed.');
 }
 
-validateWACK().catch(err => {
-  logger.error('Windows packaging validation error:', err);
-  process.exit(1);
-});
+validateWACK()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch(err => {
+    logger.error('Windows packaging validation error:', err);
+    process.exit(1);
+  });
+

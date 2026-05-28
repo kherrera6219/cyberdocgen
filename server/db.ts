@@ -13,7 +13,7 @@ import { createIntegrityEnvelope, verifyIntegrityEnvelope, type IntegrityEnvelop
 // Use getDb() for lazy-safe access during startup.
 type DbInstance = ReturnType<typeof drizzle<typeof schema>>;
 let _db: DbInstance | null = null;
-let pgInstance: PGlite | null = null;
+export let pgInstance: PGlite | null = null;
 let pgDataDir: string | null = null;
 
 // Proxy that satisfies `typeof db` for repository type signatures.
@@ -67,28 +67,103 @@ function getLocalDataDir(): string {
   return path.resolve(os.homedir(), '.cyberdocgen', 'pgdata');
 }
 
-async function initializePgliteConnection(): Promise<void> {
-  const dataDir = getLocalDataDir();
+let initPromise: Promise<void> | null = null;
 
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+/**
+ * Known PGlite WASM crash/corruption signatures.
+ * These indicate the on-disk data directory is unrecoverable and must be reset.
+ */
+function isCorruptionError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return (
+    msg.includes('Aborted()') ||
+    msg.includes('WASM') ||
+    msg.includes('abort') ||
+    msg.includes('RuntimeError') ||
+    msg.includes('memory access out of bounds') ||
+    msg.includes('unreachable') ||
+    msg.includes('invalid table size')
+  );
+}
+
+/**
+ * Rename the corrupted pgdata directory to a timestamped backup and return
+ * the fresh (now non-existent) data directory path so PGlite can reinitialize.
+ */
+function quarantineCorruptDataDir(dataDir: string): void {
+  try {
+    const ts = new Date()
+      .toISOString()
+      .replace(/[:.]/g, '-')
+      .replace('T', '_')
+      .slice(0, 19);
+    const quarantinePath = `${dataDir}.corrupt-${ts}`;
+    fs.renameSync(dataDir, quarantinePath);
+    logger.warn(
+      `[PGlite] Corrupt data directory quarantined to: ${quarantinePath}. ` +
+      'A fresh database will be created. All previously entered data has been reset.'
+    );
+  } catch (renameError) {
+    // If rename fails (e.g. cross-device), force-remove it
+    logger.error('[PGlite] Could not quarantine corrupt data directory; force-removing.', { error: renameError });
+    fs.rmSync(dataDir, { recursive: true, force: true });
+  }
+}
+
+async function initializePgliteConnection(): Promise<void> {
+  if (initPromise) {
+    return initPromise;
   }
 
-  logger.info(`Initializing PGlite at ${dataDir}`);
+  initPromise = (async () => {
+    const dataDir = getLocalDataDir();
 
-  const pg = new PGlite({
-    dataDir,
-    extensions: { vector },
-  });
+    // Attempt 1: Normal initialization
+    // Attempt 2: After quarantining a corrupt data directory
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
 
-  await pg.waitReady;
-  await pg.exec("CREATE EXTENSION IF NOT EXISTS vector;");
+      logger.info(`Initializing PGlite at ${dataDir}${attempt > 1 ? ' (fresh after corruption recovery)' : ''}`);
 
-  pgInstance = pg;
-  pgDataDir = dataDir;
-  _db = drizzle({ client: pg, schema });
+      try {
+        const pg = new PGlite({
+          dataDir,
+          extensions: { vector },
+        });
 
-  logger.info("[PGlite] Database ready with pgvector support");
+        await pg.waitReady;
+        await pg.exec("CREATE EXTENSION IF NOT EXISTS vector;");
+
+        pgInstance = pg;
+        pgDataDir = dataDir;
+        _db = drizzle({ client: pg, schema });
+
+        if (attempt > 1) {
+          logger.info("[PGlite] Successfully recovered from database corruption. Fresh database initialized.");
+        } else {
+          logger.info("[PGlite] Database ready with pgvector support");
+        }
+        return; // Success
+      } catch (error) {
+        if (attempt === 1 && isCorruptionError(error)) {
+          logger.error("[PGlite] WASM abort detected — database corruption confirmed. Attempting self-recovery...", { error });
+          // Reset state so we retry cleanly
+          initPromise = null;
+          pgInstance = null;
+          _db = null;
+          quarantineCorruptDataDir(dataDir);
+          // Continue to attempt 2
+        } else {
+          // Non-corruption error or second attempt failed — rethrow
+          throw error;
+        }
+      }
+    }
+  })();
+
+  return initPromise;
 }
 
 // Initialize on module load

@@ -71,6 +71,69 @@ export class LocalAuthBypassProvider implements IAuthProvider {
   async initialize(): Promise<void> {
     logger.debug('[LocalAuthBypassProvider] Auth bypass enabled for local mode');
     logger.debug('[LocalAuthBypassProvider] Using synthetic user: 1');
+    try {
+      const { storage } = await import('../../storage');
+      const adminUser = await storage.getUser(LOCAL_ADMIN_USER.id);
+      if (!adminUser) {
+        await storage.upsertUser({
+          id: LOCAL_ADMIN_USER.id,
+          email: LOCAL_ADMIN_USER.email,
+          firstName: LOCAL_ADMIN_USER.firstName,
+          lastName: LOCAL_ADMIN_USER.lastName,
+          profileImageUrl: null,
+        });
+        await storage.updateUser(LOCAL_ADMIN_USER.id, { role: 'admin' });
+        
+        // Ensure default organization exists
+        const orgs = await storage.getUserOrganizations(LOCAL_ADMIN_USER.id);
+        if (orgs.length === 0) {
+          const org = await storage.createOrganization({
+            name: LOCAL_TENANT.name,
+            slug: 'local-workspace',
+          });
+          await storage.addUserToOrganization({
+            userId: LOCAL_ADMIN_USER.id,
+            organizationId: org.id,
+            role: 'owner',
+          });
+        }
+        
+        // Seed some high-priority notifications representing the AI recommendations
+        const userNotifications = await storage.getNotifications(LOCAL_ADMIN_USER.id);
+        if (userNotifications.length === 0) {
+          await storage.createNotification({
+            userId: LOCAL_ADMIN_USER.id,
+            type: "ai",
+            title: "Access Control Procedures Missing",
+            message: "AI recommendation: Complete documented access control policy for ISO 27001 compliance (+8% score).",
+            link: "/workspace",
+            isRead: false,
+            metadata: {
+              severity: "high",
+              entityType: "framework",
+              entityId: "ISO27001",
+            }
+          });
+          await storage.createNotification({
+            userId: LOCAL_ADMIN_USER.id,
+            type: "security",
+            title: "Incident Response Plan Review Required",
+            message: "AI alert: Your incident response plan hasn't been reviewed in 6 months (+5% score).",
+            link: "/workspace",
+            isRead: false,
+            metadata: {
+              severity: "medium",
+              entityType: "document",
+            }
+          });
+          logger.info('[LocalAuthBypassProvider] Synthetic AI notifications provisioned');
+        }
+        
+        logger.info('[LocalAuthBypassProvider] Synthetic local admin user, organization, and notifications provisioned');
+      }
+    } catch (error) {
+      logger.warn('[LocalAuthBypassProvider] Failed to seed synthetic local admin user', { error });
+    }
   }
 }
 

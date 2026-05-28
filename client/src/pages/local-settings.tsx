@@ -278,42 +278,12 @@ export default function LocalSettingsPage() {
   });
 
   useEffect(() => {
-    if (!window.electronAPI) {
-      return undefined;
-    }
-
-    const unsubscribeBackup = window.electronAPI.onMenuBackupDatabase((destinationPath) => {
-      backupMutation.mutate(destinationPath);
-    });
-    const unsubscribeRestore = window.electronAPI.onMenuRestoreDatabase((backupPath) => {
-      if (confirm(`Restore database from "${backupPath}"? This will replace current data.`)) {
-        restoreMutation.mutate(backupPath);
-      }
-    });
-    const unsubscribeDatabaseInfo = window.electronAPI.onMenuDatabaseInfo(() => {
-      setActiveTab('database');
-    });
-
-    return () => {
-      unsubscribeBackup();
-      unsubscribeRestore();
-      unsubscribeDatabaseInfo();
-    };
+    // Desktop integration removed
   }, [backupMutation, restoreMutation]);
 
   const handleBackup = async () => {
     const timestamp = new Date().toISOString().split('T')[0];
     const defaultPath = `${dbInfo?.path}-backup-${timestamp}.db`;
-
-    if (window.electronAPI?.selectBackupDestination) {
-      const destinationPath = await window.electronAPI.selectBackupDestination(defaultPath);
-      if (!destinationPath) {
-        return;
-      }
-      backupMutation.mutate(destinationPath);
-      return;
-    }
-
     backupMutation.mutate(defaultPath);
   };
 
@@ -322,15 +292,6 @@ export default function LocalSettingsPage() {
       'Restore database from backup? This will overwrite your current local database and cannot be undone.'
     );
     if (!confirmed) {
-      return;
-    }
-
-    if (window.electronAPI?.selectRestoreSource) {
-      const backupPath = await window.electronAPI.selectRestoreSource();
-      if (!backupPath) {
-        return;
-      }
-      restoreMutation.mutate(backupPath);
       return;
     }
 

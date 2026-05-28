@@ -45,7 +45,7 @@ export default function EnterpriseLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginForm) => {
-      return apiRequest('/api/auth/enterprise/login', 'POST', {
+      return await apiRequest('/api/auth/enterprise/login', 'POST', {
         identifier: sanitizeSingleLineInput(data.identifier),
         password: data.password,
       });
@@ -100,8 +100,10 @@ export default function EnterpriseLogin() {
 
   if (requiresMFA) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+        {/* Background Mesh Gradients */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.08),transparent_40%),radial-gradient(circle_at_70%_60%,hsl(var(--accent)/0.06),transparent_40%)] pointer-events-none" />
+        <Card className="w-full max-w-md bg-card/60 backdrop-blur-xl border border-border/60 shadow-2xl relative z-10 transition-all duration-300 hover:border-primary/20">
           <CardHeader className="text-center">
             <h1 className="sr-only">Two-Factor Authentication Verification</h1>
             <div className="mx-auto w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-4">
@@ -156,8 +158,10 @@ export default function EnterpriseLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Background Mesh Gradients */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.08),transparent_40%),radial-gradient(circle_at_70%_60%,hsl(var(--accent)/0.06),transparent_40%)] pointer-events-none" />
+      <Card className="w-full max-w-md bg-card/60 backdrop-blur-xl border border-border/60 shadow-2xl relative z-10 transition-all duration-300 hover:border-primary/20">
         <CardHeader className="text-center">
           <h1 className="sr-only">Sign In to CyberDocGen</h1>
           <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">

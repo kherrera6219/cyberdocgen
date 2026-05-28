@@ -30,14 +30,46 @@ The backend is an enterprise-grade Node.js server built with Express and TypeScr
 - **Monitoring** - Health checks, metrics, structured logging
 
 ## Architecture
+# Server Backend Documentation
+
+This directory contains the Node.js/Express backend server for CyberDocGen.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Directory Structure](#directory-structure)
+- [Key Technologies](#key-technologies)
+- [API Routes](#api-routes)
+- [Services](#services)
+- [Middleware](#middleware)
+- [Database](#database)
+- [Security](#security)
+- [Development](#development)
+
+## Overview
+
+The backend is an enterprise-grade Node.js server built with Express and TypeScript. It provides RESTful APIs for compliance management, AI-powered document generation, authentication, and enterprise features.
+
+### Key Features
+
+- **RESTful API** - Comprehensive API endpoints for all features
+- **AI Integration** - OpenAI GPT-5.4, Anthropic Claude Sonnet 4.6, and Google Gemini 3.1 Pro Preview integration
+- **Enterprise Authentication** - Multi-factor authentication and session management
+- **Database Management** - PostgreSQL with Drizzle ORM
+- **Security** - Rate limiting, encryption, audit logging, threat detection
+- **Cloud Integration** - Google Cloud Storage, Google Drive, OneDrive
+- **Monitoring** - Health checks, metrics, structured logging
+
+## Architecture
 
 ### Technology Stack
 
 - **Node.js 20** - Runtime environment
 - **Express 4.21** - Web framework
 - **TypeScript 5.9** - Type safety
-- **PostgreSQL 16** - Primary database
-- **Drizzle ORM 0.39** - Database ORM
+- **Database** - Dual-engine: Embedded PGlite (WASM) for local, PostgreSQL 16 for server
+- **Drizzle ORM 0.39** - Database ORM with `pgvector`
 - **Passport.js** - Authentication middleware
 - **OpenID Connect** - Authentication protocol
 - **bcrypt** - Password hashing
@@ -275,211 +307,6 @@ GET    /api/admin/stats               System statistics
 ```
 
 See [OPENAPI.md](../docs/OPENAPI.md) for complete API documentation.
-
-## Services
-
-### AI Orchestrator (`aiOrchestrator.ts`)
-
-Multi-model AI orchestration with automatic fallback:
-
-```typescript
-import { generateWithAI } from './services/aiOrchestrator';
-
-const result = await generateWithAI({
-  prompt: 'Generate ISO 27001 policy',
-  framework: 'ISO27001',
-  preferredModel: 'gpt-5.4'
-});
-```
-
-**Features:**
-- Automatic model fallback (OpenAI → Anthropic → Google)
-- Retry logic with exponential backoff
-- Token usage tracking
-- Response validation
-
-### OpenAI Service (`openai.ts`)
-
-OpenAI GPT-5.4 integration:
-
-```typescript
-import { generateDocument } from './services/openai';
-
-const document = await generateDocument({
-  framework: 'ISO27001',
-  section: 'A.5.1',
-  companyInfo: { ... }
-});
-```
-
-### Anthropic Service (`anthropic.ts`)
-
-Anthropic Claude Sonnet 4.6 integration for complex reasoning:
-
-```typescript
-import { analyzeCompliance } from './services/anthropic';
-
-const analysis = await analyzeCompliance({
-  document: content,
-  framework: 'SOC2'
-});
-```
-
-### Document Generation (`documentGeneration.ts`)
-
-Document generation pipeline:
-
-```typescript
-import { generateComplianceDocument } from './services/documentGeneration';
-
-const job = await generateComplianceDocument({
-  framework: 'ISO27001',
-  sections: ['all'],
-  organizationId: orgId
-});
-```
-
-### Compliance Gap Analysis (`complianceGapAnalysis.ts`)
-
-Gap analysis service:
-
-```typescript
-import { performGapAnalysis } from './services/complianceGapAnalysis';
-
-const gaps = await performGapAnalysis({
-  framework: 'SOC2',
-  existingControls: [...],
-  companyProfile: { ... }
-});
-```
-
-### Audit Service (`auditService.ts`)
-
-Comprehensive audit logging:
-
-```typescript
-import { logAuditEvent } from './services/auditService';
-
-await logAuditEvent({
-  action: 'DOCUMENT_UPDATED',
-  userId: user.id,
-  resourceType: 'document',
-  resourceId: docId,
-  metadata: { changes: [...] }
-});
-```
-
-### Encryption Service (`encryption.ts`)
-
-Data encryption for sensitive information:
-
-```typescript
-import { encrypt, decrypt } from './services/encryption';
-
-const encrypted = await encrypt(sensitiveData);
-const decrypted = await decrypt(encrypted);
-```
-
-### MFA Service (`mfaService.ts`)
-
-Multi-factor authentication:
-
-```typescript
-import { generateMFASecret, verifyMFAToken } from './services/mfaService';
-
-const secret = generateMFASecret();
-const isValid = verifyMFAToken(secret, token);
-```
-
-### Performance Service (`performanceService.ts`)
-
-Performance tracking and metrics:
-
-```typescript
-import { trackPerformance } from './services/performanceService';
-
-await trackPerformance('document_generation', duration, {
-  framework: 'ISO27001',
-  model: 'gpt-5.4'
-});
-```
-
-## Middleware
-
-### Security Middleware (`middleware/security.ts`)
-
-Comprehensive security measures:
-
-```typescript
-import { setupSecurity } from './middleware/security';
-
-setupSecurity(app);
-```
-
-**Features:**
-- Rate limiting (configurable)
-- Helmet security headers
-- CORS configuration
-- XSS protection
-- Input sanitization
-- DDoS protection
-
-### Authentication Middleware
-
-```typescript
-function requireAuth(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  next();
-}
-
-app.get('/api/protected', requireAuth, handler);
-```
-
-### MFA Middleware (`middleware/mfa.ts`)
-
-MFA enforcement:
-
-```typescript
-import { requireMFA } from './middleware/mfa';
-
-app.get('/api/sensitive', requireAuth, requireMFA, handler);
-```
-
-### Validation Middleware (`middleware/routeValidation.ts`)
-
-Request validation:
-
-```typescript
-import { validateRequest } from './middleware/routeValidation';
-
-app.post('/api/documents',
-  validateRequest(documentSchema),
-  handler
-);
-```
-
-## Database
-
-### Connection (`db.ts`)
-
-PostgreSQL connection with pooling:
-
-```typescript
-import { Pool } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL!
-});
-
-export const db = drizzle(pool);
-```
-
-### Schema (`../shared/schema.ts`)
-
-Database schema with 15+ tables:
 
 - `users` - User accounts
 - `organizations` - Organizations

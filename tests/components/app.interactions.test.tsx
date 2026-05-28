@@ -21,6 +21,7 @@ vi.mock("wouter", () => ({
     <div data-testid={`route-${path ?? "fallback"}`}>{children}</div>
   ),
   useParams: () => ({ id: "doc-1" }),
+  useLocation: () => ["/", vi.fn()],
 }));
 
 describe("App routing shell", () => {
@@ -33,7 +34,7 @@ describe("App routing shell", () => {
     authState.isLoading = true;
 
     renderWithProviders(<App />);
-    expect(screen.getByText(/loading\.\.\./i)).toBeInTheDocument();
+    expect(screen.getByTestId("dashboard-skeleton")).toBeInTheDocument();
   });
 
   it("renders public shell when user is not authenticated", () => {

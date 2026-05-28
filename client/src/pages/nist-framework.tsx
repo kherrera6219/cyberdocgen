@@ -72,7 +72,8 @@ export default function NISTFramework() {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch evidence');
-      return response.json();
+      const json = await response.json();
+      return json.data ?? json;
     },
   });
 

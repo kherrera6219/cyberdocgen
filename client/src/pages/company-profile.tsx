@@ -281,11 +281,9 @@ export default function CompanyProfile() {
   const saveProfileMutation = useMutation({
     mutationFn: async (data: InsertCompanyProfile) => {
       if (profile) {
-        const response = await apiRequest("PUT", `/api/company-profiles/${profile.id}`, data);
-        return response.json();
+        return await apiRequest("PUT", `/api/company-profiles/${profile.id}`, data);
       } else {
-        const response = await apiRequest("POST", "/api/company-profiles", data);
-        return response.json();
+        return await apiRequest("POST", "/api/company-profiles", data);
       }
     },
     onSuccess: () => {

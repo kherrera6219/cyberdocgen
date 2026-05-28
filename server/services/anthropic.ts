@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { type CompanyProfile } from "@shared/schema";
+import { type CompanyProfile, type RepositoryFinding } from "@shared/schema";
 import { logger } from "../utils/logger";
 import { getAnthropicClient } from "./aiClients";
 
@@ -26,7 +26,8 @@ export interface DocumentTemplate {
 export async function generateDocumentWithClaude(
   template: DocumentTemplate,
   companyProfile: CompanyProfile,
-  framework: string
+  framework: string,
+  repositoryFindings?: RepositoryFinding[]
 ): Promise<string> {
   const systemPrompt = `You are a cybersecurity compliance expert specializing in ${framework}. Generate comprehensive, professional compliance documentation that meets industry standards and regulatory requirements.
 
@@ -38,6 +39,15 @@ The document should be:
 - Include measurable objectives, controls, and success criteria
 - Contain specific timelines and responsible parties
 - Address modern cybersecurity challenges and cloud environments
+
+The document must comply with ${framework} standards and include specific, actionable guidance that ${companyProfile.companyName} can implement immediately.
+Ensure all variables are properly filled out, using markdown formatting for headers, lists, and tables.
+
+${repositoryFindings && repositoryFindings.length > 0 ? `
+CRITICAL CODEBASE TELEMETRY CONTEXT:
+The following findings were extracted directly from the company's codebase. You MUST incorporate these specific technical realities into the document where relevant. Do not invent generic examples if actual telemetry is provided here:
+${repositoryFindings.map(f => `- [${f.controlId}]: ${f.summary} (Confidence: ${f.confidenceLevel})\n  Details: ${f.details ? JSON.stringify(f.details) : 'None'}`).join('\n')}
+` : ''}
 
 Company Profile Context:
 - Company: ${companyProfile.companyName}

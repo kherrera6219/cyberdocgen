@@ -12,7 +12,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorCard } from "@/components/ui/loading-error-states";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { logger } from '../utils/logger';
-import { Layers } from "lucide-react";
+import { Layers, CheckCircle2, Sparkles } from "lucide-react";
 import type { Document, DocumentApproval, GenerationJob } from "@shared/schema";
 
 // Sub-components
@@ -308,6 +308,109 @@ export default function Dashboard() {
         nextApprovalDeadline={nextApprovalDeadline}
       />
 
+      {/* Onboarding Wizard / Getting Started Checklist */}
+      {completedDocs === 0 && (
+        <Card className="border border-blue-500/20 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 shadow-md">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">Getting Started Checklist</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Complete these initial steps to assess risk and secure your compliance posture</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+              {/* Step 1 */}
+              <div className={`p-4 rounded-xl border transition-all duration-300 flex flex-col justify-between space-y-3 ${
+                profile 
+                  ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-900 dark:text-emerald-300"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+              }`}>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Step 1</span>
+                    {profile ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600" />}
+                  </div>
+                  <h3 className="font-bold text-sm mt-2 text-gray-900 dark:text-white">Company Profile</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Configure company baseline info & extraction.</p>
+                </div>
+                {!profile && (
+                  <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => setLocation("/profile")}>
+                    Configure Profile
+                  </Button>
+                )}
+              </div>
+
+              {/* Step 2 */}
+              <div className={`p-4 rounded-xl border transition-all duration-300 flex flex-col justify-between space-y-3 ${
+                activeFrameworks > 0
+                  ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-900 dark:text-emerald-300"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+              }`}>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Step 2</span>
+                    {activeFrameworks > 0 ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600" />}
+                  </div>
+                  <h3 className="font-bold text-sm mt-2 text-gray-900 dark:text-white">Active Frameworks</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select and configure your active frameworks.</p>
+                </div>
+                {activeFrameworks === 0 && (
+                  <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => {
+                    const el = document.getElementById("ai-generation-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}>
+                    Select Frameworks
+                  </Button>
+                )}
+              </div>
+
+              {/* Step 3 */}
+              <div className="p-4 rounded-xl border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 transition-all duration-300 flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Step 3</span>
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+                  </div>
+                  <h3 className="font-bold text-sm mt-2 text-gray-900 dark:text-white">Evidence Sources</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Configure GRC evidence connectors & file uploads.</p>
+                </div>
+                <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => setLocation("/connectors")}>
+                  Setup Connectors
+                </Button>
+              </div>
+
+              {/* Step 4 */}
+              <div className={`p-4 rounded-xl border transition-all duration-300 flex flex-col justify-between space-y-3 ${
+                completedDocs > 0
+                  ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-900 dark:text-emerald-300"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+              }`}>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Step 4</span>
+                    {completedDocs > 0 ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <div className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600" />}
+                  </div>
+                  <h3 className="font-bold text-sm mt-2 text-gray-900 dark:text-white">Document Compliance</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Generate legally compliant GRC document artifacts.</p>
+                </div>
+                {completedDocs === 0 && (
+                  <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => {
+                    const el = document.getElementById("ai-generation-section");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}>
+                    Generate Documents
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* AI Insights Dashboard wrapped with ErrorBoundary and Suspense for code-splitting */}
       <ErrorBoundary
         fallback={
@@ -338,6 +441,7 @@ export default function Dashboard() {
           <AIInsightsDashboard 
             companyProfile={profile ? { industry: profile.industry, companySize: profile.companySize } : undefined}
             documentsCount={completedDocs}
+            totalDocumentsCount={documents.length}
             frameworksActive={activeFrameworks}
             onViewDetails={() => setLocation("/gap-analysis")}
           />
@@ -416,17 +520,19 @@ export default function Dashboard() {
         onEdit={() => {}} // No edit action defined in original except maybe navigation? Original button had no onClick.
       />
 
-      <FrameworkGenerationCards 
-        profile={profile}
-        iso27001Progress={iso27001Progress}
-        soc2Progress={soc2Progress}
-        isGenerating={isGenerating}
-        onGenerate={handleGenerateDocuments}
-        onPreview={(framework) => {
-          setPreviewFramework(framework);
-          setShowPreview(true);
-        }}
-      />
+      <div id="ai-generation-section">
+        <FrameworkGenerationCards 
+          profile={profile}
+          iso27001Progress={iso27001Progress}
+          soc2Progress={soc2Progress}
+          isGenerating={isGenerating}
+          onGenerate={handleGenerateDocuments}
+          onPreview={(framework) => {
+            setPreviewFramework(framework);
+            setShowPreview(true);
+          }}
+        />
+      </div>
 
       {/* Recent Documents and Activity Feed Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

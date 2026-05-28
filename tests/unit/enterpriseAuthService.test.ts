@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EnterpriseAuthService } from '../../server/services/enterpriseAuthService';
 import { db } from '../../server/db';
 import { users, emailVerificationTokens, passwordResetTokens, mfaSettings, passkeyCredentials } from '@shared/schema';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { encryptionService, DataClassification } from '../../server/services/encryption';
 import { auditService, AuditAction, RiskLevel } from '../../server/services/auditService';
@@ -36,7 +36,7 @@ vi.mock('../../server/db', () => ({
   }
 }));
 
-vi.mock('bcrypt', () => ({
+vi.mock('bcryptjs', () => ({
   default: {
     hash: vi.fn(() => Promise.resolve('hashed-password')),
     compare: vi.fn(() => Promise.resolve(true)),

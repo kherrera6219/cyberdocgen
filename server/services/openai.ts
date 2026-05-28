@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { logger } from "../utils/logger";
-import { type CompanyProfile } from "@shared/schema";
+import { type CompanyProfile, type RepositoryFinding } from "@shared/schema";
 import { getOpenAIClient } from "./aiClients";
 import { AllDocumentTemplates, type DocumentTemplate } from "./documentTemplates";
 
@@ -14,7 +14,8 @@ const frameworkTemplateMap = new Map(Object.entries(frameworkTemplates));
 export async function generateDocument(
   template: DocumentTemplate,
   companyProfile: CompanyProfile,
-  framework: string
+  framework: string,
+  repositoryFindings?: RepositoryFinding[]
 ): Promise<string> {
   const systemPrompt = `You are a cybersecurity compliance expert specializing in ${framework}. Generate comprehensive, professional compliance documentation that meets industry standards and regulatory requirements.
 
@@ -61,7 +62,13 @@ This document should be tailored specifically for:
 
 The document must comply with ${framework} standards and include specific, actionable guidance that ${companyProfile.companyName} can implement immediately.
 
-Make the document practical and implementable, with specific controls, procedures, and measurable objectives that align with ${framework} requirements.`;
+Make the document practical and implementable, with specific controls, procedures, and measurable objectives that align with ${framework} requirements.
+${repositoryFindings && repositoryFindings.length > 0 ? `
+CRITICAL CODEBASE TELEMETRY CONTEXT:
+The following findings were extracted directly from the company's codebase. You MUST incorporate these specific technical realities into the document where relevant. Do not invent generic examples if actual telemetry is provided here:
+${repositoryFindings.map(f => `- [${f.controlId}]: ${f.summary} (Confidence: ${f.confidenceLevel})\n  Details: ${f.details ? JSON.stringify(f.details) : 'None'}`).join('\n')}
+` : ''}
+`;
 
   try {
     const response = await getOpenAIClient().chat.completions.create({

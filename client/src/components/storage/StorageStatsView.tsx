@@ -2,7 +2,9 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export interface StorageStatsData {
   totalFiles: number;
@@ -34,7 +36,27 @@ export function StorageStatsView({ stats, isLoading, detailed = false }: Storage
   }
 
   if (!stats) {
-    return <p className="text-sm text-muted-foreground">No data available</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-6 text-center space-y-4" data-testid="storage-unconfigured-container">
+        <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center shadow-sm">
+          <AlertCircle className="w-6 h-6 animate-pulse" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Storage Not Configured</h3>
+          <p className="text-xs text-muted-foreground max-w-[240px]">
+            The object storage service is currently unavailable or unconfigured in your local settings.
+          </p>
+        </div>
+        <Button 
+          asChild
+          size="sm" 
+          variant="outline" 
+          className="w-full text-xs font-semibold hover:bg-amber-500/10 transition-colors h-9"
+        >
+          <Link href="/local-settings">Configure Storage</Link>
+        </Button>
+      </div>
+    );
   }
 
   if (detailed) {

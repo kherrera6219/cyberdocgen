@@ -387,10 +387,10 @@ Policy Documents → Chunking (512 tokens, 64 overlap)
 
 | Framework | Version | Coverage |
 |---|---|---|
-| **ISO 27001:2022** | Annex A (93 controls) | Full — all 4 domains, 11 clauses |
-| **SOC 2** | TSC 2017 + 2022 | CC1–CC9 + Availability, Confidentiality, Privacy |
+| **ISO 27001:2022** | Modernized | Full — all 4 themes (Organizational, People, Physical, Technological) |
+| **SOC 2** | Type II Expanded | CC1–CC9 + Availability, Confidentiality, Processing Integrity, and Privacy |
 | **FedRAMP** | Moderate baseline | NIST 800-53 Rev. 5 subset (325 controls) |
-| **NIST 800-53** | Rev. 5 | All 20 control families |
+| **NIST CSF** | 2.0 (Operational Core) | Govern, Identify, Protect, Detect, Respond, Recover |
 
 ### Document Types Generated
 
@@ -686,14 +686,14 @@ See [docs/ENVIRONMENT_SETUP.md](docs/ENVIRONMENT_SETUP.md) for the complete refe
 
 ## Roadmap
 
-CyberDocGen follows a 4-phase development plan. See [docs/GRC_PHASED_UPDATE_PLAN.md](docs/GRC_PHASED_UPDATE_PLAN.md) for full details.
+CyberDocGen follows a 4-phase development plan. See [future_roadmap.md](future_roadmap.md) for full details on upcoming visionary capabilities.
 
 | Phase | Status | Key Deliverables |
 |---|---|---|
-| **Phase 1: Personnel, Local Privacy, Identity Sync & Agent Foundations** | ✅ Complete | Personnel portal, policy acknowledgments, local DB, RBAC, agent state store, AI guardrails, MCP tools |
-| **Phase 2: Risk Register, Live Controls, Local Network & AI Policy Sync** | ✅ Complete | Interactive risk register, compliance maturity tracking, local network settings (bind/TLS), AI policy sync, control approvals, auditor workspace |
-| **Phase 3: AI Questionnaire Solver, Vendor GRC, LDAP & Autonomous PRs** | ✅ Complete | AI questionnaire solver (RAG), vendor inventory + risk scoring, LDAP/AD authentication, autonomous PR generation, agent tool audit ledger |
-| **Phase 4: Vision Auditing, Gated Trust Centers & AI Auditor Twins** | ✅ Complete | Computer vision evidence extraction, gated public trust center, dynamic watermarking/encryption, AI auditor twin agents, compliance telemetry engine |
+| **Phase 1: Foundation & Framework Modernization** | ✅ Complete | Local SQLite/PGlite databases, AI Memory Embeddings, Premium Enterprise UI, ISO 27001:2022, SOC 2 Expansion, and NIST CSF 2.0 Integration |
+| **Phase 2: Visionary AI-Native Workflows** | 🔄 Next | Autonomous Remediation PR Creators, Multi-Model "AI Consensus" Document Generation |
+| **Phase 3: Enterprise On-Premises Administration** | 📅 Future | LDAP/AD Integration, Local Network Bindings/TLS, Cryptographic Key Rotation & Master Passwords |
+| **Phase 4: Release & DevOps Hardening** | 📅 Future | Authenticode EV Code Signing, Diagnostic Support Bundler |
 
 ---
 

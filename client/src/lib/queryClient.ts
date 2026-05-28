@@ -254,7 +254,11 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    const parsedData = await res.json();
+    if (parsedData && typeof parsedData === 'object' && parsedData.success === true && 'data' in parsedData) {
+      return parsedData.data;
+    }
+    return parsedData;
   };
 
 export const queryClient = new QueryClient({

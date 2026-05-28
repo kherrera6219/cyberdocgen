@@ -83,8 +83,7 @@ export default function TrustCenter() {
   // Mutations
   const verifyNdaMutation = useMutation({
     mutationFn: async (email: string) => {
-      const response = await apiRequest("POST", "/api/trust-center/check-nda", { email });
-      return response.json() as Promise<NdaCheckResponse>;
+      return await apiRequest("POST", "/api/trust-center/check-nda", { email }) as Promise<NdaCheckResponse>;
     },
     onSuccess: (data) => {
       if (data.signed && data.nda) {
@@ -107,8 +106,7 @@ export default function TrustCenter() {
 
   const signNdaMutation = useMutation({
     mutationFn: async (payload: { fullName: string; email: string; companyName: string }) => {
-      const response = await apiRequest("POST", "/api/trust-center/sign", payload);
-      return response.json();
+      return await apiRequest("POST", "/api/trust-center/sign", payload);
     },
     onSuccess: (res) => {
       setActiveNda(res.data);
@@ -230,7 +228,7 @@ export default function TrustCenter() {
 
       {/* Trust Badges Showcase */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-b from-card to-background border-muted-foreground/10 shadow-lg">
+        <Card className="bg-card/45 backdrop-blur-md border border-border/40 shadow-lg hover:shadow-xl hover:border-blue-500/30 transition-all duration-300">
           <CardHeader className="flex flex-row items-center gap-4 pb-2">
             <div className="p-3 rounded-xl bg-blue-500/10 text-blue-500">
               <ShieldCheck className="w-6 h-6" />
@@ -245,7 +243,7 @@ export default function TrustCenter() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-b from-card to-background border-muted-foreground/10 shadow-lg">
+        <Card className="bg-card/45 backdrop-blur-md border border-border/40 shadow-lg hover:shadow-xl hover:border-purple-500/30 transition-all duration-300">
           <CardHeader className="flex flex-row items-center gap-4 pb-2">
             <div className="p-3 rounded-xl bg-purple-500/10 text-purple-500">
               <Globe className="w-6 h-6" />
@@ -260,7 +258,7 @@ export default function TrustCenter() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-b from-card to-background border-muted-foreground/10 shadow-lg">
+        <Card className="bg-card/45 backdrop-blur-md border border-border/40 shadow-lg hover:shadow-xl hover:border-emerald-500/30 transition-all duration-300">
           <CardHeader className="flex flex-row items-center gap-4 pb-2">
             <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500">
               <Key className="w-6 h-6" />
@@ -308,7 +306,7 @@ export default function TrustCenter() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {allDocuments.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-4 rounded-xl border border-muted-foreground/10 bg-muted/10 hover:bg-muted/20 transition-all duration-200 shadow-sm">
+                    <div key={doc.id} className="flex items-center justify-between p-4 rounded-xl border border-border/40 bg-card/45 backdrop-blur-sm hover:bg-muted/10 transition-all duration-200 shadow-sm hover:border-primary/25">
                       <div className="space-y-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{doc.name}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">

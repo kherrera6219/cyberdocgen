@@ -9,6 +9,7 @@ import {
   NotFoundError
 } from '../utils/errorHandling';
 import { type MultiTenantRequest, requireOrganization } from '../middleware/multiTenant';
+import { complianceGapAnalysisService } from '../services/complianceGapAnalysis';
 
 export function registerGapAnalysisRoutes(router: Router) {
   /**
@@ -172,124 +173,89 @@ export function registerGapAnalysisRoutes(router: Router) {
     // Background processing
     setTimeout(() => {
       (async () => {
-      try {
-        const mockFindings = [
-          {
-            reportId: report.id,
-            controlId: 'A.5.1',
-            controlTitle: 'Information security policies',
-            currentStatus: 'partially_implemented' as const,
-            riskLevel: 'high' as const,
-            gapDescription: 'Information security policy exists but lacks comprehensive coverage of cloud services and remote work arrangements.',
-            businessImpact: 'Moderate risk of security incidents due to unclear guidelines for cloud service usage and remote access.',
-            evidenceRequired: 'Updated policy documents, training records, and compliance attestations',
-            complianceScore: 65,
-            priority: 4,
-            estimatedEffort: 'medium' as const
-          },
-          {
-            reportId: report.id,
-            controlId: 'A.8.1',
-            controlTitle: 'Asset inventory',
-            currentStatus: 'not_implemented' as const,
-            riskLevel: 'critical' as const,
-            gapDescription: 'No comprehensive asset inventory system in place. IT assets are tracked informally.',
-            businessImpact: 'High risk of unauthorized access, data loss, and compliance violations due to unknown asset exposure.',
-            evidenceRequired: 'Asset management system, asset register, and ownership documentation',
-            complianceScore: 25,
-            priority: 5,
-            estimatedEffort: 'high' as const
-          },
-          {
-            reportId: report.id,
-            controlId: 'A.12.1',
-            controlTitle: 'Secure development lifecycle',
-            currentStatus: 'implemented' as const,
-            riskLevel: 'medium' as const,
-            gapDescription: 'Development practices include security reviews but lack automated security testing.',
-            businessImpact: 'Low to moderate risk of security vulnerabilities in applications.',
-            evidenceRequired: 'SDLC documentation, security testing reports, and code review records',
-            complianceScore: 80,
-            priority: 3,
-            estimatedEffort: 'medium' as const
-          }
-        ];
+        try {
+          const profile = companyProfiles[0];
+          const result = await complianceGapAnalysisService.analyzeComplianceGaps(
+            organizationId,
+            profile,
+            {
+              framework,
+              includeMaturityAssessment: !!includeMaturityAssessment,
+              focusAreas: focusAreas || []
+            }
+          );
 
-        for (const findingData of mockFindings) {
-          const finding = await storage.createGapAnalysisFinding(findingData);
-          
-          if (findingData.priority >= 4) {
-            await storage.createRemediationRecommendation({
-              findingId: finding.id,
-              title: `Implement ${findingData.controlTitle}`,
-              description: `Address the identified gaps in ${findingData.controlTitle} to improve compliance posture.`,
-              implementation: 'Develop comprehensive implementation plan with stakeholder engagement and phased rollout.',
-              resources: {
-                templates: ['Policy template', 'Implementation checklist'],
-                tools: ['Asset management system', 'Compliance tracking tool'],
-                references: ['ISO 27001 guidance', 'Industry best practices']
-              },
-              timeframe: findingData.estimatedEffort === 'high' ? 'long_term' : 'medium_term',
-              cost: findingData.estimatedEffort,
+          // Save findings and recommendations in the database
+          for (const findingData of result.findings) {
+            const finding = await storage.createGapAnalysisFinding({
+              reportId: report.id,
+              controlId: findingData.controlId,
+              controlTitle: findingData.controlTitle,
+              currentStatus: findingData.currentStatus,
+              riskLevel: findingData.riskLevel,
+              gapDescription: findingData.gapDescription,
+              businessImpact: findingData.businessImpact,
+              evidenceRequired: findingData.evidenceRequired || 'Documentation and evidence of implementation',
+              complianceScore: findingData.complianceScore,
               priority: findingData.priority,
-              status: 'pending'
+              estimatedEffort: findingData.estimatedEffort
+            });
+            
+            // Save associated recommendations
+            const associatedRecs = result.recommendations.filter(r => r.findingId === findingData.id || r.findingId === '');
+            for (const rec of associatedRecs) {
+              await storage.createRemediationRecommendation({
+                findingId: finding.id,
+                title: rec.title,
+                description: rec.description,
+                implementation: rec.implementation,
+                resources: rec.resources,
+                timeframe: rec.timeframe,
+                cost: rec.cost,
+                priority: rec.priority,
+                status: 'pending',
+                assignedTo: null,
+                dueDate: null,
+                completedDate: null
+              });
+            }
+          }
+
+          // Update report to complete with overall score
+          await storage.updateGapAnalysisReport(report.id, {
+            status: 'completed',
+            overallScore: result.report.overallScore ?? 0,
+            metadata: result.report.metadata
+          });
+
+          // Save maturity assessment if generated
+          if (includeMaturityAssessment && result.maturityAssessment) {
+            await storage.createComplianceMaturityAssessment({
+              organizationId,
+              framework: result.maturityAssessment.framework,
+              maturityLevel: result.maturityAssessment.maturityLevel,
+              assessmentData: result.maturityAssessment.assessmentData,
+              recommendations: result.maturityAssessment.recommendations,
+              nextReviewDate: result.maturityAssessment.nextReviewDate
+            });
+          }
+
+          logger.info('Gap analysis completed dynamically', { reportId: report.id, overallScore: result.report.overallScore });
+        } catch (error) {
+          logger.error("Error in gap analysis background processing", { 
+            reportId: report.id,
+            error: error instanceof Error ? error.message : String(error)
+          });
+          
+          try {
+            await storage.updateGapAnalysisReport(report.id, { status: 'failed' });
+          } catch (updateError) {
+            logger.error("Failed to mark gap analysis report as failed", {
+              reportId: report.id,
+              error: updateError instanceof Error ? updateError.message : String(updateError)
             });
           }
         }
-
-        const overallScore = Math.round(
-          mockFindings.reduce((sum, f) => sum + f.complianceScore, 0) / mockFindings.length
-        );
-
-        await storage.updateGapAnalysisReport(report.id, {
-          status: 'completed',
-          overallScore
-        });
-
-        if (includeMaturityAssessment) {
-          await storage.createComplianceMaturityAssessment({
-            organizationId,
-            framework,
-            maturityLevel: 3,
-            assessmentData: {
-              maturityLabel: 'Defined',
-              averageScore: overallScore,
-              controlsAssessed: mockFindings.length,
-              implementationBreakdown: {
-                notImplemented: mockFindings.filter(f => f.currentStatus === 'not_implemented').length,
-                partiallyImplemented: mockFindings.filter(f => f.currentStatus === 'partially_implemented').length,
-                implemented: mockFindings.filter(f => f.currentStatus === 'implemented').length
-              }
-            },
-            recommendations: {
-              nextSteps: [
-                'Focus on critical and high-risk findings first',
-                'Establish formal documentation processes',
-                'Implement regular review and monitoring procedures'
-              ],
-              improvementAreas: mockFindings
-                .filter(f => f.riskLevel === 'critical' || f.riskLevel === 'high')
-                .map(f => f.controlTitle)
-            }
-          });
-        }
-
-        logger.info('Gap analysis completed', { reportId: report.id, overallScore });
-      } catch (error) {
-        logger.error("Error in gap analysis background processing", { 
-          reportId: report.id,
-          error: error instanceof Error ? error.message : String(error)
-        });
-        
-        try {
-          await storage.updateGapAnalysisReport(report.id, { status: 'failed' });
-        } catch (updateError) {
-          logger.error("Failed to mark gap analysis report as failed", {
-            reportId: report.id,
-            error: updateError instanceof Error ? updateError.message : String(updateError)
-          });
-        }
-      }
       })().catch((fatalError) => {
         logger.error("Gap analysis background task fatal error", {
           reportId: report.id,

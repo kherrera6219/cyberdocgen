@@ -407,11 +407,18 @@ const runDiskCheck = async () => {
 };
 
 // Start the check on server startup after a small delay
-setTimeout(() => {
+const startupTimeout = setTimeout(() => {
   runDiskCheck().catch(err => console.error('Failed to run startup disk check:', err));
 }, 5000);
+if (typeof startupTimeout.unref === 'function') {
+  startupTimeout.unref();
+}
 
 // Poll every 5 minutes
-setInterval(() => {
+const pollingInterval = setInterval(() => {
   runDiskCheck().catch(err => console.error('Failed to run polling disk check:', err));
 }, 5 * 60 * 1000);
+if (typeof pollingInterval.unref === 'function') {
+  pollingInterval.unref();
+}
+

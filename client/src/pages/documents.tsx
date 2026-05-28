@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { EmptyStateCard } from "@/components/ui/loading-error-states";
 import type { Document } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
@@ -217,26 +218,20 @@ export default function Documents() {
 
         <CardContent className="p-0">
           {filteredDocuments.length === 0 ? (
-            <div className="px-4 sm:px-6 py-16 flex flex-col items-center justify-center text-center">
-              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                <FolderOpen className="w-10 h-10 text-primary/60" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                {documents.length === 0 ? "No documents yet" : "No matching documents"}
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-                {documents.length === 0 
+            <EmptyStateCard
+              className="border-0 shadow-none bg-transparent"
+              icon={<FolderOpen className="w-6 h-6 text-primary/60" />}
+              title={documents.length === 0 ? "No documents yet" : "No matching documents"}
+              message={
+                documents.length === 0 
                   ? "Start building your compliance foundation by generating documents or uploading existing ones."
                   : "Try adjusting your search terms or filters to find what you're looking for."
-                }
-              </p>
-              {documents.length === 0 && (
-                <Button onClick={() => window.location.href = '/'}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Generate Documents
-                </Button>
-              )}
-            </div>
+              }
+              action={documents.length === 0 ? {
+                label: "Generate Documents",
+                onClick: () => window.location.href = '/'
+              } : undefined}
+            />
           ) : (
             <>
               {/* Mobile Card View */}

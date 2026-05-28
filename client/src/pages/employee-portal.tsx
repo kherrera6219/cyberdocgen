@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ShieldCheck, FileText, Sparkles, CheckSquare, Award, Clock, Copy, Check } from "lucide-react";
 import type { Document } from "@shared/schema";
+import { useLocation } from "wouter";
 
 interface PolicyAcknowledgment {
   id: string;
@@ -23,6 +24,7 @@ interface PolicyAcknowledgment {
 
 export default function EmployeePortal() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -188,49 +190,68 @@ export default function EmployeePortal() {
             <FileText className="w-4 h-4 text-blue-500" /> Active Policies Directory
           </h2>
           <div className="space-y-3 overflow-y-auto max-h-[70vh] pr-2">
-            {documents.map((doc) => {
-              const isSigned = acknowledgments.some(ack => ack.documentId === doc.id);
-              const isSelected = doc.id === selectedDocId;
-
-              return (
-                <Card 
-                  key={doc.id}
-                  onClick={() => {
-                    setSelectedDocId(doc.id);
-                    setAgreed(false);
-                    setFullName("");
-                  }}
-                  className={`cursor-pointer transition-all border duration-200 hover:shadow-md hover:scale-[1.01] ${
-                    isSelected 
-                      ? "border-blue-500 bg-gradient-to-br from-blue-50/50 to-indigo-50/20 dark:from-blue-950/20 dark:to-slate-900" 
-                      : "border-gray-200 dark:border-gray-800 dark:bg-slate-900"
-                  }`}
+            {documents.length === 0 ? (
+              <div className="text-center p-6 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl space-y-4 bg-white dark:bg-slate-900 shadow-sm" data-testid="empty-policies-directory">
+                <FileText className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto animate-pulse" />
+                <div className="space-y-1">
+                  <h3 className="font-bold text-sm text-gray-900 dark:text-white">No Policies Published</h3>
+                  <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                    There are no compliance policies generated in your workspace yet. Please create or import compliance documents first.
+                  </p>
+                </div>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-sm transition-all rounded-lg"
+                  onClick={() => setLocation("/")}
                 >
-                  <CardContent className="p-4 flex items-center justify-between gap-4">
-                    <div className="space-y-1 min-w-0">
-                      <h3 className="font-semibold text-sm text-gray-900 dark:text-white truncate">{doc.title}</h3>
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <span className="font-medium px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-850 text-gray-600 dark:text-gray-400">
-                          {doc.framework}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {new Date(doc.updatedAt).toLocaleDateString()}
-                        </span>
+                  Go to Dashboard
+                </Button>
+              </div>
+            ) : (
+              documents.map((doc) => {
+                const isSigned = acknowledgments.some(ack => ack.documentId === doc.id);
+                const isSelected = doc.id === selectedDocId;
+
+                return (
+                  <Card 
+                    key={doc.id}
+                    onClick={() => {
+                      setSelectedDocId(doc.id);
+                      setAgreed(false);
+                      setFullName("");
+                    }}
+                    className={`cursor-pointer transition-all border duration-200 hover:shadow-md hover:scale-[1.01] ${
+                      isSelected 
+                        ? "border-blue-500 bg-gradient-to-br from-blue-50/50 to-indigo-50/20 dark:from-blue-950/20 dark:to-slate-900" 
+                        : "border-gray-200 dark:border-gray-800 dark:bg-slate-900"
+                    }`}
+                  >
+                    <CardContent className="p-4 flex items-center justify-between gap-4">
+                      <div className="space-y-1 min-w-0">
+                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white truncate">{doc.title}</h3>
+                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                          <span className="font-medium px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-850 text-gray-600 dark:text-gray-400">
+                            {doc.framework}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {new Date(doc.updatedAt).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    {isSigned ? (
-                      <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400">
-                        <Check className="w-4 h-4" />
-                      </span>
-                    ) : (
-                      <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400 text-xs font-bold">
-                        !
-                      </span>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+                      {isSigned ? (
+                        <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400">
+                          <Check className="w-4 h-4" />
+                        </span>
+                      ) : (
+                        <span className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400 text-xs font-bold">
+                          !
+                        </span>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
           </div>
         </div>
 

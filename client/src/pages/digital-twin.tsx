@@ -81,8 +81,7 @@ export default function DigitalTwin() {
   // Mutations
   const startSimulationMutation = useMutation({
     mutationFn: async (payload: { framework: string; auditorPersonality: string }) => {
-      const response = await apiRequest("POST", "/api/digital-twin/start", payload);
-      return response.json();
+      return await apiRequest("POST", "/api/digital-twin/start", payload);
     },
     onSuccess: (res) => {
       setActiveAuditId(res.data.id);

@@ -7,7 +7,7 @@ export function StatusBar() {
   const { isOnline } = useOnlineStatus();
 
   return (
-    <div className="h-6 bg-primary/5 dark:bg-primary/10 border-t border-border flex items-center justify-between px-4 text-[11px] font-medium text-muted-foreground z-50 shrink-0 select-none">
+    <div className="h-6 bg-primary/5 dark:bg-primary/10 border-t border-border hidden lg:flex items-center justify-between px-4 text-[11px] font-medium text-muted-foreground z-50 shrink-0 select-none">
       <div className="flex items-center space-x-4">
         {/* Environment Status */}
         <div className="flex items-center space-x-1">

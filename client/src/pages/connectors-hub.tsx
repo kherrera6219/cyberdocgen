@@ -203,9 +203,26 @@ export default function ConnectorsHub() {
         ))}
 
         {!isLoading && connectors.length === 0 && (
-            <div className="col-span-3 text-center py-12 border-2 border-dashed rounded-lg text-muted-foreground">
-                No connectors configured. Click "New Connector" to start.
+          <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed rounded-xl text-muted-foreground dark:border-gray-800 flex flex-col items-center justify-center space-y-4">
+            <div className="flex flex-col items-center space-y-2 max-w-md px-4">
+              <Database className="w-12 h-12 text-gray-400 dark:text-gray-600 mb-2" />
+              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">No Connectors Configured</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {!selectedSnapshotId 
+                  ? "Select a snapshot first from the manager above to establish a context before adding a connector." 
+                  : "Connect to SharePoint, Jira, or Notion to seamlessly import evidence directly into your active compliance snapshot."}
+              </p>
             </div>
+            {!selectedSnapshotId ? (
+              <div className="inline-flex items-center space-x-2 text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-full font-medium">
+                <span>Snapshot selection required above</span>
+              </div>
+            ) : (
+              <Button onClick={() => setIsDialogOpen(true)} size="sm">
+                <Plus className="w-4 h-4 mr-2" /> Configure New Connector
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </div>

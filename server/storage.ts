@@ -211,6 +211,7 @@ export interface IStorage {
   // Document approvals
   getDocumentApprovals(status?: string): Promise<DocumentApproval[]>;
   getDocumentApproval(id: string): Promise<DocumentApproval | undefined>;
+  getDocumentApprovalsByDocumentId(documentId: string): Promise<DocumentApproval[]>;
   createDocumentApproval(approval: InsertDocumentApproval): Promise<DocumentApproval>;
   updateDocumentApproval(id: string, updates: Partial<InsertDocumentApproval>): Promise<DocumentApproval | undefined>;
 
@@ -257,6 +258,10 @@ export interface IStorage {
     highRiskEvents: number;
     actions: Record<string, number>;
     entities: Record<string, number>;
+    totalActions: number;
+    activeUsers: number;
+    actionsByType: Record<string, number>;
+    recentActivity: Array<{ date: string; count: number }>;
   }>;
 
   // Policy Acknowledgment operations

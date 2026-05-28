@@ -51,6 +51,47 @@ vi.mock('../../server/utils/logger', () => ({
     }
 }));
 
+vi.mock('../../server/services/complianceGapAnalysis', () => ({
+    complianceGapAnalysisService: {
+        analyzeComplianceGaps: vi.fn().mockResolvedValue({
+            report: { overallScore: 70, metadata: {} },
+            findings: [
+                {
+                    id: "f-1",
+                    controlId: "A.5.1",
+                    controlTitle: "Information security policies",
+                    currentStatus: "partially_implemented",
+                    riskLevel: "high",
+                    gapDescription: "Gap description",
+                    businessImpact: "Business impact",
+                    complianceScore: 65,
+                    priority: 4,
+                    estimatedEffort: "medium"
+                }
+            ],
+            recommendations: [
+                {
+                    findingId: "f-1",
+                    title: "Implement Policy",
+                    description: "Implement policy description",
+                    implementation: "Action plan",
+                    resources: {},
+                    timeframe: "medium_term",
+                    cost: "medium",
+                    priority: 4
+                }
+            ],
+            maturityAssessment: {
+                framework: "SOC2",
+                maturityLevel: 3,
+                assessmentData: {},
+                recommendations: {},
+                nextReviewDate: new Date()
+            }
+        })
+    }
+}));
+
 describe('Gap Analysis Routes', () => {
     let app: express.Express;
 
@@ -165,7 +206,11 @@ describe('Gap Analysis Routes', () => {
             expect(response.body.data.message).toContain("started");
 
             // Run timers to trigger background processing
-            await vi.runAllTimersAsync();
+            await vi.advanceTimersByTimeAsync(2000);
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
             
             // Verify background calls were made
             expect(storage.createGapAnalysisFinding).toHaveBeenCalled();

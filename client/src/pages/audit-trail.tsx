@@ -64,16 +64,15 @@ export default function AuditTrail() {
   if (selectedAction !== 'all') queryParams.append('action', selectedAction);
   if (searchQuery) queryParams.append('search', searchQuery);
 
-  // Fetch audit trail data from API
   const { data: auditResponse, isLoading } = useQuery({
     queryKey: ["/api/audit-trail", currentPage, selectedEntityType, selectedAction, searchQuery],
-    queryFn: () => fetch(`/api/audit-trail?${queryParams}`).then(res => res.json()) as Promise<AuditResponse>,
+    queryFn: () => fetch(`/api/audit-trail?${queryParams}`).then(res => res.json()).then(json => (json.success && json.data) ? json.data : json) as Promise<AuditResponse>,
   });
 
   // Fetch audit statistics
   const { data: auditStats } = useQuery<AuditStats>({
     queryKey: ["/api/audit-trail/stats"],
-    queryFn: () => fetch('/api/audit-trail/stats').then(res => res.json()),
+    queryFn: () => fetch('/api/audit-trail/stats').then(res => res.json()).then(json => (json.success && json.data) ? json.data : json),
   });
 
   const auditTrail = auditResponse?.data || [];

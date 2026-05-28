@@ -45,7 +45,7 @@ export function createOrganizationsRepository(dbClient: typeof db) {
         const slug = insertOrg.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ?? ('org-' + randomUUID().substring(0, 8));
         const finalInsertOrg = { ...insertOrg, name, slug };
 
-        const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+        const isLocalSqliteMode = false;
         const normalizedOrgData = isLocalSqliteMode
           ? (() => {
                const source = finalInsertOrg as Record<string, unknown>;
@@ -87,7 +87,7 @@ export function createOrganizationsRepository(dbClient: typeof db) {
       },
 
     async addUserToOrganization(membership: InsertUserOrganization): Promise<UserOrganization> {
-        const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+        const isLocalSqliteMode = false;
         const normalizedMembershipData = isLocalSqliteMode
           ? (() => {
               const source = membership as Record<string, unknown>;

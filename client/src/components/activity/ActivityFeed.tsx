@@ -209,9 +209,14 @@ export function ActivityFeed({ limit = 10, compact = false, showViewAll = true }
       </CardHeader>
       <CardContent className="pt-0">
         {activities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground" data-testid="activity-empty-state">
-            <Activity className="h-8 w-8 mb-2 opacity-50" />
-            <p className="text-sm" data-testid="text-no-activity">No recent activity</p>
+          <div className="flex flex-col items-center justify-center text-center p-6 flex-1 bg-gray-50/50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 m-4" data-testid="activity-empty-state">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+              <Activity className="w-6 h-6 text-primary/60" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">No Recent Activity</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400" data-testid="text-no-activity">
+              System audit logs will appear here once actions are taken.
+            </p>
           </div>
         ) : (
           <ScrollArea className={compact ? "h-64" : "h-80"}>

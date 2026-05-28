@@ -1,8 +1,8 @@
 import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { eq, sql, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { db } from '../db';
-import { cloudIntegrations, users } from '@shared/schema';
+import { cloudIntegrations, cloudFiles, users } from '@shared/schema';
 import { auditService, AuditAction, RiskLevel } from '../services/auditService';
 import { systemConfigService } from '../services/systemConfigService';
 import { isAuthenticated, getRequiredUserId, getUserId } from '../replitAuth';
@@ -320,7 +320,7 @@ router.get('/stats', isAuthenticated, secureHandler(async (req: MultiTenantReque
   ] = await Promise.all([
     db.query.users.findMany(),
     db.query.cloudIntegrations.findMany({ where: eq(cloudIntegrations.isActive, true) }),
-    db.select().from(sql`cloud_files` as any), // Fallback if cloudFiles not in schema import
+    db.select().from(cloudFiles),
     // Get recent audit logs (simplified)
     (db.query).auditLogs?.findMany({ 
       limit: 10,

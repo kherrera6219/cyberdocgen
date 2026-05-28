@@ -103,7 +103,7 @@ export function FrameworkSpreadsheet({ framework, companyProfileId }: FrameworkS
         emptyFields,
         companyProfileId,
       });
-      return response.json();
+      return response.data ?? response;
     },
     onSuccess: (data, variables) => {
       const updates: Record<string, string> = {};
@@ -132,11 +132,10 @@ export function FrameworkSpreadsheet({ framework, companyProfileId }: FrameworkS
 
   const saveMutation = useMutation({
     mutationFn: async (fieldUpdates: Array<{ fieldId: string; value: string }>) => {
-      const response = await apiRequest("PATCH", `/api/frameworks/${framework}/template-data`, {
+      return await apiRequest("PATCH", `/api/frameworks/${framework}/template-data`, {
         companyProfileId,
         fieldUpdates,
       });
-      return response.json();
     },
     onSuccess: () => {
       toast({

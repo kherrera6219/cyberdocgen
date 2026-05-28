@@ -65,7 +65,8 @@ export default [js.configs.recommended, {
     'storybook-static/**',
     'client/public/sw.js',
     'client/src/stories/**',
-    '.storybook/**'
+    '.storybook/**',
+    'scratch/**'
   ],
 }, {
   files: ['public/sw.js'],

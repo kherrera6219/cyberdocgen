@@ -196,12 +196,65 @@ MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret
 REPLIT_DB_URL=your-replit-db-url
 ```
 
+```
+
+**Get API Keys:**
+- OpenAI: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- Anthropic: [console.anthropic.com](https://console.anthropic.com/)
+- Google AI: [ai.google.dev](https://ai.google.dev/)
+
+### Optional Variables
+
+#### Application Configuration
+
+```bash
+# Environment mode
+NODE_ENV=development  # or 'production'
+
+# Server port
+PORT=5000
+
+# Log level
+LOG_LEVEL=info  # Options: error, warn, info, debug
+```
+
+#### Security Configuration
+
+```bash
+# Rate limiting
+RATE_LIMIT_MAX=1000          # Max requests per window
+RATE_LIMIT_WINDOW_MS=900000  # Time window (15 minutes)
+```
+
+#### Cloud Storage Configuration
+
+```bash
+# Google Cloud Storage
+GOOGLE_CLOUD_PROJECT_ID=your-project-id
+GOOGLE_CLOUD_BUCKET_NAME=your-bucket-name
+GOOGLE_CLOUD_CREDENTIALS_JSON={"type":"service_account",...}
+
+# Google OAuth (for Google Drive integration)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+
+# Microsoft OAuth (for OneDrive integration)
+MICROSOFT_CLIENT_ID=your-microsoft-client-id
+MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret
+```
+
+#### Replit Configuration (for Replit deployment)
+
+```bash
+REPLIT_DB_URL=your-replit-db-url
+```
+
 ### Environment File Template
 
 Create a `.env` file with all required variables:
 
 ```bash
-# Database (leave blank to use local SQLite automatically)
+# Database (leave blank to use local embedded PGlite automatically)
 DATABASE_URL=
 
 # Security

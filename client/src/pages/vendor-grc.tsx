@@ -40,6 +40,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { EmptyStateCard } from "@/components/ui/loading-error-states";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -412,13 +413,12 @@ export default function VendorGrcPage() {
           Loading vendors...
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20">
-          <Building2 className="w-12 h-12 text-slate-700 mx-auto mb-4" />
-          <p className="text-slate-500 text-lg font-semibold">No vendors found</p>
-          <p className="text-slate-600 text-sm mt-1">
-            {search || statusFilter !== "all" ? "Try adjusting your filters." : "Add your first third-party vendor to get started."}
-          </p>
-        </div>
+        <EmptyStateCard
+          className="border-0 shadow-none bg-transparent"
+          icon={<Building2 className="w-8 h-8 text-slate-500" />}
+          title="No vendors found"
+          message={search || statusFilter !== "all" ? "Try adjusting your filters." : "Add your first third-party vendor to get started."}
+        />
       ) : (
         <div className="space-y-3">
           {filtered.map((vendor) => (

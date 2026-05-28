@@ -180,7 +180,8 @@ export default function AIDocGenerator() {
     enabled: !!jobId && jobStatus?.status === "completed",
     queryFn: async () => {
       const docs = await apiRequest("/api/documents?aiGenerated=true");
-      return docs.slice(-10);
+      const list = docs?.data ?? (Array.isArray(docs) ? docs : []);
+      return list.slice(-10);
     },
   });
 

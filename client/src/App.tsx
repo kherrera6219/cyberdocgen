@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ComponentType } from "react";
+import { lazy, Suspense, useEffect, type ComponentType } from "react";
 
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -12,8 +12,19 @@ import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ModeGate } from "@/components/routing/ModeGate";
 import type { DeploymentMode, RuntimeFeatures } from "@/lib/runtimeConfig";
-import { Switch, Route, useParams } from "wouter";
+import { Switch, Route, useParams, useLocation, Link } from "wouter";
+import { AnimatePresence, motion } from "framer-motion";
 import Layout from "./components/layout";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+function Redirect({ to }: { to: string }) {
+  const [, setLocation] = useLocation();
+  useEffect(() => {
+    setLocation(to);
+  }, [to, setLocation]);
+  return null;
+}
 
 // Lazy load all pages for code splitting
 const NotFound = lazy(() => import("./pages/not-found"));
@@ -109,9 +120,35 @@ function DocumentVersionsWrapper() {
 
 function RouteErrorFallback() {
   return (
-    <div className="flex min-h-[40vh] items-center justify-center p-4">
-      <div className="max-w-md rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-        This page encountered an unexpected error. Please refresh or navigate to a different section.
+    <div className="flex min-h-[50vh] items-center justify-center p-6" data-testid="route-error-container">
+      <div className="max-w-md w-full rounded-2xl border border-destructive/20 bg-card/60 backdrop-blur-md p-6 text-center shadow-xl space-y-4">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive border border-destructive/20 shadow-sm animate-pulse">
+          <AlertTriangle className="h-6 w-6" aria-hidden="true" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Unexpected Route Error</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            The page you are trying to view encountered an unexpected component error. Please try refreshing or navigate back to the home dashboard.
+          </p>
+        </div>
+        <div className="flex gap-3 pt-2">
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="flex-1 text-xs font-semibold h-10"
+            data-testid="route-error-refresh"
+          >
+            <RefreshCw className="w-3.5 h-3.5 mr-2 animate-spin-slow" />
+            Refresh
+          </Button>
+          <Button
+            asChild
+            variant="default"
+            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs h-10 shadow-md transition-all rounded-lg"
+          >
+            <Link href="/">Back to Home</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -139,11 +176,23 @@ function BoundaryRoute({ path, component: Component, requiredMode, requiredFeatu
 }
 
 function AuthenticatedRouter() {
+  const [location] = useLocation();
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
-      <Switch>
-        <BoundaryRoute path="/" component={Dashboard} />
-        <BoundaryRoute path="/dashboard" component={Dashboard} />
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={location}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="h-full w-full"
+        >
+          <Switch>
+            <BoundaryRoute path="/" component={Dashboard} />
+            <Route path="/dashboard">
+              <Redirect to="/" />
+            </Route>
         <BoundaryRoute path="/profile" component={CompanyProfile} />
         <BoundaryRoute path="/enhanced-profile" component={EnhancedCompanyProfile} />
         <BoundaryRoute path="/workspace" component={WorkspaceWrapper} />
@@ -191,15 +240,27 @@ function AuthenticatedRouter() {
           </ErrorBoundary>
         </Route>
       </Switch>
+        </motion.div>
+      </AnimatePresence>
     </Suspense>
   );
 }
 
 function PublicRouter() {
+  const [location] = useLocation();
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
-      <Switch>
-        <BoundaryRoute path="/" component={Landing} />
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={location}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.3 }}
+          className="h-full w-full"
+        >
+          <Switch>
+            <BoundaryRoute path="/" component={Landing} />
         <BoundaryRoute path="/login" component={EnterpriseLogin} requiredMode="cloud" requiredFeature="sso" />
         <BoundaryRoute path="/enterprise-login" component={EnterpriseLogin} requiredMode="cloud" requiredFeature="sso" />
         <BoundaryRoute path="/enterprise-signup" component={EnterpriseSignup} requiredMode="cloud" requiredFeature="sso" />
@@ -218,6 +279,8 @@ function PublicRouter() {
           </ErrorBoundary>
         </Route>
       </Switch>
+        </motion.div>
+      </AnimatePresence>
     </Suspense>
   );
 }
@@ -241,6 +304,7 @@ function App() {
 
 import { NetworkBanner } from "./components/NetworkBanner";
 import { KeyboardShortcuts } from "@/components/ui/KeyboardShortcuts";
+import { DashboardSkeleton } from "@/components/loading/loading-skeleton";
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -261,10 +325,23 @@ function AppContent() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Mock Header Skeleton */}
+        <div className="h-16 border-b flex items-center px-6">
+          <div className="h-8 w-8 rounded bg-primary/20 animate-pulse mr-4" />
+          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+        </div>
+        <div className="flex flex-1">
+          {/* Mock Sidebar Skeleton */}
+          <div className="w-64 border-r hidden md:block p-4 space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-10 w-full bg-muted/50 animate-pulse rounded" />
+            ))}
+          </div>
+          {/* Main Content Area */}
+          <div className="flex-1 p-6 space-y-6">
+             <DashboardSkeleton />
+          </div>
         </div>
       </div>
     );

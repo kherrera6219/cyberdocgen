@@ -93,12 +93,14 @@ const initializationPromise = (async () => {
     logger.warn('[Server] Telemetry initialization failed (non-critical)', { error });
   }
 
-  try {
-    const { initializeGoogleCloudOperations } = await import("./monitoring/googleCloud.js");
-    initializeGoogleCloudOperations(app);
-    logger.debug('[Server] Google Cloud Operations initialized');
-  } catch (error) {
-    logger.warn('[Server] Google Cloud Operations initialization failed (non-critical)', { error });
+  if (getRuntimeConfig().mode === 'cloud') {
+    try {
+      const { initializeGoogleCloudOperations } = await import("./monitoring/googleCloud.js");
+      initializeGoogleCloudOperations(app);
+      logger.debug('[Server] Google Cloud Operations initialized');
+    } catch (error) {
+      logger.warn('[Server] Google Cloud Operations initialization failed (non-critical)', { error });
+    }
   }
 
   logger.debug('[Server] Validating environment variables...');
@@ -137,7 +139,7 @@ const initializationPromise = (async () => {
       )
     ) {
       throw new Error(
-        `SQLite migrations path is not available: ${runtimeConfig.database.migrationsPath || 'undefined'}`
+        `Local database migrations path is not available: ${runtimeConfig.database.migrationsPath || 'undefined'}`
       );
     }
     await hydrateLocalAIKeysFromSecrets(providers);

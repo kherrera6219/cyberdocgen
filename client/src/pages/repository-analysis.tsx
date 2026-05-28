@@ -201,9 +201,17 @@ export function RepositoryAnalysisPage() {
             companyProfileId={companyProfileId as string}
           />
         ) : (
-          <div className="rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 space-y-3">
-            <p>Complete company profile setup before uploading repositories for analysis.</p>
-            <Button variant="outline" size="sm" onClick={() => navigate('/profile')}>
+          <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-5 text-sm text-amber-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <h4 className="font-semibold text-amber-300">Profile Setup Required</h4>
+              <p className="text-xs text-amber-200/70">Complete your company profile setup to establish compliance context before uploading repositories.</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/profile')}
+              className="border-amber-500/40 text-amber-300 hover:bg-amber-500/20 hover:text-amber-200 self-start sm:self-center"
+            >
               Go to Company Profile
             </Button>
           </div>

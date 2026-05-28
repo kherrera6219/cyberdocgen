@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { logger } from './logger';
+import { isLocalMode } from '../config/runtime';
 
 let generatedAuditSecret: string | null = null;
 
@@ -9,13 +10,19 @@ function resolveAuditLogSecret(): string {
     return configuredSecret;
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  // In local/desktop mode the binary runs with NODE_ENV=production but has no
+  // externally configured secret. Generate a stable per-process ephemeral secret
+  // so audit events are still HMAC-chained, just not cross-restart verifiable.
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const isLocal = isLocalMode();
+
+  if (!isDevelopment && !isLocal) {
     throw new Error('AUDIT_LOG_SECRET must be configured with at least 32 characters in production');
   }
 
   if (!generatedAuditSecret) {
     generatedAuditSecret = crypto.randomBytes(48).toString('hex');
-    logger.warn('AUDIT_LOG_SECRET is not configured; using ephemeral in-memory secret for audit signatures');
+    logger.warn('AUDIT_LOG_SECRET is not configured; using ephemeral per-process secret for audit signatures (acceptable in local mode)');
   }
 
   return generatedAuditSecret;

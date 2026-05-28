@@ -1063,4 +1063,169 @@ This policy establishes data classification levels and handling requirements.
       review_frequency: { type: 'select', label: 'Review Frequency', required: true, options: ['Quarterly', 'Semi-annually', 'Annually'] }
     }
   }
+,
+  {
+    id: 'soc2-crypto',
+    title: 'Cryptography and Key Management Policy',
+    description: 'Guidelines for cryptographic controls and key lifecycle management.',
+    framework: 'SOC2',
+    category: 'CC6-Logical-and-Physical-Access',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# Cryptography and Key Management Policy
+
+## 1. Purpose and Scope
+This policy outlines the cryptographic controls and key management procedures required to protect {{company_name}}'s sensitive data in transit and at rest.
+
+## 2. Cryptographic Standards
+- **Data in Transit**: All network communication containing sensitive data must be encrypted using TLS 1.2 or higher.
+- **Data at Rest**: All databases and storage volumes containing sensitive data must be encrypted using AES-256 or equivalent.
+- **Hashing**: Passwords and other authentication credentials must be hashed using strong algorithms (e.g., Argon2, bcrypt).
+
+## 3. Key Management
+- Cryptographic keys must be generated using approved secure random number generators.
+- Keys must be securely stored and isolated from the encrypted data.
+- Keys must be rotated at least annually or immediately upon suspected compromise.
+
+## 4. Codebase Telemetry
+*(Any codebase specific cryptography algorithms detected will be detailed in the generated document.)*
+
+**Approved By:** {{approved_by}}
+**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  }
+,
+  {
+    id: 'soc2-cc1-policy',
+    title: 'SOC 2 CC1 - Control Environment',
+    description: 'Integrity and ethical values.',
+    framework: 'SOC2',
+    category: 'CC1 Control Environment',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC1 Control Environment Policy\n\n## 1. Purpose\nThis document defines the controls established by {{company_name}} to meet the Trust Services Criteria for Control Environment (CC1).\n\n## 2. Policy Directives\n- **Directive 1**: {{company_name}} establishes and maintains an effective control environment process.\n- **Directive 2**: Management is responsible for overseeing the design and operation of these controls.\n- **Directive 3**: Exceptions to this policy must be formally documented and approved by management.\n\n## 3. Enforcement\nViolations of this policy will be handled in accordance with the {{company_name}} disciplinary process.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-cc2-policy',
+    title: 'SOC 2 CC2 - Communication and Information',
+    description: 'Internal and external communication.',
+    framework: 'SOC2',
+    category: 'CC2 Communication and Information',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC2 Communication and Information Policy\n\n## 1. Purpose\nThis document defines the controls established by {{company_name}} to meet the Trust Services Criteria for Communication and Information (CC2).\n\n## 2. Policy Directives\n- **Directive 1**: {{company_name}} establishes and maintains an effective communication and information process.\n- **Directive 2**: Management is responsible for overseeing the design and operation of these controls.\n- **Directive 3**: Exceptions to this policy must be formally documented and approved by management.\n\n## 3. Enforcement\nViolations of this policy will be handled in accordance with the {{company_name}} disciplinary process.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-cc3-policy',
+    title: 'SOC 2 CC3 - Risk Assessment',
+    description: 'Risk assessment processes.',
+    framework: 'SOC2',
+    category: 'CC3 Risk Assessment',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC3 Risk Assessment Policy\n\n## 1. Purpose\nThis document defines the controls established by {{company_name}} to meet the Trust Services Criteria for Risk Assessment (CC3).\n\n## 2. Policy Directives\n- **Directive 1**: {{company_name}} establishes and maintains an effective risk assessment process.\n- **Directive 2**: Management is responsible for overseeing the design and operation of these controls.\n- **Directive 3**: Exceptions to this policy must be formally documented and approved by management.\n\n## 3. Enforcement\nViolations of this policy will be handled in accordance with the {{company_name}} disciplinary process.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-cc4-policy',
+    title: 'SOC 2 CC4 - Monitoring Activities',
+    description: 'Evaluations of internal controls.',
+    framework: 'SOC2',
+    category: 'CC4 Monitoring Activities',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC4 Monitoring Activities Policy\n\n## 1. Purpose\nThis document defines the controls established by {{company_name}} to meet the Trust Services Criteria for Monitoring Activities (CC4).\n\n## 2. Policy Directives\n- **Directive 1**: {{company_name}} establishes and maintains an effective monitoring activities process.\n- **Directive 2**: Management is responsible for overseeing the design and operation of these controls.\n- **Directive 3**: Exceptions to this policy must be formally documented and approved by management.\n\n## 3. Enforcement\nViolations of this policy will be handled in accordance with the {{company_name}} disciplinary process.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-cc5-policy',
+    title: 'SOC 2 CC5 - Control Activities',
+    description: 'Mitigating risks.',
+    framework: 'SOC2',
+    category: 'CC5 Control Activities',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC5 Control Activities Policy\n\n## 1. Purpose\nThis document defines the controls established by {{company_name}} to meet the Trust Services Criteria for Control Activities (CC5).\n\n## 2. Policy Directives\n- **Directive 1**: {{company_name}} establishes and maintains an effective control activities process.\n- **Directive 2**: Management is responsible for overseeing the design and operation of these controls.\n- **Directive 3**: Exceptions to this policy must be formally documented and approved by management.\n\n## 3. Enforcement\nViolations of this policy will be handled in accordance with the {{company_name}} disciplinary process.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-cc7-policy',
+    title: 'SOC 2 CC7 - System Operations',
+    description: 'Managing system operations.',
+    framework: 'SOC2',
+    category: 'CC7 System Operations',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC7 System Operations Policy\n\n## 1. Purpose\nThis document defines the controls established by {{company_name}} to meet the Trust Services Criteria for System Operations (CC7).\n\n## 2. Policy Directives\n- **Directive 1**: {{company_name}} establishes and maintains an effective system operations process.\n- **Directive 2**: Management is responsible for overseeing the design and operation of these controls.\n- **Directive 3**: Exceptions to this policy must be formally documented and approved by management.\n\n## 3. Enforcement\nViolations of this policy will be handled in accordance with the {{company_name}} disciplinary process.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-cc8-policy',
+    title: 'SOC 2 CC8 - Change Management',
+    description: 'Authorization and deployment of changes.',
+    framework: 'SOC2',
+    category: 'CC8 Change Management',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC8 Change Management Policy\n\n## 1. Purpose\nThis document defines the controls established by {{company_name}} to meet the Trust Services Criteria for Change Management (CC8).\n\n## 2. Policy Directives\n- **Directive 1**: {{company_name}} establishes and maintains an effective change management process.\n- **Directive 2**: Management is responsible for overseeing the design and operation of these controls.\n- **Directive 3**: Exceptions to this policy must be formally documented and approved by management.\n\n## 3. Enforcement\nViolations of this policy will be handled in accordance with the {{company_name}} disciplinary process.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  },
+  {
+    id: 'soc2-cc9-policy',
+    title: 'SOC 2 CC9 - Risk Mitigation',
+    description: 'Mitigating risk from vendors and partners.',
+    framework: 'SOC2',
+    category: 'CC9 Risk Mitigation',
+    priority: 8,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# CC9 Risk Mitigation Policy\n\n## 1. Purpose\nThis document defines the controls established by {{company_name}} to meet the Trust Services Criteria for Risk Mitigation (CC9).\n\n## 2. Policy Directives\n- **Directive 1**: {{company_name}} establishes and maintains an effective risk mitigation process.\n- **Directive 2**: Management is responsible for overseeing the design and operation of these controls.\n- **Directive 3**: Exceptions to this policy must be formally documented and approved by management.\n\n## 3. Enforcement\nViolations of this policy will be handled in accordance with the {{company_name}} disciplinary process.\n\n**Approved By:** {{approved_by}}\n**Date:** {{approval_date}}`,
+    templateVariables: {
+      company_name: { type: 'text', label: 'Company Name', required: true },
+      approved_by: { type: 'text', label: 'Approved By', required: true },
+      approval_date: { type: 'date', label: 'Approval Date', required: true }
+    }
+  }
 ];

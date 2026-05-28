@@ -56,7 +56,8 @@ export default function ControlApprovals() {
         : `/api/approvals?status=${selectedStatus}`;
       const response = await fetch(url, { credentials: "include" });
       if (!response.ok) throw new Error("Failed to fetch approvals");
-      return response.json();
+      const json = await response.json();
+      return json.data ?? json;
     },
   });
 

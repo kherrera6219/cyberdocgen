@@ -168,29 +168,54 @@ export function createAuditRepository(dbClient: typeof db) {
         highRiskEvents: number;
         actions: Record<string, number>;
         entities: Record<string, number>;
+        totalActions: number;
+        activeUsers: number;
+        actionsByType: Record<string, number>;
+        recentActivity: Array<{ date: string; count: number }>;
       }> {
         const results = await dbClient.select()
           .from(auditLogs)
           .where(eq(auditLogs.organizationId, organizationId))
           .limit(10000);
     
-        const stats = {
-          totalEvents: results.length,
-          highRiskEvents: results.filter((r: any) => r.riskLevel === 'high' || r.riskLevel === 'critical').length,
-          actions: {} as Record<string, number>,
-          entities: {} as Record<string, number>,
-        };
-    
+        const actions = {} as Record<string, number>;
+        const entities = {} as Record<string, number>;
+        const activeUsersSet = new Set<string>();
+        
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        let recentCount = 0;
+        
         for (const log of results) {
           if (log.action) {
-            stats.actions[log.action] = (stats.actions[log.action] || 0) + 1;
+            actions[log.action] = (actions[log.action] || 0) + 1;
           }
           if (log.resourceType) {
-            stats.entities[log.resourceType] = (stats.entities[log.resourceType] || 0) + 1;
+            entities[log.resourceType] = (entities[log.resourceType] || 0) + 1;
+          }
+          if (log.userId) {
+            activeUsersSet.add(log.userId);
+          }
+          if (log.timestamp && new Date(log.timestamp) >= oneDayAgo) {
+            recentCount++;
           }
         }
-    
-        return stats;
+        
+        return {
+          totalEvents: results.length,
+          highRiskEvents: results.filter((r: any) => r.riskLevel === 'high' || r.riskLevel === 'critical').length,
+          actions,
+          entities,
+          
+          totalActions: results.length,
+          activeUsers: activeUsersSet.size,
+          actionsByType: actions,
+          recentActivity: [
+            {
+              date: "Last 24h",
+              count: recentCount
+            }
+          ]
+        };
       },
 
   };

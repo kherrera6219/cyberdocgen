@@ -14,6 +14,118 @@ vi.mock("@/components/ui/tooltip", () => ({
   TooltipProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
+vi.mock("@tanstack/react-query", () => {
+  function getMockControls(fw: string): any[] {
+    const categories = [
+      "Access Control",
+      "Data Protection",
+      "Incident Response",
+      "Risk Management",
+      "Vendor Management"
+    ];
+    
+    const counts: Record<string, Record<string, number>> = {
+      "ISO27001": {
+        "Access Control": 9,
+        "Data Protection": 7,
+        "Incident Response": 7,
+        "Risk Management": 7,
+        "Vendor Management": 9
+      },
+      "SOC2": {
+        "Access Control": 9,
+        "Data Protection": 5,
+        "Incident Response": 7,
+        "Risk Management": 7,
+        "Vendor Management": 9
+      },
+      "NIST": {
+        "Access Control": 9,
+        "Data Protection": 5,
+        "Incident Response": 5,
+        "Risk Management": 7,
+        "Vendor Management": 9
+      },
+      "FedRAMP": {
+        "Access Control": 7,
+        "Data Protection": 5,
+        "Incident Response": 3,
+        "Risk Management": 5,
+        "Vendor Management": 7
+      }
+    };
+
+    const fwCounts = counts[fw] || counts["ISO27001"];
+    const list: any[] = [];
+    
+    categories.forEach((cat, catIdx) => {
+      const implCount = fwCounts[cat];
+      for (let i = 0; i < 10; i++) {
+        list.push({
+          controlId: `${fw}-${catIdx}-${i}`,
+          framework: fw,
+          status: i < implCount ? "implemented" : "not_implemented",
+          category: cat
+        });
+      }
+    });
+    
+    return list;
+  }
+
+  return {
+    useQuery: ({ queryKey }: { queryKey: any[] }) => {
+      const key = String(queryKey[0]);
+      if (key.includes("reports")) {
+        return {
+          data: {
+            success: true,
+            data: {
+              report: { id: "rep-1", framework: "SOC2", overallScore: 0, status: "completed" },
+              findings: [
+                { id: "1", reportId: "rep-1", controlId: "CC6.1", controlTitle: "Multi-Factor Authentication", currentStatus: "partially_implemented", riskLevel: "high", gapDescription: "High impact, low effort - Quick win for security posture", businessImpact: "Critical for data protection compliance", complianceScore: 40, priority: 5, estimatedEffort: "low" },
+                { id: "2", reportId: "rep-1", controlId: "CC6.2", controlTitle: "Encryption at Rest", currentStatus: "not_implemented", riskLevel: "high", gapDescription: "Critical for data protection compliance", businessImpact: "Data protection compliance", complianceScore: 20, priority: 4, estimatedEffort: "medium" },
+                { id: "3", reportId: "rep-1", controlId: "CC6.3", controlTitle: "Security Awareness Training", currentStatus: "not_implemented", riskLevel: "medium", gapDescription: "Ensure security awareness training is completed.", businessImpact: "Human factors risk", complianceScore: 10, priority: 3, estimatedEffort: "low" },
+                { id: "4", reportId: "rep-1", controlId: "CC6.4", controlTitle: "Vulnerability Scanning", currentStatus: "not_implemented", riskLevel: "medium", gapDescription: "Regular vulnerability scanning procedures.", businessImpact: "Unresolved risk scanning", complianceScore: 30, priority: 2, estimatedEffort: "medium" },
+                { id: "5", reportId: "rep-1", controlId: "CC6.5", controlTitle: "Incident Response Plan", currentStatus: "not_implemented", riskLevel: "medium", gapDescription: "Establish robust incident response plans.", businessImpact: "Crisis mitigation response", complianceScore: 15, priority: 1, estimatedEffort: "medium" }
+              ],
+              recommendations: [
+                { id: "rec-1", findingId: "1", title: "Enable MFA", description: "Enable MFA on all production controls", priority: 5, status: "in_progress", timeframe: "2-3 days", cost: "low" },
+                { id: "rec-2", findingId: "2", title: "Enable Encryption", description: "Enable Encryption at Rest", priority: 4, status: "pending", timeframe: "1 week", cost: "medium" },
+                { id: "rec-3", findingId: "3", title: "Complete Training", description: "Ensure security awareness training is completed", priority: 3, status: "pending", timeframe: "2 weeks", cost: "low" },
+                { id: "rec-4", findingId: "4", title: "Run Scanning", description: "Regular vulnerability scanning procedures", priority: 2, status: "pending", timeframe: "3-4 days", cost: "medium" },
+                { id: "rec-5", findingId: "5", title: "Incident Plan", description: "Establish robust incident response plans", priority: 1, status: "pending", timeframe: "1-2 weeks", cost: "medium" }
+              ]
+            }
+          },
+          isLoading: false,
+          error: null
+        };
+      }
+      if (key.includes("frameworks")) {
+        const parts = key.split("/");
+        const fw = parts[parts.length - 2] || "ISO27001";
+        return {
+          data: {
+            success: true,
+            data: getMockControls(fw)
+          },
+          isLoading: false,
+          error: null
+        };
+      }
+      return {
+        data: {
+          success: true,
+          data: [{ id: "rep-1", framework: "SOC2", overallScore: 0, status: "completed", createdAt: new Date().toISOString() }]
+        },
+        isLoading: false,
+        error: null
+      };
+    }
+  };
+});
+
 describe("AIInsightsDashboard", () => {
   const originalLocation = window.location;
 

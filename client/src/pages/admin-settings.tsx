@@ -32,7 +32,7 @@ export default function AdminSettings() {
   });
 
   // Get all organization cloud integrations
-  const { data: integrationsData } = useQuery<{ integrations: CloudIntegration[] }>({
+  const { data: integrationsData } = useQuery<CloudIntegration[]>({
     queryKey: ['/api/admin/cloud-integrations'],
   });
 
@@ -219,7 +219,7 @@ export default function AdminSettings() {
 
           <TabsContent value="integrations" className="space-y-6">
             <CloudIntegrationList 
-              integrations={integrationsData?.integrations}
+              integrations={integrationsData}
               onDelete={(id) => deleteIntegrationMutation.mutate(id)}
               isDeleting={deleteIntegrationMutation.isPending}
             />

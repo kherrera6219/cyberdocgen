@@ -239,7 +239,15 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
     setSearchQuery(query);
   };
 
-  // Keyboard shortcut
+  const [isMac] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const userAgent = navigator.userAgent || "";
+    const platform = (navigator as any).userAgentData?.platform || navigator.platform || "";
+    const macRegex = /Mac|iPhone|iPod|iPad/i;
+    return macRegex.test(userAgent) || macRegex.test(platform);
+  });
+
+  // Keyboard shortcut and OS Detection
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -258,7 +266,7 @@ export function GlobalSearch({ trigger }: GlobalSearchProps) {
       <span className="hidden md:inline-flex">Search...</span>
       <span className="inline-flex md:hidden">Search</span>
       <kbd className="pointer-events-none absolute right-1.5 top-1.5 sm:top-2 hidden h-5 sm:h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 lg:flex">
-        <span className="text-xs">⌘</span>K
+        <span className="text-[10px]">{isMac ? "⌘" : "Ctrl"}</span>{isMac ? "K" : "+K"}
       </kbd>
     </Button>
   );

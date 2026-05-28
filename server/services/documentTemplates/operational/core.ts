@@ -563,4 +563,261 @@ I certify that this assessment was conducted in accordance with established proc
       next_assessment_date: { type: 'date', label: 'Next Assessment Due', required: true }
     }
   }
+,
+  {
+    id: 'nist-csf-gov',
+    title: 'CSF 2.0 - Govern (GV)',
+    description: 'NIST CSF 2.0 Govern function covering organizational context, risk management strategy, roles, and policies.',
+    framework: 'General',
+    category: 'NIST-CSF-2.0',
+    priority: 1,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# NIST CSF 2.0 - Govern (GV)
+
+## 1. Purpose
+The Govern function establishes and monitors the organization's cybersecurity risk management strategy, expectations, and policy.
+
+## 2. Organizational Context
+**Mission Alignment:** {{mission_alignment}}
+**Stakeholders:** {{stakeholders}}
+
+## 3. Risk Management Strategy
+**Risk Appetite:** {{risk_appetite}}
+**Risk Tolerance:** {{risk_tolerance}}
+**Methodology:** {{risk_methodology}}
+
+## 4. Roles and Responsibilities
+**CISO/Security Lead:** {{ciso_name}}
+**Executive Sponsor:** {{exec_sponsor}}
+**Security Team Structure:** {{team_structure}}
+
+## 5. Cybersecurity Supply Chain Risk Management
+**Vendor Assessment Requirements:** {{vendor_assessment}}
+**Critical Suppliers:** {{critical_suppliers}}
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      mission_alignment: { type: 'text', label: 'Mission Alignment', required: true },
+      stakeholders: { type: 'text', label: 'Stakeholders', required: true },
+      risk_appetite: { type: 'text', label: 'Risk Appetite', required: true },
+      risk_tolerance: { type: 'text', label: 'Risk Tolerance', required: true },
+      risk_methodology: { type: 'text', label: 'Risk Methodology', required: true },
+      ciso_name: { type: 'text', label: 'CISO/Security Lead Name', required: true },
+      exec_sponsor: { type: 'text', label: 'Executive Sponsor Name', required: true },
+      team_structure: { type: 'text', label: 'Team Structure', required: true },
+      vendor_assessment: { type: 'text', label: 'Vendor Assessment Requirements', required: true },
+      critical_suppliers: { type: 'text', label: 'Critical Suppliers', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-csf-id',
+    title: 'CSF 2.0 - Identify (ID)',
+    description: 'NIST CSF 2.0 Identify function covering asset management, risk assessment, and improvement.',
+    framework: 'General',
+    category: 'NIST-CSF-2.0',
+    priority: 2,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# NIST CSF 2.0 - Identify (ID)
+
+## 1. Purpose
+The Identify function helps determine the current cybersecurity risk to the organization, its people, assets, data, and capabilities.
+
+## 2. Asset Management
+**Hardware Inventory:** {{hardware_inventory_tool}}
+**Software Inventory:** {{software_inventory_tool}}
+**Data Inventory/Mapping:** {{data_inventory}}
+
+## 3. Risk Assessment
+**Vulnerability Scans:** {{vuln_scan_frequency}}
+**Threat Intel Sources:** {{threat_intel}}
+**Risk Register Location:** {{risk_register_path}}
+
+## 4. Improvement
+**Audit Findings Tracking:** {{audit_tracking}}
+**Continuous Improvement Process:** {{improvement_process}}
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      hardware_inventory_tool: { type: 'text', label: 'Hardware Inventory Tool', required: true },
+      software_inventory_tool: { type: 'text', label: 'Software Inventory Tool', required: true },
+      data_inventory: { type: 'text', label: 'Data Inventory', required: true },
+      vuln_scan_frequency: { type: 'select', label: 'Vulnerability Scan Frequency', required: true, options: ['Daily', 'Weekly', 'Monthly'] },
+      threat_intel: { type: 'text', label: 'Threat Intelligence Sources', required: true },
+      risk_register_path: { type: 'text', label: 'Risk Register Location', required: true },
+      audit_tracking: { type: 'text', label: 'Audit Findings Tracking System', required: true },
+      improvement_process: { type: 'text', label: 'Continuous Improvement Process', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-csf-pr',
+    title: 'CSF 2.0 - Protect (PR)',
+    description: 'NIST CSF 2.0 Protect function covering identity management, awareness, data security, and platform security.',
+    framework: 'General',
+    category: 'NIST-CSF-2.0',
+    priority: 3,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# NIST CSF 2.0 - Protect (PR)
+
+## 1. Purpose
+The Protect function supports the ability to secure assets and limit or contain the impact of a cybersecurity event.
+
+## 2. Identity Management and Access Control
+**Authentication (MFA):** {{mfa_enforcement}}
+**Privileged Access Management:** {{pam_tool}}
+**Offboarding SLA:** {{offboarding_sla}}
+
+## 3. Awareness and Training
+**Phishing Simulations:** {{phishing_frequency}}
+**Security Training Requirement:** {{training_requirement}}
+
+## 4. Data Security
+**Data at Rest Encryption:** {{encryption_at_rest}}
+**Data in Transit Encryption:** {{encryption_in_transit}}
+**Data Loss Prevention (DLP):** {{dlp_controls}}
+
+## 5. Platform Security
+**Endpoint Protection (EDR):** {{edr_solution}}
+**Network Security:** {{network_security}}
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      mfa_enforcement: { type: 'text', label: 'MFA Enforcement Rule', required: true },
+      pam_tool: { type: 'text', label: 'PAM Tool', required: true },
+      offboarding_sla: { type: 'text', label: 'Offboarding SLA', required: true },
+      phishing_frequency: { type: 'select', label: 'Phishing Frequency', required: true, options: ['Monthly', 'Quarterly'] },
+      training_requirement: { type: 'text', label: 'Training Requirement', required: true },
+      encryption_at_rest: { type: 'text', label: 'Encryption at Rest Standard', required: true },
+      encryption_in_transit: { type: 'text', label: 'Encryption in Transit Standard', required: true },
+      dlp_controls: { type: 'text', label: 'DLP Controls', required: true },
+      edr_solution: { type: 'text', label: 'EDR Solution', required: true },
+      network_security: { type: 'text', label: 'Network Security Controls', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-csf-de',
+    title: 'CSF 2.0 - Detect (DE)',
+    description: 'NIST CSF 2.0 Detect function covering continuous monitoring and adverse event analysis.',
+    framework: 'General',
+    category: 'NIST-CSF-2.0',
+    priority: 4,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# NIST CSF 2.0 - Detect (DE)
+
+## 1. Purpose
+The Detect function enables the timely discovery and analysis of anomalies, indicators of compromise, and other cybersecurity events.
+
+## 2. Continuous Monitoring
+**SIEM Platform:** {{siem_platform}}
+**Log Retention Period:** {{log_retention}}
+**Monitored Environments:** {{monitored_environments}}
+
+## 3. Adverse Event Analysis
+**Alert Triage Process:** {{triage_process}}
+**Anomaly Detection:** {{anomaly_detection}}
+**Threat Hunting Frequency:** {{hunting_frequency}}
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      siem_platform: { type: 'text', label: 'SIEM Platform', required: true },
+      log_retention: { type: 'text', label: 'Log Retention Period', required: true },
+      monitored_environments: { type: 'text', label: 'Monitored Environments', required: true },
+      triage_process: { type: 'text', label: 'Alert Triage Process', required: true },
+      anomaly_detection: { type: 'text', label: 'Anomaly Detection Mechanism', required: true },
+      hunting_frequency: { type: 'select', label: 'Threat Hunting Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-csf-rs',
+    title: 'CSF 2.0 - Respond (RS)',
+    description: 'NIST CSF 2.0 Respond function covering incident management, analysis, mitigation, and reporting.',
+    framework: 'General',
+    category: 'NIST-CSF-2.0',
+    priority: 5,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# NIST CSF 2.0 - Respond (RS)
+
+## 1. Purpose
+The Respond function supports the ability to contain the impact of cybersecurity incidents and coordinate response activities.
+
+## 2. Incident Management
+**Incident Response Plan Location:** {{irp_location}}
+**Response Team Lead:** {{response_lead}}
+**Tabletop Exercise Frequency:** {{tabletop_frequency}}
+
+## 3. Incident Analysis & Mitigation
+**Containment Strategy:** {{containment_strategy}}
+**Forensics Capabilities:** {{forensics_tools}}
+
+## 4. Incident Reporting and Communication
+**Internal Communication Protocol:** {{internal_comms}}
+**Regulatory Reporting SLA:** {{reporting_sla}}
+**External PR Lead:** {{external_pr}}
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      irp_location: { type: 'text', label: 'IRP Location', required: true },
+      response_lead: { type: 'text', label: 'Response Team Lead', required: true },
+      tabletop_frequency: { type: 'select', label: 'Tabletop Frequency', required: true, options: ['Annually', 'Semi-annually'] },
+      containment_strategy: { type: 'text', label: 'Containment Strategy', required: true },
+      forensics_tools: { type: 'text', label: 'Forensics Tools/Partners', required: true },
+      internal_comms: { type: 'text', label: 'Internal Comms Protocol', required: true },
+      reporting_sla: { type: 'text', label: 'Reporting SLA', required: true },
+      external_pr: { type: 'text', label: 'External PR Lead', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  },
+  {
+    id: 'nist-csf-rc',
+    title: 'CSF 2.0 - Recover (RC)',
+    description: 'NIST CSF 2.0 Recover function covering recovery plan execution and communication.',
+    framework: 'General',
+    category: 'NIST-CSF-2.0',
+    priority: 6,
+    documentType: 'policy',
+    required: true,
+    templateContent: `# NIST CSF 2.0 - Recover (RC)
+
+## 1. Purpose
+The Recover function restores assets and operations affected by a cybersecurity incident in a timely and resilient manner.
+
+## 2. Recovery Plan Execution
+**Business Continuity Plan (BCP) Location:** {{bcp_location}}
+**Backup Testing Frequency:** {{backup_testing}}
+**Target Recovery Time (RTO):** {{target_rto}}
+
+## 3. Recovery Communication
+**Customer Notification Protocol:** {{customer_notification}}
+**Post-Incident Review (Lessons Learned):** {{lessons_learned}}
+
+**Document Owner:** {{document_owner}}
+**Effective Date:** {{effective_date}}`,
+    templateVariables: {
+      bcp_location: { type: 'text', label: 'BCP Location', required: true },
+      backup_testing: { type: 'select', label: 'Backup Testing Frequency', required: true, options: ['Weekly', 'Monthly', 'Quarterly'] },
+      target_rto: { type: 'text', label: 'Target RTO', required: true },
+      customer_notification: { type: 'text', label: 'Customer Notification Protocol', required: true },
+      lessons_learned: { type: 'text', label: 'Lessons Learned Timeline', required: true },
+      document_owner: { type: 'text', label: 'Document Owner', required: true },
+      effective_date: { type: 'date', label: 'Effective Date', required: true }
+    }
+  }
 ];

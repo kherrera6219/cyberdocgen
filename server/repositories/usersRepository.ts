@@ -62,7 +62,7 @@ export function createUsersRepository(dbClient: typeof db) {
             };
           }
         }
-        const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+        const isLocalSqliteMode = false;
         const normalizedInsertData = isLocalSqliteMode
           ? normalizeLocalUserWriteValues(cleanInsertUser as Record<string, unknown>)
           : cleanInsertUser;
@@ -118,7 +118,7 @@ export function createUsersRepository(dbClient: typeof db) {
     async upsertUser(userData: UpsertUser): Promise<User> {
         const { organizationId, ...cleanUserData } = userData as any;
         
-        const isLocalSqliteMode = process.env.DEPLOYMENT_MODE === 'local';
+        const isLocalSqliteMode = false;
         const normalizedUserData = isLocalSqliteMode
           ? normalizeLocalUserWriteValues(cleanUserData as Record<string, unknown>)
           : cleanUserData;

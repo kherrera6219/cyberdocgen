@@ -11,6 +11,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { GlobalSearch } from "@/components/navigation/GlobalSearch";
 import MobileSidebar from "./mobile-sidebar";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Header() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -18,7 +19,7 @@ export default function Header() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
 
-  const isDesktop = typeof window !== 'undefined' && !!window.electronAPI;
+  const isDesktop = false; // Always false in browser mode
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "light" ? "dark" : "light");
@@ -81,132 +82,149 @@ export default function Header() {
         {/* Right Side Actions */}
         <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 [-webkit-app-region:no-drag]">
           {/* Theme Toggle */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={toggleTheme} 
-            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            aria-label={resolvedTheme === "light" ? "Switch to dark theme" : "Switch to light theme"}
-          >
-            {resolvedTheme === "light" ? <Moon className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5" />}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleTheme} 
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                aria-label={resolvedTheme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+              >
+                {resolvedTheme === "light" ? <Moon className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">Toggle Color Theme</p>
+            </TooltipContent>
+          </Tooltip>
 
           {/* Notifications - Hidden on mobile */}
           <div className="hidden sm:block">
-            <NotificationDropdown />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <NotificationDropdown />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Notifications</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Air-Gap Status Badge Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="hidden lg:flex items-center space-x-2 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 h-9 px-3 rounded-full transition-all duration-300 shadow-sm"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="text-xs font-semibold tracking-wide">Off-Grid Secure</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 p-4 space-y-3 font-sans">
-              <div className="flex items-center space-x-2 pb-2 border-b border-muted-foreground/10">
-                <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                <div>
-                  <h4 className="text-sm font-bold text-foreground">Zero Egress Air-Gap</h4>
-                  <p className="text-[10px] text-muted-foreground">Compliance Guard Active</p>
-                </div>
-              </div>
-
-              <div className="space-y-2.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-muted-foreground">
-                    <Database className="w-3.5 h-3.5" />
-                    <span>Database Engine</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="hidden lg:flex items-center space-x-2 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 h-9 px-3 rounded-full transition-all duration-300 shadow-sm"
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-xs font-semibold tracking-wide">Off-Grid Secure</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80 p-4 space-y-3 font-sans">
+                  <div className="flex items-center space-x-2 pb-2 border-b border-muted-foreground/10">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    <div>
+                      <h4 className="text-sm font-bold text-foreground">Zero Egress Air-Gap</h4>
+                      <p className="text-[10px] text-muted-foreground">Compliance Guard Active</p>
+                    </div>
                   </div>
-                  <span className="font-semibold text-foreground font-mono">PGlite WASM</span>
-                </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-muted-foreground">
-                    <Cpu className="w-3.5 h-3.5" />
-                    <span>Local Embeddings</span>
-                  </div>
-                  <span className="font-semibold text-foreground font-mono">MiniLM-L6 (Active)</span>
-                </div>
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-muted-foreground">
+                        <Database className="w-3.5 h-3.5" />
+                        <span>Database Engine</span>
+                      </div>
+                      <span className="font-semibold text-foreground font-mono">PGlite WASM</span>
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-muted-foreground">
-                    <HardDrive className="w-3.5 h-3.5" />
-                    <span>Memory Buffer</span>
-                  </div>
-                  <span className="font-semibold text-foreground font-mono">24.8 MB</span>
-                </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-muted-foreground">
+                        <Cpu className="w-3.5 h-3.5" />
+                        <span>Local Embeddings</span>
+                      </div>
+                      <span className="font-semibold text-foreground font-mono">MiniLM-L6 (Active)</span>
+                    </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-muted-foreground">
-                    <WifiOff className="w-3.5 h-3.5" />
-                    <span>Network Egress</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-muted-foreground">
+                        <HardDrive className="w-3.5 h-3.5" />
+                        <span>Memory Buffer</span>
+                      </div>
+                      <span className="font-semibold text-foreground font-mono">24.8 MB</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-muted-foreground">
+                        <WifiOff className="w-3.5 h-3.5" />
+                        <span>Network Egress</span>
+                      </div>
+                      <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/5 text-emerald-500 text-[10px] font-bold py-0.5">
+                        100% Gated
+                      </Badge>
+                    </div>
                   </div>
-                  <Badge variant="outline" className="border-emerald-500/20 bg-emerald-500/5 text-emerald-500 text-[10px] font-bold py-0.5">
-                    100% Gated
-                  </Badge>
-                </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[280px]">
+              <p className="text-[11px] leading-relaxed">
+                <strong>Off-Grid Local Security</strong>: Your GRC data and documents are processed 100% locally. Internet connectivity is only used for local VM serving.
+              </p>
+            </TooltipContent>
+          </Tooltip>
 
           {/* User Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-auto flex items-center space-x-1 sm:space-x-3 hover:bg-gray-50 dark:hover:bg-gray-800 px-2 sm:px-3 py-2 rounded-lg transition-colors"
-                aria-label="Open user menu"
-                data-testid="button-user-menu"
-              >
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs sm:text-sm font-medium">
-                    {getInitials((user)?.email)}
-                  </span>
-                </div>
-                <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-200 max-w-24 lg:max-w-none truncate">
-                  {getUserName((user)?.email)}
-                </span>
-                <ChevronDown className="hidden sm:block h-4 w-4 text-gray-400" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 sm:w-56">
-              <DropdownMenuItem className="sm:hidden">
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLocation('/user-profile')} data-testid="menu-settings">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Window Controls - Desktop Only */}
-          {isDesktop && (
-            <div className="hidden sm:flex items-center ml-2 border-l border-gray-200 dark:border-gray-700 pl-2 space-x-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800" onClick={() => window.electronAPI?.minimizeWindow()}>
-                <Minus className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800" onClick={() => window.electronAPI?.maximizeWindow()}>
-                <Square className="h-3 w-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-none text-gray-500 hover:bg-red-500 hover:text-white dark:text-gray-400 dark:hover:bg-red-600 dark:hover:text-white transition-colors" onClick={() => window.electronAPI?.closeWindow()}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-auto flex items-center space-x-1 sm:space-x-3 hover:bg-gray-50 dark:hover:bg-gray-800 px-2 sm:px-3 py-2 rounded-lg transition-colors"
+                    aria-label="Open user menu"
+                    data-testid="button-user-menu"
+                  >
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs sm:text-sm font-medium">
+                        {getInitials((user)?.email)}
+                      </span>
+                    </div>
+                    <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-200 max-w-24 lg:max-w-none truncate">
+                      {getUserName((user)?.email)}
+                    </span>
+                    <ChevronDown className="hidden sm:block h-4 w-4 text-gray-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 sm:w-56">
+                  <DropdownMenuItem className="sm:hidden">
+                    <Bell className="mr-2 h-4 w-4" />
+                    Notifications
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation('/user-profile')} data-testid="menu-settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">User Account Menu</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </header>

@@ -21,6 +21,8 @@ vi.mock('../../server/storage', () => ({
         createDocument: vi.fn(),
         updateDocument: vi.fn(),
         deleteDocument: vi.fn(),
+        getDocumentApprovalsByDocumentId: vi.fn(),
+        createDocumentApproval: vi.fn(),
     }
 }));
 
@@ -179,6 +181,12 @@ describe('Documents Routes', () => {
     describe('POST /api/documents/generate', () => {
         it('generates a document content', async () => {
             (multiTenantMock.getCompanyProfileWithOrgCheck as any).mockResolvedValue({ authorized: true });
+            (storage.getCompanyProfile as any).mockResolvedValue({ 
+                id: 'cp-1', 
+                companyName: 'TestCorp', 
+                cloudInfrastructure: [], 
+                businessApplications: [] 
+            });
             (storage.createDocument as any).mockResolvedValue({ id: 'doc-gen' });
 
             const response = await request(app)
@@ -232,6 +240,14 @@ describe('Documents Routes', () => {
     describe('GET /api/documents/:id/approvals', () => {
         it('returns mock approvals for a document', async () => {
             (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({ authorized: true, document: { id: 'doc-1' } });
+            (storage.getDocumentApprovalsByDocumentId as any).mockResolvedValue([
+                {
+                    id: "approval-1",
+                    documentId: "doc-1",
+                    status: "approved",
+                    comments: "Test comments"
+                }
+            ]);
 
             const response = await request(app)
                 .get('/api/documents/doc-1/approvals')
@@ -415,6 +431,10 @@ describe('Documents Routes', () => {
             (multiTenantMock.getDocumentWithOrgCheck as any).mockResolvedValue({
                 authorized: true,
                 document: { id: "doc-1" }
+            });
+            (storage.createDocumentApproval as any).mockResolvedValue({
+                id: "new-approval-id",
+                documentId: "doc-1"
             });
 
             const response = await request(app)

@@ -223,37 +223,124 @@ export async function registerDocumentsRoutes(router: Router) {
       throw new ValidationError("Invalid company profile");
     }
 
-    const generatedContent = `# ${title}
+    // Fetch user's company profile
+    const companyProfile = await storage.getCompanyProfile(companyProfileId);
+    if (!companyProfile) {
+      throw new NotFoundError("Company profile not found");
+    }
 
-## Overview
-This ${category} document has been generated for ${framework} compliance requirements.
+    // Try to find a matching modular template in DocumentTemplateService
+    const { DocumentTemplateService } = await import('../services/documentTemplates');
+    const templates = DocumentTemplateService.getTemplatesByFramework(framework);
+    
+    // Find best match by title, category, or fallback to first template
+    const template = templates.find(t => 
+      t.title.toLowerCase().includes(title.toLowerCase()) || 
+      title.toLowerCase().includes(t.title.toLowerCase())
+    ) || templates.find(t => t.category === category) || templates[0];
 
-${description ? `## Purpose\n${description}\n` : ''}
+    let generatedContent = '';
+    let selectedModel = 'offline-deterministic';
 
-## 1. Introduction
-This document establishes the ${title.toLowerCase()} for our organization in accordance with ${framework} requirements.
+    const infraString = Array.isArray(companyProfile.cloudInfrastructure) 
+      ? companyProfile.cloudInfrastructure.join(', ') 
+      : String(companyProfile.cloudInfrastructure || '');
 
-## 2. Scope
-This policy applies to all employees, contractors, and third-party users who have access to organizational information systems.
+    const appsString = Array.isArray(companyProfile.businessApplications) 
+      ? companyProfile.businessApplications.join(', ') 
+      : String(companyProfile.businessApplications || '');
 
-## 3. Policy Statement
-[Generated policy content based on ${framework} framework requirements...]
+    const variables: Record<string, any> = {
+      company_name: companyProfile.companyName,
+      companyName: companyProfile.companyName,
+      industry: companyProfile.industry,
+      company_size: companyProfile.companySize,
+      companySize: companyProfile.companySize,
+      primary_locations: companyProfile.headquarters || "Primary Corporate Headquarters",
+      headquarters: companyProfile.headquarters || "Primary Corporate Headquarters",
+      cloud_infrastructure: infraString || "Enterprise Cloud Environments",
+      cloudInfrastructure: infraString || "Enterprise Cloud Environments",
+      data_classification: companyProfile.dataClassification || "Confidential",
+      dataClassification: companyProfile.dataClassification || "Confidential",
+      business_applications: appsString || "Core Business Operations Systems",
+      businessApplications: appsString || "Core Business Operations Systems",
+      
+      // Dynamic dates and standard placeholders
+      approval_date: new Date().toISOString().split('T')[0],
+      approvalDate: new Date().toISOString().split('T')[0],
+      effective_date: new Date().toISOString().split('T')[0],
+      effectiveDate: new Date().toISOString().split('T')[0],
+      next_review_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      nextReviewDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      
+      approved_by: "Chief Information Security Officer (CISO)",
+      approvedBy: "Chief Information Security Officer (CISO)",
+      document_owner: "Director of Compliance & Information Security",
+      documentOwner: "Director of Compliance & Information Security",
+      version: "1.0.0",
+      
+      // Location/Infra helpers
+      data_centers: "AWS cloud hosting platform regions",
+      dataCenters: "AWS cloud hosting platform regions",
+      remote_locations: "Remote workforce securely connected via virtual private networking (VPN)",
+      remoteLocations: "Remote workforce securely connected via virtual private networking (VPN)",
+      business_units: "All operational divisions, software engineering, product management, and corporate services",
+      businessUnits: "All operational divisions, software engineering, product management, and corporate services",
+      departments: "Engineering, Security Operations, Human Resources, Legal, Customer Support",
+      third_party_services: "Critical cloud infrastructure and SaaS sub-processors identified in vendor registry",
+      thirdPartyServices: "Critical cloud infrastructure and SaaS sub-processors identified in vendor registry",
+      information_systems: "Production deployment systems, source code management tools, continuous integration platforms, employee workstations",
+      informationSystems: "Production deployment systems, source code management tools, continuous integration platforms, employee workstations",
+      networks: "Virtual Private Cloud (VPC) subnets, corporate firewall domains, secure gateway networks",
+      cloud_services: infraString || "Enterprise Cloud Services",
+      cloudServices: infraString || "Enterprise Cloud Services",
+      mobile_devices: "Corporate-managed laptops and mobile devices under active mobile device management (MDM) policies",
+      mobileDevices: "Corporate-managed laptops and mobile devices under active mobile device management (MDM) policies",
+      exclusions: "No exclusions have been defined. All components of the production application and customer support environment fall within the boundary of this program.",
+      legal_requirements: "General Data Protection Regulation (GDPR), California Consumer Privacy Act (CCPA), SOC 2 Trust Services Criteria, ISO/IEC 27001 standard controls, NIST SP 800-53 requirements.",
+      legalRequirements: "General Data Protection Regulation (GDPR), California Consumer Privacy Act (CCPA), SOC 2 Trust Services Criteria, ISO/IEC 27001 standard controls, NIST SP 800-53 requirements."
+    };
 
-## 4. Roles and Responsibilities
-- **Information Security Officer**: Overall responsibility for policy implementation
-- **Management**: Ensuring adequate resources and support
-- **Employees**: Compliance with all policy requirements
+    if (template) {
+      const genResult = DocumentTemplateService.generateDeterministicDocument({
+        templateId: template.id,
+        variables,
+        includeToc: true,
+        includeMetadata: true,
+        version: "1.0.0"
+      });
+      if (genResult.success && genResult.content) {
+        generatedContent = genResult.content;
+      }
+    }
 
-## 5. Implementation
-[Implementation details specific to ${framework}...]
+    // Fallback if template is not found or template generation fails
+    if (!generatedContent) {
+      selectedModel = 'offline-fallback';
+      generatedContent = `# ${title}
 
-## 6. Compliance and Monitoring
-Regular audits will be conducted to ensure compliance with this policy.
+## Executive Summary
+This comprehensive ${category} policy document establishes the regulatory compliance standards for ${companyProfile.companyName} to satisfy the ${framework} framework. 
+
+${description ? `## 1. Scope & Objective\n${description}\n` : '## 1. Scope & Objective\nThis policy defines the management framework and technical controls required to support our security requirements.\n'}
+
+## 2. Technical Control Guidelines
+In alignment with ${framework} guidelines, ${companyProfile.companyName} enforces strict security policies across all cloud environments, including ${infraString}. These controls apply to all critical corporate applications, specifically ${appsString}.
+
+## 3. Roles and Responsibilities
+- **Management Oversight**: Establishes information security budgets, approves risk tolerance levels, and reviews audit findings.
+- **Security Operations**: Implements system configurations, executes technical controls, and monitors log outputs.
+- **Staff Compliance**: Adheres to all physical and technological security guidelines.
+
+## 4. Policy Enforcement and Reviews
+Regular compliance checks and gap analysis audits are conducted. Security reviews are scheduled at least annually.
 
 ---
-Document generated using AI on ${new Date().toISOString()}
-Framework: ${framework}
-Category: ${category}`;
+**Approved By:** Chief Information Security Officer (CISO)
+**Effective Date:** ${new Date().toISOString().split('T')[0]}
+**Framework Compliance:** ${framework}
+**Document Category:** ${category}`;
+    }
 
     const document = await storage.createDocument({
       companyProfileId,
@@ -266,7 +353,7 @@ Category: ${category}`;
       documentType: "text",
       status: "draft",
       aiGenerated: true,
-      aiModel: "gpt-5.4",
+      aiModel: selectedModel,
       generationPrompt: `Generate a ${category} document for ${framework} compliance`
     });
 
@@ -382,26 +469,8 @@ Category: ${category}`;
       throw new NotFoundError("Document not found");
     }
     
-    const mockApprovals = [
-      {
-        id: "approval-1",
-        documentId: req.params.id,
-        versionId: "ver-3",
-        requestedBy: getUserId(req) || "user-1",
-        approverRole: "ciso",
-        assignedTo: "user-ciso",
-        status: "approved",
-        comments: "Approved after thorough review. All compliance requirements met.",
-        priority: "high",
-        dueDate: new Date("2024-08-20T17:00:00Z"),
-        approvedAt: new Date("2024-08-14T16:45:00Z"),
-        rejectedAt: null,
-        createdAt: new Date("2024-08-14T10:00:00Z"),
-        updatedAt: new Date("2024-08-14T16:45:00Z")
-      }
-    ];
-
-    res.json({ success: true, data: mockApprovals });
+    const approvals = await storage.getDocumentApprovalsByDocumentId(req.params.id);
+    res.json({ success: true, data: approvals });
   }));
 
   router.post('/:id/approvals', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
@@ -411,13 +480,26 @@ Category: ${category}`;
       throw new NotFoundError("Document not found");
     }
     
-    // In a real app, we would validate and save req.body to approvals table
+    const userId = getRequiredUserId(req);
+    const { approverRole = 'ciso', priority = 'medium', comments = '' } = req.body;
+    
+    const approval = await storage.createDocumentApproval({
+      documentId: req.params.id,
+      versionId: null,
+      requestedBy: userId,
+      approverRole: approverRole,
+      assignedTo: "compliance-officer-1",
+      status: "pending",
+      comments: comments || "Requesting review and compliance validation.",
+      priority: priority,
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    });
     
     res.json({ 
       success: true, 
       data: {
         message: "Approval request submitted successfully",
-        approvalId: "new-approval-id"
+        approvalId: approval.id
       }
     });
   }, { audit: { action: 'create', entityType: 'approval', getEntityId: (req) => req.params.id } }));
