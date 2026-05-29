@@ -129,7 +129,7 @@ test.describe("Signup Flow", () => {
   test("signup form has required fields", async ({ page }) => {
     await page.goto("/enterprise-signup");
     await expect(page.locator("input[type='email'], input[name='email']")).toBeVisible();
-    await expect(page.locator("input[type='password']")).toBeVisible();
+    await expect(page.locator("input[type='password']").first()).toBeVisible();
   });
 
   test("signup form shows error for duplicate email", async ({ page }) => {

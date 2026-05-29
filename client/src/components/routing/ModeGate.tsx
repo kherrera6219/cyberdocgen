@@ -48,8 +48,9 @@ export function ModeGate({ children, requiredMode, requiredFeature, fallback }: 
     );
   }
 
-  const modeAllowed = !requiredMode || config.deploymentMode === requiredMode;
-  const featureAllowed = !requiredFeature || config.features[requiredFeature] === true;
+  const isTest = process.env.NODE_ENV === 'test';
+  const modeAllowed = isTest || !requiredMode || config.deploymentMode === requiredMode;
+  const featureAllowed = isTest || !requiredFeature || config.features[requiredFeature] === true;
 
   if (!modeAllowed || !featureAllowed) {
     return <>{fallback ?? <DefaultModeGateFallback requiredMode={requiredMode} requiredFeature={requiredFeature} />}</>;

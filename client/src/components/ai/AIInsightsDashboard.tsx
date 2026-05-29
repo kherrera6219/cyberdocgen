@@ -47,7 +47,7 @@ export function AIInsightsDashboard({
   const [, setLocation] = useLocation();
   const { targetScore, riskLevel } = useMemo(() => {
     if (documentsCount === 0 && frameworksActive === 0) {
-      return { targetScore: 0, riskLevel: "high" as const };
+      return { targetScore: 0, riskLevel: "high" as "low" | "medium" | "high" | "undetermined" };
     }
     
     // Cap score calculations correctly when totalDocumentsCount is not provided (e.g. in unit tests)
@@ -60,7 +60,7 @@ export function AIInsightsDashboard({
     else if (score > 40) level = "medium";
     else level = "high";
 
-    return { targetScore: score, riskLevel: level };
+    return { targetScore: score, riskLevel: level as "low" | "medium" | "high" | "undetermined" };
   }, [documentsCount, totalDocumentsCount, frameworksActive]);
 
   const [animatedScore, setAnimatedScore] = useState(0);
