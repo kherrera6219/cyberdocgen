@@ -30,14 +30,14 @@ export const AI_MODELS = {
     released: "2026-02-17",
   },
 
-  // Google — Gemini 3.1 Pro Preview: latest Gemini, successor to 3.0 Pro
+  // Google — Gemini 3.5 Flash: latest frontier Gemini model (May 19, 2026)
   GOOGLE: {
-    primary: "gemini-3.1-pro-preview",
-    fallback: "gemini-3.1-flash-lite-preview",
-    description: "Gemini 3.1 Pro Preview: latest Gemini, replaces shut down Gemini 3.0 Pro (Feb 19, 2026)",
-    capabilities: ["multimodal input/output", "advanced reasoning", "1M token context", "custom tool use"],
+    primary: "gemini-3.5-flash",
+    fallback: "gemini-3.5-flash",
+    description: "Gemini 3.5 Flash: Google's premium agentic and coding model with 1M context window (May 2026)",
+    capabilities: ["multimodal input/output", "advanced reasoning", "1M token context", "custom tool use", "dynamic thinking"],
     maxTokens: 1_000_000,
-    released: "2026-02-19",
+    released: "2026-05-19",
   },
 } as const;
 

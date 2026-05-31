@@ -291,7 +291,7 @@ export default function RiskRegister() {
                 </div>
                 <div className="space-y-3 min-h-[50vh]">
                   {filteredRisks.map((risk) => (
-                    <Card key={risk.id} className="border border-gray-200 dark:border-gray-800 dark:bg-slate-900 shadow hover:shadow-md transition-all">
+                    <Card key={risk.id} className="border border-gray-200 dark:border-gray-800 dark:bg-slate-900 shadow cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.01] hover:border-primary/20 transition-all duration-200">
                       <CardContent className="p-4 space-y-4">
                         <div className="space-y-1">
                           <div className="flex justify-between items-start gap-2">

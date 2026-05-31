@@ -294,7 +294,7 @@ export const generateDocumentTool: Tool = {
     {
       name: 'model',
       type: 'string',
-      description: 'AI model to use (gpt-5.4, claude-sonnet-4-6, gemini-3.1-pro-preview, or auto)',
+      description: 'AI model to use (gpt-5.4, claude-sonnet-4-6, gemini-3.5-flash, or auto)',
       required: false,
       default: 'auto'
     }

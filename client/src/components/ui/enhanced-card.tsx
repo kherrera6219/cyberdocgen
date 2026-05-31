@@ -13,14 +13,13 @@ const EnhancedCard = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300",
-      hover && "hover:shadow-lg hover:scale-[1.02]",
-      gradient && "bg-gradient-to-br from-card to-card/50",
+      "rounded-xl border border-border/40 bg-card/80 backdrop-blur-md text-card-foreground shadow-sm transition-all duration-300",
+      hover && "hover:shadow-md hover:scale-[1.01] hover:border-primary/20",
+      gradient && "bg-gradient-to-br from-card/90 to-card/60",
       border === 'left' && `border-l-4 ${borderColor}`,
       border === 'top' && `border-t-4 ${borderColor}`,
       border === 'right' && `border-r-4 ${borderColor}`,
       border === 'bottom' && `border-b-4 ${borderColor}`,
-      "dark:border-gray-700 dark:bg-gray-800",
       className
     )}
     {...props}

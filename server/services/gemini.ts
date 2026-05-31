@@ -1,11 +1,10 @@
 import { logger } from "../utils/logger";
 import { getGeminiClient as getSharedGeminiClient, resetAIClients } from "./aiClients";
 
-// Gemini model IDs — verified March 2026
-// Primary:  gemini-3.1-pro-preview — replaces deprecated 3.0-pro (shut down Mar 9, 2026)
-// Fallback: gemini-3.1-flash-lite-preview       — stable GA, fast and cost-effective
-const GEMINI_PRO_MODEL = "gemini-3.1-pro-preview";
-const GEMINI_FLASH_MODEL = "gemini-3.1-flash-lite-preview";
+// Gemini model IDs — updated May 2026
+// Primary & Fallback: gemini-3.5-flash — frontier Flash model for agentic and coding tasks
+const GEMINI_PRO_MODEL = "gemini-3.5-flash";
+const GEMINI_FLASH_MODEL = "gemini-3.5-flash";
 
 export const getGeminiClient = () => getSharedGeminiClient();
 

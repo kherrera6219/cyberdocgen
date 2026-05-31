@@ -223,7 +223,7 @@ function isValidApiKeyFormat(provider: SupportedApiKeyProvider, apiKey: string):
     case 'ANTHROPIC':
       return /^sk-ant-[A-Za-z0-9_-]{20,}$/.test(key);
     case 'GOOGLE_AI':
-      return /^AIza[0-9A-Za-z_-]{30,}$/.test(key);
+      return /^(?:AIza[0-9A-Za-z_-]{30,}|AQ\.[0-9A-Za-z_-]{30,})$/.test(key);
     default:
       return false;
   }

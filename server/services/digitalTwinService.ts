@@ -65,7 +65,7 @@ Based on the policies and the transcript, raise a compliance challenge or ask a 
 
         const auditorResult = await aiOrchestrator.generateContent({
           prompt: auditorPrompt,
-          model: "gemini-3.1-pro-preview",
+          model: "gemini-3.5-flash",
           enableGuardrails: true
         });
 

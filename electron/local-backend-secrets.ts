@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 
 const ENCRYPTION_KEY_PATTERN = /^[a-fA-F0-9]{64}$/;
 const INTEGRITY_SECRET_MIN_LENGTH = 32;
@@ -25,6 +26,58 @@ interface PersistedLocalBackendSecrets {
 export interface LocalBackendSecretsLogger {
   info(message: string, data?: unknown): void;
   warn(message: string, data?: unknown): void;
+}
+
+/**
+ * Encrypt string payload using native Windows DPAPI (CurrentUser)
+ */
+function encryptDPAPI(plainText: string, logger?: LocalBackendSecretsLogger): string {
+  if (process.platform !== 'win32' || process.env.NODE_ENV === 'test') {
+    return plainText;
+  }
+  try {
+    const base64Input = Buffer.from(plainText, 'utf8').toString('base64');
+    const command = `powershell -NoProfile -Command "Add-Type -AssemblyName System.Security; $plainBytes = [System.Convert]::FromBase64String('${base64Input}'); $encryptedBytes = [System.Security.Cryptography.ProtectedData]::Protect($plainBytes, $null, 'CurrentUser'); [System.Convert]::ToBase64String($encryptedBytes)"`;
+    const base64 = execSync(command, { encoding: 'utf8', windowsHide: true }).trim();
+    if (!base64 || base64.includes('Error')) {
+      throw new Error('DPAPI protect cmdlet returned invalid result');
+    }
+    logger?.info('DPAPI encryption completed successfully for local secrets store.');
+    return `DPAPI:${base64}`;
+  } catch (error: any) {
+    logger?.warn('Windows DPAPI encryption failed, falling back to standard file permissions protection', {
+      error: error?.message || String(error),
+    });
+    return plainText;
+  }
+}
+
+/**
+ * Decrypt string payload using native Windows DPAPI (CurrentUser)
+ */
+function decryptDPAPI(cipherText: string, logger?: LocalBackendSecretsLogger): string {
+  if (!cipherText.startsWith('DPAPI:')) {
+    return cipherText;
+  }
+  if (process.platform !== 'win32' || process.env.NODE_ENV === 'test') {
+    return cipherText.substring(6);
+  }
+  try {
+    const base64 = cipherText.substring(6);
+    const command = `powershell -NoProfile -Command "Add-Type -AssemblyName System.Security; $encryptedBytes = [System.Convert]::FromBase64String('${base64}'); $plainBytes = [System.Security.Cryptography.ProtectedData]::Unprotect($encryptedBytes, $null, 'CurrentUser'); [System.Convert]::ToBase64String($plainBytes)"`;
+    const base64Output = execSync(command, { encoding: 'utf8', windowsHide: true }).trim();
+    if (!base64Output) {
+      throw new Error('DPAPI unprotect cmdlet returned empty result');
+    }
+    const decrypted = Buffer.from(base64Output, 'base64').toString('utf8');
+    logger?.info('DPAPI decryption completed successfully for local secrets store.');
+    return decrypted;
+  } catch (error: any) {
+    logger?.warn('Windows DPAPI decryption failed', {
+      error: error?.message || String(error),
+    });
+    throw new Error(`Failed to decrypt GRC secrets using DPAPI: ${error?.message || String(error)}`);
+  }
 }
 
 function normalizeEncryptionKey(rawValue: string | undefined): string | null {
@@ -71,8 +124,9 @@ function readPersistedSecrets(
   }
 
   try {
-    const raw = fs.readFileSync(secretsPath, 'utf8');
-    const parsed = JSON.parse(raw) as unknown;
+    const rawContent = fs.readFileSync(secretsPath, 'utf8').trim();
+    const decrypted = decryptDPAPI(rawContent, logger);
+    const parsed = JSON.parse(decrypted) as unknown;
     if (!isPersistedSecretsRecord(parsed)) {
       logger?.warn('Local backend secrets file is malformed; regenerating', { secretsPath });
       return null;
@@ -91,7 +145,9 @@ function persistSecrets(
 ): void {
   try {
     fs.mkdirSync(path.dirname(secretsPath), { recursive: true });
-    fs.writeFileSync(secretsPath, `${JSON.stringify(payload, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
+    const rawJson = JSON.stringify(payload, null, 2);
+    const encrypted = encryptDPAPI(rawJson, logger);
+    fs.writeFileSync(secretsPath, encrypted, { encoding: 'utf8', mode: 0o600 });
   } catch (error) {
     logger?.warn('Failed to persist local backend secrets file', { secretsPath, error: String(error) });
   }

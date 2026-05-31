@@ -152,7 +152,7 @@ describe('MCP Core Unit Tests', () => {
         models: {
           'gpt-5.4': true,
           'claude-sonnet-4-6': true,
-          'gemini-3.1-pro-preview': true,
+          'gemini-3.5-flash': true,
         },
       });
       const result = await checkAIServiceHealth();

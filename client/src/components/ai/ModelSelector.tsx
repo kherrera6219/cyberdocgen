@@ -30,11 +30,6 @@ export function ModelSelector({
   className,
   showHealth = true,
 }: ModelSelectorProps) {
-  const { data: models } = useQuery({
-    queryKey: ["/api/ai/models"],
-    staleTime: 5 * 60 * 1000,
-  });
-
   const { data: health } = useQuery<AIHealth>({
     queryKey: ["/api/ai/health"],
     staleTime: 30 * 1000,
@@ -65,9 +60,9 @@ export function ModelSelector({
       available: health?.anthropic ?? true,
     },
     {
-      value: "gemini-3.1-pro-preview",
-      label: "Gemini 3.1 Pro Preview",
-      description: "Google's latest multimodal reasoning model for large-context analysis and comprehensive reports",
+      value: "gemini-3.5-flash",
+      label: "Gemini 3.5 Flash",
+      description: "Google's premium agentic and coding model with 1M context window (May 2026)",
       icon: <Cpu className="h-4 w-4" />,
       available: health?.google ?? true,
     },

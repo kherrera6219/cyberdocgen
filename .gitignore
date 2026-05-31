@@ -1,6 +1,22 @@
 node_modules
 dist
 .DS_Store
+
+# API keys and credentials - NEVER commit
+api-keys/
+*.key
+*.pem
+keys.json
+
+# Local standards/notes text files
+"# Local-First*.txt"
+*.txt
+
+# Local utility scripts and batch files
+start.bat
+stop.bat
+test-schema.ts
+scripts/validate-db-agents.ts
 server/public
 vite.config.ts.*
 *.tar.gz

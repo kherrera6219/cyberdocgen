@@ -7,6 +7,10 @@ import { createInsertSchema } from "drizzle-zod";
 export const cis = createInsertSchema as any;
 import { z } from "zod";
 
+// Import vector schemas explicitly to avoid drizzle-kit reference errors
+import { agentMemory, documentEmbeddings, controlEmbeddings } from "./schema/vectors";
+export { agentMemory, documentEmbeddings, controlEmbeddings };
+
 // Session storage table for authentication
 export const sessions = pgTable(
   "sessions",
@@ -663,39 +667,7 @@ export const generationJobs = pgTable("generation_jobs", {
 });
 
 
-// ---------------------------------------------------------
-// PHASE 1: ADDITIONAL GRC MASTER PLAN TABLES
-// ---------------------------------------------------------
-
-// Agent Memory (Long-term episodic memory via pgvector)
-// NOTE: "vector" type is provided by pgvector, we use custom type definition for Drizzle
-const pgVector = customType<{ data: number[]; driverData: string }>({
-  dataType() {
-    return 'vector(1536)'; // OpenAI embeddings dimension
-  },
-  toDriver(value: number[]): string {
-    return JSON.stringify(value);
-  },
-  fromDriver(value: unknown): number[] {
-    return Array.isArray(value) ? value : JSON.parse(value as string);
-  },
-});
-
-export const agentMemory = pgTable("agent_memory", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  agentId: varchar("agent_id").notNull(),
-  organizationId: varchar("organization_id").references(() => organizations.id).notNull(),
-  episodeSummary: text("episode_summary").notNull(),
-  embedding: pgVector("embedding"),
-  metadata: jsonb("metadata").$type<{
-    framework?: string;
-    documentId?: string;
-    successScore?: number;
-    actionsTaken?: string[];
-  }>(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
+// Vector schemas are exported at the bottom of the file
 // Enterprise IdP Configs (Okta, Entra ID, HRIS)
 export const enterpriseIdpConfigs = pgTable("enterprise_idp_configs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -2582,5 +2554,3 @@ export const insertMockAuditSchema = cis(mockAudits).omit({
 });
 export type InsertMockAudit = z.infer<typeof insertMockAuditSchema>;
 export type MockAudit = typeof mockAudits.$inferSelect;
-
-

@@ -81,7 +81,7 @@ export interface AgentConfig {
   id: string;
   name: string;
   description: string;
-  model: 'gpt-5.4' | 'claude-sonnet-4-6' | 'gemini-3.1-pro-preview';
+  model: 'gpt-5.4' | 'claude-sonnet-4-6' | 'gemini-3.5-flash';
   tools: string[]; // Tool names available to this agent
   systemPrompt: string;
   temperature?: number;

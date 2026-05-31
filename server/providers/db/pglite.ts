@@ -136,9 +136,15 @@ export class PgliteDbProvider implements IDbProvider {
       }
 
       try {
-        const migration = fs.readFileSync(path.join(this.migrationsPath, file), 'utf-8');
+        const migrationContent = fs.readFileSync(path.join(this.migrationsPath, file), 'utf-8');
+        const statements = migrationContent.split('--> statement-breakpoint');
         await pg.transaction(async (tx) => {
-          await tx.exec(migration);
+          for (const statement of statements) {
+            const trimmed = statement.trim();
+            if (trimmed) {
+              await tx.exec(trimmed);
+            }
+          }
           await tx.query('INSERT INTO _migrations (name) VALUES ($1)', [file]);
         });
         logger.info(`[PgliteDbProvider] Applied migration: ${file}`);

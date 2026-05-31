@@ -1,3 +1,13 @@
+CREATE TABLE "agent_memory" (
+	"id" text PRIMARY KEY NOT NULL,
+	"organization_id" text,
+	"memory_type" text NOT NULL,
+	"content" text NOT NULL,
+	"embedding" vector(1536),
+	"impact_score" text,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "agent_message_inbox" (
 	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"sender_agent" varchar NOT NULL,
@@ -9,6 +19,33 @@ CREATE TABLE "agent_message_inbox" (
 	"attempts" integer DEFAULT 0,
 	"queued_at" timestamp DEFAULT now() NOT NULL,
 	"processed_at" timestamp
+);
+--> statement-breakpoint
+CREATE TABLE "agent_state_store" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"agent_id" varchar NOT NULL,
+	"agent_name" varchar NOT NULL,
+	"trajectory" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"variables" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"status" varchar DEFAULT 'running' NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "agent_tool_logs" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"agent_id" varchar NOT NULL,
+	"agent_name" varchar NOT NULL,
+	"tool_name" varchar NOT NULL,
+	"inputs" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"outputs" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"status" varchar DEFAULT 'success' NOT NULL,
+	"duration_ms" integer DEFAULT 0 NOT NULL,
+	"ip_address" varchar,
+	"hmac_seal" varchar NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "ai_guardrails_logs" (
@@ -240,6 +277,16 @@ CREATE TABLE "contact_messages" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "control_embeddings" (
+	"id" text PRIMARY KEY NOT NULL,
+	"control_id" text NOT NULL,
+	"framework" text NOT NULL,
+	"title" text NOT NULL,
+	"description" text,
+	"embedding" vector(1536),
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "data_residency_policies" (
 	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" varchar NOT NULL,
@@ -288,6 +335,18 @@ CREATE TABLE "document_approvals" (
 	"rejected_at" timestamp,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "document_embeddings" (
+	"id" text PRIMARY KEY NOT NULL,
+	"document_id" text,
+	"evidence_id" text,
+	"organization_id" text,
+	"content" text NOT NULL,
+	"framework" text,
+	"chunk_index" integer DEFAULT 0 NOT NULL,
+	"embedding" vector(1536),
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "document_templates" (
@@ -375,6 +434,35 @@ CREATE TABLE "email_verification_tokens" (
 	"verified_at" timestamp,
 	"created_at" timestamp DEFAULT now(),
 	CONSTRAINT "email_verification_tokens_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
+CREATE TABLE "enterprise_idp_configs" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"provider_type" varchar NOT NULL,
+	"domain" varchar NOT NULL,
+	"client_id_encrypted" text NOT NULL,
+	"client_secret_encrypted" text NOT NULL,
+	"sync_settings" jsonb DEFAULT '{}'::jsonb,
+	"is_active" boolean DEFAULT true,
+	"last_sync_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "enterprise_idp_configs_organization_id_provider_type_unique" UNIQUE("organization_id","provider_type")
+);
+--> statement-breakpoint
+CREATE TABLE "evidence_analyses" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"evidence_id" varchar NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"verified" boolean DEFAULT false NOT NULL,
+	"confidence_score" integer DEFAULT 0 NOT NULL,
+	"analysis_text" text NOT NULL,
+	"auditor_notes" text,
+	"reviewed_by" varchar,
+	"reviewed_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "evidence_control_mappings" (
@@ -499,6 +587,20 @@ CREATE TABLE "mfa_settings" (
 	"failed_attempts" integer DEFAULT 0,
 	"locked_until" timestamp with time zone,
 	CONSTRAINT "mfa_settings_user_id_mfa_type_unique" UNIQUE("user_id","mfa_type")
+);
+--> statement-breakpoint
+CREATE TABLE "mock_audits" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"framework" varchar NOT NULL,
+	"status" varchar DEFAULT 'pending' NOT NULL,
+	"auditor_personality" varchar DEFAULT 'strict' NOT NULL,
+	"transcript" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"compliance_score" integer,
+	"report_markdown" text,
+	"created_by" varchar,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "model_cards" (
@@ -672,6 +774,21 @@ CREATE TABLE "projects" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "questionnaire_solvers" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"file_name" varchar NOT NULL,
+	"status" varchar DEFAULT 'pending' NOT NULL,
+	"total_questions_count" integer DEFAULT 0 NOT NULL,
+	"completed_questions_count" integer DEFAULT 0 NOT NULL,
+	"average_confidence_score" numeric(5, 2) DEFAULT '0.00',
+	"questions_data" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"file_path" varchar,
+	"created_by" varchar,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "remediation_recommendations" (
 	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"finding_id" varchar NOT NULL,
@@ -808,6 +925,26 @@ CREATE TABLE "repository_tasks" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "risks" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"title" varchar NOT NULL,
+	"description" text,
+	"category" varchar NOT NULL,
+	"status" varchar DEFAULT 'identified' NOT NULL,
+	"inherent_likelihood" integer NOT NULL,
+	"inherent_impact" integer NOT NULL,
+	"inherent_score" integer NOT NULL,
+	"residual_likelihood" integer NOT NULL,
+	"residual_impact" integer NOT NULL,
+	"residual_score" integer NOT NULL,
+	"mitigating_controls" jsonb DEFAULT '[]'::jsonb,
+	"treatment_plan" text,
+	"created_by" varchar,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "role_assignments" (
 	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" varchar NOT NULL,
@@ -866,6 +1003,25 @@ CREATE TABLE "system_configurations" (
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "system_configurations_config_key_unique" UNIQUE("config_key")
+);
+--> statement-breakpoint
+CREATE TABLE "trust_center_downloads" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"nda_id" varchar NOT NULL,
+	"file_id" varchar NOT NULL,
+	"downloaded_at" timestamp DEFAULT now() NOT NULL,
+	"ip_address" varchar
+);
+--> statement-breakpoint
+CREATE TABLE "trust_center_ndas" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"full_name" varchar NOT NULL,
+	"email" varchar NOT NULL,
+	"company_name" varchar NOT NULL,
+	"signed_at" timestamp DEFAULT now() NOT NULL,
+	"signature_hash" varchar NOT NULL,
+	"status" varchar DEFAULT 'active' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "user_invitations" (
@@ -932,6 +1088,37 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+CREATE TABLE "vendor_questionnaires" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"vendor_id" varchar NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"status" varchar DEFAULT 'draft' NOT NULL,
+	"score" integer,
+	"questions_json" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"sent_at" timestamp,
+	"received_at" timestamp,
+	"reviewed_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "vendors" (
+	"id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" varchar NOT NULL,
+	"name" varchar NOT NULL,
+	"service_description" text,
+	"data_classification" varchar DEFAULT 'public' NOT NULL,
+	"security_status" varchar DEFAULT 'pending' NOT NULL,
+	"last_assessment_date" timestamp,
+	"soc2_status" varchar DEFAULT 'not_provided' NOT NULL,
+	"iso27001_status" varchar DEFAULT 'not_provided' NOT NULL,
+	"created_by" varchar,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+ALTER TABLE "agent_state_store" ADD CONSTRAINT "agent_state_store_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "agent_tool_logs" ADD CONSTRAINT "agent_tool_logs_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ai_guardrails_logs" ADD CONSTRAINT "ai_guardrails_logs_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ai_guardrails_logs" ADD CONSTRAINT "ai_guardrails_logs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ai_guardrails_logs" ADD CONSTRAINT "ai_guardrails_logs_human_reviewed_by_users_id_fk" FOREIGN KEY ("human_reviewed_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -970,6 +1157,10 @@ ALTER TABLE "documents" ADD CONSTRAINT "documents_created_by_users_id_fk" FOREIG
 ALTER TABLE "documents" ADD CONSTRAINT "documents_reviewed_by_users_id_fk" FOREIGN KEY ("reviewed_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "documents" ADD CONSTRAINT "documents_approved_by_users_id_fk" FOREIGN KEY ("approved_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "email_verification_tokens" ADD CONSTRAINT "email_verification_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "enterprise_idp_configs" ADD CONSTRAINT "enterprise_idp_configs_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "evidence_analyses" ADD CONSTRAINT "evidence_analyses_evidence_id_cloud_files_id_fk" FOREIGN KEY ("evidence_id") REFERENCES "public"."cloud_files"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "evidence_analyses" ADD CONSTRAINT "evidence_analyses_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "evidence_analyses" ADD CONSTRAINT "evidence_analyses_reviewed_by_users_id_fk" FOREIGN KEY ("reviewed_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "evidence_control_mappings" ADD CONSTRAINT "evidence_control_mappings_evidence_id_cloud_files_id_fk" FOREIGN KEY ("evidence_id") REFERENCES "public"."cloud_files"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "evidence_control_mappings" ADD CONSTRAINT "evidence_control_mappings_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "evidence_control_mappings" ADD CONSTRAINT "evidence_control_mappings_mapped_by_users_id_fk" FOREIGN KEY ("mapped_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -978,6 +1169,8 @@ ALTER TABLE "gap_analysis_findings" ADD CONSTRAINT "gap_analysis_findings_report
 ALTER TABLE "generation_jobs" ADD CONSTRAINT "generation_jobs_company_profile_id_company_profiles_id_fk" FOREIGN KEY ("company_profile_id") REFERENCES "public"."company_profiles"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "generation_jobs" ADD CONSTRAINT "generation_jobs_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mfa_settings" ADD CONSTRAINT "mfa_settings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "mock_audits" ADD CONSTRAINT "mock_audits_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "mock_audits" ADD CONSTRAINT "mock_audits_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "oauth_providers" ADD CONSTRAINT "oauth_providers_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -992,6 +1185,8 @@ ALTER TABLE "project_memberships" ADD CONSTRAINT "project_memberships_project_id
 ALTER TABLE "project_memberships" ADD CONSTRAINT "project_memberships_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "projects" ADD CONSTRAINT "projects_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "projects" ADD CONSTRAINT "projects_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "questionnaire_solvers" ADD CONSTRAINT "questionnaire_solvers_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "questionnaire_solvers" ADD CONSTRAINT "questionnaire_solvers_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "remediation_recommendations" ADD CONSTRAINT "remediation_recommendations_finding_id_gap_analysis_findings_id_fk" FOREIGN KEY ("finding_id") REFERENCES "public"."gap_analysis_findings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "repository_analysis_runs" ADD CONSTRAINT "repository_analysis_runs_snapshot_id_repository_snapshots_id_fk" FOREIGN KEY ("snapshot_id") REFERENCES "public"."repository_snapshots"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "repository_documents" ADD CONSTRAINT "repository_documents_snapshot_id_repository_snapshots_id_fk" FOREIGN KEY ("snapshot_id") REFERENCES "public"."repository_snapshots"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -1006,6 +1201,8 @@ ALTER TABLE "repository_snapshots" ADD CONSTRAINT "repository_snapshots_created_
 ALTER TABLE "repository_tasks" ADD CONSTRAINT "repository_tasks_snapshot_id_repository_snapshots_id_fk" FOREIGN KEY ("snapshot_id") REFERENCES "public"."repository_snapshots"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "repository_tasks" ADD CONSTRAINT "repository_tasks_finding_id_repository_findings_id_fk" FOREIGN KEY ("finding_id") REFERENCES "public"."repository_findings"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "repository_tasks" ADD CONSTRAINT "repository_tasks_completed_by_users_id_fk" FOREIGN KEY ("completed_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "risks" ADD CONSTRAINT "risks_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "risks" ADD CONSTRAINT "risks_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "role_assignments" ADD CONSTRAINT "role_assignments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "role_assignments" ADD CONSTRAINT "role_assignments_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "role_assignments" ADD CONSTRAINT "role_assignments_role_id_roles_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."roles"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1013,11 +1210,21 @@ ALTER TABLE "role_assignments" ADD CONSTRAINT "role_assignments_assigned_by_user
 ALTER TABLE "stakeholders" ADD CONSTRAINT "stakeholders_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "system_configurations" ADD CONSTRAINT "system_configurations_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "system_configurations" ADD CONSTRAINT "system_configurations_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "trust_center_downloads" ADD CONSTRAINT "trust_center_downloads_nda_id_trust_center_ndas_id_fk" FOREIGN KEY ("nda_id") REFERENCES "public"."trust_center_ndas"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "trust_center_downloads" ADD CONSTRAINT "trust_center_downloads_file_id_cloud_files_id_fk" FOREIGN KEY ("file_id") REFERENCES "public"."cloud_files"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "trust_center_ndas" ADD CONSTRAINT "trust_center_ndas_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_invitations" ADD CONSTRAINT "user_invitations_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_invitations" ADD CONSTRAINT "user_invitations_invited_by_users_id_fk" FOREIGN KEY ("invited_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_organizations" ADD CONSTRAINT "user_organizations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_organizations" ADD CONSTRAINT "user_organizations_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "vendor_questionnaires" ADD CONSTRAINT "vendor_questionnaires_vendor_id_vendors_id_fk" FOREIGN KEY ("vendor_id") REFERENCES "public"."vendors"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "vendor_questionnaires" ADD CONSTRAINT "vendor_questionnaires_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "vendors" ADD CONSTRAINT "vendors_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "vendors" ADD CONSTRAINT "vendors_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "agent_memory_vector_idx" ON "agent_memory" USING hnsw ("embedding" vector_cosine_ops);--> statement-breakpoint
+CREATE INDEX "agent_memory_org_idx" ON "agent_memory" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "idx_agent_state_agent_id" ON "agent_state_store" USING btree ("agent_id");--> statement-breakpoint
 CREATE INDEX "idx_guardrails_org" ON "ai_guardrails_logs" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "idx_guardrails_user" ON "ai_guardrails_logs" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_guardrails_type" ON "ai_guardrails_logs" USING btree ("guardrail_type");--> statement-breakpoint
@@ -1048,11 +1255,16 @@ CREATE INDEX "idx_cloud_integrations_user_id" ON "cloud_integrations" USING btre
 CREATE INDEX "idx_cloud_integrations_org_id" ON "cloud_integrations" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "idx_connector_configs_integration" ON "connector_configs" USING btree ("integration_id");--> statement-breakpoint
 CREATE INDEX "idx_connector_configs_org" ON "connector_configs" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "control_embeddings_vector_idx" ON "control_embeddings" USING hnsw ("embedding" vector_cosine_ops);--> statement-breakpoint
+CREATE INDEX "control_embeddings_framework_idx" ON "control_embeddings" USING btree ("framework");--> statement-breakpoint
 CREATE INDEX "idx_residency_org" ON "data_residency_policies" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "idx_residency_status" ON "data_residency_policies" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "idx_retention_org" ON "data_retention_policies" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "idx_retention_status" ON "data_retention_policies" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "idx_retention_type" ON "data_retention_policies" USING btree ("data_type");--> statement-breakpoint
+CREATE INDEX "document_embeddings_vector_idx" ON "document_embeddings" USING hnsw ("embedding" vector_cosine_ops);--> statement-breakpoint
+CREATE INDEX "document_embeddings_org_idx" ON "document_embeddings" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "document_embeddings_framework_idx" ON "document_embeddings" USING btree ("framework");--> statement-breakpoint
 CREATE INDEX "idx_evidence_mappings_org" ON "evidence_control_mappings" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "idx_evidence_mappings_evidence" ON "evidence_control_mappings" USING btree ("evidence_id");--> statement-breakpoint
 CREATE INDEX "idx_mfa_settings_user_id" ON "mfa_settings" USING btree ("user_id");--> statement-breakpoint

@@ -75,7 +75,7 @@ export async function analyzeImage(
     }
 
     const response = await genAI.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
+      model: "gemini-3.5-flash",
       contents: [
         {
           role: "user",

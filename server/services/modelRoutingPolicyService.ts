@@ -1,7 +1,7 @@
 import { logger } from "../utils/logger";
 
-// Model IDs — March 2026. Must match AIModel type in aiOrchestrator.ts exactly.
-export type RouteModel = "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.1-pro-preview" | "auto";
+// Model IDs — May 2026. Must match AIModel type in aiOrchestrator.ts exactly.
+export type RouteModel = "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.5-flash" | "auto";
 export type RoutedModel = Exclude<RouteModel, "auto">;
 
 export interface ModelRoutingRequest {
@@ -63,18 +63,18 @@ class ModelRoutingPolicyService {
       }
       if (category.includes("analysis") || category.includes("assessment")) {
         return {
-          // Gemini 3.1 Pro for long-context analysis
-          selectedModel: "gemini-3.1-pro-preview",
+          // Gemini 3.5 Flash for long-context analysis
+          selectedModel: "gemini-3.5-flash",
           fallbackModel: "claude-sonnet-4-6",
           reason: "analysis_document_preference",
         };
       }
     }
 
-    // Large prompts — Gemini 3.1 Pro has 1M token context
+    // Large prompts — Gemini 3.5 Flash has 1M token context
     if ((request.promptLength || 0) > 15000) {
       return {
-        selectedModel: "gemini-3.1-pro-preview",
+        selectedModel: "gemini-3.5-flash",
         fallbackModel: "claude-sonnet-4-6",
         reason: "large_prompt_policy",
       };
@@ -91,7 +91,7 @@ class ModelRoutingPolicyService {
 
     return {
       selectedModel: "gpt-5.4",
-      fallbackModel: "gemini-3.1-pro-preview",
+      fallbackModel: "gemini-3.5-flash",
       reason: "default_policy",
     };
   }
@@ -99,8 +99,8 @@ class ModelRoutingPolicyService {
   getFallbackModel(model: RoutedModel): RoutedModel {
     switch (model) {
       case "gpt-5.4":
-        return "gemini-3.1-pro-preview";
-      case "gemini-3.1-pro-preview":
+        return "gemini-3.5-flash";
+      case "gemini-3.5-flash":
         return "claude-sonnet-4-6";
       case "claude-sonnet-4-6":
       default:

@@ -128,12 +128,18 @@ export async function generateContentWithOpenAI(prompt: string): Promise<string>
     const response = await getOpenAIClient().chat.completions.create({
       model: "gpt-5.4",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 2000,
+      max_completion_tokens: 2000,
     });
 
     return response.choices[0].message.content || "";
   } catch (error) {
-    logger.error("Error generating content with OpenAI:", error);
-    throw new Error(`Failed to generate content with OpenAI: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error("Error generating content with OpenAI, trying Gemini 3.5 Flash fallback:", error);
+    try {
+      const { generateContentWithGemini } = await import("./gemini");
+      return await generateContentWithGemini(prompt, { maxOutputTokens: 2000 });
+    } catch (geminiError) {
+      logger.error("OpenAI and Gemini fallbacks both failed:", geminiError);
+      throw new Error(`Failed to generate content with OpenAI: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }

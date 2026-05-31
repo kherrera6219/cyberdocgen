@@ -247,4 +247,89 @@ describe('EncryptionService', () => {
       }
     });
   });
+
+  describe('signature attestation & TPM 2.0 sealing', () => {
+    const userId = 'user-uuid-123';
+    const docId = 'doc-uuid-456';
+    const ipAddress = '192.168.1.50';
+
+    it('generates standard signature envelope without TPM mode', async () => {
+      const signedAt = new Date().toISOString();
+      process.env.TPM_ATTESTATION = 'false';
+
+      const envelope = await encryptionService.generateSignatureEnvelope(userId, docId, signedAt, ipAddress);
+
+      expect(envelope.algorithm).toBe('sha256-hmac');
+      expect(envelope.ipAddress).toBe(ipAddress);
+      expect(envelope.hash).toHaveLength(64);
+      expect(envelope.hmac).toHaveLength(64);
+      expect(envelope.tpmAttestation).toBeUndefined();
+
+      const isValid = await encryptionService.verifySignatureEnvelope(userId, docId, signedAt, envelope);
+      expect(isValid).toBe(true);
+    });
+
+    it('generates sealed hardware signature envelope in TPM mode', async () => {
+      const signedAt = new Date().toISOString();
+      process.env.TPM_ATTESTATION = 'true';
+
+      const envelope = await encryptionService.generateSignatureEnvelope(userId, docId, signedAt, ipAddress);
+
+      expect(envelope.algorithm).toBe('sha256-hmac');
+      expect(envelope.tpmAttestation).toBeDefined();
+      expect(envelope.tpmAttestation).toMatch(/^HardwareSealed:[0-9a-f]{64}$/);
+
+      const isValid = await encryptionService.verifySignatureEnvelope(userId, docId, signedAt, envelope);
+      expect(isValid).toBe(true);
+    });
+
+    it('fails validation on tampered signature payloads', async () => {
+      const signedAt = new Date().toISOString();
+      process.env.TPM_ATTESTATION = 'false';
+
+      const envelope = await encryptionService.generateSignatureEnvelope(userId, docId, signedAt, ipAddress);
+
+      // Verify tampered userId fails
+      const isUserValid = await encryptionService.verifySignatureEnvelope('attacker-user-id', docId, signedAt, envelope);
+      expect(isUserValid).toBe(false);
+
+      // Verify tampered IP fails
+      const isIpValid = await encryptionService.verifySignatureEnvelope(userId, docId, signedAt, {
+        ...envelope,
+        ipAddress: '10.0.0.1'
+      });
+      expect(isIpValid).toBe(false);
+    });
+
+    it('generates and verifies asymmetric ECDSA P-256 signatures successfully', async () => {
+      const signedAt = new Date().toISOString();
+      process.env.TPM_ATTESTATION = 'false';
+
+      const envelope = await encryptionService.generateSignatureEnvelope(userId, docId, signedAt, ipAddress);
+
+      expect(envelope.ecdsaSignature).toBeDefined();
+      expect(envelope.publicKey).toBeDefined();
+      expect(envelope.publicKey).toContain('BEGIN PUBLIC KEY');
+
+      // Verify signature validates
+      const isValid = await encryptionService.verifySignatureEnvelope(userId, docId, signedAt, envelope);
+      expect(isValid).toBe(true);
+    });
+
+    it('fails verification on tampered ECDSA P-256 signatures', async () => {
+      const signedAt = new Date().toISOString();
+      process.env.TPM_ATTESTATION = 'false';
+
+      const envelope = await encryptionService.generateSignatureEnvelope(userId, docId, signedAt, ipAddress);
+
+      // Verify tampered ECDSA signature fails
+      const tamperedEnvelope = {
+        ...envelope,
+        ecdsaSignature: envelope.ecdsaSignature ? envelope.ecdsaSignature.substring(0, envelope.ecdsaSignature.length - 4) + 'abcd' : '1234'
+      };
+      
+      const isTamperedValid = await encryptionService.verifySignatureEnvelope(userId, docId, signedAt, tamperedEnvelope);
+      expect(isTamperedValid).toBe(false);
+    });
+  });
 });

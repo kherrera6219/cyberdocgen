@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1779599098459,
-      "tag": "0000_past_mariko_yashida",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1779602101574,
-      "tag": "0001_swift_hawkeye",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1779777039796,
-      "tag": "0002_sad_rictor",
+      "when": 1780027432498,
+      "tag": "0000_natural_shen",
       "breakpoints": true
     }
   ]

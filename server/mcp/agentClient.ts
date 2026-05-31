@@ -117,7 +117,7 @@ export class AgentClient {
       response = await this.executeOpenAI(agent, request, context, tools);
     } else if (agent.model === 'claude-sonnet-4-6') {
       response = await this.executeAnthropic(agent, request, context, tools);
-    } else if (agent.model === 'gemini-3.1-pro-preview') {
+    } else if (agent.model === 'gemini-3.5-flash') {
       response = await this.executeGemini(agent, request, context);
     } else {
       throw new Error(`Unsupported model: ${agent.model}`);
@@ -469,7 +469,7 @@ export class AgentClient {
         content,
         toolCalls: [],
         metadata: {
-          model: 'gemini-3.1-pro-preview',
+          model: 'gemini-3.5-flash',
           iterations: 1,
           attachmentCount: request.attachments?.length || 0,
           toolsDisabled: true,
@@ -611,7 +611,7 @@ export class AgentClient {
     }
   }
 
-  private toGovernedModel(model: AgentConfig["model"]): "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.1-pro-preview" {
+  private toGovernedModel(model: AgentConfig["model"]): "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.5-flash" {
     return model;
   }
 

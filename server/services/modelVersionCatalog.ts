@@ -1,6 +1,6 @@
 import { logger } from "../utils/logger";
 
-export type GovernedModel = "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.1-pro-preview";
+export type GovernedModel = "gpt-5.4" | "claude-sonnet-4-6" | "gemini-3.5-flash";
 
 export interface ModelCatalogEntry {
   routeModel: GovernedModel;
@@ -31,14 +31,14 @@ const MODEL_CATALOG: Record<GovernedModel, ModelCatalogEntry> = {
     inputCostPerMillionUsd: 3,
     outputCostPerMillionUsd: 15,
   },
-  "gemini-3.1-pro-preview": {
-    routeModel: "gemini-3.1-pro-preview",
+  "gemini-3.5-flash": {
+    routeModel: "gemini-3.5-flash",
     provider: "google",
-    apiModel: "gemini-3.1-pro-preview",
-    version: "2026-02-preview",
-    releasedAt: "2026-02-19",
-    inputCostPerMillionUsd: 0.35,
-    outputCostPerMillionUsd: 1.5,
+    apiModel: "gemini-3.5-flash",
+    version: "2026-05",
+    releasedAt: "2026-05-19",
+    inputCostPerMillionUsd: 1.5,
+    outputCostPerMillionUsd: 9.0,
   },
 };
 

@@ -58,7 +58,7 @@ const fallbackFrameworkTemplates: Record<string, DocumentTemplate[]> = {
   ],
 };
 
-export type AIModel = 'gpt-5.4' | 'claude-sonnet-4-6' | 'gemini-3.1-pro-preview' | 'auto';
+export type AIModel = 'gpt-5.4' | 'claude-sonnet-4-6' | 'gemini-3.5-flash' | 'auto';
 
 export interface GenerationOptions {
   model?: AIModel;
@@ -458,7 +458,7 @@ export class AIOrchestrator {
         return circuitBreakers.anthropic.execute(() => 
           generateDocumentWithClaude(template, companyProfile, framework, repositoryFindings)
         );
-      case 'gemini-3.1-pro-preview':
+      case 'gemini-3.5-flash':
         return circuitBreakers.gemini.execute(() => 
           generateContentWithGemini(prompt)
         );
@@ -722,7 +722,7 @@ export class AIOrchestrator {
         case 'claude-sonnet-4-6':
           content = await circuitBreakers.anthropic.execute(() => generateContentWithClaude(sanitizedPrompt));
           break;
-        case 'gemini-3.1-pro-preview':
+        case 'gemini-3.5-flash':
           content = await circuitBreakers.gemini.execute(() => generateContentWithGemini(sanitizedPrompt));
           break;
         case 'gpt-5.4':
@@ -771,7 +771,7 @@ export class AIOrchestrator {
           case 'claude-sonnet-4-6':
             fallbackContent = await circuitBreakers.anthropic.execute(() => generateContentWithClaude(sanitizedPrompt));
             break;
-          case 'gemini-3.1-pro-preview':
+          case 'gemini-3.5-flash':
             fallbackContent = await circuitBreakers.gemini.execute(() => generateContentWithGemini(sanitizedPrompt));
             break;
           case 'gpt-5.4':
@@ -965,7 +965,7 @@ export class AIOrchestrator {
   private selectOptimalModel(template: DocumentTemplate, framework: string): Exclude<AIModel, 'auto'> {
     // Gemini is strong with reasoning and complex instructions
     if (template.category.includes('Analysis') || template.category.includes('Assessment')) {
-      return 'gemini-3.1-pro-preview';
+      return 'gemini-3.5-flash';
     }
 
     // Claude excels at detailed policy documents
@@ -983,15 +983,15 @@ export class AIOrchestrator {
       return 'claude-sonnet-4-6';
     }
     
-    // Default to Gemini 3.1 Pro for its large context
-    return 'gemini-3.1-pro-preview';
+    // Default to Gemini 3.5 Flash for its large context
+    return 'gemini-3.5-flash';
   }
 
   private getFallbackModel(failedModel: Exclude<AIModel, 'auto'>): Exclude<AIModel, 'auto'> {
     switch (failedModel) {
       case 'gpt-5.4':
-        return 'gemini-3.1-pro-preview';
-      case 'gemini-3.1-pro-preview':
+        return 'gemini-3.5-flash';
+      case 'gemini-3.5-flash':
         return 'claude-sonnet-4-6';
       case 'claude-sonnet-4-6':
       default:
@@ -1003,7 +1003,7 @@ export class AIOrchestrator {
     switch (model) {
       case 'gpt-5.4': return 'openai';
       case 'claude-sonnet-4-6': return 'anthropic';
-      case 'gemini-3.1-pro-preview': return 'google';
+      case 'gemini-3.5-flash': return 'google';
       default: return 'unknown';
     }
   }
@@ -1012,7 +1012,7 @@ export class AIOrchestrator {
    * Get available AI models
    */
   getAvailableModels(): AIModel[] {
-    return ['gpt-5.4', 'claude-sonnet-4-6', 'gemini-3.1-pro-preview', 'auto'];
+    return ['gpt-5.4', 'claude-sonnet-4-6', 'gemini-3.5-flash', 'auto'];
   }
   
   /**
@@ -1029,7 +1029,7 @@ export class AIOrchestrator {
     };
 
     if (process.env.NODE_ENV === 'test') {
-      return { status: 'healthy', models: { 'gpt-5.4': true, 'claude-sonnet-4-6': true, 'gemini-3.1-pro-preview': true } };
+      return { status: 'healthy', models: { 'gpt-5.4': true, 'claude-sonnet-4-6': true, 'gemini-3.5-flash': true } };
     }
 
     // Test OpenAI
@@ -1065,7 +1065,7 @@ export class AIOrchestrator {
       models: {
         'gpt-5.4': results.openai,
         'claude-sonnet-4-6': results.anthropic,
-        'gemini-3.1-pro-preview': results.gemini,
+        'gemini-3.5-flash': results.gemini,
       },
     };
   }

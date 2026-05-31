@@ -15,7 +15,6 @@ import {
   AlertTriangle,
   BarChart3,
   Brain,
-  CheckCircle2,
   Clock,
   Download,
   FileText,
@@ -80,24 +79,36 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
   // Analytics data query
   const { data: analytics, isLoading } = useQuery<AnalyticsSummary>({
     queryKey: ["/api/analytics/summary", timeRange, selectedFramework],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   // Quality trends query
-  const { data: qualityTrends } = useQuery({
+  const { data: qualityTrendsRaw } = useQuery<{ date: string; score: number; framework: string }[]>({
     queryKey: ["/api/analytics/quality-trends", timeRange],
     staleTime: 5 * 60 * 1000,
   });
 
   // Risk assessment history
-  const { data: riskHistory } = useQuery({
+  const { data: riskHistoryRaw } = useQuery<{ month: string; score: number }[]>({
     queryKey: ["/api/analytics/risk-history", timeRange],
     staleTime: 5 * 60 * 1000,
   });
 
   // AI usage analytics
-  const { data: aiUsage } = useQuery({
+  const { data: aiUsageRaw } = useQuery<{ feature: string; usage: number }[]>({
     queryKey: ["/api/analytics/ai-usage", timeRange],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Risk categories from API
+  const { data: riskCategoriesRaw } = useQuery<{ category: string; score: number; trend: string }[]>({
+    queryKey: ["/api/analytics/risk-categories", timeRange],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // AI performance metrics from API
+  const { data: aiPerfRaw } = useQuery<{ metric: string; value: string; status: string }[]>({
+    queryKey: ["/api/analytics/ai-performance", timeRange],
     staleTime: 5 * 60 * 1000,
   });
 
@@ -119,43 +130,8 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
     );
   }
 
-  const mockAnalytics: AnalyticsSummary = {
-    totalDocuments: 42,
-    completedDocuments: 31,
-    averageQualityScore: 78,
-    totalRiskScore: 65,
-    frameworkProgress: {
-      "ISO 27001": 85,
-      "SOC 2": 72,
-      FedRAMP: 45,
-      "NIST 800-53": 61,
-    },
-    recentActivity: [
-      { date: "2024-08-14", action: "Generated", entity: "Security Policy", user: "You" },
-      { date: "2024-08-14", action: "Analyzed", entity: "Risk Assessment", user: "You" },
-      { date: "2024-08-13", action: "Updated", entity: "Company Profile", user: "You" },
-    ],
-    qualityTrends: [
-      { date: "2024-08-01", score: 65, framework: "ISO 27001" },
-      { date: "2024-08-05", score: 71, framework: "ISO 27001" },
-      { date: "2024-08-10", score: 78, framework: "ISO 27001" },
-      { date: "2024-08-14", score: 82, framework: "ISO 27001" },
-    ],
-    complianceGaps: [
-      { framework: "ISO 27001", criticalGaps: 3, totalGaps: 12 },
-      { framework: "SOC 2", criticalGaps: 5, totalGaps: 18 },
-      { framework: "FedRAMP", criticalGaps: 8, totalGaps: 25 },
-    ],
-  };
-
-  const analyticsData = analytics || mockAnalytics;
-
-  const riskTrendData = [
-    { month: "Jul", score: 72 },
-    { month: "Aug", score: 65 },
-    { month: "Sep", score: 58 },
-    { month: "Oct", score: 61 },
-  ];
+  // Use real API data only — no mock fallbacks
+  const analyticsData = analytics;
 
   const chartPalette = {
     primary: "hsl(var(--chart-1))",
@@ -167,7 +143,7 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
     warningSurface: "hsl(var(--chart-4) / 0.2)",
   };
 
-  const frameworkData = Object.entries(analyticsData.frameworkProgress || {}).map(
+  const frameworkData = Object.entries(analyticsData?.frameworkProgress || {}).map(
     ([name, value]) => ({
       name,
       value,
@@ -182,21 +158,26 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
     })
   );
 
-  const qualityDistribution = [
-    { range: "90-100", count: 8, fill: chartPalette.secondary },
-    { range: "80-89", count: 15, fill: chartPalette.primary },
-    { range: "70-79", count: 12, fill: chartPalette.quaternary },
-    { range: "60-69", count: 5, fill: chartPalette.danger },
-    { range: "<60", count: 2, fill: chartPalette.muted },
-  ];
+  // Derive quality score distribution buckets from real quality-trends data
+  const qualityDistribution = (() => {
+    const trends = qualityTrendsRaw ?? analyticsData?.qualityTrends ?? [];
+    if (trends.length === 0) return [];
+    const buckets: Record<string, number> = { "90-100": 0, "80-89": 0, "70-79": 0, "60-69": 0, "<60": 0 };
+    trends.forEach(({ score }) => {
+      if (score >= 90) buckets["90-100"]++;
+      else if (score >= 80) buckets["80-89"]++;
+      else if (score >= 70) buckets["70-79"]++;
+      else if (score >= 60) buckets["60-69"]++;
+      else buckets["<60"]++;
+    });
+    const fills = [chartPalette.secondary, chartPalette.primary, chartPalette.quaternary, chartPalette.danger, chartPalette.muted];
+    return Object.entries(buckets).map(([range, count], i) => ({ range, count, fill: fills[i] }));
+  })();
 
-  const aiUsageData = [
-    { feature: "Document Generation", usage: 45 },
-    { feature: "Quality Analysis", usage: 32 },
-    { feature: "Risk Assessment", usage: 28 },
-    { feature: "Chatbot", usage: 19 },
-    { feature: "Document Analysis", usage: 15 },
-  ];
+  const riskTrendData = riskHistoryRaw ?? [];
+  const aiUsageData = aiUsageRaw ?? [];
+  const riskCategories = riskCategoriesRaw ?? [];
+  const aiPerfMetrics = aiPerfRaw ?? [];
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -255,19 +236,17 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Documents</p>
-                <p className="text-2xl font-bold">{(analyticsData as any)?.totalDocuments || 0}</p>
+                <p className="text-2xl font-bold">{analyticsData?.totalDocuments ?? 0}</p>
                 <p className="text-xs text-gray-500">
-                  {(analyticsData as any)?.completedDocuments || 0} completed
+                  {analyticsData?.completedDocuments ?? 0} completed
                 </p>
               </div>
               <FileText className="h-8 w-8 text-blue-500" />
             </div>
             <Progress
               value={
-                (analyticsData as any)?.totalDocuments
-                  ? (((analyticsData as any)?.completedDocuments || 0) /
-                      (analyticsData as any)?.totalDocuments) *
-                    100
+                analyticsData?.totalDocuments
+                  ? ((analyticsData.completedDocuments || 0) / analyticsData.totalDocuments) * 100
                   : 0
               }
               className="mt-2 h-2"
@@ -281,11 +260,11 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg Quality Score</p>
                 <p className="text-2xl font-bold">
-                  {(analyticsData as any)?.averageQualityScore || 0}%
+                  {analyticsData?.averageQualityScore ?? 0}%
                 </p>
-                <div className="flex items-center text-xs">
-                  <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-                  <span className="text-green-500">+5% from last month</span>
+                <div className="flex items-center text-xs text-gray-500">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  <span>Avg quality score</span>
                 </div>
               </div>
               <Target className="h-8 w-8 text-green-500" />
@@ -299,11 +278,11 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
               <div>
                 <p className="text-sm font-medium text-gray-600">Risk Score</p>
                 <p className="text-2xl font-bold">
-                  {(analyticsData as any)?.totalRiskScore || 0}/100
+                  {analyticsData?.totalRiskScore ?? 0}/100
                 </p>
-                <div className="flex items-center text-xs">
-                  <TrendingDown className="h-3 w-3 text-green-500 mr-1" />
-                  <span className="text-green-500">-7 from last assessment</span>
+                <div className="flex items-center text-xs text-gray-500">
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                  <span>Total risk score</span>
                 </div>
               </div>
               <Shield className="h-8 w-8 text-orange-500" />
@@ -316,8 +295,8 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">AI Automations</p>
-                <p className="text-2xl font-bold">139</p>
-                <p className="text-xs text-gray-500">This month</p>
+                <p className="text-2xl font-bold">{aiUsageData.reduce((s, d) => s + d.usage, 0) || "—"}</p>
+                <p className="text-xs text-gray-500">Total AI calls tracked</p>
               </div>
               <Brain className="h-8 w-8 text-purple-500" />
             </div>
@@ -343,23 +322,31 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 <CardTitle className="text-lg">Framework Progress</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={frameworkData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}%`}
-                    >
-                      {frameworkData.map((entry, index) => (
-                        <Cell key={index} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                {frameworkData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[300px] text-center text-gray-400 dark:text-gray-600">
+                    <Shield className="h-10 w-10 mb-3 opacity-40" />
+                    <p className="text-sm">No framework data yet</p>
+                    <p className="text-xs mt-1">Activate a compliance framework to see progress</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={frameworkData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}%`}
+                      >
+                        {frameworkData.map((entry, index) => (
+                          <Cell key={index} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
@@ -372,21 +359,29 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {analyticsData.recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">
-                          {activity.action} {activity.entity}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {activity.date} • {activity.user}
-                        </p>
+                {(analyticsData?.recentActivity ?? []).length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400 dark:text-gray-600">
+                    <Clock className="h-10 w-10 mb-3 opacity-40" />
+                    <p className="text-sm">No recent activity</p>
+                    <p className="text-xs mt-1">Activity is recorded as you use the platform</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {(analyticsData?.recentActivity ?? []).map((activity, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">
+                            {activity.action} {activity.entity}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {activity.date} • {activity.user}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -400,33 +395,41 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {analyticsData.complianceGaps.map((gap, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{gap.framework}</h4>
-                      <Badge
-                        variant={
-                          gap.criticalGaps > 5
-                            ? "destructive"
-                            : gap.criticalGaps > 2
-                              ? "secondary"
-                              : "default"
-                        }
-                      >
-                        {gap.criticalGaps} critical
-                      </Badge>
+              {(analyticsData?.complianceGaps ?? []).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400 dark:text-gray-600">
+                  <AlertTriangle className="h-10 w-10 mb-3 opacity-40" />
+                  <p className="text-sm">No compliance gaps data yet</p>
+                  <p className="text-xs mt-1">Run a gap analysis to populate this section</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {(analyticsData?.complianceGaps ?? []).map((gap, index) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">{gap.framework}</h4>
+                        <Badge
+                          variant={
+                            gap.criticalGaps > 5
+                              ? "destructive"
+                              : gap.criticalGaps > 2
+                                ? "secondary"
+                                : "default"
+                          }
+                        >
+                          {gap.criticalGaps} critical
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {gap.totalGaps} total gaps identified
+                      </p>
+                      <Progress
+                        value={gap.totalGaps > 0 ? ((gap.totalGaps - gap.criticalGaps) / gap.totalGaps) * 100 : 0}
+                        className="h-2"
+                      />
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {gap.totalGaps} total gaps identified
-                    </p>
-                    <Progress
-                      value={((gap.totalGaps - gap.criticalGaps) / gap.totalGaps) * 100}
-                      className="h-2"
-                    />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -439,22 +442,30 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 <CardTitle className="text-lg">Quality Score Trends</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={analyticsData.qualityTrends}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="score"
-                      stroke={chartPalette.primary}
-                      strokeWidth={2}
-                      name="Quality Score"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {(qualityTrendsRaw ?? analyticsData?.qualityTrends ?? []).length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[300px] text-center text-gray-400 dark:text-gray-600">
+                    <BarChart3 className="h-10 w-10 mb-3 opacity-40" />
+                    <p className="text-sm">No quality trend data yet</p>
+                    <p className="text-xs mt-1">Generate compliance documents to build trends</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={qualityTrendsRaw ?? analyticsData?.qualityTrends ?? []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke={chartPalette.primary}
+                        strokeWidth={2}
+                        name="Quality Score"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
@@ -464,15 +475,23 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 <CardTitle className="text-lg">Quality Score Distribution</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={qualityDistribution}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="range" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill={chartPalette.primary} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {qualityDistribution.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[300px] text-center text-gray-400 dark:text-gray-600">
+                    <BarChart3 className="h-10 w-10 mb-3 opacity-40" />
+                    <p className="text-sm">No distribution data yet</p>
+                    <p className="text-xs mt-1">Quality scores will appear as documents are scored</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={qualityDistribution}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="range" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="count" fill={chartPalette.primary} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -486,21 +505,29 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 <CardTitle className="text-lg">Risk Score Trends</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={riskTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="score"
-                      stroke={chartPalette.quaternary}
-                      fill={chartPalette.warningSurface}
-                      name="Risk Score"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {riskTrendData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[300px] text-center text-gray-400 dark:text-gray-600">
+                    <Shield className="h-10 w-10 mb-3 opacity-40" />
+                    <p className="text-sm">No risk history yet</p>
+                    <p className="text-xs mt-1">Run risk assessments to populate this chart</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={riskTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip />
+                      <Area
+                        type="monotone"
+                        dataKey="score"
+                        stroke={chartPalette.quaternary}
+                        fill={chartPalette.warningSurface}
+                        name="Risk Score"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
@@ -510,34 +537,37 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 <CardTitle className="text-lg">Risk Categories</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { category: "Technical Risks", score: 72, trend: "down" },
-                    { category: "Operational Risks", score: 65, trend: "up" },
-                    { category: "Compliance Risks", score: 58, trend: "down" },
-                    { category: "Strategic Risks", score: 61, trend: "stable" },
-                  ].map((risk, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Shield className="h-5 w-5 text-gray-400" />
-                        <span className="font-medium">{risk.category}</span>
+                {riskCategories.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center text-gray-400 dark:text-gray-600">
+                    <Shield className="h-10 w-10 mb-3 opacity-40" />
+                    <p className="text-sm">No risk category data yet</p>
+                    <p className="text-xs mt-1">Complete risk assessments to view category breakdown</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {riskCategories.map((risk, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Shield className="h-5 w-5 text-gray-400" />
+                          <span className="font-medium">{risk.category}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono">{risk.score}/100</span>
+                          {risk.trend === "up" && <TrendingUp className="h-4 w-4 text-red-500" />}
+                          {risk.trend === "down" && (
+                            <TrendingDown className="h-4 w-4 text-green-500" />
+                          )}
+                          {risk.trend === "stable" && (
+                            <span className="w-4 h-4 text-gray-400">→</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono">{risk.score}/100</span>
-                        {risk.trend === "up" && <TrendingUp className="h-4 w-4 text-red-500" />}
-                        {risk.trend === "down" && (
-                          <TrendingDown className="h-4 w-4 text-green-500" />
-                        )}
-                        {risk.trend === "stable" && (
-                          <span className="w-4 h-4 text-gray-400">→</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -545,41 +575,36 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
 
         <TabsContent value="frameworks" className="space-y-6">
           <div className="grid gap-6">
-            {Object.entries(analyticsData.frameworkProgress).map(([framework, progress]) => (
-              <Card key={framework}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{framework}</CardTitle>
-                    <Badge
-                      variant={
-                        progress > 80 ? "default" : progress > 60 ? "secondary" : "destructive"
-                      }
-                    >
-                      {progress}% Complete
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Progress value={progress} className="h-3" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        <span>Completed: {Math.floor(progress * 0.3)} documents</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-yellow-500" />
-                        <span>In Progress: {Math.floor((100 - progress) * 0.2)} documents</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-red-500" />
-                        <span>Critical Gaps: {Math.floor((100 - progress) * 0.1)}</span>
-                      </div>
+            {Object.entries(analyticsData?.frameworkProgress ?? {}).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400 dark:text-gray-600">
+                <Shield className="h-10 w-10 mb-3 opacity-40" />
+                <p className="text-sm">No framework progress yet</p>
+                <p className="text-xs mt-1">Activate compliance frameworks to track progress</p>
+              </div>
+            ) : (
+              Object.entries(analyticsData?.frameworkProgress ?? {}).map(([framework, progress]) => (
+                <Card key={framework}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{framework}</CardTitle>
+                      <Badge
+                        variant={
+                          progress > 80 ? "default" : progress > 60 ? "secondary" : "destructive"
+                        }
+                      >
+                        {progress}% Complete
+                      </Badge>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <Progress value={progress} className="h-3" />
+                      <p className="text-sm text-gray-500">{progress}% of controls implemented across this framework</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </TabsContent>
 
@@ -594,15 +619,23 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={aiUsageData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="feature" angle={-45} textAnchor="end" height={80} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="usage" fill={chartPalette.tertiary} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {aiUsageData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[300px] text-center text-gray-400 dark:text-gray-600">
+                    <Brain className="h-10 w-10 mb-3 opacity-40" />
+                    <p className="text-sm">No AI usage data yet</p>
+                    <p className="text-xs mt-1">AI feature usage is tracked as you use them</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={aiUsageData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="feature" angle={-45} textAnchor="end" height={80} />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="usage" fill={chartPalette.tertiary} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
 
@@ -612,27 +645,30 @@ export function EnhancedAnalytics({ className }: AnalyticsProps) {
                 <CardTitle className="text-lg">AI Performance Metrics</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { metric: "Average Generation Time", value: "2.3s", status: "good" },
-                    { metric: "Quality Score Accuracy", value: "94%", status: "excellent" },
-                    { metric: "Chat Response Relevance", value: "88%", status: "good" },
-                    { metric: "Risk Assessment Accuracy", value: "91%", status: "excellent" },
-                  ].map((metric, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <span className="font-medium">{metric.metric}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono">{metric.value}</span>
-                        <Badge variant={metric.status === "excellent" ? "default" : "secondary"}>
-                          {metric.status}
-                        </Badge>
+                {aiPerfMetrics.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center text-gray-400 dark:text-gray-600">
+                    <Brain className="h-10 w-10 mb-3 opacity-40" />
+                    <p className="text-sm">No performance metrics yet</p>
+                    <p className="text-xs mt-1">Metrics are recorded as AI features are used</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {aiPerfMetrics.map((metric, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <span className="font-medium">{metric.metric}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono">{metric.value}</span>
+                          <Badge variant={metric.status === "excellent" ? "default" : "secondary"}>
+                            {metric.status}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

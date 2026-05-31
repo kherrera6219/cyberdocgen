@@ -86,7 +86,7 @@ export function registerAnalyticsRoutes(router: Router) {
       userId,
       requestId,
       modelProvider: 'gemini',
-      modelName: 'gemini-3.1-pro-preview',
+      modelName: 'gemini-3.5-flash',
       ipAddress: req.ip
     });
 
@@ -103,7 +103,7 @@ export function registerAnalyticsRoutes(router: Router) {
     
     const gemini = getGeminiClient();
     const response = await gemini.models.generateContent({
-      model: 'gemini-3.1-flash-lite-preview',
+      model: 'gemini-3.5-flash',
       contents: [
         {
           role: 'user',
@@ -121,7 +121,7 @@ export function registerAnalyticsRoutes(router: Router) {
       success: true,
       data: {
         gapAnalysis: analysisText,
-        model: "gemini-3.1-flash-lite-preview"
+        model: "gemini-3.5-flash"
       }
     });
   }));
