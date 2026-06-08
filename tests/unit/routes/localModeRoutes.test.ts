@@ -167,9 +167,10 @@ describe("localMode routes", () => {
   });
 
   it("rejects backup path outside allowed roots", async () => {
+    const blockedPath = path.resolve('/', 'blocked.db');
     const response = await request(app)
       .post("/api/local/backup")
-      .send({ destinationPath: "C:/Windows/System32/blocked.db" })
+      .send({ destinationPath: blockedPath })
       .expect(400);
     expect(response.body.error).toMatch(/within application data or your user profile/i);
   });

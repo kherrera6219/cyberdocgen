@@ -16,6 +16,16 @@ import YAML from 'yaml';
 // keep the patched yaml version without breaking spec generation.
 (YAML as any).defaultOptions ??= {};
 
+// swagger-jsdoc 6.x expects yaml beta where parsed.anchors has getNames()
+const originalParseDocument = YAML.parseDocument;
+(YAML as any).parseDocument = function(...args: any[]) {
+  const parsed = originalParseDocument.apply(this, args as any) as any;
+  if (parsed && parsed.anchors && typeof parsed.anchors.getNames !== 'function') {
+    parsed.anchors.getNames = () => [];
+  }
+  return parsed;
+};
+
 // Swagger configuration needs to handle both ESM and CJS environments
 // When bundled as CJS, __dirname is already available.
 const actualDirname = typeof __dirname !== 'undefined' 
