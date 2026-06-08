@@ -32,6 +32,7 @@ artifacts/
 local-data-test/
 local-data/
 test-data/
+.pgdata-test-*/
 
 # Environment files (contain sensitive data)
 .env
