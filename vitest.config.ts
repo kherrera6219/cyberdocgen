@@ -60,6 +60,8 @@ export default defineConfig({
         inline: [/html-encoding-sniffer/, /@exodus\/bytes/],
       },
     },
+    maxWorkers: process.env.GITHUB_ACTIONS ? 2 : undefined,
+    minWorkers: process.env.GITHUB_ACTIONS ? 1 : undefined,
     testTimeout: 30000,
     hookTimeout: 10000,
     teardownTimeout: 10000,

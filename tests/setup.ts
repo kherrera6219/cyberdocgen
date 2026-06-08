@@ -38,8 +38,8 @@ process.env.NODE_ENV = 'test';
 process.env.REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || 'localhost,test.local';
 process.env.REPL_ID = process.env.REPL_ID || 'test-repl-id';
 process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'test-session-secret-key-for-testing-only';
-// Isolate PGlite data directory per vitest worker to prevent corruption in parallel tests
-process.env.LOCAL_DATA_PATH = process.env.LOCAL_DATA_PATH || `./.pgdata-test-${process.env.VITEST_POOL_ID || process.env.VITEST_WORKER_ID || '0'}`;
+// Isolate PGlite data directory per test file to prevent corruption and state leakage
+process.env.LOCAL_DATA_PATH = `./.pgdata-test-${process.env.VITEST_POOL_ID || process.env.VITEST_WORKER_ID || '0'}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 // Mock @replit/object-storage to prevent connection errors in tests
 vi.mock('@replit/object-storage', () => {

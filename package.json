@@ -12,6 +12,7 @@
     "start": "cross-env NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push",
+    "pretest": "node -e \"const fs=require('fs'); fs.readdirSync('.').filter(f=>f.startsWith('.pgdata-test-')).forEach(f=>fs.rmSync(f, {recursive:true, force:true}))\"",
     "test": "vitest",
     "test:run": "vitest --run",
     "test:coverage": "vitest --coverage",
