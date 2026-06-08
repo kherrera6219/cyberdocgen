@@ -50,22 +50,28 @@ describe("objectStorageService", () => {
     fileCreateReadStreamMock.mockReturnValue(Readable.from(["stream-data"]));
     bucketGetFilesMock.mockResolvedValue([[]]);
 
-    bucketFileMock.mockImplementation(() => ({
-      save: fileSaveMock,
-      download: fileDownloadMock,
-      delete: fileDeleteMock,
-      createReadStream: fileCreateReadStreamMock,
-    }));
+    bucketFileMock.mockImplementation(function() {
+      return {
+        save: fileSaveMock,
+        download: fileDownloadMock,
+        delete: fileDeleteMock,
+        createReadStream: fileCreateReadStreamMock,
+      };
+    });
 
-    storageBucketMock.mockImplementation(() => ({
-      exists: bucketExistsMock,
-      file: bucketFileMock,
-      getFiles: bucketGetFilesMock,
-    }));
+    storageBucketMock.mockImplementation(function() {
+      return {
+        exists: bucketExistsMock,
+        file: bucketFileMock,
+        getFiles: bucketGetFilesMock,
+      };
+    });
 
-    storageConstructorMock.mockImplementation(() => ({
-      bucket: storageBucketMock,
-    }));
+    storageConstructorMock.mockImplementation(function() {
+      return {
+        bucket: storageBucketMock,
+      };
+    });
 
     const serviceState = objectStorageService as any;
     serviceState.initialized = false;

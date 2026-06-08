@@ -27,11 +27,11 @@ const mockAnthropic = {
 };
 
 vi.mock('openai', () => ({
-  default: vi.fn().mockImplementation(() => mockOpenAI)
+  default: vi.fn().mockImplementation(function() { return mockOpenAI; })
 }));
 
 vi.mock('@anthropic-ai/sdk', () => ({
-  default: vi.fn().mockImplementation(() => mockAnthropic)
+  default: vi.fn().mockImplementation(function() { return mockAnthropic; })
 }));
 
 describe('AgentClient', () => {

@@ -44,7 +44,7 @@ vi.mock('../../server/utils/circuitBreaker', () => ({
 
 describe('AIOrchestrator', () => {
     beforeEach(() => {
-        vi.restoreAllMocks(); // Use restoreAllMocks to prevent test pollution
+        vi.clearAllMocks(); // Clear call history between tests without restoring mock implementations
         // Default safe guardrails
         (aiGuardrailsService.checkGuardrails as any).mockResolvedValue({ 
             allowed: true, 

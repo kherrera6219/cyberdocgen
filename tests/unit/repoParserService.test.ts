@@ -124,7 +124,7 @@ describe("RepoParserService", () => {
     statMock.mockResolvedValue({ size: 16 });
     readFileMock.mockResolvedValue(Buffer.from("file-body"));
 
-    admZipConstructorMock.mockImplementation(() => {
+    admZipConstructorMock.mockImplementation(function() {
       if (zipState.throwOnConstruct) {
         throw zipState.throwOnConstruct;
       }

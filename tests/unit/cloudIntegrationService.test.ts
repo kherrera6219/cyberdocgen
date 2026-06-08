@@ -162,21 +162,25 @@ vi.mock("../../server/utils/circuitBreaker", () => ({
 }));
 
 vi.mock("@googleapis/drive", () => ({
-  drive: vi.fn(() => ({
-    files: {
-      list: googleMocks.driveList,
-    },
-  })),
+  drive: vi.fn(function() {
+    return {
+      files: {
+        list: googleMocks.driveList,
+      },
+    };
+  }),
   drive_v3: {},
 }));
 
 vi.mock("google-auth-library", () => ({
-  OAuth2Client: vi.fn(() => ({
-    generateAuthUrl: googleMocks.generateAuthUrl,
-    getToken: googleMocks.getToken,
-    setCredentials: googleMocks.setCredentials,
-    request: googleMocks.request,
-  })),
+  OAuth2Client: vi.fn(function() {
+    return {
+      generateAuthUrl: googleMocks.generateAuthUrl,
+      getToken: googleMocks.getToken,
+      setCredentials: googleMocks.setCredentials,
+      request: googleMocks.request,
+    };
+  }),
 }));
 
 vi.mock("@microsoft/microsoft-graph-client", () => ({
