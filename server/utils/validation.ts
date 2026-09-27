@@ -54,6 +54,19 @@ export function validateEnvironment(): EnvConfig {
       logger.warn('ANTHROPIC_API_KEY is not set - AI features using Anthropic will not work');
     }
 
+    const KNOWN_WEAK_ENCRYPTION_KEYS = new Set([
+      '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+      '0000000000000000000000000000000000000000000000000000000000000000',
+      'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+    ]);
+
+    if (validated.NODE_ENV === 'production') {
+      const encryptionKey = validated.ENCRYPTION_KEY || '';
+      if (KNOWN_WEAK_ENCRYPTION_KEYS.has(encryptionKey.toLowerCase())) {
+        throw new Error('ENCRYPTION_KEY must not be a known default or trivial sequence in production. Generate a unique key with: npx tsx scripts/generate-encryption-key.ts');
+      }
+    }
+
     if (validated.NODE_ENV === 'production' && validated.DEPLOYMENT_MODE !== 'local') {
       const encryptionKey = validated.ENCRYPTION_KEY || '';
       if (!/^[a-fA-F0-9]{64}$/.test(encryptionKey)) {

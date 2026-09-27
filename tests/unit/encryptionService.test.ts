@@ -78,21 +78,18 @@ describe('EncryptionService', () => {
       });
   });
 
-  it.skip('throws error if ENCRYPTION_KEY is missing', async () => {
+  it('throws error if ENCRYPTION_KEY is missing', async () => {
     // Force delete
     const oldEnv = process.env;
     process.env = { ...oldEnv }; // Copy
     delete process.env.ENCRYPTION_KEY;
-    
-    // Check if it's really gone
-    // console.log('ENCRYPTION_KEY is:', process.env.ENCRYPTION_KEY);
     
     const service = new EncryptionService();
     
     try {
         await expect(service.encryptSensitiveField('test', DataClassification.PUBLIC))
             .rejects
-            .toThrow('ENCRYPTION_KEY environment variable is required');
+            .toThrow('Failed to encrypt sensitive data');
     } finally {
         process.env = oldEnv; // Restore
     }

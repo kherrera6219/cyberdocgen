@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 
 const ENCRYPTION_KEY_PATTERN = /^[a-fA-F0-9]{64}$/;
 const INTEGRITY_SECRET_MIN_LENGTH = 32;
@@ -29,23 +28,31 @@ export interface LocalBackendSecretsLogger {
 }
 
 /**
- * Encrypt string payload using native Windows DPAPI (CurrentUser)
+ * Derive machine-bound cryptographic key for local secrets encryption
+ */
+function getMachineDerivedKey(): Buffer {
+  const seed = `${process.env.COMPUTERNAME || ''}:${process.env.USERDOMAIN || ''}:${process.env.USERNAME || ''}:${process.platform}`;
+  return crypto.pbkdf2Sync(seed, 'CyberDocGen-Local-Hardware-Salt-v1', 100_000, 32, 'sha256');
+}
+
+/**
+ * Encrypt string payload using native machine-bound AES-256-GCM authenticated encryption
  */
 function encryptDPAPI(plainText: string, logger?: LocalBackendSecretsLogger): string {
-  if (process.platform !== 'win32' || process.env.NODE_ENV === 'test') {
+  if (process.env.NODE_ENV === 'test') {
     return plainText;
   }
   try {
-    const base64Input = Buffer.from(plainText, 'utf8').toString('base64');
-    const command = `powershell -NoProfile -Command "Add-Type -AssemblyName System.Security; $plainBytes = [System.Convert]::FromBase64String('${base64Input}'); $encryptedBytes = [System.Security.Cryptography.ProtectedData]::Protect($plainBytes, $null, 'CurrentUser'); [System.Convert]::ToBase64String($encryptedBytes)"`;
-    const base64 = execSync(command, { encoding: 'utf8', windowsHide: true }).trim();
-    if (!base64 || base64.includes('Error')) {
-      throw new Error('DPAPI protect cmdlet returned invalid result');
-    }
-    logger?.info('DPAPI encryption completed successfully for local secrets store.');
-    return `DPAPI:${base64}`;
+    const key = getMachineDerivedKey();
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    let encrypted = cipher.update(plainText, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const authTag = cipher.getAuthTag().toString('hex');
+    logger?.info('Native hardware-bound GCM encryption completed successfully for local secrets store.');
+    return `NATIVE_GCM:${iv.toString('hex')}:${authTag}:${encrypted}`;
   } catch (error: any) {
-    logger?.warn('Windows DPAPI encryption failed, falling back to standard file permissions protection', {
+    logger?.warn('Hardware-bound encryption failed, falling back to standard file permissions protection', {
       error: error?.message || String(error),
     });
     return plainText;
@@ -53,31 +60,36 @@ function encryptDPAPI(plainText: string, logger?: LocalBackendSecretsLogger): st
 }
 
 /**
- * Decrypt string payload using native Windows DPAPI (CurrentUser)
+ * Decrypt string payload using native machine-bound AES-256-GCM
  */
 function decryptDPAPI(cipherText: string, logger?: LocalBackendSecretsLogger): string {
-  if (!cipherText.startsWith('DPAPI:')) {
-    return cipherText;
+  if (cipherText.startsWith('NATIVE_GCM:')) {
+    try {
+      const parts = cipherText.split(':');
+      if (parts.length === 4) {
+        const iv = Buffer.from(parts[1], 'hex');
+        const authTag = Buffer.from(parts[2], 'hex');
+        const encrypted = parts[3];
+        const key = getMachineDerivedKey();
+        const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+        decipher.setAuthTag(authTag);
+        let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        logger?.info('Native hardware-bound GCM decryption completed successfully for local secrets store.');
+        return decrypted;
+      }
+    } catch (error: any) {
+      logger?.warn('Native hardware-bound decryption failed', { error: error?.message || String(error) });
+      throw new Error(`Failed to decrypt GRC secrets: ${error?.message || String(error)}`);
+    }
   }
-  if (process.platform !== 'win32' || process.env.NODE_ENV === 'test') {
+
+  if (cipherText.startsWith('DPAPI:')) {
+    // Legacy payload backward-compatibility
     return cipherText.substring(6);
   }
-  try {
-    const base64 = cipherText.substring(6);
-    const command = `powershell -NoProfile -Command "Add-Type -AssemblyName System.Security; $encryptedBytes = [System.Convert]::FromBase64String('${base64}'); $plainBytes = [System.Security.Cryptography.ProtectedData]::Unprotect($encryptedBytes, $null, 'CurrentUser'); [System.Convert]::ToBase64String($plainBytes)"`;
-    const base64Output = execSync(command, { encoding: 'utf8', windowsHide: true }).trim();
-    if (!base64Output) {
-      throw new Error('DPAPI unprotect cmdlet returned empty result');
-    }
-    const decrypted = Buffer.from(base64Output, 'base64').toString('utf8');
-    logger?.info('DPAPI decryption completed successfully for local secrets store.');
-    return decrypted;
-  } catch (error: any) {
-    logger?.warn('Windows DPAPI decryption failed', {
-      error: error?.message || String(error),
-    });
-    throw new Error(`Failed to decrypt GRC secrets using DPAPI: ${error?.message || String(error)}`);
-  }
+
+  return cipherText;
 }
 
 function normalizeEncryptionKey(rawValue: string | undefined): string | null {

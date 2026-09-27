@@ -48,7 +48,7 @@ function isIntegrityEnvelope(value: unknown): value is IntegrityEnvelope {
   );
 }
 
-function getLocalDataDir(): string {
+export function getLocalDataDir(): string {
   const runtimeConfig = getRuntimeConfig();
   if (runtimeConfig.mode === 'local' && runtimeConfig.database.dataDir) {
     return path.resolve(runtimeConfig.database.dataDir);

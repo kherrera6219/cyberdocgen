@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,9 +40,15 @@ export function OrganizationSetup() {
     },
   });
 
-  const { data: organizations = [], isLoading } = useQuery<(Organization & { role: string })[]>({
+  const { data: rawOrgs, isLoading } = useQuery<any>({
     queryKey: ["/api/organizations"],
   });
+
+  const organizations: (Organization & { role: string })[] = useMemo(() => {
+    if (Array.isArray(rawOrgs)) return rawOrgs;
+    if (rawOrgs && Array.isArray(rawOrgs.data)) return rawOrgs.data;
+    return [];
+  }, [rawOrgs]);
 
   const createOrganizationMutation = useMutation({
     mutationFn: async (data: FormData) => {

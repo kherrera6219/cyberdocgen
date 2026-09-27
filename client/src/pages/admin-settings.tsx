@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -37,9 +37,14 @@ export default function AdminSettings() {
   });
 
   // Get user's organizations
-  const { data: organizations } = useQuery<{ id: string; name: string }[]>({
+  const { data: rawOrgs } = useQuery<any>({
     queryKey: ['/api/organizations'],
   });
+  const organizations = useMemo<{ id: string; name: string }[]>(() => {
+    if (Array.isArray(rawOrgs)) return rawOrgs;
+    if (rawOrgs && Array.isArray(rawOrgs.data)) return rawOrgs.data;
+    return [];
+  }, [rawOrgs]);
 
   // Get roles for selected organization
   const { data: roles = [], isLoading: rolesLoading } = useQuery<Role[]>({

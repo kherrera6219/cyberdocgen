@@ -81,6 +81,7 @@ export const complianceNavItems: NavItem[] = [
 ];
 
 export const settingsNavItems: NavItem[] = [
+  { href: "/organizations", icon: Building, label: "Organizations" },
   { href: "/api-keys", icon: KeyRound, label: "AI API Keys" },
   { href: "/cloud-integrations", icon: Cloud, label: "Cloud Integrations" },
   { href: "/local-settings", icon: Settings, label: "Local Settings" },

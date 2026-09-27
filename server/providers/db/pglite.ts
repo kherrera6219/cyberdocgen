@@ -24,6 +24,7 @@ export interface PgliteDbStats {
 
 export class PgliteDbProvider implements IDbProvider {
   private pg: PGlite | null = null;
+  private isReusedInstance = false;
   private readonly dataDir: string;
   private readonly migrationsPath?: string;
 
@@ -65,12 +66,20 @@ export class PgliteDbProvider implements IDbProvider {
       }
 
       // Attempt to reuse the global pgInstance from server/db.ts to avoid double connection lock errors
+      // only if pointing to the same data directory and not closed
       try {
         const dbModule = await import('../../db');
         await dbModule.getDbAsync();
-        if (dbModule.pgInstance) {
+        const globalDataDir = typeof dbModule.getLocalDataDir === 'function' ? path.resolve(dbModule.getLocalDataDir()) : null;
+        if (
+          dbModule.pgInstance &&
+          !(dbModule.pgInstance as any).closed &&
+          globalDataDir &&
+          path.resolve(this.dataDir) === globalDataDir
+        ) {
           logger.info('[PgliteDbProvider] Reusing existing global pgInstance from db.ts');
           this.pg = dbModule.pgInstance;
+          this.isReusedInstance = true;
           return this.createConnectionHandle();
         }
       } catch (dbError) {
@@ -208,8 +217,11 @@ export class PgliteDbProvider implements IDbProvider {
 
   async close(): Promise<void> {
     if (this.pg) {
-      await this.pg.close();
+      if (!this.isReusedInstance) {
+        await this.pg.close();
+      }
       this.pg = null;
+      this.isReusedInstance = false;
       logger.info('[PgliteDbProvider] Connection closed.');
     }
   }

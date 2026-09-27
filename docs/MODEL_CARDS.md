@@ -94,12 +94,12 @@ maxTokens: 8000   // Allow detailed analysis
 
 ---
 
-## Model Card: Gemini 3.1 Pro Preview (Google)
+## Model Card: Gemini 3.8 Flash (Google)
 
 ### Model Overview
 | Field | Value |
 |-------|-------|
-| **Model Name** | Gemini 3.1 Pro Preview |
+| **Model Name** | Gemini 3.8 Flash |
 | **Provider** | Google DeepMind |
 | **Model Type** | Multimodal LLM |
 | **Use Case in CyberDocGen** | Document processing, fallback model |
@@ -130,7 +130,7 @@ maxTokens: 8000   // Allow detailed analysis
 ### CyberDocGen Integration
 ```typescript
 // Usage as fallback
-model: "gemini-3.1-pro-preview"
+model: "gemini-3.8-flash"
 temperature: 0.3
 maxTokens: 4000
 // Used when primary models unavailable

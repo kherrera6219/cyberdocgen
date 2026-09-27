@@ -104,7 +104,7 @@ describe("analytics routes", () => {
       .expect(200);
 
     expect(compliance.body.data.gapAnalysis).toBe("gemini gap analysis");
-    expect(compliance.body.data.model).toBe("gemini-3.5-flash");
+    expect(compliance.body.data.model).toBe("gemini-3.8-flash");
     expect(geminiGenerateContentMock).toHaveBeenCalled();
 
     const quality = await request(app)

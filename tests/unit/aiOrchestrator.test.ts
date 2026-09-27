@@ -113,7 +113,7 @@ describe('AIOrchestrator', () => {
             const result = await aiOrchestrator.generateContent({ prompt: 'test' });
 
             expect(result.result.content).toBe('Gemini Fallback');
-            expect(result.result.model).toBe('gemini-3.5-flash');
+            expect(result.result.model).toBe('gemini-3.8-flash');
         });
     });
 
@@ -181,6 +181,7 @@ describe('AIOrchestrator', () => {
             const models = aiOrchestrator.getAvailableModels();
             expect(models).toContain('gpt-5.4');
             expect(models).toContain('claude-sonnet-4-6');
+            expect(models).toContain('gemini-3.8-flash');
             expect(models).toContain('gemini-3.5-flash');
             expect(models).toContain('auto');
         });

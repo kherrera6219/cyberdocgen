@@ -464,11 +464,11 @@ export default function LocalSettingsPage() {
                     </div>
                     <div>
                       <dt className="text-sm font-medium">Page Count</dt>
-                      <dd className="text-sm text-muted-foreground">{dbInfo?.pageCount.toLocaleString()}</dd>
+                      <dd className="text-sm text-muted-foreground">{typeof dbInfo?.pageCount === 'number' ? dbInfo.pageCount.toLocaleString() : 'N/A'}</dd>
                     </div>
                     <div>
                       <dt className="text-sm font-medium">Page Size</dt>
-                      <dd className="text-sm text-muted-foreground">{dbInfo?.pageSize} bytes</dd>
+                      <dd className="text-sm text-muted-foreground">{typeof dbInfo?.pageSize === 'number' ? `${dbInfo.pageSize} bytes` : 'N/A'}</dd>
                     </div>
                     <div>
                       <dt className="text-sm font-medium">WAL Mode</dt>

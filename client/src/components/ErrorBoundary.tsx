@@ -41,10 +41,8 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     const isProd = process.env.NODE_ENV === 'production';
 
-    // Log error to console in development
-    if (!isProd) {
-      console.error("ErrorBoundary caught an error:", error, errorInfo);
-    }
+    // Log error to console
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
 
     // Call optional error handler
     this.props.onError?.(error, errorInfo);

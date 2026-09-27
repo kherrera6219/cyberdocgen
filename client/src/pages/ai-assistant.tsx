@@ -616,6 +616,7 @@ export default function AIAssistant() {
 
   const getAgentIcon = (agentId: string) => {
     switch (agentId) {
+      case "gemini-3.8-flash":
       case "gemini-3.5-flash":
         return <Sparkles className="h-4 w-4 text-blue-500" />;
       case "compliance-assistant":
@@ -644,17 +645,17 @@ export default function AIAssistant() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  // Add Gemini 3.5 Flash to the list of agents when MCP hasn't registered it yet
+  // Add Gemini 3.8 Flash to the list of agents when MCP hasn't registered it yet
   const allAgents = useMemo(() => (
-    agents.some((agent) => agent.id === 'gemini-3.5-flash')
+    agents.some((agent) => agent.id === 'gemini-3.8-flash' || agent.id === 'gemini-3.5-flash')
       ? agents
       : [
           ...agents,
           {
-            id: 'gemini-3.5-flash',
-            name: 'Gemini 3.5 Flash',
-            description: 'Powered by Google Gemini 3.5 Flash for advanced reasoning.',
-            model: 'gemini-3.5-flash',
+            id: 'gemini-3.8-flash',
+            name: 'Gemini 3.8 Flash',
+            description: 'Powered by Google Gemini 3.8 Flash for advanced reasoning and multimodal compliance.',
+            model: 'gemini-3.8-flash',
             tools: [],
             capabilities: ['Advanced Reasoning', 'Content Generation']
           }

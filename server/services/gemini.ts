@@ -1,10 +1,10 @@
 import { logger } from "../utils/logger";
 import { getGeminiClient as getSharedGeminiClient, resetAIClients } from "./aiClients";
 
-// Gemini model IDs — updated May 2026
-// Primary & Fallback: gemini-3.5-flash — frontier Flash model for agentic and coding tasks
-const GEMINI_PRO_MODEL = "gemini-3.5-flash";
-const GEMINI_FLASH_MODEL = "gemini-3.5-flash";
+// Gemini model IDs — updated September 2026
+// Primary & Fallback: gemini-3.8-flash — frontier Flash model for agentic and coding tasks
+const GEMINI_PRO_MODEL = "gemini-3.8-flash";
+const GEMINI_FLASH_MODEL = "gemini-3.8-flash";
 
 export const getGeminiClient = () => getSharedGeminiClient();
 

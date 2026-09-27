@@ -834,6 +834,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { registerDigitalTwinRoutes } = await import('./routes/digitalTwin');
   registerDigitalTwinRoutes(app);
 
+  // Next-Gen Platform Features: OSCAL, Drift, Diagrams, Policy-as-Code, Auditor Vault
+  const { registerOscalRoutes } = await import('./routes/oscal');
+  registerOscalRoutes(app);
+
+  const { registerDriftRoutes } = await import('./routes/drift');
+  registerDriftRoutes(app);
+
+  const { registerDiagramRoutes } = await import('./routes/diagrams');
+  registerDiagramRoutes(app);
+
+  const { registerPolicyAsCodeRoutes } = await import('./routes/policyAsCode');
+  registerPolicyAsCodeRoutes(app);
+
+  const { registerAuditorVaultRoutes } = await import('./routes/auditorVault');
+  registerAuditorVaultRoutes(app);
+
   // Global Error Handler (Must be last)
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

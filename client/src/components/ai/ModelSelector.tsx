@@ -60,9 +60,9 @@ export function ModelSelector({
       available: health?.anthropic ?? true,
     },
     {
-      value: "gemini-3.5-flash",
-      label: "Gemini 3.5 Flash",
-      description: "Google's premium agentic and coding model with 1M context window (May 2026)",
+      value: "gemini-3.8-flash",
+      label: "Gemini 3.8 Flash",
+      description: "Google's frontier agentic and reasoning model with 1M context window (September 2026)",
       icon: <Cpu className="h-4 w-4" />,
       available: health?.google ?? true,
     },

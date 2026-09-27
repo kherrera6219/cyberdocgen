@@ -266,12 +266,12 @@ Always:
 
   // Direct Gemini Chat Agent
   const geminiDirect: AgentConfig = {
-    id: 'gemini-3.5-flash',
-    name: 'Gemini 3.5 Flash',
+    id: 'gemini-3.8-flash',
+    name: 'Gemini 3.8 Flash',
     description: 'Direct Google Gemini conversational agent for fast drafting, reasoning, and brainstorming',
-    model: 'gemini-3.5-flash',
+    model: 'gemini-3.8-flash',
     tools: [],
-    systemPrompt: `You are Gemini 3.5 Flash operating as an enterprise compliance assistant.
+    systemPrompt: `You are Gemini 3.8 Flash operating as an enterprise compliance assistant.
 
 Your role is to:
 - Provide concise, accurate compliance guidance

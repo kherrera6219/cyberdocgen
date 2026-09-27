@@ -211,14 +211,14 @@ function AuthenticatedRouter() {
         <BoundaryRoute path="/repository-analysis/:snapshotId" component={RepositoryAnalysis} />
         <BoundaryRoute path="/document-versions/:id" component={DocumentVersionsWrapper} />
         <BoundaryRoute path="/user-profile" component={UserProfile} />
-        <BoundaryRoute path="/organizations" component={OrganizationSetup} requiredMode="cloud" requiredFeature="organizationManagement" />
+        <BoundaryRoute path="/organizations" component={OrganizationSetup} />
         <BoundaryRoute path="/storage" component={ObjectStorageManager} />
         <BoundaryRoute path="/ai-specialization" component={IndustrySpecialization} />
         <BoundaryRoute path="/export" component={ExportCenter} />
-        <BoundaryRoute path="/admin" component={AdminSettings} requiredMode="cloud" requiredFeature="userManagement" />
-        <BoundaryRoute path="/local-settings" component={LocalSettings} requiredMode="local" />
-        <BoundaryRoute path="/api-keys" component={ApiKeys} requiredMode="local" />
-        <BoundaryRoute path="/cloud-integrations" component={CloudIntegrations} requiredMode="cloud" />
+        <BoundaryRoute path="/admin" component={AdminSettings} />
+        <BoundaryRoute path="/local-settings" component={LocalSettings} />
+        <BoundaryRoute path="/api-keys" component={ApiKeys} />
+        <BoundaryRoute path="/cloud-integrations" component={CloudIntegrations} />
         <BoundaryRoute path="/profile/settings" component={ProfileSettings} />
         <BoundaryRoute path="/ai-assistant" component={AIAssistant} />
         <BoundaryRoute path="/mcp-tools" component={MCPTools} />
@@ -234,6 +234,22 @@ function AuthenticatedRouter() {
         {/* Phase 4: Gated Trust Center & AI Digital Twin Simulator */}
         <BoundaryRoute path="/trust-center" component={TrustCenter} />
         <BoundaryRoute path="/digital-twin" component={DigitalTwin} />
+        {/* Public & informational pages accessible while authenticated as well */}
+        <BoundaryRoute path="/about" component={About} />
+        <BoundaryRoute path="/features" component={Features} />
+        <BoundaryRoute path="/pricing" component={Pricing} />
+        <BoundaryRoute path="/contact" component={Contact} />
+        <BoundaryRoute path="/privacy" component={Privacy} />
+        <BoundaryRoute path="/terms" component={Terms} />
+        <Route path="/login">
+          <Redirect to="/" />
+        </Route>
+        <Route path="/enterprise-login">
+          <Redirect to="/" />
+        </Route>
+        <Route path="/enterprise-signup">
+          <Redirect to="/" />
+        </Route>
         <Route>
           <ErrorBoundary fallback={<RouteErrorFallback />}>
             <NotFound />
@@ -261,12 +277,12 @@ function PublicRouter() {
         >
           <Switch>
             <BoundaryRoute path="/" component={Landing} />
-        <BoundaryRoute path="/login" component={EnterpriseLogin} requiredMode="cloud" requiredFeature="sso" />
-        <BoundaryRoute path="/enterprise-login" component={EnterpriseLogin} requiredMode="cloud" requiredFeature="sso" />
-        <BoundaryRoute path="/enterprise-signup" component={EnterpriseSignup} requiredMode="cloud" requiredFeature="sso" />
-        <BoundaryRoute path="/forgot-password" component={ForgotPassword} requiredMode="cloud" requiredFeature="sso" />
-        <BoundaryRoute path="/reset-password" component={ResetPassword} requiredMode="cloud" requiredFeature="sso" />
-        <BoundaryRoute path="/mfa-setup" component={MfaSetup} requiredMode="cloud" requiredFeature="mfa" />
+        <BoundaryRoute path="/login" component={EnterpriseLogin} />
+        <BoundaryRoute path="/enterprise-login" component={EnterpriseLogin} />
+        <BoundaryRoute path="/enterprise-signup" component={EnterpriseSignup} />
+        <BoundaryRoute path="/forgot-password" component={ForgotPassword} />
+        <BoundaryRoute path="/reset-password" component={ResetPassword} />
+        <BoundaryRoute path="/mfa-setup" component={MfaSetup} />
         <BoundaryRoute path="/about" component={About} />
         <BoundaryRoute path="/features" component={Features} />
         <BoundaryRoute path="/pricing" component={Pricing} />

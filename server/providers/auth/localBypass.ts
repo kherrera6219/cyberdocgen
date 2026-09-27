@@ -166,6 +166,18 @@ export function localAuthBypassMiddleware(
     return;
   }
 
+  // If a local IPC secret token is configured, enforce it for unauthenticated requests
+  const requiredIpcToken = process.env.LOCAL_IPC_TOKEN?.trim();
+  if (requiredIpcToken && !allowMissingIp) {
+    const providedToken = req.headers['x-local-ipc-token'];
+    const sessionToken = (req as any).session?.localIpcToken;
+    if (providedToken !== requiredIpcToken && sessionToken !== requiredIpcToken) {
+      logger.warn('[LocalAuthBypassProvider] Missing or invalid local IPC token');
+      res.status(403).json({ message: 'Local auth bypass requires valid local IPC token' });
+      return;
+    }
+  }
+
   const session = (req as any).session as Record<string, any> | undefined;
   const sessionUserId =
     typeof session?.userId === 'string' && session.userId.trim().length > 0

@@ -6,11 +6,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // Mock fetch for upload
 global.fetch = vi.fn();
 
+const mockToast = vi.fn();
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: mockToast,
+  }),
+}));
+
 describe('DocumentUploader', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockToast.mockClear();
     queryClient = new QueryClient();
   });
 
@@ -28,7 +36,7 @@ describe('DocumentUploader', () => {
     expect(screen.getByText(/Drag & drop/)).toBeTruthy();
   });
 
-  it.skip('handles file drop (simulation)', async () => {
+  it('handles file drop (simulation)', async () => {
     const { container } = renderComponent();
     
     // Find the hidden input
@@ -37,22 +45,20 @@ describe('DocumentUploader', () => {
     
     const file = new File(['dummy content'], 'test.pdf', { type: 'application/pdf' });
     
-    Object.defineProperty(input, 'files', { value: [file] });
-    fireEvent.change(input);
+    fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
       expect(screen.getByText('test.pdf')).toBeTruthy();
     });
   });
 
-  it.skip('uploads files', async () => {
+  it('uploads files', async () => {
     const { container } = renderComponent();
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     
     const file = new File(['content'], 'test.pdf', { type: 'application/pdf' });
     
-    Object.defineProperty(input, 'files', { value: [file] });
-    fireEvent.change(input);
+    fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => screen.getByText('test.pdf'));
 
@@ -66,7 +72,9 @@ describe('DocumentUploader', () => {
     fireEvent.click(uploadBtn);
 
     await waitFor(() => {
-      expect(screen.getByText('Upload Complete')).toBeTruthy(); // Toast title usually mocked
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Upload Complete' })
+      );
     });
   });
 });

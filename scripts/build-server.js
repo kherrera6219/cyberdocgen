@@ -44,14 +44,49 @@ async function build() {
           fs.copyFileSync(path.join(pgliteDistDir, file), path.join(targetDistDir, file));
           console.log(`Copied PGlite asset to dist: ${file}`);
         }
-        // Copy extension tarballs (e.g. vector.tar.gz) to project root.
+        // Copy only required extension tarballs (e.g. vector.tar.gz) to project root.
         // PGlite resolves extensions via new URL("../vector.tar.gz", bundleUrl)
         // which from dist/index.cjs resolves to the project root (dist/../).
-        if (file.endsWith('.tar.gz')) {
+        const requiredExtensions = ['vector.tar.gz'];
+        if (requiredExtensions.includes(file)) {
           fs.copyFileSync(path.join(pgliteDistDir, file), path.join(root, file));
-          console.log(`Copied PGlite extension tarball to root: ${file}`);
+          console.log(`Copied required PGlite extension tarball to root: ${file}`);
         }
       }
+    }
+
+    // Build Electron main process and preload script if sources exist
+    const electronMain = path.join(root, 'electron', 'main.ts');
+    const electronPreload = path.join(root, 'electron', 'preload.ts');
+    if (fs.existsSync(electronMain)) {
+      console.log('Building Electron main process...');
+      await esbuild.build({
+        entryPoints: [electronMain],
+        bundle: true,
+        platform: 'node',
+        format: 'cjs',
+        banner: {
+          js: 'const __importMetaUrl = "file://" + __filename;'
+        },
+        define: {
+          'import.meta.url': '__importMetaUrl'
+        },
+        external: ['electron', 'electron-updater', 'keytar'],
+        outfile: path.join(root, 'dist', 'electron', 'main.js'),
+      });
+      console.log('Built Electron main: dist/electron/main.js');
+    }
+    if (fs.existsSync(electronPreload)) {
+      console.log('Building Electron preload script...');
+      await esbuild.build({
+        entryPoints: [electronPreload],
+        bundle: true,
+        platform: 'node',
+        format: 'cjs',
+        external: ['electron'],
+        outfile: path.join(root, 'dist', 'electron', 'preload.js'),
+      });
+      console.log('Built Electron preload: dist/electron/preload.js');
     }
 
     const sqliteMigrationsSource = path.join(root, 'server', 'migrations', 'sqlite');

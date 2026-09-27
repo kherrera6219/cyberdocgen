@@ -342,14 +342,14 @@ router.get('/db-info', async (req, res) => {
       });
     }
 
-    const stats = await dbProvider.getStats();
+    const stats = (await dbProvider.getStats()) as any;
 
     res.json({
       path: stats.path,
       size: stats.size,
-      pageCount: stats.pageCount,
-      pageSize: stats.pageSize,
-      walMode: stats.walMode,
+      pageCount: stats.pageCount ?? 0,
+      pageSize: stats.pageSize ?? 4096,
+      walMode: stats.walMode ?? false,
       formattedSize: formatBytes(stats.size),
     });
   } catch (error) {
