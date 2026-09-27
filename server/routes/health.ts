@@ -11,7 +11,7 @@ import { isAuthenticated } from '../replitAuth';
 import { retentionSchedulerService } from '../services/retentionSchedulerService';
 
 const metricsSchema = z.object({
-  eventType: z.string().min(1).max(100).regex(/^[a-zA-Z0-9._-]+$/, 'Event type must be alphanumeric with dots, dashes, or underscores'),
+  eventType: z.string().min(1).max(100).regex(/^[a-zA-Z0-9._:-]+$/, 'Event type must be alphanumeric with dots, dashes, colons, or underscores'),
   eventData: z.record(z.unknown()).optional(),
 });
 

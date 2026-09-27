@@ -105,7 +105,7 @@ export function Home() {
       title: "Risk Assessment",
       description: "AI-powered risk analysis and mitigation recommendations",
       icon: AlertTriangle,
-      href: "/risk-assessment",
+      href: "/risk-register",
       color: "from-orange-500 to-red-500",
       bgColor: "bg-orange-100 dark:bg-orange-900/30",
       badge: null

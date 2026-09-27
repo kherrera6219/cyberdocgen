@@ -77,7 +77,6 @@ export default function TrustCenter() {
 
   const { data: auditLogs = [], isLoading: auditLoading } = useQuery<DownloadAuditLog[]>({
     queryKey: ["/api/trust-center/downloads-audit"],
-    enabled: isNdaVerified // Only fetch if an admin/auditor is exploring
   });
 
   // Mutations
@@ -280,7 +279,7 @@ export default function TrustCenter() {
           <TabsTrigger value="catalog" className="flex items-center gap-2">
             <Globe className="w-4 h-4" /> Security Catalog
           </TabsTrigger>
-          <TabsTrigger value="audit" className="flex items-center gap-2" disabled={!isNdaVerified}>
+          <TabsTrigger value="audit" className="flex items-center gap-2">
             <History className="w-4 h-4" /> Downloads GRC Ledger
           </TabsTrigger>
         </TabsList>

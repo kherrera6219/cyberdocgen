@@ -51,6 +51,44 @@ export async function registerDocumentsRoutes(router: Router) {
     res.json({ success: true, data: documents });
   }));
 
+  /**
+   * @swagger
+   * /api/documents/acknowledgments:
+   *   get:
+   *     summary: Retrieve policy acknowledgment and e-signature histories
+   *     tags: [Documents]
+   *     security:
+   *       - cookieAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: documentId
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: Acknowledgments list retrieved successfully
+   *       401:
+   *         description: Unauthorized
+   */
+  router.get('/acknowledgments', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
+    const userId = getRequiredUserId(req);
+    const documentId = req.query.documentId as string;
+
+    let data;
+    if (documentId) {
+      // Validate document ownership
+      const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
+      if (!authorized || !document) {
+        throw new NotFoundError("Document not found");
+      }
+      data = await storage.getPolicyAcknowledgmentsByDocument(documentId);
+    } else {
+      data = await storage.getPolicyAcknowledgmentsByUser(userId);
+    }
+
+    res.json({ success: true, data });
+  }));
+
   router.get("/:id", isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
     const { document, authorized } = await getDocumentWithOrgCheck(
       req.params.id, 
@@ -690,42 +728,4 @@ Regular compliance checks and gap analysis audits are conducted. Security review
 
     res.status(201).json({ success: true, data: ack });
   }, { audit: { action: 'update', entityType: 'policy_acknowledgment' } }));
-
-  /**
-   * @swagger
-   * /api/documents/acknowledgments:
-   *   get:
-   *     summary: Retrieve policy acknowledgment and e-signature histories
-   *     tags: [Documents]
-   *     security:
-   *       - cookieAuth: []
-   *     parameters:
-   *       - in: query
-   *         name: documentId
-   *         schema:
-   *           type: string
-   *     responses:
-   *       200:
-   *         description: Acknowledgments list retrieved successfully
-   *       401:
-   *         description: Unauthorized
-   */
-  router.get('/acknowledgments', isAuthenticated, requireOrganization, secureHandler(async (req: MultiTenantRequest, res: Response, _next: NextFunction) => {
-    const userId = getRequiredUserId(req);
-    const documentId = req.query.documentId as string;
-
-    let data;
-    if (documentId) {
-      // Validate document ownership
-      const { document, authorized } = await getDocumentWithOrgCheck(documentId, req.organizationId!);
-      if (!authorized || !document) {
-        throw new NotFoundError("Document not found");
-      }
-      data = await storage.getPolicyAcknowledgmentsByDocument(documentId);
-    } else {
-      data = await storage.getPolicyAcknowledgmentsByUser(userId);
-    }
-
-    res.json({ success: true, data });
-  }));
 }

@@ -199,6 +199,9 @@ function AuthenticatedRouter() {
         <BoundaryRoute path="/documents" component={Documents} />
         <BoundaryRoute path="/employee-portal" component={EmployeePortal} />
         <BoundaryRoute path="/risk-register" component={RiskRegister} />
+        <Route path="/risk-assessment">
+          <Redirect to="/risk-register" />
+        </Route>
         <BoundaryRoute path="/gap-analysis" component={GapAnalysis} />
         <BoundaryRoute path="/iso27001-framework" component={ISO27001Framework} />
         <BoundaryRoute path="/soc2-framework" component={SOC2Framework} />

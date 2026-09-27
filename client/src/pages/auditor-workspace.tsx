@@ -155,7 +155,8 @@ export default function AuditorWorkspace() {
   });
 
   const { data: auditTrailData, isLoading: isLoadingAuditLogs, error: auditError } = useQuery<AuditTrailResponse>({
-    queryKey: ["/api/audit-trail", { limit: 50 }],
+    queryKey: ["/api/audit-trail", "limit-50"],
+    queryFn: () => fetch("/api/audit-trail?limit=50").then(res => res.json()).then(json => (json.success && json.data) ? json.data : json) as Promise<AuditTrailResponse>,
   });
 
   const auditLogs = auditTrailData?.logs || [];

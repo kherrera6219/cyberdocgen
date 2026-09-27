@@ -148,10 +148,10 @@ export function PublicFooter() {
           <div>
             <h3 className="font-semibold mb-4">Frameworks</h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/login" className="hover:text-white transition-colors">ISO 27001</Link></li>
-              <li><Link href="/login" className="hover:text-white transition-colors">SOC 2</Link></li>
-              <li><Link href="/login" className="hover:text-white transition-colors">FedRAMP</Link></li>
-              <li><Link href="/login" className="hover:text-white transition-colors">NIST 800-53</Link></li>
+              <li><Link href="/iso27001-framework" className="hover:text-white transition-colors">ISO 27001</Link></li>
+              <li><Link href="/soc2-framework" className="hover:text-white transition-colors">SOC 2</Link></li>
+              <li><Link href="/fedramp-framework" className="hover:text-white transition-colors">FedRAMP</Link></li>
+              <li><Link href="/nist-framework" className="hover:text-white transition-colors">NIST 800-53</Link></li>
             </ul>
           </div>
 
