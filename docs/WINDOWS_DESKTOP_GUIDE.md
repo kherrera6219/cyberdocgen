@@ -8,9 +8,9 @@ CyberDocGen includes a native Windows Desktop application powered by Electron. T
 
 The Windows Desktop build (`npm run build:win`) differs from the Cloud Deployment in two critical ways:
 
-### 1. Embedded Persistence (SQLite)
+### 1. Embedded Persistence (PGlite WASM + pgvector)
 Instead of connecting to an external PostgreSQL database defined by `DATABASE_URL`:
-- The application automatically initializes a local **SQLite** database.
+- The application automatically initializes a local **PGlite WASM** database with `pgvector`.
 - Database File Location: `C:\Users\%USERNAME%\AppData\Roaming\rest-express\cyberdocgen.db` (or `local-data/` in dev mode).
 - Local backend bootstrap secrets file: `C:\Users\%USERNAME%\AppData\Roaming\rest-express\security\backend-secrets.json`.
 - **No configuration required**: The app detects "Local Mode" and handles migrations automatically.
@@ -52,7 +52,7 @@ This pipeline performs the following:
 2.  **Vite Build**: Compiles the React frontend.
 3.  **Server Bundle**: Bundles the Node.js backend to `.cjs` for ASAR compatibility.
 4.  **Electron Build**: Compiles the main process.
-5.  **Native SQLite Prebuild Staging**: Downloads/stages an Electron ABI-compatible `better-sqlite3` binary (`electron:prepare-better-sqlite3`).
+5.  **Native SQLite Prebuild Staging**: Downloads/stages an Electron ABI-compatible `PGlite embedded engine` binary (`electron:prepare-PGlite embedded engine`).
 6.  **Packaging (No broad native rebuild)**: Uses `npmRebuild: false` in `electron-builder.yml` to avoid failing full native rebuilds on machines missing a specific Windows SDK toolchain.
 7.  **Packaging**: Uses `electron-builder` with root NSIS scripts (`installer.nsh`, `uninstaller.nsh`) for guided install UX, completion notifications, and uninstall data retention choices.
 
@@ -161,5 +161,5 @@ Local hardening updates:
 - The app automatically attempts to find an available port starting from `5231`. Ensure your firewall allows local loopback traffic on this range.
 
 ### "Database Error" or "Missing Table"
-- If the database schema changes significantly, the local SQLite file might be incompatible.
+- If the database schema changes significantly, the local PGlite database directory might be incompatible.
 - **Fix**: Delete `%APPDATA%\Roaming\rest-express\cyberdocgen.db` and restart the app to recreate a fresh database.

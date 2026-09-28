@@ -137,7 +137,7 @@ npm run test:e2e
 | Problem | Solution |
 |---------|----------|
 | Port 5000 already in use | `PORT=5001 npm run dev` |
-| SQLite WAL lock errors | Delete `local.db-shm` and `local.db-wal` |
+| Database connection errors | Verify data directory permissions in `.pgdata` |
 | AI calls return 401 | Verify API keys in `.env` |
 | CSRF errors on login | Clear browser cookies and retry |
 | Build fails with TS errors | Run `npm run check` to see specific errors |

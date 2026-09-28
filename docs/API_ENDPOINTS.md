@@ -198,6 +198,91 @@ All endpoints are prefixed with `/api` unless noted otherwise. Authentication is
 
 ---
 
+---
+
+## OSCAL 1.1 Machine-Readable Standards
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/oscal/ssp/generate` | Yes | Generate NIST SP 800-53 or FedRAMP SSP in OSCAL 1.1 JSON/YAML |
+| POST | `/api/oscal/validate` | Yes | Validate an existing OSCAL 1.1 schema payload |
+
+---
+
+## Living SSP & IaC Drift Detection
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/drift/analyze` | Yes | Detect drift between Terraform/CloudFormation code/state and active controls |
+
+---
+
+## Architecture Diagram Vision & Topology Extractor
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/diagrams/analyze` | Yes | Multimodal vision extraction of architecture subnets, boundaries & data flows |
+
+---
+
+## Policy-as-Code (PaC) Synthesizer
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/policy-as-code/synthesize` | Yes | Synthesize OPA Rego rules, terraform tests, and GitHub Actions gating workflows |
+
+---
+
+## Interactive Auditor Vault & WebAuthn Sign-Offs
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/auditor-vault/export` | Yes | Export self-contained `.cyberdoc` audit vault package with SHA-256 evidence seals |
+| POST | `/api/auditor-vault/sign` | Yes | Hardware-backed FIDO2 / WebAuthn cryptographic document approval sign-off |
+
+---
+
+## Gated Customer Trust Center
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/trust-center/documents` | Yes | List public attested compliance reports, policies, and certifications |
+| POST | `/api/trust-center/check-nda` | No | Verify whether a buyer email address has an active, cryptographically signed NDA |
+| POST | `/api/trust-center/sign` | No | Digital HMAC signature execution of NDA agreement |
+| GET | `/api/trust-center/downloads-audit` | Yes | Continuous GRC ledger of all gated document downloads with SHA-256 hashes |
+| GET | `/api/trust-center/download/:id` | Yes | Download dynamically watermarked and AES-256 protected compliance document |
+
+---
+
+## AI Auditor "Digital Twin" Simulator
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/digital-twin/simulate` | Yes | Launch adversarial Auditor vs Admin multi-agent compliance simulation debate |
+| GET | `/api/digital-twin/simulations` | Yes | List historical digital twin simulation runs and readiness scores |
+| GET | `/api/digital-twin/simulations/:id` | Yes | Retrieve full debate transcript, findings matrix, and mock-audit report |
+
+---
+
+## Evidence-to-Control Mappings
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/evidence/mappings` | Yes | List evidence items mapped to framework controls |
+| POST | `/api/evidence/mappings` | Yes | Map evidence artifact to specific compliance control requirement |
+| DELETE | `/api/evidence/mappings/:id` | Yes | Remove evidence-to-control mapping |
+
+---
+
+## Policy Acknowledgments & E-Signatures
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/documents/acknowledgments` | Yes | List policy acknowledgment histories by user or document |
+| POST | `/api/documents/:id/acknowledge` | Yes | Cryptographically e-sign and seal policy acknowledgment envelope |
+
+---
+
 ## Common Error Codes
 
 | Code | HTTP Status | Meaning |

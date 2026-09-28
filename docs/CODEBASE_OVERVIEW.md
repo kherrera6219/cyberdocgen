@@ -27,7 +27,7 @@
 
 ## Executive Summary
 
-**CyberDocGen** is a production-ready, enterprise-grade compliance management platform with AI-powered capabilities. It is currently deployed as a **Local-First Windows Desktop Application** using SQLite and Electron, ensuring that all data remains secure and isolated on the user's local machine. It automates the generation, analysis, and management of compliance documentation for multiple frameworks including ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev 5.
+**CyberDocGen** is a production-ready, enterprise-grade compliance management platform with AI-powered capabilities. It is currently deployed as a **Local-First Windows Desktop Application** using embedded PGlite WASM (with pgvector) and Electron, ensuring that all data remains secure and isolated on the user's local machine. It automates the generation, analysis, and management of compliance documentation for multiple frameworks including ISO 27001:2022, SOC 2, FedRAMP, and NIST 800-53 Rev 5.
 
 ### Key Characteristics
 
@@ -78,7 +78,7 @@
 
 ### Infrastructure
 
-- **Database**: Local SQLite (via `better-sqlite3`)
+- **Database**: Embedded PGlite WASM with `pgvector` extension
 - **Storage**: Local file system (AppData folder)
 - **Deployment**: Windows Desktop Installer (.exe built with Electron builder)
 - **Logging**: Winston structured logging
@@ -659,7 +659,7 @@ GET    /api-docs.json                 - OpenAPI spec (when ENABLE_SWAGGER=true)
 
 ### Desktop & Enterprise Features
 - **Native Desktop App**: Built on Electron with a custom frameless window UI, persistent status bar, and global file dropzones
-- **Local-First Storage**: SQLite database for isolated, offline operations
+- **Local-First Storage**: Embedded PGlite WASM database for isolated, offline operations
 - **Keyboard Shortcuts**: Built-in global shortcuts (e.g. `Ctrl+/`)
 - **Model Context Protocol**: MCP server integration for agent workflows
 

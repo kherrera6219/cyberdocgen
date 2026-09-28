@@ -25,7 +25,7 @@ This guide provides detailed instructions for setting up your development enviro
    ```
    Download from [nodejs.org](https://nodejs.org/)
 
-2. **PostgreSQL** (v16 or higher, optional for local SQLite mode)
+2. **PostgreSQL** (v16 or higher, optional; embedded PGlite WASM with pgvector is used automatically for zero-config local desktop mode)
    ```bash
    psql --version  # Should be 16.x or higher
    ```

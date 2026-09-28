@@ -155,7 +155,7 @@ CyberDocGen uses intelligent model routing:
     ┌────┴─────────────────────────────┐
     │                                  │
 ┌───▼───┐    ┌────────────────────┐    ┌──────────────────────────┐
-│ GPT-5.4│    │ Claude Sonnet 4.6 │    │ Gemini 3.1 Pro Preview  │
+│ GPT-5.4│    │ Claude Sonnet 4.6 │    │ Gemini 3.8 Flash  │
 │        │    │                    │    │       (Fallback)        │
 └───┬───┘    └─────────┬──────────┘    └──────────────────────────┘
     │              │

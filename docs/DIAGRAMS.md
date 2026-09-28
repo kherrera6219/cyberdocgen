@@ -13,7 +13,7 @@ flowchart LR
     Desktop[Electron Shell]
     API[Express API]
     Services[Compliance, Auth, MCP, Connector Services]
-    DB[(PostgreSQL or SQLite)]
+    DB[(PostgreSQL or PGlite WASM)]
     Storage[(Cloud Object Storage or Local Filesystem)]
     Providers[AI Providers]
     External[Drive, OneDrive, SharePoint, Jira, Notion]
@@ -48,7 +48,7 @@ flowchart TD
     Cloud --> CloudFeatures[Multi-tenant features enabled]
 
     Local --> LocalAuth[Auth bypass provider]
-    Local --> LocalDb[SQLite in local app data]
+    Local --> LocalDb[PGlite WASM in local app data]
     Local --> LocalStorage[Local filesystem storage]
     Local --> LocalSecrets[Windows Credential Manager]
     Local --> LocalFeatures[Single-user desktop-safe feature set]

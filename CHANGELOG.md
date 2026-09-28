@@ -8,18 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.4.0] - 2026-05-24
 
 ### Added
+- **NIST / FedRAMP OSCAL 1.1 Export & Validation Engine**: Bidirectional JSON & YAML System Security Plan (SSP) generation adhering strictly to NIST SP 800-53 Rev 5 and FedRAMP Moderate/High standards (`/api/oscal/*`).
+- **Living SSP & IaC Drift Detection**: Real-time discrepancy detector analyzing Terraform source code and `.tfstate` files against documented compliance claims (`/api/drift/*`).
+- **Multimodal Architecture Diagram-to-Graph Extractor**: Gemini 3.8 Flash Vision engine extracting network topologies, boundaries, subnets, and generating NIST Section 9/10 narratives and Mermaid flowcharts (`/api/diagrams/*`).
+- **Policy-as-Code (PaC) Synthesizer**: Automated compiler translating natural-language compliance prose into executable OPA Rego rules, `terraform test` assertions, and GitHub Actions gating workflows (`/api/policy-as-code/*`).
+- **Interactive Auditor Vault & WebAuthn Sign-Offs**: Cryptographic SHA-256 evidence sealing, hardware-backed FIDO2 / Passkey sign-offs, and self-contained zero-dependency `.cyberdoc` vault bundle exports (`/api/auditor-vault/*`).
 - **Zero-Trust Multimodal Evidence Vision Auditor**: Direct image evidence ingestion with Gemini Vision audits, automated compliance verification verdicts, confidence meters, and visual insights.
-- **Gated Customer Trust Center**: Attested compliance status portal featuring cryptographically sealed NDA attestation forms (HMAC-SHA256) and secure dynamic watermarked, password-locked PDF downloads.
-- **AI Auditor Digital Twin debate Simulator**: 3-turn interactive compliance simulation challenging and defending GRC posture, with visual readiness scoring progress charts and complete downloadable mock-audit reports.
+- **Gated Customer Trust Center**: Attested compliance status portal featuring cryptographically sealed NDA attestation forms (HMAC-SHA256) and secure dynamic watermarked, password-locked PDF downloads (`/api/trust-center/*`).
+- **AI Auditor Digital Twin debate Simulator**: 3-turn interactive compliance simulation challenging and defending GRC posture, with visual readiness scoring progress charts and complete downloadable mock-audit reports (`/api/digital-twin/*`).
 - **Real-Time Telemetry Violation Engine**: Real-time screening for compliance policy breaches auto-drafting comprehensive incident reports.
+- **Frontier AI Model Catalog**: Standardized on Google Gemini 3.8 Flash & Gemini Vision, OpenAI GPT-5.4, and Anthropic Claude Sonnet 4.6.
 
 ### Security & Hardening
 - **PowerShell CLI Shell-Escape Protection**: Hardened message parameter parsing to escape double quotes (`\"`), eliminating shell execution syntax crashes during Windows Event Viewer piping.
 - **Proxy-Aware Real Client IP Logging**: Implemented real client IP extraction via standard `x-forwarded-for` and `x-real-ip` headers, providing authentic audit trails for load-balancer VM/cloud deployments.
 - **Upgraded Node.js 22 LTS Runtime**: Migrated all Dockerfiles, CI workflows, and package engines to Node.js v22 to satisfy strict native ABI package compatibility rules.
+- **Embedded PGlite WASM with pgvector**: Replaced legacy SQLite with in-process PostgreSQL WASM and `pgvector` extension for 100% PostgreSQL compatibility and zero-dependency local desktop execution.
 
 ### Fixed
-- Achieved an absolute **0 errors, 0 warnings** clean linter and compilation state by refactoring duplicate imports, unused directives, and unnecessary typecasts.
+- **100% Page Reachability (42/42 Routes)**: Resolved ModeGate locks on `/organizations`, `/admin`, and `/cloud-integrations`; added informational and legal routes to `AuthenticatedRouter`; fixed audit trail and employee portal API route shadowing; verified 42/42 routes with 0 errors via automated Playwright sweeps.
+- **100% Test Pass Rate**: 180 of 180 test files passing (1,633/1,633 tests passed).
+- **Zero Linter and Compiler Errors**: Clean `tsc` strict and `eslint .` validation across all client, server, and shared packages.
 
 ## [Unreleased]
 

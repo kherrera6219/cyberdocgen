@@ -5,7 +5,7 @@
 CyberDocGen supports **two deployment modes**:
 
 1. **Cloud Mode (SaaS)**: Multi-tenant web application on Replit with PostgreSQL and cloud storage
-2. **Desktop Mode (Windows 11)**: Standalone offline application with SQLite and local file storage
+2. **Desktop Mode (Windows 11)**: Standalone offline application with embedded PGlite WASM (with pgvector) and local file storage
 
 This guide covers both deployment configurations.
 
@@ -36,7 +36,7 @@ npm run build:win
 npm run windows:validate   # Validate Windows packaging config/assets
 npm run build              # Build frontend (Vite)
 npm run electron:build     # Build Electron main process
-npm run electron:prepare-better-sqlite3 # Stage Electron ABI prebuilt better-sqlite3 binary
+npm run electron:prepare-@electric-sql/pglite # Stage Electron ABI prebuilt @electric-sql/pglite binary
 npx electron-builder build --win nsis # Package installer
 npm run build:store        # Build APPX package for Microsoft Store
 node scripts/verify-build.js # Verify build artifacts + local startup probes
@@ -75,7 +75,7 @@ No cloud database setup is required for local desktop usage. End users only need
 
 Desktop app automatically runs in local mode with:
 
-- **Database:** SQLite at `%APPDATA%\Roaming\rest-express\cyberdocgen.db`
+- **Database:** PGlite WASM at `%APPDATA%\cyberdocgen\.pgdata`
 - **Storage:** Local files at `%APPDATA%\Roaming\rest-express\files`
 - **Authentication:** Bypassed (auto-login as "Local Admin")
 - **Server:** Localhost-only binding (`127.0.0.1:5231`)

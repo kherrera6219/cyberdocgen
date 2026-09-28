@@ -15,7 +15,7 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
 - **Styling**: Tailwind CSS 3.4 with custom design tokens
 - **State Management**: TanStack React Query for server state, React Hook Form + Zod for forms
 - **Routing**: Wouter for lightweight client-side routing
-- **Pages**: 43 fully implemented page components (refactored for modularity)
+- **Pages**: 42 fully verified, reachable routes across all compliance, AI, and administrative domains
 - **Components**: 100+ organized, reusable UI components (extracted out of monolithic pages)
 - **Data Layers**: Static compliance datasets (FedRAMP, NIST, SOC2, ISO27001) decoupled into `client/src/data/frameworks/`
 - **Custom Hooks**: 9 specialized React hooks
@@ -31,7 +31,7 @@ CyberDocGen is an enterprise-grade compliance management platform that leverages
   - Automatic migration execution and health checking on startup
 - **Storage Layer**: Domain-Driven Design using the **Repository Pattern** and a **Composition Facade** (`server/storage.ts` orchestrates 15 independent domain repositories).
 - **Authentication**: Enterprise authentication with MFA support
-- **AI Integration**: Multi-model orchestration (OpenAI GPT-5.4, Anthropic Claude Sonnet 4.6, Google Gemini 3.1 Pro Preview)
+- **AI Integration**: Multi-model orchestration (OpenAI GPT-5.4, Anthropic Claude Sonnet 4.6, Google Gemini 3.8 Flash & Gemini Vision)
 - **Storage**: Cloud object storage for document assets (Google Cloud Storage)
 - **Route Modules**: 32 organized API route modules
 - **Business Services**: 61 specialized service modules
@@ -204,6 +204,15 @@ CyberDocGen implements the Model Context Protocol to enable programmatic access 
 - Agent-driven compliance testing
 
 ### Enterprise Services Architecture
+
+**Next-Gen Compliance Engines**:
+- `oscalService`: Bidirectional NIST SP 800-53 & FedRAMP OSCAL 1.1 JSON/YAML System Security Plan synthesis and validation
+- `iacDriftService`: Terraform & CloudFormation static IaC and state file drift detection against live compliance baselines
+- `diagramArchitectureService`: Gemini 3.8 Flash Vision architecture diagram parsing, topology extraction, NIST Section 9/10 narratives
+- `policyAsCodeService`: Policy-to-OPA Rego, terraform test assert synthesis, and CI/CD PR compliance gating
+- `auditorVaultService`: Cryptographic SHA-256 evidence chain-of-custody, WebAuthn FIDO2 sign-offs, and self-contained `.cyberdoc` exports
+- `trustCenterService`: Gated public compliance portal with dynamic watermark injection, AES-256 document locks, and HMAC NDA signing
+- `digitalTwinService`: Multi-agent adversarial GRC simulation engine with Auditor Twin vs Admin Twin debates
 
 **Compliance Services**:
 - `complianceGapAnalysisService`: Framework-based gap analysis (ISO, SOC2, FedRAMP, NIST)
