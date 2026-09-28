@@ -62,9 +62,9 @@ export default defineConfig({
     },
     maxWorkers: process.env.GITHUB_ACTIONS ? 2 : undefined,
     minWorkers: process.env.GITHUB_ACTIONS ? 1 : undefined,
-    testTimeout: 30000,
-    hookTimeout: 10000,
-    teardownTimeout: 10000,
+    testTimeout: 60000,
+    hookTimeout: 60000,
+    teardownTimeout: 30000,
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

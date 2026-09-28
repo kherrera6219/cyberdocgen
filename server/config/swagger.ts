@@ -20,8 +20,12 @@ import YAML from 'yaml';
 const originalParseDocument = YAML.parseDocument;
 (YAML as any).parseDocument = function(...args: any[]) {
   const parsed = originalParseDocument.apply(this, args as any) as any;
-  if (parsed && parsed.anchors && typeof parsed.anchors.getNames !== 'function') {
-    parsed.anchors.getNames = () => [];
+  if (parsed) {
+    if (!parsed.anchors) {
+      parsed.anchors = { getNames: () => [] };
+    } else if (typeof parsed.anchors.getNames !== 'function') {
+      parsed.anchors.getNames = () => [];
+    }
   }
   return parsed;
 };
@@ -456,4 +460,11 @@ Common HTTP status codes:
   ],
 };
 
-export const swaggerSpec = swaggerJsdoc(options);
+export const swaggerSpec = (() => {
+  try {
+    return swaggerJsdoc(options);
+  } catch (err) {
+    console.warn('Failed to generate swaggerSpec via swagger-jsdoc:', err);
+    return (options.swaggerDefinition as any) || {};
+  }
+})();
